@@ -16,6 +16,7 @@ import {
 import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { agregarDossiePesquisa } from "@/lib/pesquisa-dossie";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -29,35 +30,89 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
     const { organizationId, papel } = await contextoRg(supabase, userId);
     if (!PAPEIS_LE_RESUMO.includes(papel)) throw new Error("Seu papel não acessa a pesquisa.");
 
-    const [pesquisas, casos, pendencias, evidencias, issues] = await Promise.all([
-      supabase
-        .from("research_cases")
-        .select("*")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("crm_casos")
-        .select("id,codigo,titulo,status,pais,responsavel_id,contrato_assinado,pagamento_confirmado")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
-      supabase
-        .from("research_pending_items")
-        .select("id,research_case_id,severity,status,due_at,title")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
-      supabase
-        .from("research_evidence_items")
-        .select("id,research_case_id,evidence_status")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
-      supabase
-        .from("quality_issues")
-        .select("id,case_id,severidade,status,titulo")
-        .eq("organization_id", organizationId)
-        .eq("dominio", "pesquisa")
-        .in("status", ["aberta", "reconhecida"]),
-    ]);
+    const [
+      pesquisas,
+      casos,
+      pendencias,
+      evidencias,
+      issues,
+      acervosCatalogo,
+      hipoteses,
+      fontes,
+      pedidos,
+      achados,
+      microentregas,
+    ] = await Promise.all([
+        supabase
+          .from("research_cases")
+          .select("*")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("crm_casos")
+          .select("id,codigo,titulo,status,pais,responsavel_id,contrato_assinado,pagamento_confirmado")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_pending_items")
+          .select("id,research_case_id,severity,status,due_at,title")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_evidence_items")
+          .select("id,research_case_id,evidence_status,created_at")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("quality_issues")
+          .select("id,case_id,severidade,status,titulo")
+          .eq("organization_id", organizationId)
+          .eq("dominio", "pesquisa")
+          .in("status", ["aberta", "reconhecida"]),
+        /*
+         * 17/10/2026 — Tela 07 (Pesquisa Genealógica): bloco "Dossiê de
+         * pesquisa" do mockup aprovado (15/10/2026). KPIs e cobertura de
+         * fontes sobre o org inteiro, mesmo recorte dos demais contadores
+         * deste painel — sem tabela nova, sem CHECK novo (ver
+         * `src/lib/pesquisa-dossie.ts`).
+         */
+        supabase
+          .from("genealogical_sources_catalog")
+          .select("id")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_case_hypotheses")
+          .select("id,title,status,confidence_level,created_at")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_sources")
+          .select("id,title,source_type,source_status,repository_or_institution,created_at")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_document_requests")
+          .select("id,status,target_institution")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        /*
+         * 17/10/2026 — Tela 07: régua "da pergunta à microentrega". "Achado"
+         * e "Microentrega" só contam presença real, org-wide, sem CHECK
+         * novo (ver `montarEtapas` em pesquisa-dossie.ts).
+         */
+        supabase
+          .from("genealogical_findings")
+          .select("id")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("ops_microentregas")
+          .select("id")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+      ]);
 
     const listaCasos = linhasDe<Record<string, any>>(casos, "casos de pesquisa");
     const listaPend = linhasDe<Record<string, any>>(pendencias, "pendências de pesquisa");
@@ -80,6 +135,16 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
       } as Record<string, any>;
     });
 
+    const dossie = agregarDossiePesquisa({
+      acervosCatalogo: linhasDe<Record<string, any>>(acervosCatalogo, "acervos do catálogo de fontes"),
+      hipoteses: linhasDe<Record<string, any>>(hipoteses, "hipóteses de pesquisa"),
+      evidencias: listaEvid,
+      fontes: linhasDe<Record<string, any>>(fontes, "fontes de pesquisa"),
+      pedidos: linhasDe<Record<string, any>>(pedidos, "pedidos de documento de pesquisa"),
+      achados: linhasDe<Record<string, any>>(achados, "achados genealógicos"),
+      microentregas: linhasDe<Record<string, any>>(microentregas, "microentregas operacionais"),
+    });
+
     return {
       papel,
       pesquisas: linhas,
@@ -87,6 +152,7 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
       casosSemPesquisa: listaCasos.filter(
         (c) => !linhas.some((l) => l["case_id"] === c["id"]),
       ),
+      dossie,
     };
   });
 
@@ -718,3 +784,111 @@ export const rodarScanPesquisa = createServerFn({ method: "POST" })
       abertas: number;
     };
   });
+
+/**
+ * Miniatura familiar do Dossiê de pesquisa (Tela 07) — vínculos reais de
+ * `genealogical_relationships` para o caso selecionado, com os nomes de
+ * `research_people`. Sem geração/ascendência calculada: mostra o papel real
+ * (`papel_na_linhagem`, texto livre) quando existe, senão o tipo de vínculo
+ * do CHECK real (`relation_type`). Vazio honesto sem relações registradas.
+ */
+export const miniaturaFamiliarDoCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => {
+    if (!data.caseId) throw new Error("Informe o caso.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const userId = context.userId as string;
+    const { organizationId, papel } = await contextoRg(supabase, userId);
+    if (!PAPEIS_LE_RESUMO.includes(papel)) throw new Error("Seu papel não acessa a pesquisa.");
+
+    const { data: relacoes, error: erroRelacoes } = await supabase
+      .from("genealogical_relationships")
+      .select("id,person_from_id,person_to_id,relation_type")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+    if (erroRelacoes) throw new Error(erroRelacoes.message);
+
+    const listaRelacoes = (relacoes ?? []) as Record<string, any>[];
+    const idsPessoas = Array.from(
+      new Set(listaRelacoes.flatMap((r) => [r["person_from_id"], r["person_to_id"]])),
+    ) as string[];
+
+    if (idsPessoas.length === 0) {
+      return {
+        pessoas: [] as { id: string; nome: string; papel: string }[],
+        totalRelacoes: 0,
+        relacoes: [] as { id: string; de: string; para: string; rotulo: string }[],
+        geracoesDocumentadas: 0,
+      };
+    }
+
+    const { data: pessoas, error: erroPessoas } = await supabase
+      .from("research_people")
+      .select("id,canonical_name,preferred_display_name,papel_na_linhagem,geracao")
+      .in("id", idsPessoas)
+      .is("archived_at", null);
+    if (erroPessoas) throw new Error(erroPessoas.message);
+
+    /*
+     * Só tipos simétricos (cônjuge, irmão, colateral, a confirmar) viram
+     * papel dos dois lados. Tipo direcional (pai_mae, filho, tutor,
+     * padrinho) não rotula a pessoa — atribuir "Ascendente" às duas pontas
+     * seria inferir; a aresta aparece explícita em `relacoes`.
+     */
+    const SIMETRICOS = new Set(["conjuge", "irmao", "colateral", "a_confirmar"]);
+    const mapaPapelPorRelacao = new Map<string, string>();
+    for (const r of listaRelacoes) {
+      if (!SIMETRICOS.has(r["relation_type"])) continue;
+      mapaPapelPorRelacao.set(r["person_from_id"], ROTULO_RELACAO[r["relation_type"]] ?? r["relation_type"]);
+      mapaPapelPorRelacao.set(r["person_to_id"], ROTULO_RELACAO[r["relation_type"]] ?? r["relation_type"]);
+    }
+
+    const linhasPessoas = linhasDe<Record<string, any>>(pessoas, "pessoas da miniatura familiar");
+    const listaPessoas = linhasPessoas.map((p) => ({
+      id: String(p["id"]),
+      nome: String(p["preferred_display_name"] ?? p["canonical_name"] ?? "Sem nome registrado"),
+      papel: String(p["papel_na_linhagem"] ?? mapaPapelPorRelacao.get(p["id"]) ?? "Vínculo registrado"),
+    }));
+
+    /*
+     * Prancha V4 (19/10/2026): arestas só como registradas (de → para, tipo
+     * do CHECK real), nunca deduzidas; gerações = valores distintos de
+     * `research_people.geracao` declarados — sem denominador inventado.
+     */
+    const nomePorId = new Map(listaPessoas.map((p) => [p.id, p.nome]));
+    const relacoesExplicitas = listaRelacoes
+      .filter((r) => nomePorId.has(String(r["person_from_id"])) && nomePorId.has(String(r["person_to_id"])))
+      .map((r) => ({
+        id: String(r["id"]),
+        de: nomePorId.get(String(r["person_from_id"]))!,
+        para: nomePorId.get(String(r["person_to_id"]))!,
+        rotulo: ROTULO_RELACAO[r["relation_type"]] ?? String(r["relation_type"]),
+      }));
+    const geracoesDocumentadas = new Set(
+      linhasPessoas.map((p) => String(p["geracao"] ?? "").trim()).filter((g) => g.length > 0),
+    ).size;
+
+    return {
+      pessoas: listaPessoas,
+      totalRelacoes: listaRelacoes.length,
+      relacoes: relacoesExplicitas,
+      geracoesDocumentadas,
+    };
+  });
+
+/** Rótulo em PT-BR do vocabulário real de `relation_type` (CHECK da migration). */
+const ROTULO_RELACAO: Record<string, string> = {
+  pai_mae: "Ascendente",
+  filho: "Descendente",
+  conjuge: "Cônjuge",
+  irmao: "Irmão(ã)",
+  tutor_representante: "Tutor/representante",
+  padrinho_madrinha: "Padrinho/madrinha",
+  colateral: "Colateral",
+  a_confirmar: "Vínculo a confirmar",
+};

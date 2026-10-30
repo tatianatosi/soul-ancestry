@@ -1,0 +1,31 @@
+[data-desk-mockup4] { min-width: 0; font-family: var(--ca-font-body); }
+[data-desk-mockup4] :where(h2,h3,h4) { font-family: var(--ca-font-title); letter-spacing: 0; }
+[data-desk-mockup4] :where(button, input, select, summary) { min-height: var(--ca-touch-target); max-width: 100%; }
+[data-desk-mockup4] :where(button,a) { overflow-wrap: anywhere; }
+[data-desk-mockup4] input[type="checkbox"] { min-height: auto; }
+[data-desk-mockup4="casos"] > .space-y-4 > div:first-child { align-items: flex-start; }
+[data-desk-mockup4] table { background: var(--ca-surface-raised); }
+[data-desk-mockup4="casos"] table { table-layout: fixed; }
+[data-desk-mockup4="casos"] td { overflow-wrap: anywhere; }
+[data-desk-mockup4="casos"] th:first-child { width: 16%; }
+[data-desk-mockup4="casos"] th:last-child { width: 18%; }
+[data-desk-mockup4="casos"] td[data-label="Nome"] a { font-size: var(--ca-text-md); }
+[data-desk-mockup4] thead { background: var(--ca-navy); color: var(--ca-text-inverse); }
+[data-desk-mockup4] thead th { color: var(--ca-text-inverse); font-weight: var(--ca-weight-medium); letter-spacing: 0; }
+[data-desk-mockup4] tbody td { border-bottom: 1px solid var(--ca-border); }
+[data-desk-mockup4] [data-caso360-lote] { border-top: 1px solid var(--ca-border); padding-top: var(--ca-space-4); }
+[data-desk-mockup4] .desk-tema-juridico { border-bottom: 1px solid var(--ca-border); padding: var(--ca-space-4) 0; }
+[data-desk-mockup4] .desk-tema-juridico > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--ca-space-3); cursor: pointer; }
+[data-desk-mockup4] .desk-tema-juridico > summary h2 { font-size: var(--ca-text-xl); color: var(--ca-navy); }
+[data-desk-mockup4] .desk-tema-juridico > summary span { font-size: var(--ca-text-xs); color: var(--ca-text-muted); }
+@media (max-width: 767px) {
+  [data-desk-mockup4] :where(.sm\:grid-cols-2,.md\:grid-cols-3,.sm\:grid-cols-3) { grid-template-columns: minmax(0,1fr); }
+  [data-desk-mockup4] table { min-width: 0 !important; width: 100%; }
+  [data-desk-mockup4] table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  [data-desk-mockup4] table :where(tbody,tr,td) { display: block; width: 100%; }
+  [data-desk-mockup4] tbody tr { margin-bottom: var(--ca-space-4); border: 1px solid var(--ca-border); border-radius: var(--ca-radius-lg); padding: var(--ca-space-3); }
+  [data-desk-mockup4] td { white-space: normal; text-align: left; padding: var(--ca-space-2) 0; overflow-wrap: anywhere; }
+  [data-desk-mockup4] td[data-label]::before { content: attr(data-label); display: block; font-weight: var(--ca-weight-medium); font-size: var(--ca-text-xs); color: var(--ca-text-muted); margin-bottom: var(--ca-space-1); }
+  [data-desk-mockup4] td > div { align-items: flex-start; }
+  [data-desk-mockup4] .desk-tema-juridico > summary { align-items: flex-start; flex-direction: column; }
+}

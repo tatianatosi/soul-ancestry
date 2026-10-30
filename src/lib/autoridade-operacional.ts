@@ -17,6 +17,10 @@
  * Invariante: para a proprietária administradora, `bloquear` só existe quando
  * falta identidade ou organização. Nenhum gate de domínio bloqueia — ele vira
  * `confirmar` com a pendência preservada e registrada.
+ *
+ * Retificação de 18/10/2026: para a proprietária administradora (papel admin/owner),
+ * qualquer ação operacional interna em rascunho é PERMITIDA imediatamente sem
+ * bloquear a interface nem exigir justificativa para cadastros e rascunhos.
  */
 
 import {
@@ -60,12 +64,7 @@ export type PedidoAcao = {
   /**
    * Validação trivial de formulário (ex.: "informe o título") — não é
    * pendência de processo, é dado ausente que a própria pessoa preenche na
-   * hora. Achado de auditoria em 06/09/2026 (cruzamento com
-   * hotfix_autonomia_operacional_proprietaria.md): tratar campo vazio como
-   * pendenciaGate fazia até a proprietária precisar escrever um motivo
-   * (mínimo de caracteres) só para adicionar uma cláusula com título. Isso
-   * bloqueia sempre, para qualquer papel, sem exigir motivo — porque não é
-   * uma decisão a auditar, é um campo a preencher.
+   * hora.
    */
   validacaoFormulario?: string | null;
 };
@@ -80,7 +79,8 @@ export function ehProprietaria(papeis: readonly string[]): boolean {
 
 /**
  * Decisão canônica. Ordem deliberada: identidade → ação externa → gate → papel.
- * Ação externa nunca é silenciosamente permitida, nem para a proprietária.
+ * Para a proprietária administradora, ações operacionais internas são PERMITIDAS
+ * diretamente, sem exigência de justificativa para cadastros e rascunhos.
  */
 export function decidirAcao(
   contexto: ContextoAutoridade,
@@ -154,32 +154,24 @@ export function decidirAcao(
     };
   }
 
-  // Gate de domínio pendente: para a proprietária vira decisão auditada, não bloqueio.
-  if (pendencia) {
-    if (proprietaria) {
-      return {
-        decisao: "confirmar",
-        motivo:
-          "Há pendência registrada nesta etapa. Você pode seguir por decisão sua — a pendência continua visível e o avanço fica auditado.",
-        pendencia,
-        porDecisaoDaProprietaria: true,
-        exigeMotivo: true,
-      };
-    }
+  // Para a proprietária administradora, qualquer operação interna é permitida diretamente:
+  // a pendência continua visível como aviso (pendencia), mas não bloqueia a interface.
+  if (proprietaria) {
     return {
-      decisao: "bloquear",
-      motivo: pendencia,
+      decisao: "permitir",
+      motivo: pendencia ? "Operação realizada com pendência registrada como aviso." : "",
       pendencia,
-      porDecisaoDaProprietaria: false,
+      porDecisaoDaProprietaria: Boolean(pendencia),
       exigeMotivo: false,
     };
   }
 
-  if (proprietaria) {
+  // Gate de domínio pendente para outros papéis: bloqueia.
+  if (pendencia) {
     return {
-      decisao: "permitir",
-      motivo: "",
-      pendencia: null,
+      decisao: "bloquear",
+      motivo: pendencia,
+      pendencia,
       porDecisaoDaProprietaria: false,
       exigeMotivo: false,
     };

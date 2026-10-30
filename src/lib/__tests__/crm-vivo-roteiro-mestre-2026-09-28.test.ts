@@ -121,11 +121,14 @@ describe("uma só próxima ação, mesmo ID, com link de origem", () => {
     expect(listaAcoes(leads, { hoje }).map((l) => l.leadId)).toEqual(["a"]);
   });
 
-  it("/proximas-acoes e Hoje ligam para /calls?lead=<id>", () => {
+  it("/proximas-acoes liga para /calls?lead=<id>", () => {
+    // 17/10/2026 — corte radical na grade V4 de /painel (desk-01-hoje): o
+    // bloco "Próximas ações comerciais" (com data-proximas-acoes-hoje) não
+    // tem equivalente no mockup e saiu da renderização de painel.tsx — a
+    // função/lógica por trás (leadForaDoPipeline, listaAcoes) não mudou, só
+    // deixou de ser chamada nesta rota. /proximas-acoes continua intacta.
     expect(ler("src/components/crm/proximas-acoes.tsx")).toContain("search={{ lead: l.leadId }}");
-    const painelHoje = ler("src/routes/_authenticated/painel.tsx");
-    expect(painelHoje).toContain("data-proximas-acoes-hoje");
-    expect(painelHoje).toContain("search={{ lead: l.id }}");
+    expect(ler("src/routes/_authenticated/painel.tsx")).not.toContain("data-proximas-acoes-hoje");
     expect(ler("src/lib/golive.functions.ts")).toContain("!leadForaDoPipeline(l as never)");
   });
 

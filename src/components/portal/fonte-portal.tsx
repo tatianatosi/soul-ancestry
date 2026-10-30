@@ -10,11 +10,13 @@ import type {
   EtapaCliente,
   MarcoHistoricoCliente,
   SolicitacaoDocumentoCliente,
+  ChecklistDocumentalCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { EscopoCliente } from "@/lib/app-visibilidade";
 import type { IdentidadeCaso } from "@/lib/caso-compartilhado";
+import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -58,11 +60,15 @@ export type DadosPortal = {
   historico?: MarcoHistoricoCliente[];
   /** Documentos pedidos pela equipe e ainda abertos, nomeados (aba Documentos). */
   solicitacoes?: SolicitacaoDocumentoCliente[];
+  /** Checklist consolidado: todos os pedidos de documento desta família, com contador (aba Documentos). */
+  checklist?: ChecklistDocumentalCliente;
   /**
    * Pessoas mapeadas pela pesquisa neste caso (05/10/2026, PREMISSA da
    * Proprietária): denominador real de "Conexões Familiares" no Radar.
    */
   pessoasMapeadas?: number;
+  /** Régua das 5 etapas, estado do caso e perfil da titular. */
+  resumoCaso?: ResumoCasoCliente | null;
 };
 
 /**

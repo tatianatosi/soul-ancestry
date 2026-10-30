@@ -82,7 +82,7 @@ describe("F5 / sair da linha — cobertura do aviso de edição não salva", () 
     const comGuard = telas.filter((c) => readFileSync(c, "utf8").includes("useAvisoEdicaoNaoSalva"));
     expect(comGuard.length).toBeGreaterThanOrEqual(60);
     const pontos = telas.reduce(
-      (soma, c) => soma + (readFileSync(c, "utf8").match(/useAvisoEdicaoNaoSalva\(/g)?.length ?? 0),
+      (soma, c) => soma + (readFileSync(c, "utf8").match(/useAvisoEdicaoNaoSalva(ComConfirmacao)?\(/g)?.length ?? 0),
       0,
     );
     expect(pontos).toBeGreaterThanOrEqual(81);

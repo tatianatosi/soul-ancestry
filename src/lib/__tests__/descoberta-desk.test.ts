@@ -7,7 +7,7 @@ import {
   ROTULO_PRIORIDADE,
   rotuloHumano,
 } from "@/lib/descoberta-desk";
-import { GRUPOS_DESK, SETORES_DESK_V5, setorDaRota } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, SETORES_DESK_V5, setorDaRota, destinoDaAba } from "@/lib/navegacao-desk";
 import { ORDEM_BLOCOS_PAINEL, validarOrdemPainel } from "@/lib/painel-ordem";
 
 const shell = readFileSync("src/components/saas/shell.tsx", "utf8");
@@ -31,8 +31,8 @@ describe("nomenclatura humana", () => {
      * parte de qualidade/checklists continua dentro dela, recolhida.
      */
     expect(navegacao).toContain('{ to: "/qualidade", label: "Radar e matrizes" }');
-    // V4: trilha jurídica virou alimento do caso e saiu do menu.
-    expect(navegacao).toContain('"/matriz-juridica": "ALIMENTO_CONTEXTUAL"');
+    // 18/10/2026: Validação jurídica voltou ao menu em Configuração (Radar e matrizes).
+    expect(navegacao).toContain('{ to: "/matriz-juridica", label: "Validação jurídica" }');
   });
 
   it("mantém os cabeçalhos das telas alinhados ao rótulo humano", () => {
@@ -75,14 +75,11 @@ describe("atalhos de descoberta", () => {
   });
 
   it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
+    // 19/10/2026: reconciliação com o Lovable — o dono vem de GRUPOS_DESK (8
+    // grupos derivados); Radar (/qualidade) e Integrações moram em "Configuração".
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Configuração");
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBeDefined();
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe(
-      "Configuração",
-    );
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Configuração",
-    );
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe("Configuração");
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
   });
@@ -103,6 +100,7 @@ describe("superfícies preservadas", () => {
       "Pessoas & Famílias",
       "Pesquisa",
       "Marketing",
+      "Financeiro",
       "Configuração",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
@@ -130,8 +128,8 @@ describe("superfícies preservadas", () => {
    * passa a ter os 7 ecossistemas canônicos + Governança & Configuração, e
    * as rotas concorrentes ficam só na seção recolhida "Governança / Legado".
    */
-  it("a lateral tem os 7 ecossistemas canônicos + Governança, e o legado fica recolhido", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+  it("a lateral renderiza os 7 grupos da V4 + Financeiro (18/10/2026), e o legado fica recolhido", () => {
+    expect(GRUPOS_DESK).toHaveLength(8);
     expect(SETORES_DESK_V5.map((s) => s.label)).toEqual([
       "Hoje",
       "Comercial",
@@ -139,20 +137,30 @@ describe("superfícies preservadas", () => {
       "Pessoas & Famílias",
       "Pesquisa",
       "Marketing",
-      "Formalização & Financeiro",
-      "Governança & Configuração",
+      "Financeiro",
+      "Configuração",
     ]);
+    // Formalização & Financeiro se desfez; Financeiro fica sozinho.
+    expect(SETORES_DESK_V5.find((s) => s.id === "financeiro")!.abas.map((a) => a.to)).toEqual(["/financeiro"]);
+    expect(setorDaRota("/contratos")?.id).toBe("comercial");
+    expect(setorDaRota("/ordens-servico")?.id).toBe("casos");
+    expect(setorDaRota("/matriz-juridica")?.id).toBe("governanca");
+    expect(setorDaRota("/proximas-acoes")?.id).toBe("hoje");
+    expect(setorDaRota("/metricas")?.id).toBe("marketing");
+    expect(setorDaRota("/acessos-portal")?.id).toBe("pessoas");
     const abas = SETORES_DESK_V5.flatMap((s) => s.abas.map((a) => a.to));
-    for (const r of ["/crm-mestre", "/conversao", "/ops", "/ops-excecoes", "/tarefas", "/proximas-acoes", "/microentregas", "/metricas"]) {
-      expect(abas, r).not.toContain(r);
-      expect(setorDaRota(r)?.id, r).toBe("governanca");
-    }
-    expect(navegacao).toContain("DIVERGÊNCIA RESOLVIDA em 13/10/2026");
+    expect(abas).not.toContain("/ops-excecoes");
     expect(shell).toContain("MENU_LEGADO_DESK");
-    // Rota→setor resolve inclusive página contextual fora do menu.
+    expect(shell).toContain("SETORES_DESK.map");
     expect(setorDaRota("/casos/abc-123")?.id).toBe("casos");
-    expect(setorDaRota("/contrato-parametros/xyz")?.id).toBe("contratos");
+    expect(setorDaRota("/contrato-parametros/xyz")?.id).toBe("comercial");
     expect(setorDaRota("/rota-que-nao-existe")).toBeUndefined();
+  });
+
+  it("links com âncora do caso vão ao caso aberto quando há caseId", () => {
+    const caso360 = { label: "Caso 360", to: "/casos", hash: "visao" };
+    expect(destinoDaAba(caso360, "/casos/abc-123")).toEqual({ to: "/casos/$caseId", hash: "visao", caseId: "abc-123" });
+    expect(destinoDaAba(caso360, "/painel")).toEqual({ to: "/casos", hash: "visao" });
   });
 
   it("o protótipo antigo saiu do runtime; o mockup aprovado volta como referência (CA-UX-04, revisto 05/09/2026)", () => {

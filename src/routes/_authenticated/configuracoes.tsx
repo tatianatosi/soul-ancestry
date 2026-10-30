@@ -10,8 +10,11 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { definirPapel, listarAuditoria, listarUsuarios, type Papel } from "@/lib/saas.functions";
 import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
-import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
+import { ConfiguracaoAcessoV4 } from "@/components/desk/configuracao-acesso-v4";
+import { KpiCard } from "@/components/clube-ancestral-kit";
 import { GovernancaConectada } from "@/components/desk/superficies-kit-conectadas";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -74,31 +77,37 @@ function ConfiguracoesPage() {
   });
 
   return (
-    <SaasShell titulo="Configuração & Acesso Master" descricao="Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
+    <SaasShell titulo="Configuração & Acesso" descricao="Composição da prancha V4. Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
       <GovernancaConectada />
-      <section aria-label="Resumo de acesso master" className="mb-4 space-y-3">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <KpiCard label="Membros" value={usuariosOperacionais?.length} detail="Contas operacionais vinculadas" />
-          <KpiCard label="Papéis disponíveis" value={PAPEIS.length} detail="Perfis internos controlados" />
-          <KpiCard
-            label="Modo Proprietária"
-            value={qModo.data ? (qModo.data.ativo ? "Ativo" : "Inativo") : null}
-            detail="Autoridade confirmada no servidor"
-            tone={qModo.data?.ativo ? "success" : "neutral"}
-          />
-        </div>
-        <KitCard
-          eyebrow="Acesso Master"
-          title="Política operacional"
-          action={<KitBadge tone="gold">Confirmação externa obrigatória</KitBadge>}
-        >
-          <p className="text-sm text-navy/70">
-            Papéis, decisões da Proprietária e alterações de acesso permanecem validados no servidor e registrados na auditoria.
-          </p>
-        </KitCard>
+      <section aria-label="Resumo de acesso master" className="mb-4 grid gap-3 sm:grid-cols-3">
+        <KpiCard label="Membros" value={usuariosOperacionais?.length} detail="Contas operacionais vinculadas" />
+        <KpiCard label="Papéis disponíveis" value={PAPEIS.length} detail="Perfis internos controlados" />
+        <KpiCard
+          label="Modo Proprietária"
+          value={qModo.data ? (qModo.data.ativo ? "Ativo" : "Inativo") : null}
+          detail="Autoridade confirmada no servidor"
+          tone={qModo.data?.ativo ? "success" : "neutral"}
+        />
       </section>
-      <details className="mt-4 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer font-medium text-navy">Abrir Modo Proprietária</summary>
+      {/*
+        Prancha V4 (19/10/2026): Permissões · painel selecionado (Política
+        operacional por padrão) · Registro de auditoria — somente leitura,
+        sobre as mesmas consultas desta rota.
+      */}
+      <ConfiguracaoAcessoV4
+        liberado={liberado}
+        motivoBloqueio={decisao.motivo}
+        papelAtual={qModo.data?.papel}
+        usuarios={usuariosOperacionais}
+        carregandoUsuarios={q.isLoading}
+        eventos={qAuditoria.data}
+        carregandoEventos={qAuditoria.isLoading}
+        erroEventos={qAuditoria.error}
+        rotuloAcao={rotuloAcaoEvento}
+        renderTrilha={(eventos) => <TrilhaAuditoria eventos={eventos} />}
+      />
+      <CaCard className="mt-4"><details>
+        <summary className="cursor-pointer font-serif text-lg text-navy">Abrir Modo Proprietária</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
           <PainelModoProprietaria
             dados={qModo.data}
@@ -107,10 +116,10 @@ function ConfiguracoesPage() {
             aoTentarNovamente={() => void qModo.refetch()}
           />
         </div>
-      </details>
+      </details></CaCard>
 
-      <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer font-medium text-navy">Abrir gestão detalhada de membros e permissões</summary>
+      <CaCard className="mt-6"><details>
+        <summary className="cursor-pointer font-serif text-lg text-navy">Abrir gestão detalhada de membros e permissões</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
 
       {!liberado ? (
@@ -133,7 +142,7 @@ function ConfiguracoesPage() {
                   <p className="font-medium text-navy">{u.nome ?? u.email ?? "Membro"}</p>
                   <p className="text-xs text-navy/50">{u.email ?? u.userId}</p>
                 </div>
-                {u.arquivado ? <span className="text-xs text-navy/50">Arquivado</span> : null}
+                {u.arquivado ? <Etiqueta texto="Arquivado" /> : null}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {PAPEIS.map((papel) => {
@@ -168,10 +177,10 @@ function ConfiguracoesPage() {
         </EstadoDados>
       )}
         </div>
-      </details>
+      </details></CaCard>
 
-      <details className="mt-4 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer font-medium text-navy">Abrir trilha de auditoria</summary>
+      <CaCard className="mt-4"><details>
+        <summary className="cursor-pointer font-serif text-lg text-navy">Abrir trilha de auditoria</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
           {!liberado ? (
             <EstadoVazio mensagem={decisao.motivo} />
@@ -188,7 +197,7 @@ function ConfiguracoesPage() {
             </EstadoDados>
           )}
         </div>
-      </details>
+      </details></CaCard>
     </SaasShell>
   );
 }

@@ -12,6 +12,7 @@
  * revisão de copy da marca vai acontecer.
  */
 import { useEffect, useState } from "react";
+import { useCasoGoLive, useEscritorGoLive } from "@/components/golive/dados";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -26,11 +27,12 @@ const areaCls =
   "mt-1 w-full rounded-lg border border-navy/15 bg-white px-2.5 py-1.5 text-xs text-navy focus:border-gold focus:outline-none";
 
 export function RascunhosApp() {
-  const listar = useServerFn(listarRascunhosProjecaoApp);
-  const salvar = useServerFn(salvarRascunhoProjecaoApp);
-  const publicar = useServerFn(publicarRascunhoProjecaoApp);
+  const listar = useEscritorGoLive(listarRascunhosProjecaoApp);
+  const salvar = useEscritorGoLive(salvarRascunhoProjecaoApp);
+  const publicar = useEscritorGoLive(publicarRascunhoProjecaoApp);
 
-  const q = useQuery({ queryKey: ["rascunhos-app"], queryFn: () => listar({}), retry: false });
+  const casoRascunhos = useCasoGoLive();
+  const q = useQuery({ queryKey: ["rascunhos-app", casoRascunhos ?? "caso-canonico"], queryFn: () => listar({}), retry: false });
   const [textos, setTextos] = useState<Record<string, string>>({});
 
   // O que vem do servidor é a verdade; a edição local só sobrepõe depois que

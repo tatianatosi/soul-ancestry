@@ -7,6 +7,7 @@ import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Selo, inputCls } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { varreduraConciliacaoCatalogo } from "@/lib/conciliacao-catalogo.functions";
 
 export const Route = createFileRoute("/_authenticated/conciliacao-catalogo")({
@@ -64,23 +65,12 @@ function ConciliacaoCatalogoPage() {
       <div className="space-y-4">
         {resumo ? (
           <CaCard variante="compacto" titulo="Síntese da conciliação (sem DEMO/TESTE)">
-            <div className="grid gap-3 sm:grid-cols-4">
-              <div className="rounded-lg border border-navy/10 p-3">
-                <div className="text-2xl font-serif text-navy">{resumo.total}</div>
-                <div className="text-xs text-navy/60">propostas conciliadas</div>
-              </div>
-              <div className="rounded-lg border border-navy/10 p-3">
-                <div className="text-2xl font-serif text-navy">{resumo.liberadas}</div>
-                <div className="text-xs text-navy/60">liberadas para OS e contrato</div>
-              </div>
-              <div className="rounded-lg border border-navy/10 p-3">
-                <div className="text-2xl font-serif text-terracotta">{resumo.bloqueadas}</div>
-                <div className="text-xs text-navy/60">bloqueadas por divergência</div>
-              </div>
-              <div className="rounded-lg border border-navy/10 p-3">
-                <div className="text-2xl font-serif text-gold">{resumo.atencao}</div>
-                <div className="text-xs text-navy/60">liberadas com pontos de atenção</div>
-              </div>
+            {/* V4-05: mesmos 4 números do resumo do servidor, no Indicador do kit V4. */}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Indicador rotulo="Propostas conciliadas" valor={String(resumo.total)} />
+              <Indicador rotulo="Liberadas para OS e contrato" valor={String(resumo.liberadas)} />
+              <Indicador rotulo="Bloqueadas por divergência" valor={String(resumo.bloqueadas)} />
+              <Indicador rotulo="Liberadas com atenção" valor={String(resumo.atencao)} />
             </div>
           </CaCard>
         ) : null}

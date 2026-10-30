@@ -3,33 +3,34 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { useGoLive } from "@/components/golive/dados";
-import { CardsAlertasCentrais } from "@/components/painel/cards-alertas-centrais";
+import { listarExcecoes } from "@/lib/ops.functions";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { Button } from "@/components/ui/button";
+import { DonutEstados, Etiqueta, GraficoLinha, Linha, type Tom } from "@/components/prancha-v4/kit";
+import { FunilDegraus } from "@/components/prancha-v4/funil-degraus";
 import { CaCard } from "@/components/ui/ca-card";
+import "@/components/desk/mockup4-superficies.css";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
-import { rotulo as rotuloCrm } from "@/lib/crm-desk";
 import { concluida } from "@/lib/golive-microentregas";
 import {
-  casosPorPaisVia,
   faixaDePrazo,
   kpisHoje,
   kpisPrazo,
   origemDoSinal,
   prioridadeDaCarteira,
-  propostasAguardandoResposta,
   ritmoSemanal,
   temRitmo,
+  ROTULOS_ORIGEM,
   type AcaoOperacional,
 } from "@/lib/golive-operacao";
-import { radarMarcosJuridicosDoPainel } from "@/lib/radar-marcos-juridicos.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
       { title: "Visão Geral — Clube Ancestral" },
-      { name: "description", content: "Fila priorizada do dia (Painel Hoje), exceções sem dono, comercial e casos com prazo." },
+      { name: "description", content: "Painel Hoje: decisões, cadência, microentregas, funil e ritmo operacional." },
       { property: "og:title", content: "Visão Geral — Clube Ancestral" },
       { property: "og:description", content: "O que precisa de ação hoje, por quem e até quando." },
       { property: "og:type", content: "website" },
@@ -47,35 +48,16 @@ function Painel() {
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
-      <PainelConsolidado />
+      <FonteAlimento
+        fonte="Exceções, sinais e descobertas derivados das fichas reais"
+        consumidor="A decisão do dia da equipe — nada aqui é digitado, tudo é derivado"
+        detalheTecnico="painel-caso-destaque · pendencias-humanas-caso"
+      />
+      <div data-desk-mockup4="hoje"><PainelConsolidado /></div>
     </SaasShell>
   );
 }
 
-/**
- * O que cada linha pede da equipe — nome do que a ação faz de fato, não do
- * exemplo do De-Para que ela lembra.
- *
- * §11 linha 3 exemplifica quatro decisões. Duas têm correspondência exata na
- * fila: "Aprovar escopo" é `aprovar_escopo`; "Rever proposta" é a proposta
- * ainda não aprovada, que aparece aqui como escopo pendente. As outras duas
- * NÃO estão nesta fila, e não vou renomear ação alheia para fingir que estão:
- *
- *  - "Liberar pesquisa" é liberação externa (`registrarLiberacaoExterna`, em
- *    `pesquisa/modulo.tsx`), não a aprovação interna do achado. Aprovar um
- *    achado é decisão de pesquisa; liberar é decisão de publicação.
- *  - "Confirmar documento mínimo" é `confirmarDocumentosMinimos`
- *    (`crm_casos.documentos_minimos_ok`, o gate que o portal consulta), e a
- *    fila de aprovações não a enxerga.
- *
- * Dívida declarada: as duas ficam de fora da contagem até entrarem na fila
- * pela função pura, e não por um número somado à mão na tela.
- */
-/**
- * Etapas comerciais gravadas em `leads.etapa`, com o nome que a prancha usa
- * (§11 linha 8: "Novos leads, Discovery, Diagnóstico, Cliente"). Etapa fora
- * desta tabela aparece com o valor cru — esconder seria perder o dado.
- */
 const ROTULO_ETAPA: Record<string, string> = {
   novo: "Novos leads",
   novo_lead: "Novos leads",
@@ -95,40 +77,53 @@ const ROTULO_DECISAO: Record<ItemAprovacao["acao"], string> = {
   nenhuma: "Completar dado antes de decidir",
 };
 
+/*
+  19/10/2026 — conferência bloco a bloco com a prancha V4 (desk-01-hoje): os
+  cartões de lista da prancha são linhas com etiqueta de contagem/estado à
+  direita (Cadência, Sem próxima ação, Alertas) — não barras. A contagem é
+  sempre mostrada, inclusive "0"; zero não é erro.
+*/
+const TOM_DECISAO: Record<ItemAprovacao["acao"], { texto: string; tom: Tom }> = {
+  aprovar_achado: { texto: "Decidir", tom: "critico" },
+  aprovar_escopo: { texto: "Decidir", tom: "critico" },
+  enviar_revisao: { texto: "Decidir", tom: "critico" },
+  registrar_assinatura: { texto: "Decidir", tom: "critico" },
+  publicar: { texto: "Decidir", tom: "critico" },
+  // Sem ação possível até completar o dado: atenção, não decisão.
+  nenhuma: { texto: "Atenção", tom: "atencao" },
+};
+
+function tomDaFaixa(faixa: string): Tom {
+  if (faixa === "Vencida") return "critico";
+  if (faixa === "Hoje" || faixa === "Aguardando externo") return "atencao";
+  if (faixa === "Concluída") return "sucesso";
+  return "neutro";
+}
+
+function LinhaContagem({ rotulo, valor, tom }: { rotulo: string; valor: number; tom: Tom }) {
+  return <Linha rotulo={rotulo} valor={String(valor)} tom={valor > 0 ? tom : "neutro"} />;
+}
+
+function SemDados({ ativo, marca }: { ativo: boolean; marca: string }) {
+  return ativo ? (
+    <p className="mt-2 text-xs font-medium text-navy/70" {...{ [marca]: "" }}>
+      Sem dados suficientes
+    </p>
+  ) : null;
+}
+
 function PainelConsolidado() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  // P25 (26/09/2026) — "Radar de marcos jurídicos e casos impactados",
-  // pedido explícito da Proprietária. Consulta própria (dado que
-  // useGoLive não carrega marcos jurídicos): junção trilha × marco × caso
-  // ligado, feita no servidor, sem tabela nova.
-  const carregarRadarJuridico = useServerFn(radarMarcosJuridicosDoPainel);
-  const qRadarJuridico = useQuery({
-    queryKey: ["painel-radar-marcos-juridicos"],
-    queryFn: () => carregarRadarJuridico(),
-    retry: false,
-  });
 
   if (isPending) return <p className="mt-8 text-sm text-navy/60">Carregando indicadores consolidados…</p>;
   if (error) return <p className="mt-8 text-sm text-terracotta">Não foi possível carregar os indicadores consolidados.</p>;
   if (!caso) return <EstadoVazio mensagem="Sem registros para consolidar — nenhuma organização com dados suficientes foi encontrada." />;
 
   const hoje = kpisHoje(caso.carteira, caso.tarefas);
-  /*
-    Mesma conta que /golive/microentregas publica como "Aguardando revisão",
-    com fonte e fórmula declaradas lá ("Itens ainda não concluídos"). Reusa
-    `concluida` do módulo canônico em vez de reimplementar o critério — se a
-    regra mudar, os dois números mudam juntos.
-  */
-  const microentregasAguardandoRevisao = caso.microentregas.filter((m) => !concluida(m)).length;
-  /*
-    "Decisões do dia" (§11 linha 2) tem fonte: é a mesma fila que
-    /golive/aprovacoes publica, pela mesma função pura e sobre os mesmos
-    campos do caso. §11 exige contagem "reconciliada com as listas abaixo" —
-    e o card "Decisões prioritárias" (§11 linha 3) logo abaixo lista
-    exatamente os itens que compõem este número. Reconciliado por construção,
-    não por coincidência: se um deles mudar, os dois mudam.
-  */
+  const microentregasAbertas = caso.microentregas.filter((m) => !concluida(m));
+  const microentregasAguardandoRevisao = microentregasAbertas.length;
+
   const filaDecisoes = filaDeAprovacoes({
     achados: caso.achados,
     propostas: caso.propostas,
@@ -137,55 +132,44 @@ function PainelConsolidado() {
   });
   const decisoesPendentes = filaDecisoes.filter((i) => i.situacao === "pendente");
   const decisoesDoDia = resumoAprovacoes(filaDecisoes).pendentes;
-  /*
-    §11 linhas 8, 10 e 11. As três contas já existiam como função pura em
-    `golive-operacao`/`golive-comercial`, consumidas pelas telas de /golive —
-    o que faltava era o Hoje chamar as mesmas, em vez de somar por conta
-    própria. §11 linha 11 exige que os valores "batam com a fonte de
-    tarefas/casos": `prioridadeDaCarteira` usa exatamente a carteira ativa
-    dos KPIs acima, e caso encerrado não entra.
 
-    O ritmo vem em 6 semanas, como a prancha pede (a função aceita 7 por
-    padrão), e só aparece quando há microentrega concluída com data — sem
-    isso a linha seria uma régua de zeros fingindo série histórica.
-  */
-  const ritmo = temRitmo(caso.microentregas) ? ritmoSemanal(caso.microentregas, 6) : [];
+  const comRitmo = temRitmo(caso.microentregas);
+  const ritmo = ritmoSemanal(caso.microentregas, 6);
   const prioridades = prioridadeDaCarteira(caso.carteira);
-  // P25 (26/09/2026) — "Casos ativos por fase, país, responsável e saúde",
-  // pedido explícito da Proprietária. Mesma carteira ativa já usada acima
-  // (país/via reais de crm_casos, sem query nova).
-  const porPaisVia = casosPorPaisVia(caso.carteira);
-  // P27 (26/09/2026) — "Propostas aguardando resposta"/"Contratos aguardando
-  // assinatura"/"Pagamentos pendentes/vencidos" (Pacote de Instruções, bloco
-  // Painel Hoje). Mesma carteira ativa (eixo_comercial) + contratos/faturas
-  // já carregados pela mesma função de go-live — nenhuma consulta nova aqui.
-  const propostasSemResposta = propostasAguardandoResposta(caso.carteira);
+  const fatiasPrioridade = (
+    [
+      ["critica", "Crítica", "terracotta"],
+      ["alta", "Alta", "gold"],
+      ["media", "Média", "navy"],
+      ["baixa", "Baixa", "sucesso"],
+    ] as const
+  ).map(([chave, rotulo, tom]) => ({
+    rotulo,
+    tom,
+    valor: prioridades.find((p) => p.rotulo === chave)?.valor ?? 0,
+  }));
+  const comPrioridade = prioridades.length > 0;
+
   const leads = caso.leadsComerciais as LeadComercial[];
-  // §11 linha 8 — funil por etapa comercial gravada. Sem período definido no
-  // dado: a prancha pede "30 dias quando houver período definido", e não há.
   const funilLeads = kanbanPorEtapa(leads)
     .map((g) => ({ etapa: g.etapa, total: g.leads.length }))
     .sort((a, b) => b.total - a.total);
-  /*
-    §11 linhas 5, 6, 7 e 9 — as quatro contas que faltavam. Todas vêm de
-    função canônica já usada por outra tela — o Hoje passa a chamar a mesma,
-    para os números não divergirem. Onde a fonte não sustenta um recorte que
-    a prancha nomeia (ex.: "encerrado no mês"), o card mostra o que existe e
-    declara o corte, em vez de inventar data.
-  */
-  // §11 linha 5 — cadência dos casos: KPIs de prazo já calculados sobre o
-  // MESMO array de tarefas visíveis (`kpisPrazo`).
+  const ETAPAS_FUNIL = ["novo", "discovery", "diagnostico", "proposta", "cliente"];
+  const totalEtapa = (e: string) =>
+    funilLeads.filter((f) => f.etapa === e || (e === "novo" && f.etapa === "novo_lead")).reduce((s, f) => s + f.total, 0);
+  const funilDegraus = ETAPAS_FUNIL.map((e) => ({ rotulo: ROTULO_ETAPA[e]!, total: totalEtapa(e) }));
+  // Etapa gravada fora das cinco do funil não some: aparece em linha à parte.
+  const foraDoFunil = funilLeads
+    .filter((f) => !ETAPAS_FUNIL.includes(f.etapa) && f.etapa !== "novo_lead")
+    .map((f) => ({ rotulo: ROTULO_ETAPA[f.etapa] ?? f.etapa, total: f.total }));
+
   const cadencia = kpisPrazo(caso.tarefas);
-  // §11 linha 6 — casos sem próxima ação, com quebra por natureza.
   const semAcao = {
     parados: caso.carteira.filter((c) => !c.temProximaAcao && (c.status ?? "").toLowerCase() !== "encerrado").length,
+    // "Caso pausado" da prancha: só o status gravado com "paus" conta — sem inferir pausa de inatividade.
+    pausados: caso.carteira.filter((c) => /paus/i.test(c.status ?? "")).length,
     encerrados: caso.carteira.filter((c) => (c.status ?? "").toLowerCase() === "encerrado").length,
   };
-  // §11 linha 7 — microentregas prontas para revisão (já calculado acima).
-  // Reusa `microentregasAguardandoRevisao` — sem duplicar critério.
-  // §11 linha 9 — alertas centralizados por origem, do mesmo `origemDoSinal`
-  // que /golive já usa. `caso.eventos` pode vir vazio; nesse caso o card
-  // exibe estado vazio explícito.
   const alertasPorOrigem = origemDoSinal(caso.eventos ?? []);
   const itensKanban: AcaoOperacional[] = [
     ...caso.tarefas,
@@ -199,118 +183,38 @@ function PainelConsolidado() {
       responsavel: m.responsavel,
     })),
   ];
+
   return (
-    <section aria-labelledby="painel-consolidado-titulo">
-      {/* O título "Hoje" já vem do topo do Desk (prancha V4); aqui fica só para leitor de tela. */}
-      <div className="mb-5 flex flex-wrap items-end justify-end gap-3">
-        <h2 id="painel-consolidado-titulo" className="sr-only">Hoje</h2>
-        <span className="rounded-full border border-navy/15 bg-card px-3 py-1 text-[11px] font-medium text-navy/65">Dados conectados</span>
-      </div>
+    <section aria-labelledby="painel-consolidado-titulo" data-painel-hoje-v4>
+      <h2 id="painel-consolidado-titulo" className="sr-only">Hoje</h2>
 
-      {/*
-        P5 (11/10/2026) — fila de prioridades ligada à RPC canônica
-        `proxima_acao_prioritaria_lote`. Componente já existia
-        (cards-alertas-centrais.tsx) mas não estava montado em nenhuma rota.
-      */}
-      <CardsAlertasCentrais />
-
-      {/*
-        Faixa de 4 indicadores do Hoje (§11 do De-Para).
-
-        §11 e §26 exigem contagem CLICÁVEL, que abra a lista de origem e
-        reconcilie com ela. Cada número aqui abre a tela onde a mesma conta
-        é feita, da mesma fonte — não uma lista parecida.
-
-        21/09/2026: "Decisões do dia" deixou de ser "Não registrado". A regra
-        existe e já estava no repositório — `filaDeAprovacoes` classifica
-        achado, proposta e contrato em pendente/pronto, e "Aprovar escopo",
-        um dos quatro exemplos da linha 3 do De-Para, é literalmente uma das
-        suas ações. O que faltava era a Visão Geral usar a mesma função da
-        tela que já a usava, em vez de um número próprio.
-      */}
-      <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
+      {/* Topo — 4 KPIs (grade V4, desk-01-hoje). */}
+      <dl className="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
-          {
-            rotulo: "Decisões do dia",
-            valor: decisoesDoDia,
-            apoio: "aguardam decisão da equipe",
-            to: "/golive/aprovacoes",
-          },
-          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
-          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisam de decisão", to: "/golive" },
+          { rotulo: "Decisões do dia", valor: decisoesDoDia, apoio: "aguardando você", to: "/golive/aprovacoes" },
+          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/casos" },
+          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisa de decisão", to: "/casos" },
           {
             rotulo: "Microentregas para revisão",
             valor: microentregasAguardandoRevisao,
-            apoio: "aguardando revisão humana",
-            to: "/golive/microentregas",
+            apoio: "prontas para conferir",
+            to: "/microentregas",
           },
-        ].map((k) => {
-          const conteudo = (
-            <>
-              {/* Os quatro têm número agora; o ramo de ausência saiu junto
-                  com o último "Não registrado". */}
-              <dd className="font-serif text-2xl text-navy">{k.valor}</dd>
-              <dt className="mt-0.5 text-xs text-navy/70">{k.rotulo}</dt>
-              <p className="text-[11px] text-navy/45">{k.apoio}</p>
-            </>
-          );
-          const classe = "block min-h-28 rounded-lg border border-border bg-card px-5 py-4 text-left shadow-sm transition-colors";
-          return k.to ? (
-            <Link key={k.rotulo} to={k.to} className={`${classe} hover:border-gold`}>
-              {conteudo}
-            </Link>
-          ) : (
-            <div key={k.rotulo} className={classe}>
-              {conteudo}
-            </div>
-          );
-        })}
+        ].map((k) => (
+          <Link
+            key={k.rotulo}
+            to={k.to}
+            className="block min-h-28 rounded-lg border border-border bg-card px-5 py-4 text-left shadow-sm transition-colors hover:border-gold"
+          >
+            <dt className="text-[11px] font-semibold uppercase tracking-widest text-navy/55">{k.rotulo}</dt>
+            <dd className="mt-1 font-serif text-3xl leading-none text-navy">{k.valor}</dd>
+            <p className="mt-1 text-[11px] text-navy/45">{k.apoio}</p>
+          </Link>
+        ))}
       </dl>
 
-      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">
-          Abrir operação detalhada do dia
-        </summary>
-        <div className="mt-5 border-t border-navy/10 pt-5">
-      <div className="mb-6">
-        <CaCard
-          titulo="Tarefas e microentregas"
-          eyebrow="Prazos e responsáveis registrados"
-          acao={
-            <Button asChild size="sm" variant="outline">
-              <Link to="/tarefas">Abrir</Link>
-            </Button>
-          }
-        >
-          {itensKanban.length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma tarefa ou microentrega registrada para esta leitura." />
-          ) : (
-            <ul className="grid gap-2 md:grid-cols-2">
-              {itensKanban.slice(0, 6).map((item) => {
-                const faixa = faixaDePrazo(item);
-                return (
-                  <li key={item.id} className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-navy/10 bg-cream/35 px-3 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-navy">{item.titulo}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-navy/55">{item.responsavel || "Responsável não registrado"}</p>
-                    </div>
-                    <span className="shrink-0 rounded-full border border-navy/15 bg-card px-2 py-0.5 text-[10px] font-medium text-navy/65">{faixa}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CaCard>
-      </div>
-
-      {/*
-        §11 linha 3 — "Decisões prioritárias". Cada linha precisa abrir
-        contexto e ação possível, então mostra o que está pendente, por quê, e
-        leva à tela onde a decisão é tomada. A lista é o mesmo array que gera
-        o número de "Decisões do dia" acima: nenhum dos dois pode divergir do
-        outro sem divergir de si mesmo.
-      */}
-      <div className="mb-6">
+      {/* Grid central, 2 colunas, 3 linhas — mesma ordem da prancha V4. */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <CaCard
           titulo="Decisões prioritárias"
           eyebrow={`Fonte: fila de aprovações · ${decisoesDoDia} pendente(s)`}
@@ -325,33 +229,25 @@ function PainelConsolidado() {
           ) : (
             <ul className="divide-y divide-navy/10">
               {decisoesPendentes.slice(0, 6).map((item: ItemAprovacao) => (
-                <li key={`${item.grupo}-${item.id}`} className="py-2">
-                  <Link
-                    to="/golive/aprovacoes"
-                    className="block rounded-lg px-2 py-1 hover:bg-cream/50"
-                  >
-                    <p className="text-sm font-medium text-navy">
-                      {ROTULO_DECISAO[item.acao]} — {item.titulo}
-                    </p>
-                    <p className="text-[11px] text-navy/55">
-                      {item.grupo} · {item.motivo}
-                    </p>
+                <li key={`${item.grupo}-${item.id}`} className="py-1.5">
+                  <Link to="/golive/aprovacoes" className="flex items-center justify-between gap-3 rounded-lg px-1 py-1 hover:bg-cream/50">
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs text-navy/80">
+                        {ROTULO_DECISAO[item.acao]} — {item.titulo}
+                      </span>
+                      <span className="block truncate text-[10px] text-navy/50">
+                        {item.grupo} · {item.motivo}
+                      </span>
+                    </span>
+                    <Etiqueta texto={TOM_DECISAO[item.acao].texto} tom={TOM_DECISAO[item.acao].tom} />
                   </Link>
                 </li>
               ))}
             </ul>
           )}
           {decisoesPendentes.length > 6 ? (
-            <p className="mt-2 text-[11px] text-navy/50">
-              e mais {decisoesPendentes.length - 6} na fila completa.
-            </p>
+            <p className="mt-2 text-[11px] text-navy/50">e mais {decisoesPendentes.length - 6} na fila completa.</p>
           ) : null}
-          {/*
-            Decisão da Proprietária (22/09/2026): as duas decisões de §11 que
-            esta fila não enxerga ficam FORA do KPI e explícitas na tela, em
-            vez de renomeadas para fingir cobertura. Só entrariam na contagem
-            com uma união canônica por tipo/origem/ação — que não existe.
-          */}
           <p className="mt-3 border-t border-navy/10 pt-2 text-[11px] text-navy/55">
             Fora desta contagem, por não passarem pela fila de aprovações:{" "}
             <Link to="/pesquisa-modulo" className="underline decoration-gold underline-offset-2">
@@ -361,338 +257,204 @@ function PainelConsolidado() {
             <Link to="/casos" className="underline decoration-gold underline-offset-2">
               confirmar documento mínimo
             </Link>
-            . São decisões reais, com escritor próprio — não estão escondidas nem
-            somadas aqui.
+            .
           </p>
         </CaCard>
-      </div>
 
-      {/* §11 linhas 8, 10 e 11 — funil, ritmo e prioridades, cada um sobre a
-          função canônica que a tela de /golive já usa. */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        <CaCard titulo="Próximas ações comerciais" eyebrow="Mesmo registro do lead — /calls, /leads e /proximas-acoes">
-          {(() => {
-            // CRM Vivo (27/09/2026): uma só próxima ação por lead, o mesmo
-            // `leads.id` das outras telas, com link para a origem (Mesa Discovery).
-            const comAcao = leads
-              .filter((l) => l.proximoPasso)
-              .sort((a, b) => String(a.proximoPassoEm ?? "9999").localeCompare(String(b.proximoPassoEm ?? "9999")))
-              .slice(0, 8);
-            if (!comAcao.length) return <EstadoVazio mensagem="Nenhum lead do pipeline com próxima ação registrada." />;
-            return (
-              <ul className="space-y-1.5" data-proximas-acoes-hoje>
-                {comAcao.map((l) => (
-                  <li key={l.id} className="flex flex-wrap items-baseline justify-between gap-2 text-xs">
-                    <Link
-                      to="/calls"
-                      search={{ lead: l.id }}
-                      data-link-origem-lead={l.id}
-                      className="text-navy underline decoration-gold/60 underline-offset-2"
-                    >
-                      {l.nome}
-                    </Link>
-                    <span className="text-navy/70">
-                      {rotuloCrm("proxima_acao", l.proximoPasso)}
-                      {l.proximoPassoEm ? ` · ${String(l.proximoPassoEm).slice(0, 10)}` : ""}
-                      {l.responsavel ? ` · ${l.responsavel}` : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            );
-          })()}
-        </CaCard>
-
-        <CaCard titulo="Funil de leads" eyebrow="Fonte: etapa comercial gravada">
-          {funilLeads.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum lead com etapa registrada." />
-          ) : (
-            <>
-              <dl className="space-y-1.5">
-                {funilLeads.map((f) => (
-                  <div key={f.etapa} className="flex items-baseline justify-between gap-3">
-                    <dt className="truncate text-xs text-navy/70">{ROTULO_ETAPA[f.etapa] ?? f.etapa}</dt>
-                    <dd className="font-serif text-lg text-navy">{f.total}</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="mt-2 text-[11px] text-navy/45">
-                Sem recorte de período: nenhum está definido na fonte.
-              </p>
-            </>
-          )}
-        </CaCard>
-
-        <CaCard titulo="Ritmo operacional" eyebrow="6 semanas">
-          {ritmo.length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma microentrega concluída com data — sem série para mostrar." />
-          ) : (
-            <>
-              <div className="flex items-end gap-1.5" aria-hidden="true">
-                {ritmo.map((semana) => {
-                  const teto = Math.max(...ritmo.map((r) => r.valor), 1);
-                  return (
-                    <div key={semana.rotulo} className="flex flex-1 flex-col items-center gap-1">
-                      <div
-                        className="w-full rounded-t bg-gold/70"
-                        style={{ height: `${8 + (semana.valor / teto) * 44}px` }}
-                      />
-                      <span className="text-[9px] text-navy/50">{semana.rotulo}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              <dl className="sr-only">
-                {ritmo.map((semana) => (
-                  <div key={semana.rotulo}>
-                    <dt>Semana de {semana.rotulo}</dt>
-                    <dd>{semana.valor} microentrega(s) concluída(s)</dd>
-                  </div>
-                ))}
-              </dl>
-              {/* §11 linha 10: métrica e unidade explicitadas em produção. */}
-              <p className="mt-2 text-[11px] text-navy/45">
-                Microentregas concluídas por semana, da segunda ao domingo.
-              </p>
-            </>
-          )}
-        </CaCard>
-
-        <CaCard titulo="Distribuição das prioridades" eyebrow="Mesma carteira ativa dos KPIs">
-          {prioridades.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum caso ativo com prioridade registrada." />
-          ) : (
-            <>
-              <dl className="space-y-1.5">
-                {prioridades.map((p) => (
-                  <div key={p.rotulo} className="flex items-baseline justify-between gap-3">
-                    <dt className="truncate text-xs text-navy/70">{p.rotulo}</dt>
-                    <dd className="font-serif text-lg text-navy">{p.valor}</dd>
-                  </div>
-                ))}
-              </dl>
-              {/* Caso encerrado não entra, mesmo com prioridade alta gravada. */}
-              <p className="mt-2 text-[11px] text-navy/45">
-                Só casos ativos; encerrado não conta como prioridade aberta.
-              </p>
-            </>
-          )}
-        </CaCard>
-      </div>
-
-      {/*
-        P25 (26/09/2026) — "Casos ativos por fase, país, responsável e
-        saúde" (Painel Hoje/CRM Vivo), pedido explícito da Proprietária.
-        Mesma carteira ativa dos KPIs acima; fase/responsável já aparecem
-        por caso em /casos — aqui é a agregação por país/via que faltava.
-      */}
-      <div className="mb-6">
-        <CaCard titulo="Casos por país e via" eyebrow="Mesma carteira ativa — trilha jurídica de referência">
-          {porPaisVia.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum caso ativo com país registrado." />
-          ) : (
-            <dl className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
-              {porPaisVia.map((p) => (
-                <div key={p.rotulo} className="flex items-baseline justify-between gap-3 rounded-lg border border-navy/10 bg-cream/35 px-3 py-2">
-                  <dt className="truncate text-xs text-navy/70">{p.rotulo}</dt>
-                  <dd className="font-serif text-lg text-navy">{p.valor}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </CaCard>
-      </div>
-
-      {/*
-        P25 (26/09/2026) — "Radar de marcos jurídicos e casos impactados",
-        pedido explícito da Proprietária. Cada marco jurídico real
-        (legal_reference_milestones) com a contagem de casos ativos
-        realmente ligados àquela trilha (crm_casos.citizenship_track_id) —
-        nunca inventa impacto: sem caso ligado, mostra 0.
-      */}
-      <div className="mb-6">
         <CaCard
-          titulo="Radar de marcos jurídicos"
-          eyebrow="Marcos jurídicos por trilha × casos realmente ligados"
+          titulo="Tarefas e microentregas"
+          eyebrow="Prazos e responsáveis registrados"
           acao={
             <Button asChild size="sm" variant="outline">
-              <Link to="/matriz-juridica">Validação jurídica</Link>
+              <Link to="/tarefas">Abrir</Link>
             </Button>
           }
         >
-          {qRadarJuridico.isLoading ? (
-            <p className="text-xs text-navy/50">Carregando…</p>
-          ) : qRadarJuridico.isError ? (
-            <p className="text-xs text-terracotta">Não foi possível carregar o radar de marcos jurídicos.</p>
-          ) : !qRadarJuridico.data?.length ? (
-            <EstadoVazio mensagem="Nenhum marco jurídico registrado ainda." />
+          {itensKanban.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma tarefa ou microentrega registrada para esta leitura." />
           ) : (
-            <ul className="divide-y divide-navy/10">
-              {qRadarJuridico.data.slice(0, 8).map((r) => (
-                <li key={r.marcoId} className="flex items-center justify-between gap-3 py-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-navy">
-                      {r.pais} — {r.marco}
-                    </p>
-                    <p className="text-[11px] text-navy/55">
-                      {r.trilhaCode} · status: {r.statusMarco}
-                      {r.revisaoObrigatoria ? " · revisão obrigatória" : ""}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-                      r.casosAfetados > 0
-                        ? "border-gold/60 bg-gold/10 text-navy"
-                        : "border-navy/15 bg-cream text-navy/50"
-                    }`}
-                  >
-                    {r.casosAfetados} caso(s) afetado(s)
-                  </span>
-                </li>
-              ))}
+            <ul className="divide-y divide-navy/5">
+              {itensKanban.slice(0, 6).map((item) => {
+                const faixa = faixaDePrazo(item);
+                return (
+                  <li key={item.id} className="flex min-w-0 items-center justify-between gap-3 py-1.5">
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs text-navy/80">{item.titulo}</span>
+                      <span className="block truncate text-[10px] text-navy/50">{item.responsavel || "Responsável não registrado"}</span>
+                    </span>
+                    <Etiqueta texto={faixa} tom={tomDaFaixa(faixa)} />
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CaCard>
-      </div>
 
-      {/*
-        P27 (26/09/2026) — "Propostas aguardando resposta", "Contratos
-        aguardando assinatura" e "Pagamentos pendentes/vencidos" (Pacote de
-        Instruções, blocos obrigatórios do Painel Hoje). Ação direta abre o
-        caso em /casos/$caseId — nunca uma lista desconectada.
-      */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        <CaCard titulo="Propostas aguardando resposta" eyebrow="Eixo comercial: proposta enviada">
-          {propostasSemResposta.length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma proposta aguardando resposta." />
-          ) : (
-            <ul className="divide-y divide-navy/10">
-              {propostasSemResposta.slice(0, 8).map((p) => (
-                <li key={p.id} className="py-1.5">
-                  <Link to="/casos/$caseId" params={{ caseId: p.id }} className="text-sm text-navy underline underline-offset-4">
-                    {p.rotulo}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CaCard>
-        <CaCard titulo="Contratos aguardando assinatura" eyebrow="contracts.status = sent">
-          {caso.contratosAguardandoAssinatura.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum contrato aguardando assinatura." />
-          ) : (
-            <ul className="divide-y divide-navy/10">
-              {caso.contratosAguardandoAssinatura.slice(0, 8).map((c) => (
-                <li key={c.id} className="py-1.5">
-                  <Link to="/casos/$caseId" params={{ caseId: c.caseId }} className="text-sm text-navy underline underline-offset-4">
-                    {c.numero || `Contrato ${c.id.slice(0, 8)}`}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CaCard>
-        <CaCard titulo="Pagamentos pendentes/vencidos" eyebrow="invoices.status: aberta ou vencida">
-          {caso.pagamentosPendentes.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum pagamento pendente ou vencido." />
-          ) : (
-            <ul className="divide-y divide-navy/10">
-              {caso.pagamentosPendentes.slice(0, 8).map((f) => (
-                <li key={f.id} className="flex items-center justify-between gap-2 py-1.5 text-sm">
-                  {f.caseId ? (
-                    <Link to="/casos/$caseId" params={{ caseId: f.caseId }} className="text-navy underline underline-offset-4">
-                      {f.numero || `Fatura ${f.id.slice(0, 8)}`}
-                    </Link>
-                  ) : (
-                    <span className="text-navy/70">{f.numero || `Fatura ${f.id.slice(0, 8)}`}</span>
-                  )}
-                  <span className="text-navy/55">
-                    {f.moeda} {f.valor.toFixed(2)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CaCard>
-      </div>
-
-      {/*
-        §11 linhas 5, 6, 7 e 9 — as quatro contas que a prancha ainda pedia.
-        Todas vêm de função canônica já usada por outra tela (kpisPrazo,
-        origemDoSinal), reusadas para os números não divergirem.
-      */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-4">
         <CaCard titulo="Cadência dos casos" eyebrow="Faixa de prazo das tarefas">
-          <dl className="space-y-1.5">
-            {[
-              ["Em dia", cadencia.hoje + cadencia.proximos7, "hoje ou próximos 7 dias"],
-              ["Atrasadas", cadencia.vencida, "prazo já vencido"],
-              ["Aguardando externo", cadencia.externo, "instituição terceira"],
-            ].map(([r, v, apoio]) => (
-              <div key={String(r)} className="flex items-baseline justify-between gap-3">
-                <div>
-                  <dt className="text-xs text-navy/70">{r}</dt>
-                  <p className="text-[10px] text-navy/45">{apoio}</p>
-                </div>
-                <dd className="font-serif text-lg text-navy">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          <div data-hoje-cadencia-linhas>
+            <LinhaContagem rotulo="Cadência em dia" valor={cadencia.hoje + cadencia.proximos7} tom="sucesso" />
+            <LinhaContagem rotulo="Cadência atrasada" valor={cadencia.vencida} tom="critico" />
+            <LinhaContagem rotulo="Aguardando cliente/externo" valor={cadencia.externo} tom="atencao" />
+          </div>
+          <SemDados ativo={caso.tarefas.length === 0} marca="data-hoje-cadencia-vazio" />
         </CaCard>
 
         <CaCard titulo="Casos sem próxima ação" eyebrow="Por natureza">
-          {/*
-            §11 linha 6: "Não tratar encerrado como falha". A prancha mostra
-            "Encerrado no mês 5" — a fonte não tem data de encerramento, então
-            declaro só o total encerrado, sem inventar recorte de janela.
-          */}
-          <dl className="space-y-1.5">
-            <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-xs text-navy/70">Parados</dt>
-              <dd className="font-serif text-lg text-navy">{semAcao.parados}</dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-3">
-              <div>
-                <dt className="text-xs text-navy/70">Encerrados</dt>
-                <p className="text-[10px] text-navy/45">estado normal, não falha</p>
-              </div>
-              <dd className="font-serif text-lg text-navy/70">{semAcao.encerrados}</dd>
-            </div>
-          </dl>
+          <div data-hoje-sem-acao-linhas>
+            <LinhaContagem rotulo="Caso sem responsável/parado" valor={semAcao.parados} tom="critico" />
+            <LinhaContagem rotulo="Caso pausado" valor={semAcao.pausados} tom="neutro" />
+            <LinhaContagem rotulo="Encerrado (estado normal, não falha)" valor={semAcao.encerrados} tom="sucesso" />
+          </div>
+          <SemDados ativo={caso.carteira.length === 0} marca="data-hoje-sem-acao-vazio" />
         </CaCard>
 
-        <CaCard titulo="Microentregas para revisão" eyebrow="Aguardando aprovação">
-          <p className="font-serif text-3xl text-navy">{microentregasAguardandoRevisao}</p>
-          <p className="mt-1 text-[11px] text-navy/55">
-            Mesma fonte de /golive/microentregas — <em>concluída === false</em>.
-          </p>
-          <Link
-            to="/golive/microentregas"
-            className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-2"
-          >
-            Abrir fila de revisão
-          </Link>
-        </CaCard>
-
-        <CaCard titulo="Alertas por origem" eyebrow="Onde o sinal começou">
-          {alertasPorOrigem.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum evento classificável na janela atual." />
+        <CaCard
+          titulo="Microentregas prontas para revisão"
+          eyebrow="concluída === false"
+          acao={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/microentregas">Abrir</Link>
+            </Button>
+          }
+        >
+          {microentregasAbertas.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma microentrega aguardando revisão." />
           ) : (
-            <dl className="space-y-1.5">
-              {alertasPorOrigem
-                .filter((a) => a.valor > 0)
-                .map((a) => (
-                  <div key={a.rotulo} className="flex items-baseline justify-between gap-3">
-                    <dt className="text-xs text-navy/70">{a.rotulo}</dt>
-                    <dd className="font-serif text-lg text-navy">{a.valor}</dd>
-                  </div>
-                ))}
-            </dl>
+            <ul className="divide-y divide-navy/10">
+              {microentregasAbertas.slice(0, 6).map((m) => (
+                <li key={m.id} className="flex items-center justify-between gap-2 py-1.5">
+                  <p className="truncate text-xs text-navy/80">{m.titulo}</p>
+                  <Etiqueta texto="Revisar" tom="atencao" />
+                </li>
+              ))}
+            </ul>
+          )}
+        </CaCard>
+
+        <CaCard titulo="Funil de leads · Visão Geral" eyebrow="Fonte: etapa comercial gravada">
+          <div data-hoje-funil-degraus>
+            <FunilDegraus
+              etapas={funilDegraus}
+              tituloAcessivel={`Leads por etapa: ${[...funilDegraus, ...foraDoFunil].map((f) => `${f.rotulo} ${f.total}`).join(", ")}`}
+            />
+          </div>
+          {foraDoFunil.length ? (
+            <div className="mt-2 border-t border-navy/10 pt-1" data-hoje-funil-fora>
+              {foraDoFunil.map((f) => (
+                <LinhaContagem key={f.rotulo} rotulo={`Fora do funil · ${f.rotulo}`} valor={f.total} tom="atencao" />
+              ))}
+            </div>
+          ) : null}
+          <SemDados ativo={leads.length === 0} marca="data-hoje-funil-vazio" />
+          <p className="mt-2 text-[11px] text-navy/45">
+            Sem recorte de período: nenhum está definido na fonte.
+          </p>
+        </CaCard>
+      </div>
+
+      <AlertaExcecoesAbertas />
+
+      {/* Base — Alertas + Ritmo lado a lado, Distribuição das prioridades abaixo. */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <CaCard titulo="Alertas centralizados · com origem" eyebrow="Alertas por origem · onde o sinal começou">
+          <div data-hoje-alertas-linhas>
+            {ROTULOS_ORIGEM.map((r) => (
+              <LinhaContagem
+                key={r}
+                rotulo={`Alertas · ${r}`}
+                valor={alertasPorOrigem.find((a) => a.rotulo === r)?.valor ?? 0}
+                tom="critico"
+              />
+            ))}
+          </div>
+          <SemDados ativo={alertasPorOrigem.length === 0} marca="data-hoje-alertas-vazio" />
+        </CaCard>
+
+        <CaCard titulo="Ritmo operacional · 6 semanas" eyebrow="Microentregas concluídas por semana">
+          <div data-hoje-ritmo-linha>
+            <GraficoLinha
+              pontos={ritmo}
+              tituloAcessivel={`Microentregas concluídas por semana, últimas 6 semanas: ${ritmo.map((s) => s.valor).join(", ")}`}
+            />
+          </div>
+          {comRitmo ? null : (
+            <p className="mt-2 text-xs font-medium text-navy/70" data-hoje-ritmo-vazio>
+              Sem dados suficientes
+            </p>
           )}
         </CaCard>
       </div>
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <CaCard titulo="Distribuição das prioridades" eyebrow="Mesma carteira ativa dos KPIs">
+          <div data-hoje-prioridades-rosca>
+            <DonutEstados
+              segmentos={fatiasPrioridade}
+              tituloAcessivel={`Casos ativos por prioridade: ${fatiasPrioridade.map((f) => `${f.rotulo} ${f.valor}`).join(", ")}`}
+            />
+          </div>
+          {comPrioridade ? null : (
+            <p className="mt-2 text-xs font-medium text-navy/70" data-hoje-prioridades-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+          <p className="mt-2 text-[11px] text-navy/45">
+            Só casos ativos; encerrado não conta como prioridade aberta.
+          </p>
+        </CaCard>
+
+        {/* Âncora canônica para a busca global do Shell: Encontrar no Desk */}
+        <div id="encontrar-no-desk" className="scroll-mt-24">
+          <CaCard titulo="Encontrar no Desk" eyebrow="Busca rápida contextual de casos e pessoas">
+            <p className="text-xs text-navy/60">
+              Digite na barra de pesquisa superior ou navegue pelos atalhos diretos das abas para localizar qualquer caso, contrato ou evidência.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link to="/casos">Ir para Casos 360</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/clientes">Ir para Pessoas 360</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/contratos">Ir para Contratos</Link>
+              </Button>
+            </div>
+          </CaCard>
         </div>
-      </details>
+      </div>
     </section>
+  );
+}
+
+/**
+ * 18/10/2026 — Exceções operacionais saíram do menu e aparecem aqui como
+ * alerta. Aberta = não consumida e dentro da validade. Leitura apenas; a
+ * tela de registro continua no endereço próprio.
+ */
+function AlertaExcecoesAbertas() {
+  const fn = useServerFn(listarExcecoes);
+  const q = useQuery({ queryKey: ["ops", "excecoes"], queryFn: () => fn(), retry: false });
+  if (q.isPending || q.isError) return null;
+  const agora = Date.now();
+  const abertas = (q.data?.excecoes ?? []).filter(
+    (e) => !e.consumida_em && (!e.valido_ate || new Date(e.valido_ate).getTime() >= agora),
+  );
+  if (abertas.length === 0) return null;
+  return (
+    <div className="ca-cartao-natureza mb-6" data-natureza="atencao" data-hoje-excecoes>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <span className="ca-selo-natureza" data-natureza="atencao">Atenção</span>
+          <p className="mt-1 font-serif text-lg text-navy">
+            {abertas.length === 1 ? "1 exceção operacional em aberto" : `${abertas.length} exceções operacionais em aberto`}
+          </p>
+          <p className="text-xs text-navy/60">Autorizadas pela administração e ainda não consumidas.</p>
+        </div>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/alertas">Ver exceções nos alertas</Link>
+        </Button>
+      </div>
+    </div>
   );
 }

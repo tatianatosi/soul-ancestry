@@ -5,6 +5,7 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
 import { assinaturaPublicada } from "@/lib/assinatura-app";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
+import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
@@ -12,6 +13,10 @@ import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
+import { Button } from "@/components/ui/button";
+import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
+import { condicaoFamiliarPrevista } from "@/components/portal/condicao-familiar";
+import { formatarValor } from "@/lib/assinatura-app";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -52,6 +57,7 @@ export function PortalConta() {
    const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
    const titularExibido = titular ?? titularPrevia;
    const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
+   const condicaoFamiliar = previaDemo ? null : condicaoFamiliarPrevista(codigoCaso ?? vivo.data?.casoAtivoId);
    const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
 
@@ -92,6 +98,28 @@ export function PortalConta() {
     (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "atualizacao"),
   );
 
+  const resumo = vivo.data?.resumoCaso ?? null;
+  const perfil = resumo?.perfil ?? null;
+  const membroDesde = dataCurta(resumo?.membroDesde);
+  /*
+   * Histórico de atividades (13/10/2026): só marcos aprovados para a família
+   * (case_timeline_events) e marcos/entregas publicados no App, com data.
+   */
+  const atividades = [
+    ...(vivo.data?.historico ?? []).map((m) => ({ id: `h-${m.id}`, rotulo: "Marco da jornada", texto: m.texto, data: m.data ?? null })),
+    ...publicacoesParaCliente(
+      (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "marco" || p.projection_type === "microentrega"),
+    ).map((p) => ({ id: `p-${p.id}`, rotulo: p.tipoRotulo, texto: p.conteudo, data: p.publicadoEm ?? null })),
+    ...publicacoesParaCliente(
+      (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "legado"),
+    ).map((p) => ({ id: `l-${p.id}`, rotulo: "Publicado no Legado", texto: p.conteudo.split("\n")[0], data: p.publicadoEm ?? null })),
+    ...(vivo.data?.documentos ?? [])
+      .filter((d) => d.liberado_cliente && !d.is_demo && d.liberado_em)
+      .map((d) => ({ id: `d-${d.id ?? d.titulo}`, rotulo: "Documento liberado", texto: textoParaCliente(d.titulo) ?? "Documento disponível em Documentos", data: d.liberado_em ?? null })),
+  ]
+    .filter((a) => a.data)
+    .sort((a, b) => String(b.data).localeCompare(String(a.data)));
+
   const proximaAcao = vivo.data?.proximaAcao ?? null;
   const alertaAcionavel =
     proximaAcao &&
@@ -122,54 +150,52 @@ export function PortalConta() {
                   aria-hidden="true"
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/60 bg-navy font-serif text-xl text-gold"
                 >
-                   {titularExibido ? titularExibido.trim().charAt(0).toUpperCase() : <UserRound className="h-5 w-5" />}
+                   {perfil?.nome ?? titularExibido ? iniciais(perfil?.nome ?? titularExibido) : <UserRound className="h-5 w-5" />}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Sua família</p>
-                  <h2 className="font-serif text-xl text-navy">Sobre você e sua família</h2>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Meu perfil</p>
+                  <h2 className="break-words font-serif text-xl text-navy">{perfil?.nome ?? titularExibido ?? "Não registrado"}</h2>
                 </div>
               </div>
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
-               {titularExibido || paisInteresse || codigoCaso ? <dl className="mt-3 grid grid-cols-1 gap-x-4 min-[360px]:grid-cols-2">
-                 {codigoCaso ? (
-                <div className="border-b border-border py-3" data-conta-codigo>
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Projeto familiar</dt>
-                  <dd className="text-sm text-navy">{codigoCaso}</dd>
-                </div>
-                 ) : null}
+               <dl className="mt-3 grid grid-cols-1 gap-x-4 md:grid-cols-2">
                  {titularExibido ? (
                 <div className="border-b border-border py-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titularExibido}</dd>
                 </div>
                  ) : null}
-                 {paisInteresse ? (
-                <div className="border-b border-border py-3">
-                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
-                  <dd className="text-sm text-navy">{paisInteresse}</dd>
+                <div className="border-b border-border py-3" data-conta-email>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">E-mail</dt>
+                  <dd className="break-all text-sm text-navy">{perfil?.email ?? "Não registrado"}</dd>
                 </div>
-                 ) : null}
-                 {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
-                <div className="border-b border-border py-3" data-conta-modalidade>
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Modalidade</dt>
-                  <dd className="text-sm text-navy">Projeto Familiar (3 assinaturas ativas)</dd>
+                <div className="border-b border-border py-3" data-conta-whatsapp-titular>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">WhatsApp</dt>
+                  <dd className="text-sm text-navy">{perfil?.telefone ?? "Não registrado"}</dd>
                 </div>
-                 ) : null}
-               </dl> : null}
+                <div className="border-b border-border py-3" data-conta-membro-desde>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Membro desde</dt>
+                  <dd className="text-sm text-navy">{membroDesde ?? "Não registrado"}</dd>
+                </div>
+               </dl>
+              <Button asChild variant="outline" className="app-perfil-whatsapp mt-3 h-auto min-h-11 whitespace-normal"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">Falar com a Especialista no WhatsApp</a></Button>
               <p className="mt-3 text-xs text-navy/55">
                   Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>
             </section>
 
             <section className="app-v11-faixa app-conta-atendimento">
-              <details className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
+              <details open className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
-              <a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp className="mt-3 inline-flex min-h-11 items-center rounded-full bg-emerald-700 px-5 text-sm font-medium text-white hover:bg-emerald-800">Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
+              <Button asChild variant="outline" className="mt-3 h-auto min-h-11 whitespace-normal text-left"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp>Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a></Button>
+              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Situação do acompanhamento: {resumo?.statusRotulo ?? "Não registrado"}.</p></details>
+              <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Termos e privacidade</summary><p className="mt-2 text-sm text-navy/70">Os termos de uso e informações de privacidade serão apresentados aqui quando forem disponibilizados pela equipe.</p></details>
+              <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Acesso seguro</summary><p className="mt-2 text-sm text-navy/70">Seu acesso é pessoal. Não compartilhe links de entrada. Para dúvidas sobre o acesso, procure a equipe no canal oficial.</p></details>
             </section>
 
              <section data-conta-assinatura className="app-v11-faixa">
-              <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Plano familiar · condição prevista</p>
+              <h2 className="mt-1 font-serif text-xl text-navy">Condição do projeto familiar</h2>
               {vivo.isError ? (
                 /* 12/10/2026 — falha de leitura (fail-closed): nunca "nenhuma assinatura", nunca dado financeiro. */
                 <div className="mt-2" data-conta-assinatura-erro>
@@ -177,26 +203,26 @@ export function PortalConta() {
                 </div>
               ) : vivo.isLoading ? (
                 <p className="mt-2 text-sm text-navy/60" role="status">Carregando sua assinatura…</p>
+              ) : condicaoFamiliar ? (
+                <div className="mt-3" data-conta-condicao-familiar>
+                  <span className="app-chip" data-tom="pendente">Condição prevista · aguardando confirmação</span>
+                  <p className="mt-4 text-sm leading-relaxed text-navy"><strong>{String(condicaoFamiliar.assinaturas).padStart(2, "0")} assinaturas de {formatarValor(condicaoFamiliar.mensalCentavos)} por mês durante {condicaoFamiliar.meses} meses</strong></p>
+                  <dl className="app-condicao-valores mt-4">
+                    <div><dt className="text-xs text-navy/70">Por adulto</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.adultoCentavos)}</dd></div>
+                    <div><dt className="text-xs text-navy/70">Valor Total</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.totalCentavos)}</dd></div>
+                  </dl>
+                  <p className="mt-4 text-xs leading-relaxed text-navy/70">Condição prevista; não representa cobrança ativa, fatura ou pagamento confirmado.</p>
+                </div>
               ) : assinatura ? (
                 <>
+                  {/* Selo do estado real: nunca "Assinatura ativa" sem pagamento confirmado. */}
+                  <span className="app-chip mt-2" data-tom="pendente" data-conta-assinatura-selo>
+                    {assinatura.situacao ? "Aguardando confirmação" : "Condição prevista"}
+                  </span>
                   <p className="mt-2 text-sm text-navy" data-conta-assinatura-nome>
                     {assinatura.nome}
                   </p>
-                  <p className="mt-1 font-serif text-2xl text-navy" data-conta-assinatura-valor>
-                    {assinatura.valor}{" "}
-                    <span className="text-sm text-navy/60">{assinatura.periodicidadeRotulo}</span>
-                  </p>
-                  {assinatura.situacao ? (
-                    <p className="mt-1 text-xs text-navy/60">{assinatura.situacao}</p>
-                  ) : null}
-                  {assinatura.valor === "R$ 320,00" || assinatura.valor === "R$ 320,00" ? (
-                    <p className="mt-2 text-sm text-navy/70" data-conta-assinatura-condicao>
-                      {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
-                        <span className="mb-2 block">Condição familiar: 3 assinaturas / parcelas mensais</span>
-                      ) : null}
-                      Condição prevista por 10 meses. A cobrança individual ainda aguarda confirmação e, por isso, nenhum link de pagamento é exibido.
-                    </p>
-                  ) : null}
+                  <p className="mt-3 text-sm leading-relaxed text-navy/75">Condição prevista. A equipe confirmará os detalhes do plano familiar pelos canais oficiais; não há cobrança ou pagamento confirmado neste espaço.</p>
                 </>
                ) : (
                 /*
@@ -205,9 +231,9 @@ export function PortalConta() {
                   via onde o Desk publicaria isso. O estado vazio é sempre
                   editável/publicável do Desk, nunca hardcoded aqui.
                 */
-                <p className="mt-2 text-sm text-navy/60" data-conta-assinatura-vazio>
-                  Nenhuma assinatura publicada ainda. A equipe publica aqui quando houver.
-                </p>
+                <div className="mt-2" data-conta-assinatura-vazio>
+                  <CartaoEditorial texto="A assinatura da sua família terá seu lugar aqui quando for compartilhada pela equipe." />
+                </div>
                )}
              </section>
 
@@ -217,12 +243,12 @@ export function PortalConta() {
             <section data-conta-plano className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Meu plano</h2>
-                {plano?.situacao ? (
+                {plano ? (
                   <span
                     data-conta-plano-situacao
                     className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-navy/70"
                   >
-                    {plano.situacao}
+                    {plano.situacao ?? "Não registrado"}
                   </span>
                 ) : null}
               </div>
@@ -236,9 +262,9 @@ export function PortalConta() {
                   ) : null}
                 </>
               ) : (
-                <div><p className="mt-2 text-sm text-navy/60" data-conta-plano-vazio>
-                  Nenhum plano publicado ainda. A equipe publica aqui quando houver.
-                </p></div>
+                <div className="mt-2" data-conta-plano-vazio>
+                  <CartaoEditorial texto="O plano da sua família terá seu lugar aqui quando for compartilhado pela equipe." />
+                </div>
               )}
             </section>
 
@@ -278,8 +304,8 @@ export function PortalConta() {
                   ) : null}
                 </div>
               ) : atualizacoes.length === 0 ? (
-                  <div className="app-v11-lacuna mt-3">
-                   <p className="text-sm text-navy/70">Nenhum recado novo por enquanto.</p>
+                  <div className="mt-3">
+                   <CartaoEditorial texto="Os recados da equipe terão seu lugar aqui." />
                 </div>
               ) : null}
             </section>
@@ -294,27 +320,24 @@ export function PortalConta() {
               esta leitura. Só o texto que a equipe escreveu explicitamente
               para a família — nunca o título interno do evento.
             */}
-            <section data-conta-marcos className="app-v11-faixa">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Marcos da sua jornada</h2>
-              </div>
-              {(vivo.data?.historico ?? []).length === 0 ? (
-                <p className="app-v11-lacuna mt-3 text-sm text-navy/60">
-                   Ainda não há um marco da jornada liberado para a família.
-                </p>
+            <section data-conta-marcos data-conta-historico className="app-v11-faixa">
+              <h2 className="font-serif text-xl text-navy">Histórico de atividades</h2>
+              {atividades.length === 0 ? (
+                <div className="mt-3">
+                  <CartaoEditorial texto="As atividades da sua jornada terão seu lugar aqui à medida que forem liberadas para a família." />
+                </div>
               ) : (
-                <ul className="mt-3 space-y-2">
-                  {(vivo.data?.historico ?? []).map((marco) => (
-                     <li key={marco.id} className="app-conta-registro text-sm text-navy/80">
-                      <p>{marco.texto}</p>
-                      {marco.data ? (
-                        <p className="mt-1 text-xs text-navy/45">
-                          {new Date(marco.data).toLocaleDateString("pt-BR")}
-                        </p>
-                      ) : null}
+                <ol className="mt-3 space-y-0 border-l-2 border-gold/40 pl-4">
+                  {atividades.map((a) => (
+                    <li key={a.id} className="relative py-2.5">
+                      <span aria-hidden="true" className="absolute -left-[1.4rem] top-4 h-2.5 w-2.5 rounded-full bg-gold" />
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
+                        {dataCurta(a.data)} · {a.rotulo}
+                      </p>
+                      <p className="mt-0.5 line-clamp-3 whitespace-pre-line text-sm text-navy/85">{a.texto}</p>
                     </li>
                   ))}
-                </ul>
+                </ol>
               )}
             </section>
             </>

@@ -151,20 +151,6 @@ export const MAPA_PERSISTENCIA: LinhaPersistencia[] = [
     erroEsperado: "Etiqueta fora da taxonomia canônica.",
   },
 
-  /* --- Subaba Onboarding --- */
-  {
-    campoUi: "Status e observação do item de onboarding",
-    entidade: "Item de onboarding",
-    tabela: "onboarding_checklist",
-    coluna: "status, observacao, concluido_em, concluido_por, updated_by",
-    tipo: "text + timestamptz + uuid",
-    validacao: "item obrigatório marcado como não aplicável exige observação; liberação passa por gate",
-    permissao: escrita,
-    payload: "atualizarItemOnboarding { id, status, observacao }",
-    estado: "implementado",
-    erroEsperado: ERRO_DIVERGENCIA,
-  },
-
   /* --- Subaba Produto e trilha --- */
   {
     campoUi: "Produto-pai, trilha e escopo do serviço",

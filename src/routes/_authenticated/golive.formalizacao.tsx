@@ -12,7 +12,7 @@ import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell"
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Escada } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { CartoesFormalizacaoDoCaso } from "@/components/contrato/cartoes-formalizacao";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
@@ -27,6 +27,7 @@ import {
 } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/formalizacao")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Formalização — Go-live Clube Ancestral" },
@@ -52,13 +53,13 @@ function moeda(valor: number | null, sigla: string) {
 function FormalizacaoGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  const novaProposta = useServerFn(registrarPropostaCanva);
-  const novoEscopo = useServerFn(adicionarItemEscopoGoLive);
-  const novaOrdem = useServerFn(registrarOrdemServicoGoLive);
-  const novoPlano = useServerFn(criarPlanoOnboardingGoLive);
-  const aprovarEscopo = useServerFn(aprovarEscopoPropostaGoLive);
-  const contratoRevisao = useServerFn(enviarContratoParaRevisaoGoLive);
-  const registrarAssinatura = useServerFn(registrarAssinaturaContratoGoLive);
+  const novaProposta = useEscritorGoLive(registrarPropostaCanva);
+  const novoEscopo = useEscritorGoLive(adicionarItemEscopoGoLive);
+  const novaOrdem = useEscritorGoLive(registrarOrdemServicoGoLive);
+  const novoPlano = useEscritorGoLive(criarPlanoOnboardingGoLive);
+  const aprovarEscopo = useEscritorGoLive(aprovarEscopoPropostaGoLive);
+  const contratoRevisao = useEscritorGoLive(enviarContratoParaRevisaoGoLive);
+  const registrarAssinatura = useEscritorGoLive(registrarAssinaturaContratoGoLive);
 
   const acaoProposta = (
     <Acao
@@ -370,7 +371,7 @@ function FormalizacaoGoLive() {
                 ))}
               </ul>
             ) : (
-              <Vazio cta={<Link to="/golive/portal"><Button size="sm">Abrir Portal</Button></Link>} />
+              <Vazio cta={<Link search={true} to="/golive/portal"><Button size="sm">Abrir Portal</Button></Link>} />
             )}
           </Bloco>
         </>
@@ -378,7 +379,7 @@ function FormalizacaoGoLive() {
 
       {data && !data.encontrado ? (
         <Bloco titulo="Formalização">
-          <Vazio cta={<Link to="/golive/caso"><Button size="sm">Abrir Caso 360</Button></Link>} />
+          <Vazio cta={<Link search={true} to="/golive/caso"><Button size="sm">Abrir Caso 360</Button></Link>} />
         </Bloco>
       ) : null}
     </GoLiveShell>

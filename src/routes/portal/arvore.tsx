@@ -11,10 +11,12 @@ import {
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
-import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, useFontePortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
-import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
+import { PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
+import { GenogramaFamiliar } from "@/components/portal/genograma-familiar";
+import { raizAutorizada } from "@/components/portal/genograma-layout";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
@@ -40,6 +42,7 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
+  const fonte = useFontePortal();
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -66,7 +69,7 @@ export function PortalArvore() {
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
-            const pessoas = pessoasDaArvore(vivo.projecoes);
+            const pessoas = pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null);
             const idsComPessoa = new Set(vivo.projecoes.filter((p) => p.pessoa_id).map((p) => String(p.id)));
             const itens = arvoreSanitizada(vivo.projecoes).filter((p) => !idsComPessoa.has(p.id));
             const painel = painelArvoreGeracoes(itens);
@@ -76,7 +79,7 @@ export function PortalArvore() {
              // Gerações vêm do que foi publicado (sem lista fixa nem teto).
              const geracoesExibidas = pessoas.length > 0
                ? geracoesParaExibir(pessoas.map((pessoa) => pessoa.geracao))
-               : GERACOES_ARVORE_EXIBICAO;
+               : [];
              const maiorGeracao = geracoesExibidas.reduce(
                (maior, geracao) => Math.max(maior, Number(geracao.id.slice(1)) || 1),
                1,
@@ -100,7 +103,12 @@ export function PortalArvore() {
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     {pessoas.length > 0 ? (
-                      <ExploradorArvore pessoas={pessoas} geracoes={geracoesExibidas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} />
+                      <GenogramaFamiliar
+                        pessoas={pessoas}
+                        vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []}
+                        raizId={raizAutorizada(vivo.casoAtivoId ?? fonte?.previa.identidade?.caseId, pessoas)}
+                        anos={Object.fromEntries(("anosArvore" in vivo ? vivo.anosArvore : []).map((a) => [a.pessoa_id, a.rotulo]))}
+                      />
                     ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
@@ -138,7 +146,7 @@ export function PortalArvore() {
                         <>
                           <span className="font-serif text-base text-navy">
                             {pessoas.length}{" "}
-                            {pessoas.length === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"}
+                            {pessoas.length === 1 ? "pessoa conectada na linhagem" : "pessoas conectadas na linhagem"}
                           </span>
                           {/*
                             O rodapé "de um universo de N possíveis" do mockup de
@@ -156,7 +164,7 @@ export function PortalArvore() {
                         <span className="text-xs text-navy/60">
                            {temConteudo
                              ? "Os nomes já compartilhados ainda não têm posição disponível nesta árvore."
-                             : "Nenhum nome liberado para esta árvore até agora."}
+                             : "Em pesquisa — os nomes terão seu lugar aqui quando forem liberados."}
                         </span>
                       )}
                     </p>

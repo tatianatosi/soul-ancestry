@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { useAutoridade } from "@/components/saas/autoridade";
 import {
   NUCLEO_AMBIENTES,
@@ -33,6 +34,7 @@ import { sincronizarMembrosDoCaso } from "@/lib/caso-canonico.functions";
 
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import { ComposicaoLinhagemV4 } from "@/components/pessoas/composicao-linhagem-v4";
+import { Indicador } from "@/components/prancha-v4/kit";
 export const Route = createFileRoute("/_authenticated/nucleos")({
   head: () => ({
     meta: [
@@ -357,10 +359,45 @@ function NucleosPage() {
 
   return (
     <SaasShell
-      titulo="Núcleos familiares"
-      descricao="Um dossiê-mãe por núcleo. Requerentes têm registro individual vinculado."
+      titulo="Pessoas & Famílias"
+      descricao="Núcleos familiares: um dossiê-mãe por núcleo, requerentes com registro individual vinculado."
     >
+      <FonteAlimento
+        fonte="Membros e vínculos registrados do núcleo familiar"
+        consumidor="Dossiê-mãe, Caso 360 e a Árvore publicada no App Cliente"
+        detalheTecnico="composicao-linhagem-v4"
+      />
       <div className="space-y-5">
+        {/*
+          Casca V4: faixa de KPIs só com contagem real de `listarNucleos`
+          (sem filtro de busca). Consulta não resolvida não vira zero: sem faixa.
+        */}
+        {q.data ? (
+          (() => {
+            const todos = q.data as Nucleo[];
+            return (
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-nucleos-kpis>
+                <Indicador rotulo="Núcleos" valor={String(todos.length)} apoio="Um dossiê-mãe por núcleo" />
+                <Indicador
+                  rotulo="Com caso vinculado"
+                  valor={String(todos.filter((n) => n.caso).length)}
+                  apoio={`de ${todos.length} núcleo(s)`}
+                />
+                <Indicador
+                  rotulo="Dossiê ativo"
+                  valor={String(todos.filter((n) => n.dossie_status === "ativo").length)}
+                  apoio={`de ${todos.length} núcleo(s)`}
+                />
+                <Indicador
+                  rotulo="Membros registrados"
+                  valor={String(todos.reduce((t, n) => t + (n.membros?.length ?? 0), 0))}
+                  apoio="Em todos os núcleos"
+                />
+              </div>
+            );
+          })()
+        ) : null}
+
         {(() => {
           /*
             Prancha V4 (13/10/2026) — a tela inteira é a composição da prancha:

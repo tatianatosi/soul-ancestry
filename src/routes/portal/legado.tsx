@@ -11,6 +11,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { listarEncontrosLinhagemApp } from "@/lib/legado-app.functions";
+import { CartaoAchado, CartaoEditorial } from "@/components/portal/elementos-mockup";
 
 export const DISCLAIMER_ENCONTROS =
   "Este conteúdo é histórico, cultural e narrativo. Não substitui acompanhamento terapêutico, psicológico ou médico.";
@@ -69,9 +70,13 @@ export function PortalLegado() {
               ["achado", "relatorio_fase", "relatorio_f1", "relatorio_f2", "microentrega"].includes(item.tipo),
             );
             const acervo = [...entregas, ...materiaisPublicados];
-            const porPrateleira = Object.fromEntries(
-              PRATELEIRAS.map((p) => [p.id, acervo.filter((e) => prateleiraDe(e) === p.id)]),
-            ) as Record<PrateleiraId, PublicacaoCliente[]>;
+            const colecoes = [
+              { id: "cadernos", rotulo: "Cadernos", dica: "Histórias compartilhadas", itens: acervo.filter((e) => prateleiraDe(e) === "cadernos") },
+              { id: "relatorios", rotulo: "Dossiês", dica: "Sínteses da pesquisa familiar", itens: acervo.filter((e) => prateleiraDe(e) === "relatorios" && !["relatorio_f1", "relatorio_f2"].includes(e.tipo)) },
+              { id: "fase1", rotulo: "Relatórios Fase 1", dica: "Primeira fase da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f1") },
+              { id: "fase2", rotulo: "Relatórios Fase 2", dica: "Continuidade da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f2") },
+              { id: "memoria", rotulo: "Memórias", dica: "Narrativas para guardar", itens: acervo.filter((e) => ["memoria", "narrativas"].includes(prateleiraDe(e))) },
+            ];
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
@@ -125,9 +130,7 @@ export function PortalLegado() {
                           </ul>
                         </>
                       ) : (
-                        <p className="app-v11-lacuna text-navy/60" data-legado-encontros-vazio>
-                          Ainda não há encontros de linhagem liberados para a sua família. Quando a equipe aprovar um, ele aparecerá aqui.
-                        </p>
+                        <div data-legado-encontros-vazio><CartaoEditorial texto="Os encontros de linhagem terão seu lugar aqui quando a equipe aprovar e liberar para a família." /></div>
                       )}
                     </section>
                   ) : null}
@@ -137,11 +140,36 @@ export function PortalLegado() {
                     <p data-legado-disclaimer className="text-xs leading-relaxed text-navy/70">{DISCLAIMER_ENCONTROS}</p>
                   </aside>
 
+                  {/* "Seus Achados" (mockup original, 13/10/2026): só achados publicados para a família. */}
+                  <section data-legado-achados className="space-y-3">
+                    <h2 className="font-serif text-xl text-navy">Seus Achados</h2>
+                    {(() => {
+                      const achados = materiaisPublicados.filter((i) => i.tipo === "achado");
+                      if (achados.length === 0) {
+                        return <CartaoEditorial texto="Os achados da sua família terão seu lugar aqui quando forem aprovados e compartilhados." />;
+                      }
+                      return (
+                        <div className="grid gap-2.5">
+                          {achados.map((a) => {
+                            const [titulo, ...resto] = a.conteudo.split(/(?<=[.!?])\s+/);
+                            const data = a.publicadoEm ? dataPublicacao(a.publicadoEm) : "";
+                            return (
+                              <CartaoAchado
+                                key={a.id}
+                                rotulo={data ? `${a.tipoRotulo} · ${data}` : a.tipoRotulo}
+                                titulo={titulo ?? a.conteudo}
+                                resumo={resto.join(" ") || undefined}
+                              />
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </section>
+
                   <div className="app-prateleiras" data-legado-prateleiras>
-                    {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
-                      const itens = p.id === "narrativas"
-                        ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
-                        : porPrateleira[p.id];
+                    {colecoes.map((p) => {
+                      const itens = p.itens;
                       const IconeColecao = p.id === "cadernos" ? BookOpen : p.id === "relatorios" ? FileText : Feather;
                       return (
                         <section
@@ -167,13 +195,15 @@ export function PortalLegado() {
                           <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
                           </summary>
                           {itens.length === 0 ? (
-                              <div><p className="app-v11-lacuna mt-3 text-navy/60">
-                                 {p.id === "cadernos"
+                              <div className="mt-3"><CartaoEditorial texto={
+                                 p.id === "cadernos"
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"
-                                     ? "Nenhum dossiê ou relatório foi liberado para a família até agora."
-                                     : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."}
-                             </p></div>
+                                     ? "Os dossiês e relatórios terão seu lugar aqui quando forem liberados para a família."
+                                     : p.id === "fase1" || p.id === "fase2"
+                                       ? "O relatório desta fase aparecerá aqui quando for aprovado e compartilhado com a família."
+                                       : "As memórias aparecerão aqui quando estiverem prontas para a família."
+                             } /></div>
                           ) : (
                             <ul className="mt-3 space-y-2">
                               {itens.map((item) => (
@@ -181,6 +211,11 @@ export function PortalLegado() {
                                   key={item.id}
                                   className="border-b border-border py-4"
                                 >
+                                  <details open>
+                                  <summary className="min-h-11 cursor-pointer font-serif text-lg text-navy">
+                                    {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
+                                    {item.publicadoEm && dataPublicacao(item.publicadoEm) ? <span className="ml-2 font-sans text-xs text-navy/60">{dataPublicacao(item.publicadoEm)}</span> : null}
+                                  </summary>
                                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
                                      {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
                                   </p>
@@ -192,6 +227,7 @@ export function PortalLegado() {
                                       Publicado em {dataPublicacao(item.publicadoEm)}
                                     </p>
                                   ) : null}
+                                  </details>
                                 </li>
                               ))}
                             </ul>

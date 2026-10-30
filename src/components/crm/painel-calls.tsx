@@ -62,6 +62,8 @@ import {
   type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
+import { BriefPreCall, ReguaJornadaLead } from "@/components/crm/regua-jornada-lead";
+import { briefPreCall, reguaJornadaLead } from "@/lib/regua-jornada-lead";
 import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 import { filaCrmVivo, statusPedeMotivo } from "@/lib/crm-vivo";
@@ -267,7 +269,7 @@ function TrilhaDoLead({ leadId }: { leadId: string }) {
 
 type RespostaGravacao = { ok: boolean; erros?: { motivo: string }[] };
 
-export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) {
+export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string; momento?: "antes" | "durante" | "revisao" } = {}) {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const handoffFn = useServerFn(executarHandoffDiscovery);
@@ -655,6 +657,9 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
             <p className="mt-1">
               Uso interno de triagem. Não apresentar como parecer, garantia de direito, prazo ou instrução ao cliente.
             </p>
+            <Link to="/matriz-juridica" className="mt-1 inline-block font-medium text-navy underline" data-atalho-validacao-juridica>
+              Ver marcos e regras na Validação jurídica
+            </Link>
           </div>
         ) : null}
 
@@ -716,6 +721,12 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         prospect. A varredura fica ANTES do formulário porque é dela que sai o
         material para preenchê-lo.
       */}
+      {lead ? (
+        <ReguaJornadaLead
+          etapas={reguaJornadaLead(lead as Parameters<typeof reguaJornadaLead>[0], registroDiscovery.sugestoes)}
+        />
+      ) : null}
+      <div hidden={Boolean(momento && momento !== "antes")}>
       <VarreduraWhatsApp
         onAchadosMudaram={(lista, fonte) => {
           setAchados(lista);
@@ -745,6 +756,16 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         }}
       />
 
+      {lead ? (
+        <BriefPreCall
+          linhas={briefPreCall(
+            lead as unknown as Record<string, unknown>,
+            achados.filter((a) => !decididosVarredura.has(`${a.campo}::${a.valor}`)),
+            (c, v) => rotulo(c, v),
+          )}
+        />
+      ) : null}
+
       {isError ? (
         <p
           role="alert"
@@ -761,6 +782,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         </p>
       ) : null}
 
+      </div>
       <Secao
         titulo="Mesa de Discovery"
         descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
@@ -965,6 +987,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 </div>
               </div>
 
+              <div hidden={Boolean(momento && momento !== "antes")}>
               <Secao
                 titulo="Preparação pré-call"
                 descricao="Consentimento de gravação antes de qualquer transcrição — verificado antes da conversa, não misturado ao registro dela."
@@ -1006,6 +1029,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 </div>
               ) : null}
 
+              </div>
+              <div hidden={Boolean(momento && momento !== "durante")}>
               <Secao
                 titulo={`Registro da call — ${lead.nome}`}
                 descricao="Grava no lead canônico do CRM. Não cria ficha paralela. Próxima ação e prazo ficam no roteiro abaixo, no card 'Decisão e próximo passo'."
@@ -1088,6 +1113,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 passa a ter uma única superfície editável (o card SPIN),
                 nunca duas.
               */}
+              <div id="calls-roteiro-vivo" className="scroll-mt-24" />
               <MesaDiscovery
                 lead={lead}
                 indice={indicePergunta}
@@ -1099,6 +1125,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                     : null
                 }
               />
+              </div>
+              <div hidden={Boolean(momento && momento !== "revisao")}>
               {leadBase?.id ? (
                 <div className="mt-3">
                   <FechamentoPosCall lead={leadBase} registro={registroDiscovery} onSalvo={recarregarLead} onAviso={setAviso} />
@@ -1135,6 +1163,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 titulo="Decisão e handoff"
                 descricao="O handoff só é liberado com registro completo, qualificação registrada e responsável, próxima ação e prazo definidos."
               >
+                <div id="calls-handoff" className="scroll-mt-24" />
                 <p className="text-xs text-navy/65">
                   Destino derivado:{" "}
                   <strong>
@@ -1258,6 +1287,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 {aviso ? <span className="text-xs text-navy/70">{aviso}</span> : null}
               </div>
 
+              </div>
               {lead.id ? (
                 <TriagemAncestralScanDoLead
                   leadId={lead.id}

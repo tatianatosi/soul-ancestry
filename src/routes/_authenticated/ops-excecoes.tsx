@@ -7,6 +7,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell } from "@/components/saas/shell";
 import { Campo, Selo, inputCls } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { listarExcecoes, referenciasOps, registrarExcecao } from "@/lib/ops.functions";
 import { TIPOS_EXCECAO } from "@/lib/ops.server";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,10 @@ function ExcecoesPage() {
   // A falha desta consulta já aparece em `falhaRefs`, com botão de nova
   // tentativa: a lista vazia aqui nunca substitui a mensagem de erro.
   const casos = (Array.isArray(refs.data?.casos) ? refs.data.casos : []) as Linha[];
+  // V4-05: contagem real do histórico carregado; sem leitura, traço.
+  const excecoesLidas = lista.data?.excecoes as Linha[] | undefined;
+  const kpi = (contar: (l: Linha[]) => number) =>
+    lista.isLoading ? "…" : lista.error || !excecoesLidas ? "—" : String(contar(excecoesLidas));
   const falhaRefs = refs.isError ? "Não foi possível carregar a lista de casos para vincular a exceção." : null;
 
   return (
@@ -83,6 +88,13 @@ function ExcecoesPage() {
             </button>
           </p>
         ) : null}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-excecoes-kpis-v4>
+          <Indicador rotulo="Exceções registradas" valor={kpi((l) => l.length)} />
+          <Indicador rotulo="Disponíveis" valor={kpi((l) => l.filter((e) => !e["consumida_em"]).length)} />
+          <Indicador rotulo="Consumidas" valor={kpi((l) => l.filter((e) => e["consumida_em"]).length)} />
+          <Indicador rotulo="Vinculadas a caso" valor={kpi((l) => l.filter((e) => e["crm_casos"]).length)} />
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
         <CaCard variante="compacto" titulo="Registrar exceção">
           <form
             onSubmit={async (ev) => {
@@ -170,6 +182,7 @@ function ExcecoesPage() {
             )}
           </EstadoDados>
         </CaCard>
+        </div>
       </div>
     </SaasShell>
   );

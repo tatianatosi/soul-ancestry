@@ -92,7 +92,7 @@ function dataBr(valor: string | null) {
  * §12 também manda não deixar passar "cards de lead sem próxima ação/
  * responsável". Aqui isso não é omissão: vira `alert` visível no cartão.
  */
-function colunasPorEtapaComercial(
+export function colunasPorEtapaComercial(
   leads: readonly Record<string, unknown>[],
 ): { id: string; title: string; items: KanbanItem[] }[] {
   const texto = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);

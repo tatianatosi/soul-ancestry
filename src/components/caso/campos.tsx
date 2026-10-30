@@ -144,6 +144,55 @@ export function Selecao({
   );
 }
 
+/**
+ * Chips de um toque — reaproveita as mesmas `opcoes` (CA-04/dicionário já
+ * existente) de `Selecao`/`MultiSelecao`, mas cada opção é um botão que
+ * seleciona no próprio clique, sem abrir dropdown nem precisar de segundo
+ * clique de confirmação. `multiplo` decide se mais de um valor pode ficar
+ * marcado ao mesmo tempo (reusa `valores`) ou só um (reusa `valor`/`onChange`
+ * de string única). Sem lógica nova: mesma fonte de opções e mesmo campo de
+ * destino que o seletor que substitui.
+ */
+export function ChipsEscolha(
+  props:
+    | { label: string; opcoes: Opcao[]; multiplo: true; valores: string[]; onChange: (v: string[]) => void; desabilitado?: boolean }
+    | { label: string; opcoes: Opcao[]; multiplo?: false; valor: string; onChange: (v: string) => void; desabilitado?: boolean },
+) {
+  const { label, opcoes, desabilitado } = props;
+  const selecionado = (valor: string) => (props.multiplo ? props.valores.includes(valor) : props.valor === valor);
+  const alternar = (valor: string) => {
+    if (props.multiplo) {
+      props.onChange(props.valores.includes(valor) ? props.valores.filter((v) => v !== valor) : [...props.valores, valor]);
+    } else {
+      props.onChange(props.valor === valor ? "" : valor);
+    }
+  };
+  return (
+    <div>
+      <Rotulo>{label}</Rotulo>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {opcoes.map((o) => (
+          <button
+            key={o.valor}
+            type="button"
+            disabled={desabilitado}
+            aria-pressed={selecionado(o.valor)}
+            onClick={() => alternar(o.valor)}
+            className={
+              "rounded-full border px-3 py-1 text-xs transition-colors disabled:opacity-50 " +
+              (selecionado(o.valor)
+                ? "border-navy bg-navy text-cream"
+                : "border-navy/20 bg-cream text-navy/70 hover:bg-cream/70 hover:text-navy")
+            }
+          >
+            {o.rotulo}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Seleção múltipla por checkbox — mesmo padrão visual de Selecao/Texto. */
 export function MultiSelecao({
   label,

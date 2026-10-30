@@ -9,11 +9,8 @@ import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/plan
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /** Catálogos, serviços, etiquetas, alertas, comunicação e onboarding do caso. */
-import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
-import { recusaTickManualD7 } from "@/lib/d7-microentrega";
-import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
 import {
   CAMPOS_CIVIS_RECONCILIAVEIS,
   COLUNA_CLIENTE_CIVIL,
@@ -540,67 +537,6 @@ export const aprovarRascunho = createServerFn({ method: "POST" })
     }
     return { ok: true, enviado: false, salvoEm: r.salvoEm };
   });
-
-export const atualizarItemOnboarding = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; status: string; observacao?: string }) => data)
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
-    const { data: item } = await supabase
-      .from("onboarding_checklist")
-      .select("id,case_id,item_code")
-      .eq("id", data.id)
-      .eq("organization_id", organizationId)
-      .maybeSingle();
-    if (!item) throw new Error("Item de onboarding não encontrado.");
-    // P3 (25/09/2026): o D7 não é caixinha — segue a micro-entrega real.
-    if (recusaTickManualD7(String(item.item_code ?? ""), data.status)) {
-      const r = await tratarTickManualD7(supabase, {
-        organizationId,
-        caseId: item.case_id as string,
-        userId: context.userId as string,
-        status: data.status,
-      });
-      if (!r.ok) throw new Error(r.erro);
-      return { ok: true, salvoEm: new Date().toISOString() };
-    }
-    if (data.status === "concluido" && ["liberacao_onboarding", "onboarding_liberado"].includes(String(item.item_code))) {
-      await exigirGate(supabase, {
-        caseId: item.case_id,
-        acao: "liberar_onboarding",
-        userId: context.userId as string,
-        organizationId,
-      });
-    }
-
-    const r = await gravarComVerificacao({
-      supabase,
-      tabela: "onboarding_checklist",
-      id: data.id,
-      organizationId,
-      userId: context.userId as string,
-      payload: { status: data.status, observacao: data.observacao ?? null },
-      derivados: {
-        concluido_em: data.status === "concluido" ? new Date().toISOString() : null,
-        concluido_por: data.status === "concluido" ? context.userId : null,
-      },
-    });
-    if (item.case_id) {
-      await registrarTimelineCaso(supabase, {
-        organizationId,
-        caseId: item.case_id as string,
-        eventType: "caso",
-        title: `Item de onboarding atualizado: ${data.status}`,
-        summaryInternal: String(item.item_code ?? ""),
-        sourceEntityType: "onboarding_checklist",
-        sourceEntityId: data.id,
-        userId: context.userId as string,
-      });
-    }
-    return { ok: true, salvoEm: r.salvoEm };
-  });
-
 
 /**
  * Verifica/sincroniza `case_members` a partir de `nucleo_membros` do mesmo

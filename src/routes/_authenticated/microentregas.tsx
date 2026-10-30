@@ -3,12 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { SaasShell } from "@/components/saas/shell";
-import { BadgeDesk, CardIndicador, CarregandoDesk, SectionHeader, VazioDesk, type TomEstado } from "@/components/desk/ui-desk";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { CardIndicador, CarregandoDesk, SectionHeader, type TomEstado } from "@/components/desk/ui-desk";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, type Tom } from "@/components/prancha-v4/kit";
 import { Button } from "@/components/ui/button";
 import { listarFilaMicroentregas } from "@/lib/biblioteca-evidencias.functions";
 import { APROVACOES } from "@/lib/biblioteca-evidencias";
 import { FilaKitMicroentregas } from "@/components/desk/kit-conectado";
+import { RascunhosApp } from "@/components/golive/rascunhos-app";
 
 export const Route = createFileRoute("/_authenticated/microentregas")({
   head: () => ({
@@ -34,6 +37,12 @@ const TOM_STATUS: Record<string, TomEstado> = {
   approved: "sucesso",
   published: "sucesso",
 };
+
+// V4-04: chip de estado do kit V4 (mesmos tons da fila; rascunho fica neutro).
+function tomChip(status: string): Tom {
+  const t = TOM_STATUS[status];
+  return t === "atencao" || t === "sucesso" ? t : "neutro";
+}
 
 function dataBr(v: string | null) {
   if (!v) return "Sem prazo definido";
@@ -103,11 +112,11 @@ function MicroentregasPage() {
             <Button variant="outline" size="sm" className="mt-3" onClick={() => void fila.refetch()}>Tentar novamente</Button>
           </div>
         ) : null}
-        {!fila.isLoading && !fila.isError && !linhas.length ? (
-          <VazioDesk titulo="Nenhuma microentrega neste filtro" descricao="A fila mostra somente projeções já registradas na Biblioteca." />
-        ) : null}
-
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
+          <CaCard titulo="Fila editorial" eyebrow={`Microentregas · ${linhas.length} no filtro`}>
+          {!fila.isLoading && !fila.isError && !linhas.length ? (
+            <EstadoVazio mensagem="Nenhuma microentrega neste filtro. A fila mostra somente projeções já registradas na Biblioteca." />
+          ) : null}
           <div className="space-y-3">
             {linhas.map((item) => (
               <article key={item.id} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
@@ -116,7 +125,7 @@ function MicroentregasPage() {
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/50">{item.casoCodigo ?? "Caso sem código"}</p>
                     <h2 className="font-serif text-xl text-navy">{item.tipo}</h2>
                   </div>
-                  <BadgeDesk texto={rotuloStatus(item.status)} tom={TOM_STATUS[item.status] ?? "neutro"} />
+                  <Etiqueta texto={rotuloStatus(item.status)} tom={tomChip(item.status)} />
                 </div>
                 <p className="mt-2 line-clamp-2 text-sm text-navy/70">{item.descricao || "Descrição sanitizada ainda não preenchida."}</p>
                 <dl className="mt-3 grid gap-2 text-xs text-navy/60 sm:grid-cols-3">
@@ -133,13 +142,36 @@ function MicroentregasPage() {
               </article>
             ))}
           </div>
+          </CaCard>
 
           <aside className="lg:sticky lg:top-4 lg:self-start" aria-live="polite">
             {selecionada ? <Detalhe item={selecionada} /> : (
-              <VazioDesk titulo="Selecione uma microentrega" descricao="O detalhe mostra somente os vínculos reais encontrados." />
+              <CaCard titulo="Detalhe da microentrega" eyebrow="Microentregas · vínculos">
+                <EstadoVazio mensagem="Selecione uma microentrega. O detalhe mostra somente os vínculos reais encontrados." />
+              </CaCard>
             )}
           </aside>
         </div>
+
+        {/*
+          Resgate (Frente 4, 19/10/2026): o editor real de rascunhos de copy
+          — RascunhosApp, de golive.microentregas.tsx — com validação de
+          texto antes de publicar no App Cliente. A fila acima é a visão
+          geral multi-caso, só leitura; esta é a única superfície de edição
+          e publicação desta tela (compõe, não compete: antes desta
+          integração a tela não tinha editor nem gate de publicação
+          próprios). RascunhosApp e seus escritores
+          (`salvarRascunhoProjecaoApp`/`publicarRascunhoProjecaoApp`) leem e
+          gravam em `app_projections`, a mesma tabela da fila acima — mas
+          escopados ao caso operacional configurado no servidor (mesmo
+          mecanismo de /golive/microentregas), não a um caso escolhido nesta
+          tela. Edição de outro caso específico continua pela Biblioteca.
+        */}
+        <SectionHeader
+          titulo="Rascunhos para o App Cliente"
+          descricao="Editor do caso operacional configurado: grava, relê e só libera para publicação depois de passar na validação de texto do servidor."
+        />
+        <RascunhosApp />
       </section>
     </SaasShell>
   );
@@ -147,15 +179,12 @@ function MicroentregasPage() {
 
 function Detalhe({ item }: { item: Linha }) {
   return (
-    <div className="rounded-xl border border-navy/15 bg-cream/50 p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/50">Detalhe da microentrega</p>
-          <h2 className="font-serif text-xl text-navy">{item.tipo}</h2>
-        </div>
-        <BadgeDesk texto={rotuloStatus(item.status)} tom={TOM_STATUS[item.status] ?? "neutro"} />
-      </div>
-      <div className="mt-5 space-y-4 text-sm">
+    <CaCard
+      titulo={item.tipo}
+      eyebrow="Detalhe da microentrega"
+      acao={<Etiqueta texto={rotuloStatus(item.status)} tom={tomChip(item.status)} />}
+    >
+      <div className="mt-2 space-y-4 text-sm">
         <Bloco titulo="Descrição" texto={item.descricao} vazio="Descrição sanitizada não preenchida." />
         <Bloco titulo="Fonte" texto={item.fonte ? `${item.fonte.titulo} · ${item.fonte.tipo}` : null} vazio="Nenhuma fonte diretamente vinculada a esta origem." />
         <Bloco titulo="Evidência" texto={item.evidencia ? `${item.evidencia.titulo}${item.evidencia.descricao ? ` — ${item.evidencia.descricao}` : ""}` : null} vazio="Nenhuma evidência diretamente vinculada a esta projeção." />
@@ -165,7 +194,7 @@ function Detalhe({ item }: { item: Linha }) {
       <Button asChild className="mt-5 w-full">
         <Link to="/biblioteca-evidencias/$caseId" params={{ caseId: item.caseId }}>Revisar na Biblioteca</Link>
       </Button>
-    </div>
+    </CaCard>
   );
 }
 

@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand";
-import { LinkPortal, useFontePortal, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, useFontePortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { iniciais } from "@/components/portal/elementos-mockup";
 import { portalContexto } from "@/lib/portal.functions";
 import { registrarTempoNaAba, type AbaComTelemetria } from "@/lib/portal-cliente.functions";
 import { cn } from "@/lib/utils";
@@ -101,6 +102,9 @@ export function PortalShell({
   const previa = usePreviaPortal();
   const fonte = useFontePortal();
   const rotaAtiva = fonte?.rotaInterna ?? rota;
+  const vivo = usePortalVivo();
+  const nomeTitular = vivo.data?.resumoCaso?.perfil.nome ?? null;
+  const primeiroNome = nomeTitular?.split(/\s+/).slice(0, 2).join(" ") ?? null;
 
   useTelemetriaDePermanencia(rotaAtiva, Boolean(previa));
 
@@ -139,7 +143,7 @@ export function PortalShell({
     : [];
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream text-navy" data-marca-guia="oki" data-app-cliente="true" data-app-editorial={["/portal", "/portal/jornada", "/portal/arvore", "/portal/documentos"].includes(rotaAtiva) ? rotaAtiva : undefined}>
+    <div className="min-h-screen overflow-x-hidden bg-cream text-navy" data-marca-guia="oki" data-app-cliente="true" data-app-editorial={rotaAtiva}>
       {/*
         Faixa navy única e compacta (correção 2026-09-12: duas faixas altas
         empurravam o conteúdo real para baixo da dobra e destoavam do mockup
@@ -151,10 +155,11 @@ export function PortalShell({
             <div className="flex min-w-0 items-center gap-2">
               <BrandLogo size={40} variant="client-dark" showText />
             </div>
-            <LinkPortal to="/portal/conta" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-xs text-cream underline decoration-gold underline-offset-4"><UserRound className="h-4 w-4" aria-hidden="true" />Conta</LinkPortal>
+            <LinkPortal to="/portal/conta" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-gold bg-navy-800 font-serif text-sm font-semibold text-gold" aria-label="Abrir Conta e perfil" data-botao-perfil>{nomeTitular ? iniciais(nomeTitular) : <UserRound className="h-5 w-5" aria-hidden="true" />}</LinkPortal>
           </div>
 
           <div className="app-v11-identidade max-w-2xl">
+            {primeiroNome ? <p className="font-serif text-lg text-cream sm:text-xl" data-saudacao>Bem-vinda, {primeiroNome}</p> : null}
             <p className="mb-1 text-xs text-gold">{previa?.titulo ?? data?.cliente?.nome ?? "Sua história familiar"}</p>
             {rotaAtiva === "/portal" ? <p className="sr-only text-gold">Aplicativo da família</p> : null}
           </div>

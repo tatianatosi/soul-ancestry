@@ -11,6 +11,7 @@ import { salvarTarefa } from "@/lib/ops.functions";
 import { ALERT_STATUS } from "@/lib/caso-ficha";
 import { CardIndicador, SectionHeader } from "@/components/desk/ui-desk";
 import { Button } from "@/components/ui/button";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/alertas")({
   head: () => ({
@@ -120,6 +121,7 @@ function AlertasPage() {
         </p>
       ) : null}
 
+      <div data-desk-mockup4="alertas">
       <section className="mb-8 space-y-4" aria-labelledby="filas-centrais">
         <SectionHeader
           titulo="Filas centralizadas"
@@ -143,13 +145,13 @@ function AlertasPage() {
             </div>
             <div className="grid gap-4 xl:grid-cols-3">
               {filasCentrais.map((fila) => (
-                <article key={fila.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+                <article key={fila.chave} className="rounded-xl border border-navy/10 bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-serif text-lg text-navy">{fila.titulo}</h3>
                       <p className="mt-1 text-xs text-navy/60">{fila.descricao}</p>
                     </div>
-                    <BadgeDesk texto={`${fila.itens.length}`} tom={fila.itens.length ? "atencao" : "sucesso"} />
+                    <BadgeDesk texto={`${fila.itens.length} ${fila.itens.length ? "em atenção" : "pendentes"}`} tom={fila.itens.length ? "atencao" : "sucesso"} />
                   </div>
                   <ul className="mt-4 space-y-2">
                     {fila.itens.slice(0, 8).map((item: AlertaCentral) => (
@@ -300,6 +302,7 @@ function AlertasPage() {
         </TabelaDesk>
       )}
       </section>
+      </div>
     </SaasShell>
   );
 }

@@ -118,25 +118,25 @@ describe("P27 — propostasAguardandoResposta: pura, reaproveita eixo_comercial 
   });
 });
 
-describe("P27 — Painel Hoje ganha os 3 blocos que faltavam do Pacote de Instruções", () => {
+describe("P27 — Painel Hoje ganha os 3 blocos que faltavam do Pacote de Instruções (supersedido 17/10/2026)", () => {
   const pagina = readFileSync("src/routes/_authenticated/painel.tsx", "utf8");
 
-  it("Propostas aguardando resposta, Contratos aguardando assinatura e Pagamentos pendentes/vencidos existem como cards", () => {
+  // 17/10/2026 — decisão canônica da Proprietária: "corte radical" em
+  // /painel, só a grade da Prancha V4 (desk-01-hoje). "Propostas aguardando
+  // resposta", "Contratos aguardando assinatura" e "Pagamentos
+  // pendentes/vencidos" não têm equivalente nessa grade e saíram da
+  // renderização — nada foi apagado: `propostasAguardandoResposta`
+  // (golive-operacao.ts) e os campos `contratosAguardandoAssinatura`/
+  // `pagamentosPendentes` de `golive.functions.ts` continuam existindo e
+  // testados nos describes acima deste arquivo.
+  it("os 3 blocos saíram da grade V4 de /painel — não renderizam mais aqui", () => {
     for (const titulo of [
       "Propostas aguardando resposta",
       "Contratos aguardando assinatura",
       "Pagamentos pendentes/vencidos",
     ]) {
-      expect(pagina).toContain(titulo);
+      expect(pagina).not.toContain(titulo);
     }
-  });
-
-  it("ação direta dos 3 cards novos abre /casos/$caseId — nunca uma lista desconectada", () => {
-    const inicio = pagina.indexOf('titulo="Propostas aguardando resposta"');
-    const fim = pagina.indexOf('titulo="Cadência dos casos"');
-    const bloco = pagina.slice(inicio, fim);
-    const ocorrencias = bloco.match(/to="\/casos\/\$caseId"/g) ?? [];
-    expect(ocorrencias.length).toBeGreaterThanOrEqual(3);
   });
 });
 

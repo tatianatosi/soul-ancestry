@@ -24,15 +24,17 @@ describe("autoridade operacional", () => {
     expect(rotuloDecisao(r)).toBeNull();
   });
 
-  it("nunca bloqueia a proprietária por gate de domínio: converte em decisão auditada", () => {
+  // Retificação de 18/10/2026 (07d98d94): para a proprietária administradora a
+  // operação interna é permitida direto; a pendência segue visível como aviso.
+  it("nunca bloqueia a proprietária por gate de domínio: permite e mantém a pendência como aviso", () => {
     const r = decidirAcao(proprietaria, {
       capacidade: "avancar_caso_planejador_tarefa",
       pendenciaGate: "Contrato ainda não assinado.",
     });
-    expect(r.decisao).toBe("confirmar");
+    expect(r.decisao).toBe("permitir");
     expect(deveDesabilitar(r)).toBe(false);
     expect(r.porDecisaoDaProprietaria).toBe(true);
-    expect(r.exigeMotivo).toBe(true);
+    expect(r.exigeMotivo).toBe(false);
     expect(r.pendencia).toBe("Contrato ainda não assinado.");
   });
 

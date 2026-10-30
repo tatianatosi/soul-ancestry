@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { urlDeRetorno } from "@/lib/origem-canonica";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -19,10 +20,8 @@ export const solicitarLinkAcesso = createServerFn({ method: "POST" })
     const email = helpers.normalizarEmail(data.email);
     if (!helpers.emailValido(email)) return { ok: true };
 
-    const origem =
-      getRequestHeader("origin") ??
-      (getRequestHeader("host") ? `https://${getRequestHeader("host")}` : "");
-    const redirectTo = `${origem}/acesso/confirmar`;
+    // E1: o destino do link NUNCA vem do cabeçalho da requisição (endpoint público).
+    const redirectTo = urlDeRetorno("/acesso/confirmar", getRequestHeader("origin"));
 
     // Limite de emissão por e-mail e por origem: reduz abuso e enumeração.
     const { limiteExcedido } = await import("./equipe.server");
@@ -659,9 +658,7 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
       if (vinculado.error) throw new Error(vinculado.error.message);
     }
 
-    const origem =
-      getRequestHeader("origin") ?? (getRequestHeader("host") ? `https://${getRequestHeader("host")}` : "");
-    await helpers.enviarLinkMagico(email, `${origem}/acesso/confirmar`);
+    await helpers.enviarLinkMagico(email, urlDeRetorno("/acesso/confirmar", getRequestHeader("origin")));
 
     await helpers.registrarEvento({
       organizationId,
@@ -765,9 +762,7 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
       },
     });
 
-    const origem =
-      getRequestHeader("origin") ?? (getRequestHeader("host") ? `https://${getRequestHeader("host")}` : "");
-    await helpers.enviarLinkMagico(acesso.data.email, `${origem}/acesso/confirmar`);
+    await helpers.enviarLinkMagico(acesso.data.email, urlDeRetorno("/acesso/confirmar", getRequestHeader("origin")));
 
     await helpers.registrarEvento({
       organizationId,

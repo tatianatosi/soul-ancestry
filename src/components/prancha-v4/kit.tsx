@@ -143,6 +143,45 @@ export function BarrasHorizontais({
   );
 }
 
+/**
+ * Funil em degraus/trapézio (SVG nativo, Proprietária 13/10/2026): cada
+ * etapa é um trapézio cuja largura topo/base é proporcional ao percentual
+ * real já calculado pelo chamador — nunca recalcula nem inventa taxa. Etapa
+ * em zero mantém largura mínima visível, nunca some.
+ */
+export function FunilVisualSvg({
+  etapas,
+  tituloAcessivel,
+}: {
+  etapas: { rotulo: string; valor: number; apoio?: string }[];
+  tituloAcessivel: string;
+}) {
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="space-y-2.5">
+      {etapas.map((etapa, i) => {
+        const largura = Math.max(14, Math.min(100, etapa.valor));
+        return (
+          <div key={etapa.rotulo}>
+            <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+              <span className="truncate font-medium text-navy">{etapa.rotulo}</span>
+              <span className="shrink-0 tabular-nums text-navy/55">
+                {etapa.apoio ? `${etapa.apoio} · ` : ""}
+                {etapa.valor}%
+              </span>
+            </div>
+            <div className="h-3 w-full overflow-hidden rounded-full bg-navy/10">
+              <div
+                className={cn("h-full rounded-full", i === 0 ? "bg-navy" : i % 2 === 1 ? "bg-navy/80" : "bg-navy/60")}
+                style={{ width: `${largura}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </figure>
+  );
+}
+
 /** Colunas verticais; coluna em zero aparece como base fina, nunca some. */
 export function GraficoColunas({
   itens,
@@ -161,14 +200,137 @@ export function GraficoColunas({
           return (
             <div key={item.rotulo} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
               <span className="text-[9px] font-semibold tabular-nums text-navy/60">{item.valor}</span>
-              <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-10 overflow-hidden rounded-t-sm">
-                <rect x="0" y={96 - altura} width="32" height={altura} className={item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"} />
-                {alturaSec > 0 ? <rect x="0" y={96 - alturaSec} width="32" height={alturaSec} className="fill-gold" /> : null}
+              <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-14 overflow-hidden rounded-t-xl">
+                <rect x="0" y={96 - altura} width="32" height={altura} rx="4" className={item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"} />
+                {alturaSec > 0 ? <rect x="0" y={96 - alturaSec} width="32" height={alturaSec} rx="4" className="fill-gold" /> : null}
               </svg>
               <span className="w-full truncate text-center text-[8px] text-navy/55">{item.rotulo}</span>
             </div>
           );
         })}
+      </div>
+    </figure>
+  );
+}
+
+/** Linha de série; série zerada desenha a linha rente à base, com os pontos e a régua. */
+export function GraficoLinha({
+  pontos,
+  tituloAcessivel,
+}: {
+  pontos: { rotulo: string; valor: number }[];
+  tituloAcessivel: string;
+}) {
+  const largura = 300;
+  const altura = 96;
+  const margem = 10;
+  const maior = Math.max(...pontos.map((p) => p.valor), 1);
+  const passo = pontos.length > 1 ? (largura - margem * 2) / (pontos.length - 1) : 0;
+  const coords = pontos.map((p, i) => ({
+    x: margem + i * passo,
+    y: altura - margem - (p.valor / maior) * (altura - margem * 2),
+  }));
+  const temValor = pontos.some((p) => p.valor > 0);
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <svg viewBox={`0 0 ${largura} ${altura}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line
+            key={f}
+            x1={margem}
+            x2={largura - margem}
+            y1={margem + f * (altura - margem * 2)}
+            y2={margem + f * (altura - margem * 2)}
+            className="stroke-navy/5"
+            strokeWidth={1}
+          />
+        ))}
+        <line x1={margem} x2={largura - margem} y1={altura - margem} y2={altura - margem} className="stroke-navy/15" strokeWidth={1} />
+        <polyline
+          points={coords.map((c) => `${c.x},${c.y}`).join(" ")}
+          fill="none"
+          className={temValor ? "stroke-gold" : "stroke-navy/20"}
+          strokeWidth={2}
+        />
+        {coords.map((c, i) => (
+          <circle key={pontos[i]!.rotulo} cx={c.x} cy={c.y} r={3} className={temValor ? "fill-navy" : "fill-navy/20"} />
+        ))}
+      </svg>
+      <div className="mt-1 flex justify-between gap-1 px-1">
+        {pontos.map((p) => (
+          <span key={p.rotulo} className="text-[9px] tabular-nums text-navy/50">
+            {p.rotulo}
+          </span>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
+/**
+ * Linha com múltiplas séries (ex.: previsto × confirmado), mesma régua de
+ * meses. Série sem nenhum valor fica rente à base, nunca some.
+ */
+export function GraficoLinhaSeries({
+  series,
+  tituloAcessivel,
+}: {
+  series: { rotulo: string; tom: "navy" | "gold"; pontos: { rotulo: string; valor: number }[] }[];
+  tituloAcessivel: string;
+}) {
+  const largura = 300;
+  const altura = 96;
+  const margem = 10;
+  const maiorPonto = Math.max(...series.flatMap((s) => s.pontos.map((p) => p.valor)), 1);
+  const rotulosEixo = series[0]?.pontos.map((p) => p.rotulo) ?? [];
+  const passo = rotulosEixo.length > 1 ? (largura - margem * 2) / (rotulosEixo.length - 1) : 0;
+  const stroke = { navy: "stroke-navy", gold: "stroke-gold" } as const;
+  const ponto = { navy: "fill-navy", gold: "fill-gold" } as const;
+  const dot = { navy: "bg-navy", gold: "bg-gold" } as const;
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <svg viewBox={`0 0 ${largura} ${altura}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line
+            key={f}
+            x1={margem}
+            x2={largura - margem}
+            y1={margem + f * (altura - margem * 2)}
+            y2={margem + f * (altura - margem * 2)}
+            className="stroke-navy/5"
+            strokeWidth={1}
+          />
+        ))}
+        <line x1={margem} x2={largura - margem} y1={altura - margem} y2={altura - margem} className="stroke-navy/15" strokeWidth={1} />
+        {series.map((s) => {
+          const coords = s.pontos.map((p, i) => ({
+            x: margem + i * passo,
+            y: altura - margem - (p.valor / maiorPonto) * (altura - margem * 2),
+          }));
+          return (
+            <g key={s.rotulo}>
+              <polyline points={coords.map((c) => `${c.x},${c.y}`).join(" ")} fill="none" className={stroke[s.tom]} strokeWidth={2} />
+              {coords.map((c, i) => (
+                <circle key={s.pontos[i]!.rotulo} cx={c.x} cy={c.y} r={2.5} className={ponto[s.tom]} />
+              ))}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-1 flex justify-between gap-1 px-1">
+        {rotulosEixo.map((r) => (
+          <span key={r} className="text-[9px] tabular-nums text-navy/50">
+            {r}
+          </span>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-3">
+        {series.map((s) => (
+          <span key={s.rotulo} className="flex items-center gap-1.5 text-[11px] text-navy/65">
+            <span className={cn("h-2 w-2 rounded-full", dot[s.tom])} />
+            {s.rotulo}
+          </span>
+        ))}
       </div>
     </figure>
   );
@@ -379,5 +541,189 @@ export function RedeVinculos({
       </svg>
       <figcaption className="absolute bottom-2 left-3 right-3 text-[9px] text-navy/50">{legenda}</figcaption>
     </figure>
+  );
+}
+
+/*
+ * Peças da prancha V4 que faltavam no kit (19/10/2026): radar de eixos,
+ * matriz de quadrantes, anel percentual, régua de etapas e fila de etapas.
+ * Mesma regra das demais: a forma aparece sempre; sem leitura, o desenho
+ * fica tracejado e o texto diz que não há dado — nunca um número inventado.
+ */
+
+const SEM_DADO = "Sem dado registrado ainda";
+
+/** Radar de 3 a 6 eixos, valores 0–100. `null` em todos = esqueleto tracejado. */
+export function RadarEixos({
+  eixos,
+  tituloAcessivel,
+  legenda = "Leitura atual",
+}: {
+  eixos: { rotulo: string; valor: number | null }[];
+  tituloAcessivel: string;
+  legenda?: string;
+}) {
+  const n = Math.max(eixos.length, 3);
+  const c = 110;
+  const raio = 70;
+  const ponto = (i: number, r: number) => {
+    const ang = (Math.PI * 2 * i) / n - Math.PI / 2;
+    return [c + Math.cos(ang) * r, c + Math.sin(ang) * r] as const;
+  };
+  const anel = (f: number) => eixos.map((_, i) => ponto(i, raio * f).join(",")).join(" ");
+  const temLeitura = eixos.some((e) => typeof e.valor === "number");
+  const poligono = eixos
+    .map((e, i) => ponto(i, (raio * Math.max(0, Math.min(100, e.valor ?? 0))) / 100).join(","))
+    .join(" ");
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="min-w-0">
+      <svg viewBox="0 0 220 220" className="mx-auto h-auto w-full max-w-[260px]">
+        {[0.25, 0.5, 0.75, 1].map((f) => (
+          <polygon key={f} points={anel(f)} fill="none" className="stroke-navy/15" strokeWidth="1" />
+        ))}
+        {eixos.map((_, i) => {
+          const [x, y] = ponto(i, raio);
+          return <line key={i} x1={c} y1={c} x2={x} y2={y} className="stroke-navy/10" strokeWidth="1" />;
+        })}
+        {temLeitura ? (
+          <polygon points={poligono} className="fill-gold/25 stroke-navy" strokeWidth="2" />
+        ) : (
+          <polygon points={anel(0.55)} fill="none" className="stroke-navy/30" strokeWidth="1.5" strokeDasharray="4 4" />
+        )}
+        {eixos.map((e, i) => {
+          const [x, y] = ponto(i, raio + 22);
+          return (
+            <text key={e.rotulo} x={x} y={y} textAnchor="middle" className="fill-navy text-[8px] font-medium">
+              <tspan x={x} dy="-2">{e.rotulo}</tspan>
+              <tspan x={x} dy="10" className="fill-navy/50">{typeof e.valor === "number" ? `${Math.round(e.valor)}%` : "—"}</tspan>
+            </text>
+          );
+        })}
+      </svg>
+      <figcaption className="mt-1 text-center text-[10px] text-navy/55">
+        {temLeitura ? `${legenda} · faixas de 25%` : SEM_DADO}
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Matriz 2×2 (ex.: elegibilidade × prioridade). x e y entre 0 e 1. */
+export function MatrizQuadrantes({
+  pontos,
+  quadrantes,
+  eixoX,
+  eixoY,
+  tituloAcessivel,
+}: {
+  pontos: { id: string; rotulo: string; x: number; y: number; tom: Tom }[];
+  quadrantes: [string, string, string, string];
+  eixoX: string;
+  eixoY: string;
+  tituloAcessivel: string;
+}) {
+  const cor: Record<Tom, string> = { neutro: "bg-navy/50", critico: "bg-critico", atencao: "bg-atencao", sucesso: "bg-sucesso" };
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="min-w-0">
+      <div className="flex gap-2">
+        <span className="self-center text-[9px] text-navy/45 [writing-mode:vertical-rl] rotate-180">{eixoY} →</span>
+        <div className="relative grid aspect-[4/3] w-full max-w-full grid-cols-2 grid-rows-2 border-b-2 border-l-2 border-navy/40">
+          {quadrantes.map((q, i) => (
+            <div
+              key={q}
+              className={cn(
+                "flex p-2 text-[9px] font-semibold uppercase tracking-wider text-navy/60",
+                i % 2 === 1 ? "bg-gold/10" : "bg-navy/[0.03]",
+                i < 2 ? "items-start justify-center" : "items-end justify-center",
+              )}
+            >
+              {q}
+            </div>
+          ))}
+          {pontos.map((p) => (
+            <span
+              key={p.id}
+              title={p.rotulo}
+              className="absolute flex -translate-x-1/2 translate-y-1/2 items-center gap-1 whitespace-nowrap text-[9px] text-navy"
+              style={{ left: `${Math.max(0, Math.min(1, p.x)) * 100}%`, bottom: `${Math.max(0, Math.min(1, p.y)) * 100}%` }}
+            >
+              <span className={cn("h-2.5 w-2.5 rounded-full ring-2 ring-card", cor[p.tom])} />
+              {p.rotulo}
+            </span>
+          ))}
+          {pontos.length === 0 ? (
+            <span className="absolute inset-0 grid place-items-center text-[11px] text-navy/50">{SEM_DADO}</span>
+          ) : null}
+        </div>
+      </div>
+      <figcaption className="mt-1 text-center text-[9px] text-navy/45">{eixoX} →</figcaption>
+    </figure>
+  );
+}
+
+/** Anel de percentual (ex.: confiança da cadeia). `null` = anel vazio com "—". */
+export function AnelPercentual({ valor, tituloAcessivel }: { valor: number | null; tituloAcessivel: string }) {
+  const v = typeof valor === "number" ? Math.max(0, Math.min(100, valor)) : null;
+  const circ = 2 * Math.PI * 26;
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="relative h-20 w-20 shrink-0">
+      <svg viewBox="0 0 64 64" className="h-20 w-20 -rotate-90">
+        <circle cx="32" cy="32" r="26" fill="none" className="stroke-navy/10" strokeWidth="7" />
+        {v !== null ? (
+          <circle cx="32" cy="32" r="26" fill="none" className="stroke-gold" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(v / 100) * circ} ${circ}`} />
+        ) : (
+          <circle cx="32" cy="32" r="26" fill="none" className="stroke-navy/25" strokeWidth="2" strokeDasharray="3 4" />
+        )}
+      </svg>
+      <span className="absolute inset-0 grid place-items-center font-semibold tabular-nums text-navy">{v !== null ? `${Math.round(v)}%` : "—"}</span>
+    </figure>
+  );
+}
+
+/** Régua de etapas com setas (ex.: da pergunta à microentrega). */
+export function ReguaEtapas({
+  etapas,
+}: {
+  etapas: { rotulo: string; estado: "feito" | "atual" | "pendente"; apoio?: string }[];
+}) {
+  return (
+    <ol className="grid gap-2 sm:grid-flow-col sm:auto-cols-fr" aria-label="Etapas">
+      {etapas.map((e, i) => (
+        <li key={e.rotulo} className="relative flex min-w-0 flex-col items-center gap-1 rounded-lg border border-navy/10 bg-cream/40 px-2 py-3 text-center">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "grid h-5 w-5 place-items-center rounded-full border text-[10px]",
+              e.estado === "feito" && "border-sucesso text-sucesso",
+              e.estado === "atual" && "border-gold text-gold",
+              e.estado === "pendente" && "border-navy/25 text-navy/30",
+            )}
+          >
+            {e.estado === "pendente" ? "" : "✓"}
+          </span>
+          <span className="text-[11px] font-semibold text-navy">{e.rotulo}</span>
+          {e.apoio ? <span className="text-[10px] text-navy/55">{e.apoio}</span> : null}
+          {i < etapas.length - 1 ? (
+            <span aria-hidden="true" className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-gold sm:block">→</span>
+          ) : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Fila com contagem por etapa (ex.: rascunho → revisão → aprovado → publicado). */
+export function FilaEtapas({ etapas }: { etapas: { rotulo: string; contagem: number | null; tom?: Tom }[] }) {
+  return (
+    <ol className="grid gap-2 sm:grid-flow-col sm:auto-cols-fr" aria-label="Fila">
+      {etapas.map((e, i) => (
+        <li key={e.rotulo} className="relative flex min-w-0 items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
+          <span className="truncate text-[11px] font-semibold text-navy">{e.rotulo}</span>
+          <Etiqueta texto={e.contagem === null ? "—" : String(e.contagem)} tom={e.tom ?? "neutro"} />
+          {i < etapas.length - 1 ? (
+            <span aria-hidden="true" className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-gold sm:block">→</span>
+          ) : null}
+        </li>
+      ))}
+    </ol>
   );
 }

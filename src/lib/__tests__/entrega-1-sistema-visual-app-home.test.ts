@@ -20,7 +20,7 @@ describe("Entrega 1 — tokens Pantone do mockup", () => {
   it("--background e --card em :root usam a paleta Pantone aprovada, não a OKI anterior", () => {
     const css = readFileSync("src/styles.css", "utf8");
     const inicio = css.indexOf("PALETA PANTONE DO MOCKUP");
-    const root = css.slice(inicio, inicio + 1400);
+    const root = css.slice(inicio, inicio + 2000);
     expect(root).toContain("--navy: #13294B;");
     expect(root).toContain("--navy-800: #1B365D;");
     expect(root).toContain("--gold: #C2A84D;");

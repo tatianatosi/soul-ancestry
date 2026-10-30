@@ -12,13 +12,17 @@ import { describe, expect, it } from "vitest";
 const rota = readFileSync("src/routes/_authenticated/financeiro.tsx", "utf8");
 
 describe("Financeiro — Resumo do período (§19)", () => {
-  it("renderiza os 4 indicadores reais, sem inventar 'em atraso' separado de 'vencido'", () => {
+  it("renderiza os 4 indicadores reais, com os rótulos de carteira global (Proprietária, 13/10/2026)", () => {
     expect(rota).toContain("data-financeiro-resumo-periodo");
-    expect(rota).toContain('rotulo: "Previsto"');
-    expect(rota).toContain('rotulo: "Recebido"');
-    expect(rota).toContain('rotulo: "Vencido"');
-    expect(rota).toContain('rotulo: "Saldo em aberto"');
+    expect(rota).toContain('contratado: "Valor Total Contratado"');
+    expect(rota).toContain('recebido: "Total Já Recebido"');
+    expect(rota).toContain('aVencer: "Total a Vencer"');
+    expect(rota).toContain('vencido: "Total Vencido"');
     expect(rota).toContain("DIVERGÊNCIA REGISTRADA (§29)");
+  });
+
+  it("\"Total a Vencer\" exclui o que já está vencido — não soma os dois", () => {
+    expect(rota).toContain("const aVencer = Math.max(contratada - recebida - vencidas, 0);");
   });
 
   it("cada indicador do resumo é clicável e abre a lista/origem (troca aba+status), nenhum é decorativo", () => {
@@ -39,25 +43,34 @@ describe("Financeiro — Resumo do período (§19)", () => {
   });
 });
 
-describe("Financeiro — Obrigações e Evolução (§19): EstadoVazio honesto onde a fonte não sustenta", () => {
-  it("Obrigações declara que despesas de terceiro são por caso, sem agregação org-wide inventada", () => {
+describe("Financeiro — Obrigações e Evolução (§19): agregação real onde a fonte sustenta", () => {
+  it("Obrigações agrega despesas de terceiro por toda a organização (autorizado pela Proprietária, 13/10/2026)", () => {
     expect(rota).toContain("data-financeiro-obrigacoes");
+    expect(rota).toContain("listarDespesasTerceiros");
     const trecho = rota.slice(
       rota.indexOf("data-financeiro-obrigacoes") - 600,
-      rota.indexOf("data-financeiro-obrigacoes") + 400,
+      rota.indexOf("data-financeiro-obrigacoes") + 1600,
     );
-    expect(trecho).toContain("DIVERGÊNCIA REGISTRADA (§29)");
+    expect(trecho).toContain("Aguardando aprovação");
+    expect(trecho).toContain("Aprovadas ou pagas");
     expect(trecho).toContain("EstadoVazio");
   });
 
-  it("Evolução não desenha gráfico decorativo sem série mensal real", () => {
-    expect(rota).toContain("data-financeiro-evolucao");
-    const trecho = rota.slice(
-      rota.indexOf("data-financeiro-evolucao") - 600,
-      rota.indexOf("data-financeiro-evolucao") + 400,
-    );
-    expect(trecho).toContain("EstadoVazio");
-    expect(trecho).not.toMatch(/BarChart|LineChart|<svg/);
+  it("situação das faturas é rosca real (situacaoDasFaturas), nunca some sem fatura", () => {
+    // Regra do componente permanente (Proprietária, 13/10/2026): a rosca
+    // roda sobre a mesma `faturas` de qFaturas (sem query nova) e, sem
+    // registro, desenha anel neutro com "Sem dados suficientes" — nunca
+    // troca o gráfico por um EstadoVazio de texto.
+    expect(rota).toContain("data-financeiro-situacao-faturas");
+    expect(rota).toContain("situacaoDasFaturas(faturasAdaptadas)");
+    expect(rota).toContain("<DonutEstados");
+    expect(rota).toContain("data-financeiro-situacao-vazio");
+  });
+
+  it("fluxo do contrato (parcelas) roda sobre as mesmas faturas, sem query nova", () => {
+    expect(rota).toContain("data-financeiro-fluxo-contrato");
+    expect(rota).toContain("planoDeParcelas(faturasAdaptadas, null)");
+    expect(rota).toContain("Sem parcela registrada.");
   });
 });
 

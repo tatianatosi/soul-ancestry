@@ -75,15 +75,20 @@ describe("número só onde existe regra", () => {
     // história. O que não pode voltar é o RAMO que o renderiza.
     expect(painel).not.toContain('k.valor === null ? "Não registrado"');
     expect(painel).not.toContain("k.valor === null");
-    expect(painel).toContain('<dd className="font-serif text-2xl text-navy">{k.valor}</dd>');
+    // 17/10/2026 — corte radical na grade V4 (desk-01-hoje): os quatro KPIs
+    // viraram sempre-link (todos os quatro têm `to` real), e o número ganhou
+    // tamanho/posição da prancha. O texto exato mudou; o que esta trava
+    // protege — nenhum ramo de "ausência"/"Não registrado" — continua valendo.
+    expect(painel).toContain('<dd className="mt-1 font-serif text-3xl leading-none text-navy">{k.valor}</dd>');
   });
 
   it("os quatro abrem a lista que os reconcilia", () => {
     // §11 linha 2: contagem clicável e reconciliada. Nenhum dos quatro pode
     // ser um número que não abre nada.
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
     expect(painel).toContain('to: "/golive/aprovacoes"');
-    expect(painel).toContain('to: "/golive/microentregas"');
-    expect(painel).toContain('to: "/golive"');
+    expect(painel).toContain('to: "/microentregas"');
+    expect(painel).toContain('to: "/casos"');
   });
 });
 

@@ -4,8 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+import { CaCard } from "@/components/ui/ca-card";
 // Corte 2 do Design System — superfície piloto: Cartão, Selo, KPI e Estado vazio.
 import {
   FaixaIndicadoresCA,
@@ -55,6 +57,11 @@ function PesquisaIndex() {
       descricao="Fontes, evidências e próximos passos do caso — uso interno."
       visualKit="pantone"
     >
+      <FonteAlimento
+        fonte="Fontes, evidências e hipóteses registradas do caso"
+        consumidor="Dossiê, relatórios e, após publicação autorizada, a aba Legado do App Cliente"
+        detalheTecnico="fontes-pesquisa-canonicas"
+      />
       <PageHeader
         titulo="Dossiê e repositório do Legado"
         subtitulo="Núcleo de pesquisa: o repositório do caso. O que for aprovado e publicado daqui é o que o App Cliente mostra na aba Legado."
@@ -115,6 +122,7 @@ function PesquisaIndex() {
         recurso="os casos em pesquisa"
       >
         {() => (
+        <CaCard titulo="Casos em pesquisa" eyebrow="Pesquisa · dossiês por caso" className="mt-4">
         <section aria-label="Casos em pesquisa" className="space-y-2">
           <input
             type="search"
@@ -167,6 +175,7 @@ function PesquisaIndex() {
             />
           ) : null}
         </section>
+        </CaCard>
         )}
       </EstadoDados>
 

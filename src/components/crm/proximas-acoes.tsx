@@ -4,6 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { Selecao, Texto } from "@/components/caso/campos";
+import { EstadoVazio } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { PROXIMAS_ACOES, type LeadDesk } from "@/lib/crm-desk";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { ROTULO_ESTADO_ACAO, listaAcoes, resumoAcoes, type EstadoAcao, type LinhaAcao } from "@/lib/proximas-acoes";
@@ -86,12 +89,24 @@ export function ProximasAcoes() {
 
   return (
     <div className="space-y-4">
-      <div className={`${CARTAO} flex flex-wrap items-center gap-3 text-xs text-navy/70`}>
+      {/* V4-02: faixa de KPIs em cards — as mesmas contagens de resumoAcoes, só após leitura válida. */}
+      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-proximas-acoes-kpis>
+        {[
+          { rotulo: "Atrasadas", valor: resumo.atrasada },
+          { rotulo: "Hoje", valor: resumo.hoje },
+          { rotulo: "Próximos 7 dias", valor: resumo.proxima },
+          { rotulo: "Sem ação ou sem data", valor: resumo.sem_acao + resumo.sem_data },
+        ].map((k) => (
+          <Indicador
+            key={k.rotulo}
+            rotulo={k.rotulo}
+            valor={isLoading || isError ? "sem dado" : String(k.valor)}
+            apoio={isLoading || isError ? "Leitura dos leads não concluída" : `de ${resumo.total} lead(s) na fila`}
+          />
+        ))}
+      </dl>
+      <div className="flex flex-wrap items-center gap-3 text-xs text-navy/70">
         <span className="font-medium text-navy">{resumo.total} lead(s) na fila</span>
-        <span>Atrasadas: {resumo.atrasada}</span>
-        <span>Hoje: {resumo.hoje}</span>
-        <span>Próximos 7 dias: {resumo.proxima}</span>
-        <span>Sem ação ou sem data: {resumo.sem_acao + resumo.sem_data}</span>
         <label className="ml-auto flex items-center gap-2">
           <input type="checkbox" checked={incluirTeste} onChange={(e) => setIncluirTeste(e.target.checked)} />
           Incluir registros de teste
@@ -120,6 +135,7 @@ export function ProximasAcoes() {
         </p>
       ) : null}
 
+      <CaCard titulo="Fila de próximas ações" eyebrow="Comercial · uma linha por lead" className="rounded-2xl">
       <div className="space-y-3">
         {linhas.map((l) => (
           <article key={l.leadId} className={CARTAO}>
@@ -206,9 +222,10 @@ export function ProximasAcoes() {
           </article>
         ))}
         {!isLoading && !isError && !linhas.length ? (
-          <p className={`${CARTAO} text-sm text-navy/60`}>Nenhum lead ativo na fila de próximas ações.</p>
+          <EstadoVazio mensagem="Nenhum lead ativo na fila de próximas ações." />
         ) : null}
       </div>
+      </CaCard>
     </div>
   );
 }

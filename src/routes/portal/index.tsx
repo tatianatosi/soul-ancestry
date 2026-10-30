@@ -16,8 +16,11 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
 import { ArrowRight, CheckCircle2, UsersRound, Search } from "lucide-react";
-import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
+import { CartaoAchado, CartaoAssessoria, CartaoEditorial, ReguaEtapas, SeloEstadoCaso } from "@/components/portal/elementos-mockup";
+import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
+import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
+import { Button } from "@/components/ui/button";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -83,7 +86,7 @@ export function PortalHome() {
   /*
    * Retificação de 07/10/2026: uma pessoa publicada na árvore NÃO é achado.
    * Antes, `tipo === "arvore"` entrava aqui, e os nomes da família apareciam
-   * em "Achados da sua história" ao mesmo tempo que em "Pessoas conectadas".
+   * em "Descobertas publicadas" ao mesmo tempo que em "Pessoas conectadas".
    * Achado é só o que foi publicado COMO achado — regra do Lovable, mantida
    * por ser a mais estreita: pessoa nunca entra, por construção.
    */
@@ -113,6 +116,7 @@ export function PortalHome() {
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
+            resumo={vivo.data?.resumoCaso ?? null}
             proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
             proximoPassoDestino={passoPublicado ? vivo.data?.proximaAcao?.destino ?? "/portal/jornada" : null}
             pais={previa.pais ?? null}
@@ -178,7 +182,7 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                statusTexto={principal.statusRotulo || undefined}
+                resumo={vivo.data?.resumoCaso ?? null}
                  proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
                 proximoPassoDestino={passoPublicado ? vivo.data?.proximaAcao?.destino ?? principal.proximoPassoDestino ?? "/portal/jornada" : null}
                 pais={principal.pais}
@@ -324,7 +328,7 @@ function EstepeJornada({
 
 function PainelHomeMockup({
   tituloCaso,
-  statusTexto,
+  resumo,
   proximoPasso,
   proximoPassoDestino,
   proximaEntrega,
@@ -340,7 +344,8 @@ function PainelHomeMockup({
   pais,
 }: {
   tituloCaso: string;
-  statusTexto?: string;
+  /** Estado do caso, régua das 5 etapas e perfil (13/10/2026). */
+  resumo?: ResumoCasoCliente | null;
   proximoPasso: string;
   proximoPassoDestino?: string | null;
   /** P3: só a data sanitizada da próxima entrega (portal_casos). */
@@ -381,9 +386,9 @@ function PainelHomeMockup({
   /** País da trilha (crm_casos.pais). O selo §58c só aparece para Áustria. */
   pais?: string | null;
 }) {
-  const trilhaAustria = /^(á|a)ustria$/i.test((pais ?? "").trim());
+
   return (
-    <div className="space-y-4" data-aba-home>
+    <div className="space-y-7" data-aba-home>
       {/*
         Correção 2026-09-12: um card navy só, sem cartão bege duplicado
         antes dele nem cartão cinza/claro dentro dele (o chip de
@@ -392,42 +397,27 @@ function PainelHomeMockup({
       */}
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
-      <section data-home-editorial className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
+      <section data-home-editorial className="app-cartao-caso relative overflow-hidden bg-navy-800 p-6 text-cream shadow-md sm:p-8">
+        {/* 13/10 — recomposição densa: a régua abre o cartão do caso (mockup p.3). */}
+        {resumo && resumo.etapas.length > 0 ? (
+          <div className="app-regua-topo"><ReguaEtapas etapas={resumo.etapas} /></div>
+        ) : null}
         <div className="min-w-0">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
             <p className="app-selo-projeto text-[10px] font-medium text-gold">Projeto familiar</p>
-          {statusTexto ? (
-            <span className="absolute right-4 top-6 rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-navy">
-              {statusTexto}
-            </span>
-          ) : null}
-            <p className="app-home-boas-vindas mt-4 text-[11px] font-medium uppercase tracking-[0.25em] text-gold">Bem-vinda à sua história</p>
-          <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
+            <SeloEstadoCaso resumo={resumo} />
+          </div>
+          <p className="app-home-boas-vindas mt-5 font-serif text-lg italic leading-relaxed text-gold">Bem-vinda à sua história</p>
+          <h2 className="mt-1 font-serif text-[1.9rem] leading-snug text-cream sm:text-4xl">
             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
           </h2>
-          {trilhaAustria ? (
-            <p className="app-selo-trilha mt-4" data-selo-trilha>Cidadania Austríaca (§ 58c StbG)</p>
-          ) : null}
-          {/* Membros do núcleo: só entram quando publicados para a família.
-              Sem publicação, a ausência é dita — nunca deduzida do cadastro. */}
-          <div className="mt-4 border-t border-cream/10 pt-4" data-home-nucleo>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/60">Núcleo familiar</p>
-             {nomesNucleo.length > 0 ? (
-               <ul className="mt-2 flex flex-wrap gap-2" data-home-nucleo-membros>
-                 {nomesNucleo.map((p) => (
-                   <li key={p.chave} className="rounded-full border border-gold/50 px-3 py-1 text-xs text-cream">
-                     {p.nome}
-                   </li>
-                 ))}
-               </ul>
-             ) : (
-               <p className="mt-1 text-sm text-cream/75">Os membros terão seu lugar aqui quando forem compartilhados com a família.</p>
-             )}
-          </div>
+          {pais ? <p className="mt-3 text-sm text-cream/85">{pais}</p> : null}
+          <Button asChild variant="ghost" className="app-home-whatsapp mt-3 h-auto whitespace-normal"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">Falar com a Especialista · {WHATSAPP_ESPECIALISTA.rotulo}</a></Button>
         </div>
 
         {/* Mockup p.3: progresso dentro do mesmo cartão do caso, não num segundo cartão. */}
-        {fase ? (
+        {resumo && resumo.etapas.length > 0 ? null : fase ? (
           <div aria-label="Progresso da jornada" data-home-progresso className="mt-4 border-t border-cream/10 pt-1">
             <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
           </div>
@@ -440,7 +430,7 @@ function PainelHomeMockup({
         )}
       </section>
 
-      {fase ? null : (
+      {fase || (resumo && resumo.etapas.length > 0) ? null : (
         <section className="app-home-resumo app-card-resumo-jornada" aria-label="Resumo da Jornada">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0"><h3 className="font-serif text-xl text-navy">{marcos > 0 ? "Nossa jornada" : "Uma história em construção"}</h3><p className="mt-1 text-sm text-navy/70">{marcos > 0 ? "Acompanhe os trechos já compartilhados da sua história." : "Os primeiros marcos terão seu lugar aqui quando forem compartilhados."}</p></div>
@@ -449,7 +439,8 @@ function PainelHomeMockup({
         </section>
       )}
 
-      <div className="grid gap-6 pt-2" data-home-paridade-mockup>
+      <div className="app-home-pilha grid gap-7 pt-2" data-home-paridade-mockup>
+        <section className="app-home-hoje" aria-label="Hoje você está aqui"><h3 className="font-serif text-xl text-navy">Hoje você está aqui</h3><p className="mt-2 text-sm text-navy/75">{resumo?.statusRotulo ?? "A equipe está preparando a próxima atualização da sua família."}</p></section>
         {/*
           Mockup p.3 "Próximos passos": cartões brancos numerados. Só itens
           reais — a próxima ação publicada e os pedidos de documento abertos
@@ -468,22 +459,22 @@ function PainelHomeMockup({
               itens.push({ chave: s.id, titulo: s.titulo, detalhe: "Documento solicitado", destino: "/portal/documentos" });
             }
             if (itens.length === 0) {
-              return <p className="app-home-passo-vazio rounded-xl border border-border bg-white px-4 py-4 text-sm leading-relaxed text-navy/70">{PROXIMO_PASSO_VAZIO}</p>;
+              return <CartaoEditorial texto={PROXIMO_PASSO_VAZIO} />;
             }
             return (
               <ol className="space-y-2.5">
                 {itens.map((item, i) => {
                   const conteudo = (
                     <>
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gold/15 font-serif text-xs text-navy" aria-hidden="true">{i + 1}</span>
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-navy font-serif text-sm font-semibold text-gold" aria-hidden="true">{i + 1}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block whitespace-pre-line text-sm font-medium leading-snug text-navy">{item.titulo}</span>
                         <span className="mt-0.5 block text-xs text-navy/60">{item.detalhe}</span>
                       </span>
-                      {item.destino ? <ArrowRight className="h-4 w-4 shrink-0 text-navy/70" aria-hidden="true" /> : null}
+                      <ArrowRight className={cn("h-4 w-4 shrink-0", item.destino ? "text-navy/70" : "text-navy/30")} aria-hidden="true" />
                     </>
                   );
-                  const classe = "app-home-passo flex min-h-14 items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-sm";
+                  const classe = "app-home-passo flex min-h-14 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm";
                   return (
                     <li key={item.chave}>
                       {item.destino ? <LinkPortal to={item.destino} className={classe}>{conteudo}</LinkPortal> : <div className={classe}>{conteudo}</div>}
@@ -500,7 +491,7 @@ function PainelHomeMockup({
           ) : null}
         </section>
 
-        <section aria-label="Pessoas conectadas" className="app-home-pessoas rounded-xl border border-border bg-white px-4 py-4 shadow-sm">
+        <section aria-label="Pessoas conectadas" className="app-home-pessoas rounded-xl border border-border bg-card px-4 py-4 shadow-sm">
           <div className="flex items-center gap-4" data-home-pessoas-estatistica>
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-gold" aria-hidden="true">
               <UsersRound className="h-6 w-6" />
@@ -519,40 +510,38 @@ function PainelHomeMockup({
               )}
             </div>
           </div>
+          {/* Membros saem do cartão azul (diretriz de leveza 13/10): só publicados. */}
+          {nomesNucleo.length > 0 ? (
+            <ul className="mt-4 flex flex-wrap gap-2" data-home-nucleo data-home-nucleo-membros>
+              {nomesNucleo.map((p) => (
+                <li key={p.chave} className="app-pilula-membro">{p.nome}</li>
+              ))}
+            </ul>
+          ) : null}
           <LinkPortal to="/portal/arvore" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
         </section>
 
         <section aria-label="Achados recentes">
           <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
-            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados da sua história</h3>
+            <h3 className="min-w-0 font-serif text-2xl text-navy">Descobertas publicadas</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <div className="rounded-xl border border-border border-l-4 border-l-gold/50 bg-white px-4 py-4">
-              <p className="text-sm leading-relaxed text-navy/70">
-                Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
-              </p>
-              <span className="app-estado-editorial mt-3">Em pesquisa</span>
-            </div>
+            <CartaoEditorial texto="Em preparação — os achados aparecem aqui quando forem compartilhados com a família." />
           ) : (
             <div className="grid gap-2.5">
               {achados.slice(0, 3).map((a) => {
                 const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
-                const resumo = resto.join(" ");
                 return (
-                  <LinkPortal key={a.id} to={a.destino} className="block">
-                    <CaCard className="app-achado-editorial rounded-xl border-l-4 border-l-gold bg-white px-4 py-3 text-left transition-colors">
-                      <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-gold">
-                        <Search className="h-3 w-3" aria-hidden="true" />
-                        {a.tipo}
-                        {a.ano ? <span className="ml-1 font-serif text-sm normal-case tracking-normal text-gold">· {a.ano}</span> : null}
-                      </p>
-                      <p className="mt-1 text-sm font-medium leading-snug text-navy">{titulo}</p>
-                      {resumo ? <p className="mt-0.5 line-clamp-2 text-xs text-navy/65">{resumo}</p> : null}
-                    </CaCard>
-                  </LinkPortal>
+                  <CartaoAchado
+                    key={a.id}
+                    rotulo={<span className="inline-flex items-center gap-1.5"><Search className="h-3 w-3" aria-hidden="true" />{a.tipo}{a.ano ? <span className="font-serif text-sm normal-case tracking-normal">· {a.ano}</span> : null}</span>}
+                    titulo={titulo ?? a.texto}
+                    resumo={resto.join(" ") || undefined}
+                    extra={<LinkPortal to={a.destino} className="mt-1 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Abrir na aba</LinkPortal>}
+                  />
                 );
               })}
             </div>
@@ -572,10 +561,7 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
           </section>
         ) : null}
-        <section aria-label="Contato com a equipe" className="app-home-ausencia sm:col-span-2">
-          <h3 className="font-serif text-xl text-navy">Contato com a equipe</h3>
-          <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
-        </section>
+        <CartaoAssessoria />
       </div>
     </div>
   );

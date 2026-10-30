@@ -93,7 +93,19 @@ export const DE_PARA_ANEXOS_DUPLICADOS: LinhaDeParaAnexo[] = [
     veredicto: "VIRA_INSTANCIA",
     clausulasQueCobrem: [{ numero: 1, titulo: "Partes, documentos e estrutura do instrumento" }],
     anexosQueCobrem: ["ANEXO_I_ORDEM_SERVICO"],
-    fonteNaProposta: "página 4 — escopos individuais por pessoa (Ana R$ 4.800, pai R$ 2.400, irmã R$ 2.400)",
+    /*
+     * 23/10/2026 — correção determinada pela Proprietária, reafirmando decisão
+     * já aprovada várias vezes: o rateio do caso é IGUALITÁRIO entre os três
+     * adultos, conforme acordado na proposta. A redação anterior desta citação
+     * repetia valores desiguais por pessoa (Ana R$ 4.800, pai R$ 2.400, irmã
+     * R$ 2.400) — dimensionamento técnico interno de horas, que não é a
+     * obrigação de cada contratante e não deve ser apresentado como tal.
+     * O total não muda: R$ 9.600,00.
+     */
+    fonteNaProposta:
+      "página 4 — Valor total de R$ 9.600,00 rateado igualitariamente entre os 3 adultos em 10 parcelas mensais " +
+      "de R$ 320,00 por pessoa (totalizando R$ 3.200,00 para Ana Luiza, R$ 3.200,00 para Adair e R$ 3.200,00 " +
+      "para Alice; Felipe menor representado sem acréscimo)",
     decisao:
       "Retirado como código próprio e preservado como MECANISMO: a cobertura por requerente é instância do Anexo I " +
       "(uma Ordem de Serviço por titular, com o dependente menor dentro da instância do seu representante). O próprio " +

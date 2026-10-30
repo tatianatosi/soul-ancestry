@@ -6,6 +6,7 @@ import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Selo } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { listarClientesECasos } from "@/lib/documentos.functions";
 import { RegistroConsentimentos } from "@/components/privacidade/registro-consentimentos";
 
@@ -39,11 +40,21 @@ function PrivacidadeIndex() {
     codigoPorCaso[String(c["id"])] = String(c["codigo"] ?? c["titulo"] ?? "—");
   }
 
+  // V4-05: contagem real dos vínculos já carregados; sem leitura, traço.
+  const casosLidos = q.data?.casos as Record<string, unknown>[] | undefined;
+  const kpi = (n: number | undefined) => (q.isLoading ? "…" : q.error || n === undefined ? "—" : String(n));
+
   return (
     <SaasShell
       titulo="Privacidade e documentos"
       descricao="Escolha um caso para gerir documentos, consentimentos e permissões."
     >
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-privacidade-kpis-v4>
+        <Indicador rotulo="Casos" valor={kpi(casosLidos?.length)} />
+        <Indicador rotulo="Casos ativos" valor={kpi(casosLidos?.filter((c) => c["status"] === "ativo").length)} />
+        <Indicador rotulo="Com pessoa vinculada" valor={kpi(casosLidos?.filter((c) => c["cliente_id"]).length)} />
+        <Indicador rotulo="Pessoas" valor={kpi((q.data?.clientes as unknown[] | undefined)?.length)} />
+      </div>
       <CaCard variante="compacto" titulo="Casos">
         <EstadoDados
           carregando={q.isLoading}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -181,7 +182,7 @@ function AbaInconsistencias() {
         )}
       </div>
 
-      {q.isLoading && <p className="text-sm text-navy/60">Carregando…</p>}
+      {q.isLoading && <CarregandoDesk linhas={3} rotulo="Carregando o painel de qualidade" />}
       {q.error && (
         <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
           {(q.error as Error).message}

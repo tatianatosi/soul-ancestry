@@ -5,31 +5,24 @@ import { describe, expect, it } from "vitest";
 /*
  * 13/10/2026 — saneamento autorizado pela Proprietária.
  *
- * `AcervoEmConferencia` (src/routes/portal/documentos.tsx) exibia três
- * documentos específicos ("Graz, Áustria · 1895", "Dossiê Genealógico da
- * Família", "Registro da Comunidade Israelita · Viena · 1938–39") sempre
- * que o acervo real estava vazio — tanto na prévia administrativa de caso
- * real (linha ~71) quanto na sessão autenticada real (linha ~220). Nenhum
- * dos dois pontos é demonstração isolada: o conteúdo aparecia na
- * experiência real. "Graz" e "Friedmann-Reimer" não eram nem genéricos —
- * são o núcleo real da Ana Luiza (`decisoes-operacionais.ts`), hardcoded
- * de forma visível a qualquer cliente real com acervo vazio.
+ * A tela de Documentos do App Cliente exibia três documentos específicos
+ * ("Graz, Áustria · 1895", "Dossiê Genealógico da Família", "Registro da
+ * Comunidade Israelita · Viena · 1938–39") sempre que o acervo real estava
+ * vazio, tanto na prévia administrativa de caso real quanto na sessão
+ * autenticada real. "Graz" e "Friedmann-Reimer" são o núcleo real da Ana
+ * Luiza, hardcoded de forma visível a qualquer cliente com acervo vazio.
  *
- * Este teste trava o saneamento: nenhum título/local específico de caso no
- * componente, e as duas chamadas continuam existindo (a moldura do mockup
- * aprovado — ícone de cadeado, "Acervo sob curadoria técnica" — é
- * preservada; só o conteúdo some).
+ * 30/10/2026: a tela foi reescrita depois desse corte e o componente
+ * `AcervoEmConferencia` deixou de existir. Este teste passa a travar o
+ * invariante, não a estrutura antiga: nenhum documento inventado volta à
+ * rota, e o vazio continua honesto e separado de carregando/erro.
  */
 const rota = readFileSync("src/routes/portal/documentos.tsx", "utf8");
 
 describe("Documentos (App Cliente) — acervo vazio nunca mostra documento inventado", () => {
-  it("nenhum título, local ou nome de caso real/fictício aparece em AcervoEmConferencia", () => {
-    const inicio = rota.indexOf("function AcervoEmConferencia");
-    expect(inicio).toBeGreaterThan(-1);
-    const trecho = rota.slice(inicio, rota.indexOf("\n}\n", inicio) + 3);
+  it("nenhum título, local ou nome de caso real/fictício aparece na rota", () => {
     for (const proibido of [
       "Graz",
-      "Áustria",
       "Friedmann-Reimer",
       "Comunidade Israelita",
       "Viena",
@@ -38,19 +31,15 @@ describe("Documentos (App Cliente) — acervo vazio nunca mostra documento inven
       "Dossiê Genealógico da Família",
       "ACERVO_EM_CONFERENCIA",
     ]) {
-      expect(trecho).not.toContain(proibido);
+      expect(rota).not.toContain(proibido);
     }
-    expect(trecho).toContain("Nenhum documento enviado ainda");
   });
 
-  it("os dois pontos de uso continuam ali — a moldura do cartão vazio não desapareceu", () => {
-    const usos = [...rota.matchAll(/<AcervoEmConferencia \/>/g)];
-    expect(usos.length).toBe(2);
-    expect(rota).toContain("Acervo sob curadoria técnica");
-    expect(rota).toContain("LockKeyhole");
+  it("o vazio é honesto: diz que não há documento, sem inventar um", () => {
+    expect(rota).toContain("Nenhum documento");
   });
 
-  it("upload, download, solicitações e persistência continuam intactos (não tocados por este corte)", () => {
+  it("upload, download e solicitações continuam na rota", () => {
     expect(rota).toContain("EnviarDocumento");
     expect(rota).toContain("baixarEntrega");
     expect(rota).toContain("minhasEntregas");
@@ -58,8 +47,7 @@ describe("Documentos (App Cliente) — acervo vazio nunca mostra documento inven
   });
 
   it("não cria estado de zero artificial: ausência de registros continua distinta de carregando/erro", () => {
-    // isLoading e erroLeitura seguem como ramos próprios, antes do vazio honesto.
-    expect(rota).toContain("isLoading ? (");
+    expect(rota).toContain("isLoading");
     expect(rota).toContain("erroLeitura");
     expect(rota).toContain("AvisoFalhaConexao");
   });

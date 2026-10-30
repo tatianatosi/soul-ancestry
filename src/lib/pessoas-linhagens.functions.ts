@@ -196,11 +196,22 @@ export type LeituraLinhagemNucleo = {
     riscoPrincipal: string | null;
   } | null;
   /** G1 = pessoa âncora da linha; sobe pela filiação persistida até G10. */
-  geracoes: (PessoaGeracao & { localidade: string | null; clienteId: string | null })[];
+  geracoes: (PessoaGeracao & { localidade: string | null; clienteId: string | null; ano: string | null })[];
   /** Só arestas de filiação gravadas entre pessoas exibidas (pai → filho). */
   arestas: { pai: string; filho: string }[];
+  /** Cônjuges da pessoa âncora (G1) só por relação `conjuge` gravada e não refutada. */
+  conjugesAncora: { personId: string; nome: string; status: string }[];
   totalPerfis: number;
 };
+
+/** Ano de nascimento só do perfil gravado: data exata ou ano aproximado escrito. */
+function anoDoPerfil(p: Perfil | undefined): string | null {
+  if (!p) return null;
+  const exata = typeof p.nascimento_data === "string" ? p.nascimento_data.match(/^(\d{4})/) : null;
+  if (exata) return exata[1]!;
+  const aprox = typeof p.nascimento_data_aproximada === "string" ? p.nascimento_data_aproximada.match(/\d{4}/) : null;
+  return aprox ? `c. ${aprox[0]}` : null;
+}
 
 /**
  * 13/10/2026 — Pessoas & Linhagens (prancha V4) em /nucleos. Leitura pura:
@@ -232,7 +243,27 @@ export const lerLinhagemDoCaso = createServerFn({ method: "GET" })
         ...g,
         localidade: porPessoa.get(g.personId)?.nascimento_localidade ?? null,
         clienteId: porPessoa.get(g.personId)?.client_id ?? null,
+        ano: anoDoPerfil(porPessoa.get(g.personId)),
       }));
+    const ancora = geracoes.find((g) => g.geracao === 1)?.personId ?? null;
+    const conjugesAncora = ancora
+      ? relacoes
+          .filter(
+            (r) =>
+              !r.archived_at &&
+              r.relation_type === "conjuge" &&
+              r.status_pesquisa !== "refutado" &&
+              r.status_pesquisa !== "descartado" &&
+              (r.person_from_id === ancora || r.person_to_id === ancora),
+          )
+          .map((r) => (r.person_from_id === ancora ? r.person_to_id : r.person_from_id))
+          .filter((id, i, l) => id !== ancora && l.indexOf(id) === i && porPessoa.has(id))
+          .map((id) => ({
+            personId: id,
+            nome: porPessoa.get(id)!.nome_completo ?? "Pessoa não identificada",
+            status: porPessoa.get(id)!.status_verificacao ?? "pendente",
+          }))
+      : [];
     const exibidas = new Set(geracoes.map((g) => g.personId));
     const vistas = new Set<string>();
     const arestas = arestasFiliacao(relacoes)
@@ -257,6 +288,7 @@ export const lerLinhagemDoCaso = createServerFn({ method: "GET" })
         : null,
       geracoes,
       arestas,
+      conjugesAncora,
       totalPerfis: perfis.length,
     };
   });

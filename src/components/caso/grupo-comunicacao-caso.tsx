@@ -6,6 +6,7 @@
  * decidir; o campo "Link do grupo" é preenchido manualmente por ela
  * depois de criar o grupo de verdade.
  */
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -99,7 +100,7 @@ export function GrupoComunicacaoCaso({ caseId }: { caseId: string }) {
         </button>
       </div>
 
-      {q.isLoading ? <p className="mt-2 text-xs text-navy/55">Carregando…</p> : null}
+      {q.isLoading ? <div className="mt-2"><CarregandoDesk linhas={2} rotulo="Carregando o grupo de comunicação" /></div> : null}
       {!q.isLoading && grupos.length === 0 ? (
         <p className="mt-2 text-xs text-navy/55">Nenhum grupo registrado para este caso.</p>
       ) : null}
