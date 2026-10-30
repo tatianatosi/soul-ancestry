@@ -15,6 +15,7 @@ import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
 import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
+import { rotuloSeloCaso } from "@/lib/selo-caso-cliente";
 import { condicaoFamiliarPrevista } from "@/components/portal/condicao-familiar";
 import { formatarValor } from "@/lib/assinatura-app";
 
@@ -99,6 +100,8 @@ export function PortalConta() {
   );
 
   const resumo = vivo.data?.resumoCaso ?? null;
+  // L3 (25/10/2026): a família vê o estado no vocabulário dela, nunca o estado do Desk nem "Não registrado".
+  const situacaoAcompanhamento = rotuloSeloCaso(resumo?.statusCaso ?? null, resumo?.ativo);
   const perfil = resumo?.perfil ?? null;
   const membroDesde = dataCurta(resumo?.membroDesde);
   /*
@@ -188,7 +191,7 @@ export function PortalConta() {
               <details open className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <Button asChild variant="outline" className="mt-3 h-auto min-h-11 whitespace-normal text-left"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp>Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a></Button>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Situação do acompanhamento: {resumo?.statusRotulo ?? "Não registrado"}.</p></details>
+              {situacaoAcompanhamento ? <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Situação do acompanhamento: {situacaoAcompanhamento}.</p> : null}</details>
               <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Termos e privacidade</summary><p className="mt-2 text-sm text-navy/70">Os termos de uso e informações de privacidade serão apresentados aqui quando forem disponibilizados pela equipe.</p></details>
               <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Acesso seguro</summary><p className="mt-2 text-sm text-navy/70">Seu acesso é pessoal. Não compartilhe links de entrada. Para dúvidas sobre o acesso, procure a equipe no canal oficial.</p></details>
             </section>
