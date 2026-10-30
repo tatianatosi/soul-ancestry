@@ -327,7 +327,8 @@ export const CABECALHO_ORIGEM_CSV = [
 
 function celula(valor: string | number | boolean | null): string {
   const texto = valor === null || valor === undefined ? "" : String(valor);
-  return `"${texto.replace(/"/g, '""')}"`;
+  const seguro = /^[=+\-@\t\r]/.test(texto) ? `'${texto}` : texto;
+  return `"${seguro.replace(/"/g, '""')}"`;
 }
 
 export function csvOrigemEscopo(linhas: LinhaOrigem[]): string {

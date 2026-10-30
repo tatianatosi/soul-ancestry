@@ -125,10 +125,10 @@ export async function gravarComVerificacao(opcoes: {
   try {
     const divergencias = compararPersistencia({ ...payload, ...derivados }, registro);
     if (divergencias.length > 0) {
-      console.warn(`[persistencia] Divergência tolerada em ${tabela}:${id}`, divergencias);
+      console.warn(`[persistencia] Divergência tolerada em ${tabela}:${id}`, divergencias.map((d: any) => d?.campo ?? "?"));
     }
-  } catch (e) {
-    console.warn(`[persistencia] Falha na comparação pós-gravação em ${tabela}:${id}`, e);
+  } catch {
+    console.warn(`[persistencia] Falha na comparação pós-gravação em ${tabela}:${id}`);
   }
 
   return {
@@ -164,10 +164,10 @@ export async function inserirComVerificacao(opcoes: {
   try {
     const divergencias = compararPersistencia(payload, registro);
     if (divergencias.length > 0) {
-      console.warn(`[persistencia] Divergência tolerada na inserção em ${tabela}:${linha.id}`, divergencias);
+      console.warn(`[persistencia] Divergência tolerada na inserção em ${tabela}:${linha.id}`, divergencias.map((d: any) => d?.campo ?? "?"));
     }
-  } catch (e) {
-    console.warn(`[persistencia] Falha na comparação pós-inserção em ${tabela}:${linha.id}`, e);
+  } catch {
+    console.warn(`[persistencia] Falha na comparação pós-inserção em ${tabela}:${linha.id}`);
   }
 
   return { ok: true, id: linha.id as string, registro: registro ?? {}, salvoEm: new Date().toISOString() };
