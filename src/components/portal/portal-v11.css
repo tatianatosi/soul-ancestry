@@ -1448,8 +1448,9 @@
 [data-app-cliente] .app-genograma-viewport { max-height: 660px; overflow: auto; overscroll-behavior: contain; touch-action: none; background: var(--ca-cream); border: 1px solid var(--ca-border); border-radius: 8px; cursor: grab; }
 [data-app-cliente] .app-genograma-viewport:active { cursor: grabbing; }
 [data-app-cliente] .app-genograma-viewport svg { display: block; max-width: none; }
-[data-app-cliente] .app-genograma-filiacao { fill: none; stroke: var(--ca-navy); stroke-width: 2; }
-[data-app-cliente] .app-genograma-uniao { fill: none; stroke: var(--app-brand-gold); stroke-width: 3; }
+[data-app-cliente] .app-genograma-filiacao { fill: none; stroke: var(--ca-navy); stroke-width: 1.25; }
+[data-app-cliente] .app-genograma-uniao { fill: none; stroke: var(--app-brand-gold); stroke-width: 1.75; }
+[data-app-cliente] .app-genograma-rotulo { fill: var(--app-brand-gold); font: 600 10px var(--ca-font-body); letter-spacing: .08em; text-transform: uppercase; }
 [data-app-cliente] [data-genograma-no] { cursor: pointer; outline: none; }
 [data-app-cliente] .app-genograma-cartao { fill: var(--ca-white); stroke: var(--ca-border); stroke-width: 1.5; }
 [data-app-cliente] [data-genograma-no][data-geracao-um] .app-genograma-cartao { fill: var(--ca-navy); stroke: var(--ca-navy); }
