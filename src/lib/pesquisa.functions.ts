@@ -286,11 +286,15 @@ export const linkArquivoEvidencia = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!evidencia?.storage_path) throw new Error("Esta evidência não tem arquivo anexado.");
+    const caminho = String(evidencia.storage_path);
+    if (!caminho.startsWith(`${organizationId}/`) || caminho.includes("..")) {
+      throw new Error("Arquivo fora da organização desta evidência.");
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const assinado = await supabaseAdmin.storage
       .from("pesquisa")
-      .createSignedUrl(evidencia.storage_path as string, 120);
+      .createSignedUrl(caminho, 120);
     if (assinado.error) throw new Error(assinado.error.message);
 
     await supabase.from("evidencia_acessos").insert({
