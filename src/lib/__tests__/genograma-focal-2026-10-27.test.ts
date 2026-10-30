@@ -19,7 +19,16 @@ describe("correção focal do genograma", () => {
   it("restaurar usa enquadramento com margem e centro em 375 e 1280", () => {
     expect(enquadramentoGenograma(540, 375)).toEqual({ zoom: 0.65, left: 0, top: 0 });
     expect(enquadramentoGenograma(540, 1280)).toEqual({ zoom: 1, left: 0, top: 0 });
-    expect(enquadramentoGenograma(2000, 375)).toEqual({ zoom: 0.4, left: 212.5, top: 0 });
+    expect(enquadramentoGenograma(2000, 375)).toEqual({ zoom: 0.3, left: 112.5, top: 0 });
+  });
+  it("abre mostrando da geração mais antiga até Você quando a altura é conhecida", () => {
+    expect(enquadramentoGenograma(540, 1280, 700, 660).zoom).toBe(0.92);
+    expect(enquadramentoGenograma(540, 375, 700, 520).zoom).toBe(0.65);
+  });
+  it("cada geração tem rótulo acima dos cartões", () => {
+    const l = layoutGenograma([otto, { ...otto, chave: "f", geracao: 3 }]);
+    expect(l.rotulos.map((r) => r.geracao)).toEqual([4, 3]);
+    l.rotulos.forEach((r, i) => expect(r.y).toBeLessThan(l.nos[i]!.y));
   });
   it("preserva todos os caracteres de nomes longos e reserva altura", () => {
     const nome = "Maria Alexandrina de Albuquerque Vasconcelos WWWWWWWWWWWWWWWWWWWWWWWW";
@@ -27,6 +36,6 @@ describe("correção focal do genograma", () => {
     const layout = layoutGenograma([{ ...otto, nome }, { ...otto, chave: "filho", geracao: 3 }]);
     const [pai, filho] = layout.nos;
     expect(pai?.linhas.length).toBeGreaterThan(2);
-    expect((filho?.y ?? 0) - ((pai?.y ?? 0) + (pai?.geracaoY ?? 0))).toBeGreaterThan(100);
+    expect((filho?.y ?? 0) - ((pai?.y ?? 0) + (pai?.altura ?? 0))).toBeGreaterThan(40);
   });
 });

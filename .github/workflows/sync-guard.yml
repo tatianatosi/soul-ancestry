@@ -1,0 +1,80 @@
+name: Sync Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      IS_DRAFT: ${{ github.event.pull_request.draft }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Regras de sincronização
+        run: |
+          set -uo pipefail
+          FAIL=0
+          FILES=$(gh api "repos/${{ github.repository }}/pulls/${PR}/files" --paginate --jq '.[].filename')
+          N=$(printf '%s\n' "$FILES" | grep -c . || true)
+          echo "Arquivos alterados na PR: $N"
+
+          # 1. Banco: só o Lovable aplica schema (decisão de 23/10/2026, regra 3)
+          case "$HEAD_REF" in
+            claude/*|cursor/*)
+              BAD=$(printf '%s\n' "$FILES" | grep -E '^(supabase/migrations|drizzle/migrations)/' || true)
+              if [ -n "$BAD" ]; then
+                echo "::error::Agentes não escrevem em supabase/migrations nem drizzle/migrations. Proponha o SQL em supabase/pendentes/."
+                echo "$BAD"; FAIL=1
+              fi;;
+          esac
+
+          # 2. Segredos: nenhum .env real
+          ENVF=$(printf '%s\n' "$FILES" | grep -E '(^|/)\.env(\..*)?$' | grep -v '\.env\.example$' || true)
+          if [ -n "$ENVF" ]; then
+            echo "::error::Arquivo .env na PR. Remova e rotacione qualquer chave exposta."
+            echo "$ENVF"; FAIL=1
+          fi
+
+          # 3. Migrations propostas precisam declarar ESTADO nas primeiras linhas
+          for f in $(printf '%s\n' "$FILES" | grep -E '^supabase/pendentes/.*\.sql$' || true); do
+            if [ -f "$f" ] && ! head -n 5 "$f" | grep -q 'ESTADO:'; then
+              echo "::error file=$f::Faltou o cabeçalho 'ESTADO: NÃO APLICADO' (ou JÁ APLICADO em AAAA-MM-DD)."
+              FAIL=1
+            fi
+          done
+
+          # 4. Tamanho: PR gigante nunca chega ao ar
+          if [ "$N" -gt 60 ]; then
+            echo "::warning::PR com $N arquivos. Divida em PRs de um só assunto (limite sugerido: 60)."
+          fi
+
+          # 5. Conflito com a main
+          STATE=$(gh pr view "$PR" --json mergeable,mergeStateStatus --jq '.mergeable + " / " + .mergeStateStatus')
+          echo "Estado de merge: $STATE"
+          case "$STATE" in
+            CONFLICTING*)
+              if [ "$IS_DRAFT" = "true" ]; then
+                echo "::warning::PR em conflito com a main. Faça merge de origin/main na branch (merge commit, sem rebase)."
+              else
+                echo "::error::PR em conflito com a main. Faça merge de origin/main na branch (merge commit, sem rebase)."
+                FAIL=1
+              fi;;
+          esac
+
+          # 6. lovable-sync
+          case "$HEAD_REF" in
+            lovable-sync*) echo "::warning::Branch lovable-sync: mesclar com merge commit em até 24 h (nunca squash nem rebase).";;
+          esac
+
+          exit $FAIL

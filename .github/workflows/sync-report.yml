@@ -1,0 +1,138 @@
+name: Painel de sincronização
+
+on:
+  schedule:
+    - cron: "0 11 * * 1-5"   # 08:00 em São Paulo
+  workflow_dispatch:
+    inputs:
+      marcar_publicado:
+        description: "Registrar o HEAD atual da main como já publicado no Lovable"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  painel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const TITLE = "Painel de sincronização (Git, Lovable, Claude Code)";
+            const LABEL = "painel-sync";
+            const DAY = 86400000;
+            const now = Date.now();
+
+            const br = await github.rest.repos.getBranch({ owner, repo, branch: "main" });
+            const head = br.data.commit.sha;
+            const headDate = br.data.commit.commit.committer.date;
+
+            try { await github.rest.issues.createLabel({ owner, repo, name: LABEL, color: "2F4B6E" }); } catch (e) {}
+
+            const open = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: "open", labels: LABEL, per_page: 100 });
+            let issue = open.find(i => i.title === TITLE);
+            let published = null;
+            if (issue) {
+              const m = (issue.body || "").match(/<!-- published_sha: ([0-9a-f]{40}) -->/);
+              if (m && !/^0{40}$/.test(m[1])) published = m[1];
+            }
+            const marcar = context.payload.inputs && context.payload.inputs.marcar_publicado === "true";
+            if (marcar) published = head;
+
+            let unpublished = null, recent = [];
+            if (published && published !== head) {
+              try {
+                const cmp = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${published}...${head}` });
+                unpublished = cmp.data.ahead_by;
+                recent = cmp.data.commits.slice(-5).map(c => `- \`${c.sha.slice(0,7)}\` ${c.commit.message.split("\n")[0]}`);
+              } catch (e) { unpublished = "?"; }
+            } else if (published === head) { unpublished = 0; }
+
+            const prsList = await github.paginate(github.rest.pulls.list, { owner, repo, state: "open", per_page: 100 });
+            const prs = [];
+            for (const p of prsList) {
+              const d = await github.rest.pulls.get({ owner, repo, pull_number: p.number });
+              prs.push(d.data);
+            }
+            prs.sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at));
+            const conflicting = prs.filter(p => p.mergeable_state === "dirty" && !p.draft);
+
+            const branches = await github.paginate(github.rest.repos.listBranches, { owner, repo, per_page: 100 });
+            const syncs = branches.filter(b => b.name.startsWith("lovable-sync-"));
+            const stale = syncs.filter(b => {
+              const t = Number(b.name.split("-").pop()) * 1000;
+              return t && now - t > DAY;
+            });
+            const bySha = {};
+            syncs.forEach(b => { (bySha[b.commit.sha] = bySha[b.commit.sha] || []).push(b.name); });
+            const redundant = Object.values(bySha).filter(v => v.length > 1).reduce((s, v) => s + v.length - 1, 0);
+
+            let pend = [];
+            try {
+              const dir = await github.rest.repos.getContent({ owner, repo, path: "supabase/pendentes", ref: "main" });
+              for (const f of dir.data.filter(f => f.name.endsWith(".sql"))) {
+                const c = await github.rest.repos.getContent({ owner, repo, path: f.path, ref: "main" });
+                const txt = Buffer.from(c.data.content, "base64").toString("utf8").split("\n").slice(0, 5).join(" ");
+                const m = txt.match(/ESTADO:[^\n]*/);
+                pend.push(`- \`${f.name}\`: ${m ? m[0].slice(0, 110) : "sem cabeçalho ESTADO (ver README da pasta)"}`);
+              }
+            } catch (e) {}
+
+            const alerts = [];
+            if (typeof unpublished === "number" && unpublished > 0) alerts.push(`${unpublished} commit(s) na main ainda não publicados no Lovable`);
+            if (!published) alerts.push("nenhum Publish registrado: rode este workflow com marcar_publicado depois do próximo Publish");
+            if (conflicting.length) alerts.push(`${conflicting.length} PR(s) prontas, mas em conflito com a main`);
+            if (stale.length) alerts.push(`${stale.length} branch(es) lovable-sync com mais de 24 h sem merge`);
+
+            const rows = prs.map(p => {
+              const idade = Math.floor((now - new Date(p.updated_at)) / DAY);
+              return `| #${p.number} | ${p.draft ? "rascunho" : "pronta"} | ${p.mergeable_state} | ${p.changed_files} | ${idade} d | ${p.title.slice(0, 70).replace(/\|/g, "/")} |`;
+            });
+
+            const body = [
+              `<!-- published_sha: ${published || "0".repeat(40)} -->`,
+              `Atualizado em ${new Date().toISOString()}. Gerado por .github/workflows/sync-report.yml.`,
+              ``,
+              `## Situação`,
+              alerts.length ? alerts.map(a => `- ${a}`).join("\n") : "- Nada pendente de sincronização.",
+              ``,
+              `## Main e Lovable`,
+              `- HEAD da main: \`${head.slice(0,7)}\` (${headDate}).`,
+              `- Último Publish registrado: ${published && published !== "0".repeat(40) ? "`" + published.slice(0,7) + "`" : "não registrado"}.`,
+              `- Commits na main depois do último Publish: ${unpublished === null ? "desconhecido" : unpublished}.`,
+              ...recent,
+              ``,
+              `## PRs abertas (${prs.length})`,
+              `| PR | Tipo | Merge | Arquivos | Parada | Título |`,
+              `|---|---|---|---|---|---|`,
+              ...rows,
+              ``,
+              `## Branches lovable-sync`,
+              `- Total: ${syncs.length}. Com mais de 24 h: ${stale.length}. Redundantes (mesmo commit de outra): ${redundant}.`,
+              ``,
+              `## Migrations propostas em supabase/pendentes`,
+              ...(pend.length ? pend : ["- Pasta vazia ou não encontrada."]),
+              ``,
+              `## Rotina do dia`,
+              `- [ ] Mergear origin/main na branch de trabalho antes de abrir ou atualizar PR`,
+              `- [ ] CI verde (typecheck, test, build)`,
+              `- [ ] Merge na main com autorização`,
+              `- [ ] Publish no Lovable`,
+              `- [ ] Rodar este workflow com marcar_publicado`,
+              `- [ ] SQL de pendentes aplicado pelo chat do Lovable e cabeçalho atualizado`
+            ].join("\n");
+
+            if (issue) {
+              await github.rest.issues.update({ owner, repo, issue_number: issue.number, body });
+            } else {
+              const r = await github.rest.issues.create({ owner, repo, title: TITLE, body, labels: [LABEL] });
+              issue = r.data;
+            }
+            if (alerts.length && !marcar) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: "Atenção hoje:\n" + alerts.map(a => `- ${a}`).join("\n") });
+            }
