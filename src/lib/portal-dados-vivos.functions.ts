@@ -15,10 +15,12 @@ import type {
 import {
   checklistDocumentalCliente,
   composicaoDoCasoCliente,
+  condicaoComercialCliente,
   etapaDoCasoCliente,
   historicoSanitizado,
   proximaEntregaCliente,
   solicitacoesAbertasCliente,
+  type CondicaoComercialCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
@@ -97,6 +99,12 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     anosArvore: AnoArvoreCliente[];
     /** Régua das 5 etapas, estado do caso e perfil da titular (13/10/2026). */
     resumoCaso: ResumoCasoCliente | null;
+    /**
+     * 30/10/2026 — versão aprovada de `case_commercial_condition`, só campos
+     * numéricos estruturados (A7). Substitui o bloco hardcoded por ID de
+     * caso que existia só para a Ana.
+     */
+    condicaoComercial: CondicaoComercialCliente | null;
   }> => {
     semCache();
     const supabase = context.supabase as any;
@@ -155,6 +163,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         vinculosArvore: [],
         anosArvore: [],
         resumoCaso: null,
+        condicaoComercial: null,
       };
     const alvo = [String(casoAtivo.id)];
 
@@ -274,8 +283,30 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       resumoCaso = null;
     }
 
+    // RLS de `case_commercial_condition` é só staff (`is_org_member`); o
+    // cliente nunca teria a própria linha pelo seu token. Leitura no
+    // servidor, com o mesmo bridge e o mesmo recorte explícito por
+    // `case_id` das outras consultas admin desta função.
+    let condicaoComercial: CondicaoComercialCliente | null = null;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const cond = await (supabaseAdmin as any)
+        .from("case_commercial_condition")
+        .select("approval_status, fees, parcelas, valor_parcela, moeda, responsaveis_financeiros")
+        .eq("case_id", String(casoAtivo.id))
+        .eq("approval_status", "aprovada")
+        .is("archived_at", null)
+        .order("versao", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      condicaoComercial = condicaoComercialCliente(cond.data ?? null);
+    } catch {
+      condicaoComercial = null;
+    }
+
     return {
       resumoCaso,
+      condicaoComercial,
       vinculosArvore,
       anosArvore,
       projecoes,

@@ -16,7 +16,6 @@ import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
 import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
 import { rotuloSeloCaso } from "@/lib/selo-caso-cliente";
-import { condicaoFamiliarPrevista } from "@/components/portal/condicao-familiar";
 import { formatarValor } from "@/lib/assinatura-app";
 
 export const Route = createFileRoute("/portal/conta")({
@@ -57,8 +56,10 @@ export function PortalConta() {
    // institucional; prévia real mostra só o nome vindo do cadastro do caso.
    const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
    const titularExibido = titular ?? titularPrevia;
-   const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
-   const condicaoFamiliar = previaDemo ? null : condicaoFamiliarPrevista(codigoCaso ?? vivo.data?.casoAtivoId);
+   // 30/10/2026 — vem de `case_commercial_condition` (vivo.data.condicaoComercial),
+   // nunca mais hardcoded por caso. Sem versão aprovada no banco, fica null:
+   // a seção cai no mesmo caminho da assinatura publicada (A7) ou do vazio.
+   const condicaoFamiliar = previaDemo ? null : (vivo.data?.condicaoComercial ?? null);
    const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
 
