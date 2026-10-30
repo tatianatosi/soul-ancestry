@@ -12,23 +12,30 @@ const alertasFn = readFileSync("src/lib/alertas.functions.ts", "utf8");
 const navegacao = readFileSync("src/lib/navegacao-desk.ts", "utf8");
 
 describe("CA06-APP-NO-DESK — Visão do cliente no Caso 360 (sem oitava aba)", () => {
+  // 19/10/2026 — reconciliação com o Lovable: o rótulo visível do card virou
+  // "Como a família vê" (mesma id, mesmo card, mesmo dado real).
   it("o resumo mora dentro da mesma rota do Caso 360 — nenhuma tela nova", () => {
     expect(caso360).toContain('id="resumo-visao-cliente"');
-    expect(caso360).toContain("Visão do cliente");
+    expect(caso360).toContain("Como a família vê");
   });
 
+  // 19/10/2026 — reconciliação com o Lovable: o card "Como a família vê"
+  // ganhou o layout de 6 "portas" (Pesquisa/Árvore/Documentos/Publicações/
+  // Conta/Histórico); os 7 campos exigidos pela missão continuam todos
+  // presentes, só com rótulos novos — cada checagem abaixo mira o texto
+  // real que carrega o mesmo campo.
   it("os sete campos exigidos pela missão aparecem no resumo", () => {
     const inicio = caso360.indexOf('id="resumo-visao-cliente"');
     const fim = caso360.indexOf("No máximo: três tarefas");
     const bloco = caso360.slice(inicio, fim);
     for (const campo of [
-      "Acesso:",
-      "Última atualização liberada",
-      "Prontas para revisão/liberação",
-      "Documentos disponíveis ao titular",
-      "Projeções de árvore",
-      "Preferências:",
-      "Publicação:",
+      "acesso.liberado", // Acesso
+      "ultimaAtualizacaoLiberada", // Última atualização liberada
+      "microentregasProntasParaRevisao", // Prontas para revisão/liberação
+      "documentosDisponiveis", // Documentos disponíveis ao titular
+      "projecoesDeArvore", // Projeções de árvore
+      "Preferências:", // Preferências
+      "estadoPublicacao", // Publicação
     ]) {
       expect(bloco, `campo ausente: ${campo}`).toContain(campo);
     }

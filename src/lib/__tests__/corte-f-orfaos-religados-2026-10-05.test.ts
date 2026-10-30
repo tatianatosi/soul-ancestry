@@ -112,9 +112,9 @@ describe("os três atos de governança da formalização ganharam tela", () => {
 });
 
 describe("o estado contratual da organização passou a ser visível", () => {
-  it("painelContratual é chamado e montado em /contratos", () => {
+  it("painelContratual é chamado e montado em /contratos (21/10/2026: via JuridicoContratoV4, com no máximo 4 indicadores)", () => {
     expect(PAINEL_CONTRATUAL).toContain("useServerFn(painelContratual)");
-    expect(CONTRATOS).toContain("<PainelEstadoContratual />");
+    expect(CONTRATOS).toContain("<JuridicoContratoV4 />");
   });
 
   it("mostra as seis contagens que o leitor já agregava", () => {

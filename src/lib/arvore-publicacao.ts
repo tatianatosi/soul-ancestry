@@ -49,6 +49,32 @@ export function conteudoArvore(nome: string, vinculo?: string | null): string {
   return [t(nome), t(vinculo)].filter(Boolean).join(SEPARADOR_ARVORE);
 }
 
+/**
+ * 29/10/2026 — ano sob o nome no cartão da Árvore, autorizado pela
+ * Proprietária. O rótulo vem EXCLUSIVAMENTE de perfil com
+ * `client_visibility = 'aprovada'` e data registrada; perfil sem data não
+ * gera linha. "c." marca data aproximada; "n."/† distinguem nascimento de
+ * morte quando só um dos anos existe. Nunca deduz ano de texto de timeline.
+ */
+export type PerfilAnoArvore = {
+  nascimento_data: string | null | undefined;
+  nascimento_precisao?: string | null | undefined;
+  morte_data: string | null | undefined;
+  morte_precisao?: string | null | undefined;
+};
+
+export function rotuloAnoArvore(p: PerfilAnoArvore): string | null {
+  const ano = (d: string | null | undefined) => (/^\d{4}/.test(t(d)) ? t(d).slice(0, 4) : null);
+  const nas = ano(p.nascimento_data);
+  const mor = ano(p.morte_data);
+  if (!nas && !mor) return null;
+  const marca = (d: string | null | undefined) => (t(d) === "aproximada" ? "c. " : "");
+  const nasL = nas ? `${marca(p.nascimento_precisao)}${nas}` : null;
+  const morL = mor ? `${marca(p.morte_precisao)}${mor}` : null;
+  if (nasL && morL) return `${nasL}–${morL}`;
+  return nasL ? `n. ${nasL}` : `† ${morL}`;
+}
+
 export function validarPublicacaoArvore(entrada: {
   clientVisibility: string | null | undefined;
   sensitivityLevel: string | null | undefined;

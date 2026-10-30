@@ -85,9 +85,10 @@ describe("número só onde existe regra", () => {
   it("os quatro abrem a lista que os reconcilia", () => {
     // §11 linha 2: contagem clicável e reconciliada. Nenhum dos quatro pode
     // ser um número que não abre nada.
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
     expect(painel).toContain('to: "/golive/aprovacoes"');
-    expect(painel).toContain('to: "/golive/microentregas"');
-    expect(painel).toContain('to: "/golive"');
+    expect(painel).toContain('to: "/microentregas"');
+    expect(painel).toContain('to: "/casos"');
   });
 });
 

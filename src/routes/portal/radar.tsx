@@ -71,21 +71,45 @@ export function PortalRadar() {
           recurso="o seu radar ancestral"
         >
           {([vivo]) => {
-            const dimensoes = radarSeisDimensoes({
-              projecoes: vivo.projecoes,
-              documentos: vivo.documentos,
-              // 05/10/2026 — PREMISSA da Proprietária: denominador real de
-              // "Conexões Familiares", nunca o teto ilustrativo de 31.
-              pessoasMapeadas: vivo.pessoasMapeadas ?? 0,
+            const base = radarSeisDimensoes({ projecoes: vivo.projecoes, documentos: vivo.documentos, pessoasMapeadas: vivo.pessoasMapeadas ?? 0 });
+            const porId = new Map(base.map((d) => [d.id, d]));
+            const dimensoes = [
+              { id: "origem", titulo: "Genealogia", tipos: ["linha_tempo", "arvore"], explicacao: "As pessoas, gerações e origens já compartilhadas da sua família." },
+              { id: "documentacao", titulo: "Prova Documental", tipos: ["evidencia"], explicacao: "Os documentos liberados para consulta, sem confundir arquivo disponível com validação concluída." },
+              { id: "elegibilidade", titulo: "Elegibilidade Jurídica", tipos: [], explicacao: "A orientação jurídica aparece quando houver uma síntese aprovada para a família; não indica chance ou reconhecimento garantido." },
+              { id: "memoria", titulo: "Viabilidade Histórica", tipos: ["achado", "linha_tempo"], explicacao: "Os registros históricos compartilhados ajudam a contextualizar a trajetória da família, sem concluir elegibilidade." },
+              { id: "conexoes", titulo: "Consistência Familiar", tipos: ["arvore"], explicacao: "As pessoas e relações já publicadas, sem presumir vínculos ainda não confirmados." },
+              { id: "legado", titulo: "Prontidão para Protocolo", tipos: [], explicacao: "Esta dimensão aguarda uma orientação aprovada da equipe; nenhum documento disponível, isoladamente, confirma prontidão." },
+            ].flatMap((eixo) => {
+              const d = porId.get(eixo.id as typeof base[number]["id"]);
+              if (!d) return [];
+              const compartilhado = vivo.projecoes.some((p) => eixo.tipos.includes(p.projection_type ?? "")) || (eixo.id === "documentacao" && vivo.documentos.some((d) => d.liberado_cliente));
+              return [{ ...d, titulo: eixo.titulo, percentual: null, estado: "em_preparacao" as const, rotuloNumero: compartilhado ? "Compartilhado" : eixo.tipos.length === 0 ? "Aguardando orientação" : "Em preparação", legenda: eixo.explicacao, comoCalculamos: "Somente registros compartilhados; não representa nota, probabilidade ou promessa." }];
             });
              const passoPublicado = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao).linha.find((item) => item.tipo === "proxima_acao");
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-radar>
                   <RadarSeisEixos dimensoes={dimensoes} />
+                  {/* Sinal das situações: três cores, contadas só a partir dos estados acima (sem nota ou chance). */}
+                  <section aria-label="Sinal das situações" data-radar-semaforo className="app-folha">
+                    <h2 className="font-serif text-xl text-navy">Sinal das situações</h2>
+                    <ul className="mt-3 grid grid-cols-1 gap-2 min-[480px]:grid-cols-3">
+                      {([
+                        ["ok", "Compartilhado", "Já há registros liberados para você"],
+                        ["analise", "Em preparação", "A equipe está reunindo os registros"],
+                        ["pendente", "Aguardando orientação", "Depende de uma orientação aprovada da equipe"],
+                      ] as const).map(([tom, rotulo, texto]) => (
+                        <li key={tom} className="min-w-0 rounded-xl border border-border bg-card p-3">
+                          <span className="app-chip" data-tom={tom}>{rotulo} · {dimensoes.filter((d) => d.rotuloNumero === rotulo).length}</span>
+                          <p className="mt-2 text-xs leading-relaxed text-navy/70">{texto}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
                   <section aria-label="Checklist documental" className="border-l-2 border-terracotta/40 py-1 pl-4">
                     <h2 className="font-serif text-xl text-navy">Checklist documental</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-navy/75">O checklist completo do caso ainda não foi compartilhado. Sem essa lista, não há uma base documental completa para comparar.</p>
+                    <p className="mt-2 text-sm leading-relaxed text-navy/75">Os documentos pedidos à sua família e o andamento de cada um ficam reunidos na aba Documentos, conforme forem compartilhados com você.</p>
                   </section>
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
@@ -105,26 +129,12 @@ export function PortalRadar() {
                          Reconciliação: conteúdo do rascunho preservado; bg-card mantém a superfície semântica atual. */}
                      <ul className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-3" data-radar-grade>
                       {dimensoes.map((d, i) => {
-                        const temPercentual = d.percentual !== null;
-                        const temRegistro = !["Em pesquisa", "Em preparação", ""].includes(d.rotuloNumero.trim());
-                        const vazio = !temPercentual && !temRegistro;
-                        const contagemConexoes =
-                          d.id === "conexoes" && temPercentual ? d.legenda.match(/^(\d+) de (\d+)/) : null;
                         return (
                         <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm" data-radar-cartao={d.id}>
                           <p className="text-[11px] font-medium text-navy/60">Parte {i + 1} de 6</p>
                           <h3 className="mt-1 font-serif text-lg leading-tight text-navy">{d.titulo}</h3>
-                          <p className="mt-2 font-serif text-2xl leading-none text-navy">
-                            {vazio ? (
-                              <span className="inline-flex rounded-full border border-gold/60 px-2.5 py-0.5 font-sans text-[11px] font-medium text-[var(--app-ouro-texto)]">Em pesquisa</span>
-                            ) : temPercentual ? <span className="font-serif text-[1.75rem] leading-none text-navy" data-radar-percentual>{d.percentual}%</span> : <span className="font-sans text-sm text-navy/80">{d.rotuloNumero}</span>}
-                            {contagemConexoes ? (
-                              <span className="ml-2 font-sans text-xs text-navy/70">{contagemConexoes[1]} de {contagemConexoes[2]} pessoas</span>
-                            ) : null}
-                          </p>
-                          {temPercentual ? <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-navy/10" aria-hidden="true">
-                            <div className="h-full rounded-full bg-gold" style={{ width: `${d.percentual ?? 0}%` }} />
-                          </div> : null}
+                          <span className="app-chip mt-3" data-tom={d.rotuloNumero === "Compartilhado" ? "ok" : d.rotuloNumero === "Aguardando orientação" ? "pendente" : "analise"}>{d.rotuloNumero}</span>
+                          <div className="app-radar-mini-barra mt-3" data-compartilhado={d.rotuloNumero === "Compartilhado"} aria-hidden="true"><span /></div>
                           {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{d.legenda}</p> : null}
                         </li>
                         );

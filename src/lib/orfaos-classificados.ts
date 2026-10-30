@@ -124,7 +124,9 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
       "painelPiloto",
       "salvarDadoPiloto",
       "verificarDadoPiloto",
-      "resolverBloqueioPiloto",
+      // 24/10/2026: `resolverBloqueioPiloto` foi REMOVIDA, não montada. Decisão da
+      // Proprietária: bloqueios do piloto deixaram de ser camada de ativação
+      // (o gatilho cede a ela; ver supabase/pendentes/20261024170000_*).
       "criarPesquisaPiloto",
       "liberarPortalPiloto",
     ] as const

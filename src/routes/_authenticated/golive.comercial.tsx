@@ -6,7 +6,7 @@ import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/go
 import { FaixaFluxo } from "@/components/golive/identidade";
 import { Barras, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { AcaoAgenda, AcaoAtendimento } from "@/components/golive/atendimento";
 import {
@@ -32,6 +32,7 @@ import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-es
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Comercial — Go-live Clube Ancestral" },
@@ -61,8 +62,8 @@ const ETAPAS = ["novo", "em_contato", "qualificado", "proposta", "encerrado"] as
 function ComercialGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  const novoLead = useServerFn(registrarLeadGoLive);
-  const atendimento = useServerFn(registrarAtendimentoGoLive);
+  const novoLead = useEscritorGoLive(registrarLeadGoLive);
+  const atendimento = useEscritorGoLive(registrarAtendimentoGoLive);
 
   const [periodo, setPeriodo] = useState<number | null>(90);
   const [escolhido, setEscolhido] = useState<string | null>(null);
@@ -84,7 +85,7 @@ function ComercialGoLive() {
   const leadDoCaso = leadEmFoco?.id ?? null;
 
   const ctaNovoLead = (
-    <Link to="/golive/leads">
+    <Link search={true} to="/golive/leads">
       <Button size="sm">Abrir entrada de leads</Button>
     </Link>
   );
@@ -456,7 +457,7 @@ function MesaDeDiscovery({
         <>
           <Vazio
             cta={
-              <Link to="/golive/leads">
+              <Link search={true} to="/golive/leads">
                 <Button size="sm">Abrir entrada de leads</Button>
               </Link>
             }

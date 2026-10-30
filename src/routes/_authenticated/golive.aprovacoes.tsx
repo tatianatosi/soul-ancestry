@@ -9,7 +9,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Acao } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Barras } from "@/components/golive/graficos";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
@@ -25,6 +25,7 @@ import { aprovacoesPorGrupo, filaDeAprovacoes, resumoAprovacoes, type ItemAprova
 import { humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/aprovacoes")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Aprovações pendentes — Clube Ancestral" },
@@ -66,11 +67,11 @@ function AprovacoesGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
 
-  const aprovarAchado = useServerFn(aprovarAchadoGoLive);
-  const aprovarEscopo = useServerFn(aprovarEscopoPropostaGoLive);
-  const enviarRevisao = useServerFn(enviarContratoParaRevisaoGoLive);
-  const registrarAssinatura = useServerFn(registrarAssinaturaContratoGoLive);
-  const publicar = useServerFn(publicarInstrumentoNoAppGoLive);
+  const aprovarAchado = useEscritorGoLive(aprovarAchadoGoLive);
+  const aprovarEscopo = useEscritorGoLive(aprovarEscopoPropostaGoLive);
+  const enviarRevisao = useEscritorGoLive(enviarContratoParaRevisaoGoLive);
+  const registrarAssinatura = useEscritorGoLive(registrarAssinaturaContratoGoLive);
+  const publicar = useEscritorGoLive(publicarInstrumentoNoAppGoLive);
 
   const itens = filaDeAprovacoes({
     achados: caso?.achados ?? [],
@@ -217,7 +218,7 @@ function AprovacoesGoLive() {
           ) : (
             <Vazio
               cta={
-                <Link to="/golive/caso">
+                <Link search={true} to="/golive/caso">
                   <Button size="sm" variant="outline">
                     Abrir Caso 360
                   </Button>
@@ -238,7 +239,7 @@ function AprovacoesGoLive() {
         ) : (
           <Vazio
             cta={
-              <Link to="/golive/prontidao">
+              <Link search={true} to="/golive/prontidao">
                 <Button size="sm" variant="outline">
                   Abrir prontidão para o App
                 </Button>
@@ -258,7 +259,7 @@ function AprovacoesGoLive() {
         ) : (
           <Vazio
             cta={
-              <Link to="/golive/portal">
+              <Link search={true} to="/golive/portal">
                 <Button size="sm" variant="outline">
                   Abrir Portal
                 </Button>

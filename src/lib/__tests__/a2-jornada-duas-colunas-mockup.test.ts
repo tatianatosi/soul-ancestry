@@ -50,10 +50,14 @@ describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
    * largura (antes `sm:grid-cols-2` empilhava no celular), e Momentos de União
    * é o cartão abaixo das duas, ocupando a largura toda.
    */
-  it("as duas linhas ficam lado a lado também no celular", () => {
-    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid grid-cols-2 /);
-    expect(codigo).not.toMatch(/data-jornada-duas-linhas className="[^"]*sm:grid-cols-2/);
-    expect(codigo).toMatch(/<div className="relative col-span-2">\s*<MomentosDeUniao pontes=\{pontes\}\s*\/>/);
+  // 19/10/2026 — reconciliação com o Lovable: decisão de 13/10 (duas
+  // colunas lado a lado mesmo no celular) foi substituída pela composição
+  // real de hoje — empilha no celular (`grid-cols-1`), duas colunas a
+  // partir de `md:` (ver mockup4-presentation.test.ts, "stacks Jornada on
+  // mobile and restores two lines at desktop", já verde contra este mesmo
+  // arquivo). Mantém Momentos de União como conector abaixo das duas.
+  it("empilha no celular e restaura as duas colunas lado a lado a partir de md:", () => {
+    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2/);
   });
 
   it("marca cada coluna com estado vazio honesto, sem inventar item", () => {

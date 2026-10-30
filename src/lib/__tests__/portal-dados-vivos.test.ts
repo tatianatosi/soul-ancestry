@@ -13,6 +13,11 @@ import { EIXOS_RADAR_CANONICOS } from "@/lib/radar-eixos";
 const hoje = new Date("2026-08-24T00:00:00Z");
 
 describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
+  it("aceita o título editorial do dossiê sem liberar hipóteses no corpo", () => {
+    const titulo = "Dossiê do projeto familiar\n\n";
+    expect(legadoSanitizado([{ id: "aprovado", projection_type: "legado", content_sanitized: titulo + "Pesquisa histórica e documental compartilhada." }])).toHaveLength(1);
+    expect(legadoSanitizado([{ id: "interno", projection_type: "legado", content_sanitized: titulo + "Hipótese jurídica em avaliação." }])).toEqual([]);
+  });
   it("sem publicação, a jornada mantém estado seguro e não inventa progresso", () => {
     const j = jornadaSanitizada([], hoje);
     expect(j.marcosPublicados).toBe(0);

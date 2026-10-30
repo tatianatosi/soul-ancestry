@@ -76,7 +76,19 @@ export type DossiePesquisa = {
    * real; documentada aqui e no PR por não ter fonte de verdade própria.
    */
   confiancaCadeiaPct: number | null;
+  /**
+   * Prancha V4 (19/10/2026): denominador real da confiança da cadeia —
+   * quantas hipóteses ativas têm `confidence_level` válido. 0 quando
+   * `confiancaCadeiaPct` é `null`.
+   */
+  baseConfiancaCadeia: number;
   etapas: EtapaPesquisa[];
+  /**
+   * Prancha V4 (19/10/2026): contagem real por etapa da régua "da pergunta
+   * à microentrega". `null` = etapa sem rastro estruturado no schema
+   * (Pergunta, Pronta para revisão) — nunca 0 fingido nem número inventado.
+   */
+  contagemPorEtapa: Record<EtapaPesquisa["id"], number | null>;
 };
 
 const texto = (v: unknown): string => String(v ?? "").trim();
@@ -152,10 +164,14 @@ function hipotesesMaisRecentes(hipoteses: Registro[], limite = 6): HipoteseResum
 
 const PESO_CONFIANCA: Record<string, number> = { low: 33, medium: 66, high: 100 };
 
+function pesosConfiancaAtivos(hipoteses: Registro[]): number[] {
+  const ativas = hipoteses.filter((h) => texto(h["status"]) !== "closed");
+  return ativas.map((h) => PESO_CONFIANCA[texto(h["confidence_level"])]).filter((p): p is number => p !== undefined);
+}
+
 /** Ver DossiePesquisa.confiancaCadeiaPct para a fórmula e seus limites. */
 function confiancaCadeia(hipoteses: Registro[]): number | null {
-  const ativas = hipoteses.filter((h) => texto(h["status"]) !== "closed");
-  const pesos = ativas.map((h) => PESO_CONFIANCA[texto(h["confidence_level"])]).filter((p): p is number => p !== undefined);
+  const pesos = pesosConfiancaAtivos(hipoteses);
   if (pesos.length === 0) return null;
   return Math.round(pesos.reduce((s, p) => s + p, 0) / pesos.length);
 }
@@ -227,11 +243,20 @@ export function agregarDossiePesquisa(params: {
     fontesRecentes: fontesMaisRecentes(params.fontes),
     hipotesesRecentes: hipotesesMaisRecentes(params.hipoteses),
     confiancaCadeiaPct: confiancaCadeia(params.hipoteses),
+    baseConfiancaCadeia: pesosConfiancaAtivos(params.hipoteses).length,
     etapas: montarEtapas({
       temFonte: params.fontes.length > 0,
       temEvidenciaValidada: evidenciasValidadas > 0,
       temAchado: achados.length > 0,
       temMicroentrega: microentregas.length > 0,
     }),
+    contagemPorEtapa: {
+      pergunta: null,
+      fonte: params.fontes.length,
+      evidencia: evidenciasValidadas,
+      achado: achados.length,
+      microentrega: microentregas.length,
+      revisao: null,
+    },
   };
 }

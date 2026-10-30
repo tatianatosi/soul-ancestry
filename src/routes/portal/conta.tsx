@@ -5,6 +5,7 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
 import { assinaturaPublicada } from "@/lib/assinatura-app";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
+import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
@@ -14,6 +15,8 @@ import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
 import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
+import { condicaoFamiliarPrevista } from "@/components/portal/condicao-familiar";
+import { formatarValor } from "@/lib/assinatura-app";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -54,6 +57,7 @@ export function PortalConta() {
    const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
    const titularExibido = titular ?? titularPrevia;
    const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
+   const condicaoFamiliar = previaDemo ? null : condicaoFamiliarPrevista(codigoCaso ?? vivo.data?.casoAtivoId);
    const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
 
@@ -106,6 +110,12 @@ export function PortalConta() {
     ...publicacoesParaCliente(
       (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "marco" || p.projection_type === "microentrega"),
     ).map((p) => ({ id: `p-${p.id}`, rotulo: p.tipoRotulo, texto: p.conteudo, data: p.publicadoEm ?? null })),
+    ...publicacoesParaCliente(
+      (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "legado"),
+    ).map((p) => ({ id: `l-${p.id}`, rotulo: "Publicado no Legado", texto: p.conteudo.split("\n")[0], data: p.publicadoEm ?? null })),
+    ...(vivo.data?.documentos ?? [])
+      .filter((d) => d.liberado_cliente && !d.is_demo && d.liberado_em)
+      .map((d) => ({ id: `d-${d.id ?? d.titulo}`, rotulo: "Documento liberado", texto: textoParaCliente(d.titulo) ?? "Documento disponível em Documentos", data: d.liberado_em ?? null })),
   ]
     .filter((a) => a.data)
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));
@@ -149,12 +159,6 @@ export function PortalConta() {
               </div>
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
                <dl className="mt-3 grid grid-cols-1 gap-x-4 md:grid-cols-2">
-                 {codigoCaso ? (
-                <div className="border-b border-border py-3" data-conta-codigo>
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Projeto familiar</dt>
-                  <dd className="text-sm text-navy">{codigoCaso}</dd>
-                </div>
-                 ) : null}
                  {titularExibido ? (
                 <div className="border-b border-border py-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
@@ -173,19 +177,8 @@ export function PortalConta() {
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Membro desde</dt>
                   <dd className="text-sm text-navy">{membroDesde ?? "Não registrado"}</dd>
                 </div>
-                 {paisInteresse ? (
-                <div className="border-b border-border py-3">
-                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
-                  <dd className="text-sm text-navy">{paisInteresse}</dd>
-                </div>
-                 ) : null}
-                 {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
-                <div className="border-b border-border py-3" data-conta-modalidade>
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Modalidade</dt>
-                  <dd className="text-sm text-navy">Projeto Familiar (3 assinaturas ativas)</dd>
-                </div>
-                 ) : null}
                </dl>
+              <Button asChild variant="outline" className="app-perfil-whatsapp mt-3 h-auto min-h-11 whitespace-normal"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">Falar com a Especialista no WhatsApp</a></Button>
               <p className="mt-3 text-xs text-navy/55">
                   Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>
@@ -195,11 +188,14 @@ export function PortalConta() {
               <details open className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <Button asChild variant="outline" className="mt-3 h-auto min-h-11 whitespace-normal text-left"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp>Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a></Button>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
+              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Situação do acompanhamento: {resumo?.statusRotulo ?? "Não registrado"}.</p></details>
+              <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Termos e privacidade</summary><p className="mt-2 text-sm text-navy/70">Os termos de uso e informações de privacidade serão apresentados aqui quando forem disponibilizados pela equipe.</p></details>
+              <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Acesso seguro</summary><p className="mt-2 text-sm text-navy/70">Seu acesso é pessoal. Não compartilhe links de entrada. Para dúvidas sobre o acesso, procure a equipe no canal oficial.</p></details>
             </section>
 
              <section data-conta-assinatura className="app-v11-faixa">
-              <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Plano familiar · condição prevista</p>
+              <h2 className="mt-1 font-serif text-xl text-navy">Condição do projeto familiar</h2>
               {vivo.isError ? (
                 /* 12/10/2026 — falha de leitura (fail-closed): nunca "nenhuma assinatura", nunca dado financeiro. */
                 <div className="mt-2" data-conta-assinatura-erro>
@@ -207,6 +203,16 @@ export function PortalConta() {
                 </div>
               ) : vivo.isLoading ? (
                 <p className="mt-2 text-sm text-navy/60" role="status">Carregando sua assinatura…</p>
+              ) : condicaoFamiliar ? (
+                <div className="mt-3" data-conta-condicao-familiar>
+                  <span className="app-chip" data-tom="pendente">Condição prevista · aguardando confirmação</span>
+                  <p className="mt-4 text-sm leading-relaxed text-navy"><strong>{String(condicaoFamiliar.assinaturas).padStart(2, "0")} assinaturas de {formatarValor(condicaoFamiliar.mensalCentavos)} por mês durante {condicaoFamiliar.meses} meses</strong></p>
+                  <dl className="app-condicao-valores mt-4">
+                    <div><dt className="text-xs text-navy/70">Por adulto</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.adultoCentavos)}</dd></div>
+                    <div><dt className="text-xs text-navy/70">Valor Total</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.totalCentavos)}</dd></div>
+                  </dl>
+                  <p className="mt-4 text-xs leading-relaxed text-navy/70">Condição prevista; não representa cobrança ativa, fatura ou pagamento confirmado.</p>
+                </div>
               ) : assinatura ? (
                 <>
                   {/* Selo do estado real: nunca "Assinatura ativa" sem pagamento confirmado. */}
@@ -216,21 +222,7 @@ export function PortalConta() {
                   <p className="mt-2 text-sm text-navy" data-conta-assinatura-nome>
                     {assinatura.nome}
                   </p>
-                  <p className="mt-1 font-serif text-2xl text-navy" data-conta-assinatura-valor>
-                    {assinatura.valor}{" "}
-                    <span className="text-sm text-navy/60">{assinatura.periodicidadeRotulo}</span>
-                  </p>
-                  {assinatura.situacao ? (
-                    <p className="mt-1 text-xs text-navy/60">{assinatura.situacao}</p>
-                  ) : null}
-                  {assinatura.valor === "R$ 320,00" || assinatura.valor === "R$ 320,00" ? (
-                    <p className="mt-2 text-sm text-navy/70" data-conta-assinatura-condicao>
-                      {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
-                        <span className="mb-2 block">Condição familiar: 3 assinaturas / parcelas mensais</span>
-                      ) : null}
-                      Condição prevista por 10 meses. A cobrança individual ainda aguarda confirmação e, por isso, nenhum link de pagamento é exibido.
-                    </p>
-                  ) : null}
+                  <p className="mt-3 text-sm leading-relaxed text-navy/75">Condição prevista. A equipe confirmará os detalhes do plano familiar pelos canais oficiais; não há cobrança ou pagamento confirmado neste espaço.</p>
                 </>
                ) : (
                 /*

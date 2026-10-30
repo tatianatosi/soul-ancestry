@@ -4,10 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
+import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -159,7 +163,12 @@ function ContratoDetalhe() {
     onError: (e: Error) => setAviso(e.message),
   });
 
-  if (q.isLoading) return <SaasShell titulo="Instrumento contratual">Carregando…</SaasShell>;
+  if (q.isLoading)
+    return (
+      <SaasShell titulo="Instrumento contratual">
+        <CarregandoDesk linhas={5} rotulo="Carregando o instrumento contratual" />
+      </SaasShell>
+    );
   if (q.isError || !q.data)
     return (
       <SaasShell titulo="Instrumento contratual">
@@ -259,6 +268,15 @@ function ContratoDetalhe() {
             proximoPasso={proximoPassoDoStatus(c.status)}
           />
         </div>
+      </div>
+
+      {/*
+        Jurídico & Contrato — composição da prancha V4 (19/10/2026) no topo da
+        ficha: os mesmos seis blocos de /contratos, somente leitura. As ações
+        (aprovar, enviar, assinar) seguem nas abas abaixo, sob useAutoridade.
+      */}
+      <div className="mt-4" data-contrato-prancha-topo>
+        <PranchaJuridicoContrato contratoId={id} />
       </div>
 
       {d.contratoBase ? (
@@ -406,16 +424,34 @@ function ContratoDetalhe() {
         ))}
       </nav>
 
+      {/* V4-05: faixa de KPIs só com contagem real do que o instrumento já carrega (arquivados fora). */}
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-contrato-kpis-v4>
+        {(
+          [
+            ["Partes", d.partes],
+            ["Itens de escopo", d.escopo],
+            ["Cláusulas", d.clausulas],
+            ["Anexos", d.anexos],
+          ] as [string, unknown][]
+        ).map(([rotulo, lista]) => (
+          <Indicador
+            key={rotulo}
+            rotulo={rotulo}
+            valor={String(((lista as any[]) ?? []).filter((x: any) => !x?.archived_at).length)}
+          />
+        ))}
+      </div>
+
       <div className="mt-4 space-y-5">
-        <section id="contrato-resumo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Resumo</h2><Resumo dados={d} onSalvo={recarregar} /></section>
-        <section id="contrato-partes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Partes</h2><Partes dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-escopo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Escopo e condição comercial</h2><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-cláusulas" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Texto do contrato</h2><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-anexos" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Anexos e ordem de serviço</h2><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <details id="contrato-fontes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details>
-        <section id="contrato-validações" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Validação jurídica da trilha</h2><Validacoes dados={d} /></section>
-        <details id="contrato-versões" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details>
-        <section id="contrato-revisão" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Revisão e assinatura</h2><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></section>
+        <div id="contrato-resumo" className="scroll-mt-24"><CaCard titulo="Resumo"><Resumo dados={d} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-partes" className="scroll-mt-24"><CaCard titulo="Partes"><Partes dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-escopo" className="scroll-mt-24"><CaCard titulo="Escopo e condição comercial"><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-cláusulas" className="scroll-mt-24"><CaCard titulo="Texto do contrato"><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e ordem de serviço"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-fontes" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details></CaCard></div>
+        <div id="contrato-validações" className="scroll-mt-24"><CaCard titulo="Validação jurídica da trilha"><Validacoes dados={d} /></CaCard></div>
+        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details></CaCard></div>
+        <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
       </div>
     </SaasShell>
     </div>
@@ -1197,6 +1233,12 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
     rascunho: boolean;
     perfil: { versao: string | null; status: string | null; capturadoEm: string | null } | null;
   } | null>(null);
+  // Defeito relatado pela Proprietária em 24/10/2026: o `window.open` daqui
+  // era chamado DEPOIS do `await` da URL assinada, então já havia perdido o
+  // gesto do usuário e o bloqueador de pop-up descartava a aba. O arquivo
+  // privado passa a virar um link visível na própria linha da versão: quem
+  // abre é um clique de verdade num <a href>, que navegador nenhum bloqueia.
+  const [arquivo, setArquivo] = useState<{ versao: number; url: string } | null>(null);
   // Achado real (08/09/2026): "Ver prévia interna" só existia na coluna
   // "Ações" da tabela — que tem 640px mínimos e exige rolar para o lado num
   // celular (~390px de tela). A proprietária aprovava decisões sem nunca ter
@@ -1258,19 +1300,31 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
                   Ver prévia interna
                 </button>
                 {v.rendered_file_path ? (
+                arquivo && arquivo.versao === v.version_number ? (
+                  <a
+                    href={arquivo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-navy underline decoration-gold underline-offset-2"
+                  >
+                    Abrir arquivo da v{v.version_number}
+                  </a>
+                ) : (
                 <button
                   onClick={async () => {
                     try {
+                      setErro(null);
                       const r = await baixar({ data: { contract_id: contratoId, version_id: v.id } });
-                      window.open(r.url, "_blank", "noopener");
+                      setArquivo({ versao: v.version_number, url: r.url });
                     } catch (e) {
                       setErro(e instanceof Error ? e.message : "Falha ao abrir arquivo.");
                     }
                   }}
                   className="text-xs underline"
                 >
-                  Baixar arquivo
+                  Preparar arquivo
                 </button>
+                )
                 ) : null}
               </div>
             </td>

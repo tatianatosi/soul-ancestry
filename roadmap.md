@@ -1,5 +1,64 @@
 # Roadmap
 
+## 27/10 — Correção focal da Árvore (sem publicação)
+- [x] Raiz por par autorizado caso/pessoa (Otto publicado no caso Ana), corte visual G10 removido; abertura/restauração compartilham enquadramento com margem/centro.
+- [x] 18 testes passam; oito pessoas e oito relações persistidas conferidas em 375/1280; restauração repete quadro inicial e nomes reais cabem; PDF original p.6 comparado com antes/candidata. Nomes extremos testados por função, não por caso real inventado.
+- [x] Comparativo entregue; build automático OK; dados, cores e outras abas intocados. Publicação/homologação visual e acesso cliente independente não autorizados neste corte.
+
+## 26/10 — Paleta rica e densidade editorial do App
+- [x] Cores funcionais exatas nos chips, borda navy 6%, cartões brancos/sombra suave, números em ouro, teia dourada e grade compacta 3x2 desktop/2x3 mobile com barras de presença de registros (não percentuais inventados); perfil com membro desde persistido e WhatsApp direto. Árvore existente já põe cônjuges lado a lado na geração registrada; oito nós e treze relações preservados.
+- [x] Sete abas em 375/1280 sem overflow/pageerrors/HTTP >=400; 27 testes passam, build automático OK. Capturas /tmp/browser/app-integral; visual não publicado neste corte.
+- [ ] Agrupamento documental Ana/Adair/Alice/Felipe bloqueado por fonte: checklist sem pedidos, sem titular sanitizado por item; nenhum grupo ou pedido inferido. Upload existente destacado no acesso cliente; prévia administrativa não recebe permissão de envio.
+
+## 26/10 — Dossiês e Relatórios reais do Legado da Ana
+- [x] Conferidas fontes persistidas e repositório: Ana tem zero case_reports/client_deliverables/projeções de Legado ou relatório; único research_reports é rascunho DEMO de outro caso, sem aprovação. Os três documents liberados são evidências de pesquisa, sem revisão, resumo aprovado ou classificação de entrega; não convertidos em relatórios.
+- [x] Resumo sanitizado do dossiê aprovado expressamente pela Proprietária e publicado pelo escritor autenticado existente (d9d5b074-3800-4a4f-a913-894019feafc1), com aprovadora/data/auditoria. Dossiês mostra um material em 375/1280 após F5; PDF integral reservado. Relatórios permanecem em preparação, pois ainda não estão prontos.
+- [x] Após esclarecimento da Proprietária, localizado e lido o PDF original Dossie-Consolidado-Ana-Luiza-Projeto-Familiar-Austria.pdf (enviado em 13/10). Contém hipóteses jurídicas, condições técnicas proibidas no App, status históricos e automações propostas; não deve ser publicado integralmente. Relatórios ainda não estão prontos, confirmado pela Proprietária.
+
+## 26/10 — Experiência integral das sete abas
+- [x] Apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; autorização preservada. app-visibilidade já mantém as sete abas disponíveis mesmo com zero entregas, comprovado por teste.
+- [x] Quatro grupos de Documentos, genograma SVG com 8 pessoas/13 relações publicadas sem lista plana, zoom/pan/foco; Radar com seis nomes solicitados sem parecer/score inventado; Conta com condição prevista exclusiva da Ana. Home com país real, WhatsApp e estado contextual.
+- [x] Sete abas na sessão da Proprietária via prévia administrativa, 375/1280 sem overflow/pageerrors/HTTP >=400; quatro grupos, três arquivos, cinco coleções e valores conferidos; recarga mantém caso. 44 testes passaram; tsgo sem erros; compilação sem erros (typecheck automático excedeu tempo). Capturas /tmp/browser/app-integral. Nada publicado.
+- [ ] Conteúdo não registrado: fotos/novos achados, três certidões específicas, pedidos com prazos e Dossiês/Relatórios aprovados não fornecidos por leitores existentes. Três arquivos disponíveis são dossiê/registro PDF/texto-fonte, não certidões; nenhum conteúdo criado/publicado para preencher espaços.
+- [ ] Download na prévia administrativa: leitor não fornece URL liberada; nenhuma nova função privilegiada criada neste corte. Download do cliente permanece no mecanismo autorizado existente, não exercitado como Ana.
+
+## 25/10 — Fechamento v4.0 e conteúdo real da Ana (15:43 UTC)
+- [x] Base com PR #171 presente; migrations financeiro/telemetria já registradas em Drizzle 0000/0001, função/tabela/privilégios/RLS conferidos. Nenhum pull ou migration repetida.
+- [x] Checklist aparece na prévia também com arquivos; Documentação deixa de mostrar 100% por arquivos liberados e usa somente pedidos aceitos/total. Recarga seguida de reabertura confirmada.
+- [ ] Pedidos reais da equipe: BLOQUEADO_POR_DADO — zero portal_document_requests e document_requests no caso; 18 case_checklist_items são preparação interna, não pedidos à família. Pesquisa nos uploads/repositório não localizou solicitação documental comprovada; não inventar 14 itens ou contador 0/0.
+- [ ] Legado: BLOQUEADO_POR_DADO — zero case_reports/client_deliverables/research_reports e nenhuma projeção de relatório aprovada. Arquivos de trabalho existentes não possuem resumo final sanitizado aprovado; não duplicados nem publicados como relatório.
+- [x] Sete abas reais em 375/1280: sem overflow, pageerrors ou HTTP >=400; checklist após F5/reabrir, seletor universal troca e mantém Ana após F5. 35 testes passaram; build automático OK. Capturas em /tmp/browser/fechamento-v4. Inspeção administrativa, não login independente da Ana.
+- [ ] Paridade integral das onze telas Desk e PDF oficial de 16 cláusulas/8 páginas: não comprovados neste corte; dependem de validação integral e arquivo contratual final. Sem redesign ou publicação do site.
+
+## 25/10 — Resgate da experiência rica do App Cliente
+- [ ] Cruzar prompts aprovados e comparativo editorial indicado com as sete abas atuais; separar ausências visuais de falta de conteúdo publicado.
+- [ ] Executar os refinamentos faltantes nas telas existentes, preservando leitores, dados, sete abas e privacidade; sem publicação.
+- [ ] Conferir sete abas autenticadas em 375/1280, interações, testes relevantes e erros; registrar diferenças e bloqueios restantes.
+
+## 25/10 — PDF: sete abas atuais × mockup de 17 páginas
+- [x] Capturar as sete abas do App Cliente como estão agora (375 px e desktop), pela prévia administrativa oficial, com selo de origem e data.
+- [x] Localizar o mockup aprovado de 17 páginas e comparar aba a aba: o que coincide, o que falta, o que é dado atual e não estilo.
+- [x] Montar PDF com os prints e o comparativo; salvar em Arquivos.
+
+## 25/10 — Conferência e aplicação de migrations pendentes
+- [x] Comparados 234 arquivos históricos e cinco propostas com os dois históricos do banco: 231 registrados no histórico anterior, dois no Drizzle e saneamento de dados já refletido. Três hashes Drizzle conferidos; funções de ativação retornam true/true. Nenhum schema pendente identificado; nada reaplicado.
+- [x] Separadas propostas de dados: as três de 23/10 já estão refletidas no banco. Todas as 194 tabelas e seus conjuntos de colunas correspondem aos tipos gerados. Inventário atualizado em supabase/pendentes/README.md.
+- [ ] Proposta 20261024120000_documentos_reais_ana_liberados.sql: BLOQUEADO_POR_DADO — publica materiais internos, não altera schema; faltam versões sanitizadas e correspondência comprovada com os documentos pretendidos. Não executada.
+
+## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
+- [x] Publicação solicitada para soul-ancestry.lovable.app após varredura básica sem achados; conclusão do deploy não confirmada e análise profunda não realizada.
+- [ ] Liberação dos documentos: três arquivos recebidos localizados nos uploads, já vinculados à Ana em evidencias (Registro Unificado PDF/texto e Dossiê Consolidado PDF); não duplicados. PDFs conferidos (426500/432805 bytes, 5/7 páginas): contêm condições comerciais/hipóteses e são material interno, não certidões nem entregas sanitizadas. Nenhum registro em documents/case_source_documents. Leitura/assinatura dos objetos privados retornou NoSuchKey nesta sessão; bytes disponíveis nos uploads. BLOQUEADO_POR_DADO: não localizadas certidões/versões sanitizadas próprias para a família; não solicitar reenvio genérico nem liberar material interno. Os 14 itens do checklist não são arquivos.
+
+## 22/10 — Fechamento aprovado v4.0 (sem redesign/publicação)
+- [x] PR #171 já presente na base bdab2ec0; nenhum pull, merge ou alteração visual executado.
+- [x] Aplicadas as duas migrations existentes de suporte financeiro e telemetria; função, RLS, políticas e privilégios conferidos no banco.
+- [x] 80 testes passaram; compilação automática OK; seletor de caso troca entre dois casos e mantém Ana após F5.
+- [x] Sete abas conferidas em 1280/375 na prévia administrativa oficial: zero overflow, erros de página ou respostas HTTP com erro. Sessão da Proprietária, não login independente da Ana.
+- [ ] Aceite cliente real: bloqueado por vínculo do acesso da Ana à identidade da Proprietária; nenhum acesso/login alterado.
+- [ ] Três documentos: não encontrados ativos em documents para o caso canônico; prévia mostra acervo em preparação. Não liberar checklist reservado ou inventar arquivos.
+- [ ] Contrato 8 páginas: versão 2 contém 16 cláusulas e RASCUNHO, sem arquivo renderizado; PDF oficial precisa ser fornecido/verificado pelo Claude.
+- [ ] Validação integral das onze telas e homologação pessoal: não executadas nesta conferência limitada às sete abas e ao seletor. App congelado e nada publicado.
+
 ## 20/10 — Sugestões completas de jornada guiada (somente documento)
 - [x] Revisar estudo v3-v2, inventário integral de 19/10 e código local 731f666c por área/subárea; separar observação histórica, código e proposta. Auditoria de todos os filhos/writers não exercitada; estado online atual do Claude não recapturado.
 - [x] PDF de 80 páginas: 29 composições, 90 entradas Desk históricas, 12 subabas de pesquisa, 11 de linhagens, 10 alimentos da Biblioteca, cinco cartões/seis atos, jornada 375, legado/sanitização e achados citados ao Claude.
@@ -402,3 +461,14 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [x] 19/10/2026 15:08 UTC — Caderno sistêmico cobre rotas e subabas de pesquisa/contrato em código, cadeia alimento → ação → writer → releitura → consumidor; proposta, não implementação nem prova de uso.
 - [x] 19/10/2026 15:17 UTC — Inventário v2 entregue na mesma pasta: 117 endereços, alturas de documento e conteúdo main em 1280/375, gavetas prioritárias abertas, categoria vazio/bloqueado, sessão da Proprietária identificada, erros reconciliados. V1 122 páginas e V2 284 páginas renderizadas e conferidas por folhas de contato; sem submissão manual. Preparador pode escrever automaticamente na carga, não auditado como ausência de escrita.
 - [ ] Prova de gravação com F5/releitura, login cliente e equivalência Vercel atual: não executadas nesta auditoria de leitura; exigem teste autorizado e configuração atual comparável.
+
+## Plano executável App/Desk (24/10/2026) — `docs/prompts/2026-10-24-plano-executavel-app-desk-lovable.md`
+- [x] EXEC-00 plano registrado no histórico
+- [x] EXEC-01 `resolverBloqueioPiloto` já montado em `/onboarding/$id` (12 testes ok); prova autenticada pendente da Proprietária
+- [x] EXEC-05 `/golive/app`: "Ver proposta" abre a prévia do mesmo caso; pendência `/piloto-ana` → `/casos`
+- [ ] EXEC-02 contrato/cobrança — bloqueado: envio para assinatura e cobrança exigem autorização específica
+- [ ] EXEC-03 documentos reais — acervo recebido localizado nos uploads e já vinculado à Ana; PDFs internos conferidos, sem certidões ou versões sanitizadas localizadas. Não duplicar nem publicar material interno; recuperação da leitura no armazenamento ainda pendente
+- [ ] EXEC-04 sete abas do App — aguarda conteúdo do EXEC-03 e liberação do congelamento por aba
+- [ ] EXEC-07 homologação final — depende de login real da Ana
+- [x] Acervo recebido (24/10): localizados Registro Unificado PDF/texto e Dossiê Consolidado PDF em uploads/mirror; mesmos nomes/conteúdos/tamanhos das três referências de evidencias já vinculadas à Ana. Nenhuma duplicação, upload ou alteração de acesso executada.
+- [ ] Mostrar acervo em Documentos: BLOQUEADO_POR_DADO — os três recebidos são material interno; não localizadas certidões nem versões sanitizadas para entrega à família. Leitura temporária do armazenamento retornou NoSuchKey nesta sessão; sem substituir diagnóstico por exposição de conteúdo interno.

@@ -85,7 +85,7 @@ export function derivarPendenciasPiloto(input: {
       descricao: "Identificador canônico ainda não decidido.",
       entidade: "Caso",
       origem: "cadastro_participante",
-      acaoRelacionada: { rotulo: "Registrar decisão do ID canônico", to: "/piloto-ana" },
+      acaoRelacionada: { rotulo: "Registrar decisão do ID canônico", to: "/casos" },
       tarefaVinculada: null,
       estadoAtual: "aberto",
     });

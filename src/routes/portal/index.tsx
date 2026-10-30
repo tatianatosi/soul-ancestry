@@ -19,6 +19,8 @@ import { ArrowRight, CheckCircle2, UsersRound, Search } from "lucide-react";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
 import { CartaoAchado, CartaoAssessoria, CartaoEditorial, ReguaEtapas, SeloEstadoCaso } from "@/components/portal/elementos-mockup";
 import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
+import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
+import { Button } from "@/components/ui/button";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -84,7 +86,7 @@ export function PortalHome() {
   /*
    * Retificação de 07/10/2026: uma pessoa publicada na árvore NÃO é achado.
    * Antes, `tipo === "arvore"` entrava aqui, e os nomes da família apareciam
-   * em "Achados da sua história" ao mesmo tempo que em "Pessoas conectadas".
+   * em "Descobertas publicadas" ao mesmo tempo que em "Pessoas conectadas".
    * Achado é só o que foi publicado COMO achado — regra do Lovable, mantida
    * por ser a mais estreita: pessoa nunca entra, por construção.
    */
@@ -384,7 +386,7 @@ function PainelHomeMockup({
   /** País da trilha (crm_casos.pais). O selo §58c só aparece para Áustria. */
   pais?: string | null;
 }) {
-  const trilhaAustria = /^(á|a)ustria$/i.test((pais ?? "").trim());
+
   return (
     <div className="space-y-7" data-aba-home>
       {/*
@@ -410,9 +412,8 @@ function PainelHomeMockup({
             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
           </h2>
-          {trilhaAustria ? (
-            <p className="app-selo-trilha mt-4" data-selo-trilha>Cidadania Austríaca (§ 58c StbG)</p>
-          ) : null}
+          {pais ? <p className="mt-3 text-sm text-cream/85">{pais}</p> : null}
+          <Button asChild variant="ghost" className="app-home-whatsapp mt-3 h-auto whitespace-normal"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">Falar com a Especialista · {WHATSAPP_ESPECIALISTA.rotulo}</a></Button>
         </div>
 
         {/* Mockup p.3: progresso dentro do mesmo cartão do caso, não num segundo cartão. */}
@@ -439,6 +440,7 @@ function PainelHomeMockup({
       )}
 
       <div className="app-home-pilha grid gap-7 pt-2" data-home-paridade-mockup>
+        <section className="app-home-hoje" aria-label="Hoje você está aqui"><h3 className="font-serif text-xl text-navy">Hoje você está aqui</h3><p className="mt-2 text-sm text-navy/75">{resumo?.statusRotulo ?? "A equipe está preparando a próxima atualização da sua família."}</p></section>
         {/*
           Mockup p.3 "Próximos passos": cartões brancos numerados. Só itens
           reais — a próxima ação publicada e os pedidos de documento abertos
@@ -521,7 +523,7 @@ function PainelHomeMockup({
 
         <section aria-label="Achados recentes">
           <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
-            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados da sua história</h3>
+            <h3 className="min-w-0 font-serif text-2xl text-navy">Descobertas publicadas</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>

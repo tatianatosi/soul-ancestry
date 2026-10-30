@@ -819,29 +819,66 @@ export const miniaturaFamiliarDoCaso = createServerFn({ method: "GET" })
     ) as string[];
 
     if (idsPessoas.length === 0) {
-      return { pessoas: [] as { id: string; nome: string; papel: string }[], totalRelacoes: 0 };
+      return {
+        pessoas: [] as { id: string; nome: string; papel: string }[],
+        totalRelacoes: 0,
+        relacoes: [] as { id: string; de: string; para: string; rotulo: string }[],
+        geracoesDocumentadas: 0,
+      };
     }
 
     const { data: pessoas, error: erroPessoas } = await supabase
       .from("research_people")
-      .select("id,canonical_name,preferred_display_name,papel_na_linhagem")
+      .select("id,canonical_name,preferred_display_name,papel_na_linhagem,geracao")
       .in("id", idsPessoas)
       .is("archived_at", null);
     if (erroPessoas) throw new Error(erroPessoas.message);
 
+    /*
+     * Só tipos simétricos (cônjuge, irmão, colateral, a confirmar) viram
+     * papel dos dois lados. Tipo direcional (pai_mae, filho, tutor,
+     * padrinho) não rotula a pessoa — atribuir "Ascendente" às duas pontas
+     * seria inferir; a aresta aparece explícita em `relacoes`.
+     */
+    const SIMETRICOS = new Set(["conjuge", "irmao", "colateral", "a_confirmar"]);
     const mapaPapelPorRelacao = new Map<string, string>();
     for (const r of listaRelacoes) {
+      if (!SIMETRICOS.has(r["relation_type"])) continue;
       mapaPapelPorRelacao.set(r["person_from_id"], ROTULO_RELACAO[r["relation_type"]] ?? r["relation_type"]);
       mapaPapelPorRelacao.set(r["person_to_id"], ROTULO_RELACAO[r["relation_type"]] ?? r["relation_type"]);
     }
 
-    const listaPessoas = linhasDe<Record<string, any>>(pessoas, "pessoas da miniatura familiar").map((p) => ({
+    const linhasPessoas = linhasDe<Record<string, any>>(pessoas, "pessoas da miniatura familiar");
+    const listaPessoas = linhasPessoas.map((p) => ({
       id: String(p["id"]),
       nome: String(p["preferred_display_name"] ?? p["canonical_name"] ?? "Sem nome registrado"),
-      papel: String(p["papel_na_linhagem"] ?? mapaPapelPorRelacao.get(p["id"]) ?? "Vínculo a confirmar"),
+      papel: String(p["papel_na_linhagem"] ?? mapaPapelPorRelacao.get(p["id"]) ?? "Vínculo registrado"),
     }));
 
-    return { pessoas: listaPessoas, totalRelacoes: listaRelacoes.length };
+    /*
+     * Prancha V4 (19/10/2026): arestas só como registradas (de → para, tipo
+     * do CHECK real), nunca deduzidas; gerações = valores distintos de
+     * `research_people.geracao` declarados — sem denominador inventado.
+     */
+    const nomePorId = new Map(listaPessoas.map((p) => [p.id, p.nome]));
+    const relacoesExplicitas = listaRelacoes
+      .filter((r) => nomePorId.has(String(r["person_from_id"])) && nomePorId.has(String(r["person_to_id"])))
+      .map((r) => ({
+        id: String(r["id"]),
+        de: nomePorId.get(String(r["person_from_id"]))!,
+        para: nomePorId.get(String(r["person_to_id"]))!,
+        rotulo: ROTULO_RELACAO[r["relation_type"]] ?? String(r["relation_type"]),
+      }));
+    const geracoesDocumentadas = new Set(
+      linhasPessoas.map((p) => String(p["geracao"] ?? "").trim()).filter((g) => g.length > 0),
+    ).size;
+
+    return {
+      pessoas: listaPessoas,
+      totalRelacoes: listaRelacoes.length,
+      relacoes: relacoesExplicitas,
+      geracoesDocumentadas,
+    };
   });
 
 /** Rótulo em PT-BR do vocabulário real de `relation_type` (CHECK da migration). */

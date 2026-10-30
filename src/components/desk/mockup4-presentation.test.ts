@@ -11,11 +11,18 @@ describe("Mockup 4 — isolated presentation contracts", () => {
     expect(home).toContain("for (const s of solicitacoes)");
     expect(home).not.toContain("1. Assinatura do Contrato de Assessoria");
   });
+  // 19/10/2026 — reconciliação com o Lovable: achados usam `CartaoAchado`
+  // (estado React próprio, `useState aberto`) em vez de `<details>` cru, e o
+  // link do WhatsApp mora dentro de `CartaoAssessoria`, não inline aqui — a
+  // checagem real é que ambos são os componentes/fonte reais, nunca um
+  // telefone hardcoded nesta tela.
   it("expands actual findings and uses the existing WhatsApp source", () => {
     const home = source("src/routes/portal/index.tsx");
-    expect(home).toContain('<details key={a.id}');
-    expect(home).toContain("href={WHATSAPP_ESPECIALISTA.url}");
+    expect(home).toContain("<CartaoAchado");
+    expect(home).toContain("key={a.id}");
+    expect(home).toContain("<CartaoAssessoria");
     expect(home).not.toContain("5511988384907");
+    expect(source("src/components/portal/elementos-mockup.tsx")).toContain("href={WHATSAPP_ESPECIALISTA.url}");
   });
   it("stacks Jornada on mobile and restores two lines at desktop", () => {
     expect(source("src/routes/portal/jornada.tsx")).toContain("grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2");

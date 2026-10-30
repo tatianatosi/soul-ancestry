@@ -278,6 +278,11 @@ function TimelineVertical({
  * ANCESTRAL e LINHA DO PROCESSO, em vez de um item misturado na mesma
  * lista (era o nó tipo "ponte" antes desta composição em duas colunas).
  */
+function JornadaIntercalada({ ancestral, processo }: { ancestral: NoEvento[]; processo: NoEvento[] }) {
+  const linhas = Array.from({ length: Math.max(ancestral.length, processo.length) }, (_, i) => [ancestral[i], processo[i]]).flat().filter((n): n is NoEvento => Boolean(n));
+  return <div className="app-jornada-intercalada"><h2 className="font-serif text-xl text-navy">História ancestral e processo</h2>{linhas.length === 0 ? <p className="mt-3 text-sm text-navy/70">Os marcos da sua história aparecerão aqui quando forem compartilhados.</p> : <ol className="mt-4 border-l-2 border-gold pl-4">{linhas.map((n) => <li key={n.id} className="app-jornada-evento relative mb-5"><span className="app-chip" data-tom={n.categoria === "navy" ? "analise" : "preparo"}>{n.categoria === "navy" ? "Processo" : "Ancestral"}</span><h3 className="mt-2 font-serif text-xl text-navy">{n.dataPrincipal ?? n.titulo}</h3><p className="mt-2 text-sm text-navy/70">{n.conteudo}</p>{n.destino ? <LinkPortal to={n.destino} className="mt-2 inline-flex text-sm text-navy underline">{n.rotuloCta ?? "Ver na Jornada"}</LinkPortal> : null}</li>)}</ol>}</div>;
+}
+
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
   return (
     <div className="app-jornada-uniao app-uniao-ramos relative" data-uniao-ramos>
@@ -516,10 +521,10 @@ export function PortalJornada() {
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
                             <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
-                          {pontes.length > 0 ? (<div className="relative col-span-2">
+                          {pontes.length > 0 ? (<div className="relative col-span-1 md:col-span-2">
                            <MomentosDeUniao pontes={pontes} />
                          </div>) : null}
-                          <section id="linha-memoria" className="relative col-span-2 scroll-mt-20 border-t border-border py-4">
+                          <section id="linha-memoria" className="relative col-span-1 md:col-span-2 scroll-mt-20 border-t border-border py-4">
                             <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
                             <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias e os materiais de memória aparecerão aqui quando forem compartilhados com a família.</p>
                           </section>
@@ -533,20 +538,21 @@ export function PortalJornada() {
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}</p>
                       </div>
                         <div data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8">
-                          <div id="linha-origem" className="relative min-w-0 scroll-mt-20">
+                          <div className="app-jornada-mobile"><JornadaIntercalada ancestral={linhaAncestral} processo={linhaProcesso} /></div>
+                          <div id="linha-origem" className="app-jornada-desktop relative min-w-0 scroll-mt-20">
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" idsUniao={idsUniao} />
                         </div>
-                          <div id="linha-processo" className="relative min-w-0 scroll-mt-20">
+                          <div id="linha-processo" className="app-jornada-desktop relative min-w-0 scroll-mt-20">
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" idsUniao={idsUniao} etapaAtual={etapaAtualRotulo} />
                             {passoAtualIndice !== null ? (
                               <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
                             ) : null}
                         </div>
                           {/* Mockup p.4: "Momentos de União" é o cartão abaixo das duas linhas. */}
-                          {pontes.length > 0 ? (<div className="relative col-span-2">
+                          {pontes.length > 0 ? (<div className="relative col-span-1 md:col-span-2">
                            <MomentosDeUniao pontes={pontes} />
                          </div>) : null}
-                         <section id="linha-memoria" className="relative col-span-2 scroll-mt-20 border-t border-border py-4">
+                         <section id="linha-memoria" className="relative col-span-1 md:col-span-2 scroll-mt-20 border-t border-border py-4">
                            <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/75">As histórias e os materiais de memória compartilhados com sua família ficam reunidos no Legado.</p>
                            <LinkPortal to="/portal/legado" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver o Legado</LinkPortal>

@@ -142,7 +142,12 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
     if (!transicao.permitido) throw new Error(transicao.motivos.join(" "));
 
     const { error } = await supabase.from("conversion_events").insert({
-      ...data,
+      event_type: data.event_type,
+      responsavel: data.responsavel ?? null,
+      origem: data.origem ?? null,
+      canal: data.canal ?? null,
+      evidencia_referencia: data.evidencia_referencia ?? null,
+      observacao: data.observacao ?? null,
       lead_id: data.lead_id || null,
       case_id: data.case_id || null,
       cliente_id: data.cliente_id || null,

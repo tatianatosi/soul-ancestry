@@ -227,6 +227,8 @@ export type PrateleiraId = (typeof PRATELEIRAS)[number]["id"];
  * coleção um item cai.
  */
 export function prateleiraDe(item: Pick<PublicacaoCliente, "conteudo" | "tipoRotulo">): PrateleiraId {
+  // Um dossiê pode mencionar registros e família sem se tornar caderno ou memória.
+  if (/dossi[eê]/i.test(item.conteudo) || /dossi[eê]/i.test(item.tipoRotulo)) return "relatorios";
   for (const p of PRATELEIRAS) {
     if (p.match.test(item.conteudo) || p.match.test(item.tipoRotulo)) return p.id;
   }

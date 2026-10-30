@@ -167,14 +167,11 @@ describe("Calls V4 — Handoff rápido aponta para o handoff real já existente"
   });
 });
 
-describe("Calls V4 — sexta rodada (14/10/2026): nem funil nem Kanban comercial em /calls — ambos exclusivos de /leads", () => {
-  it('nem a barra "Funil comercial" (ComercialConectado) nem o Kanban por etapa comercial aparecem em /calls', () => {
+describe("Calls V4 — 21/10/2026: topo comercial da prancha V4 volta a /calls, acima da Mesa (revoga a regra de 14/10)", () => {
+  it("o topo vem de um único componente de leitura com os mesmos leads da Mesa; a barra antiga ComercialConectado não volta", () => {
     expect(rota).not.toContain("<ComercialConectado");
-    expect(rota).not.toContain('import { ComercialConectado }');
-    expect(rota).not.toContain('import { CrmKanban }');
-    expect(rota).not.toContain('import { colunasPorEtapaComercial }');
-    expect(rota).not.toContain("<CrmKanban");
-    expect(rota).not.toContain("colunasPorEtapaComercial(");
+    expect(rota).toContain("<ComercialV4Topo leads={leadsReais} />");
+    expect(rota.indexOf("<ComercialV4Topo")).toBeLessThan(rota.indexOf("Mesa de Discovery</h2>"));
   });
 
   it("/calls fica só com a mesa de atendimento ao vivo: KPIs, agenda, roteiro SPIN e handoff", () => {

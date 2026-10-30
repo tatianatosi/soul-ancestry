@@ -139,25 +139,6 @@ export const verificarDadoPiloto = createServerFn({ method: "POST" })
   });
 
 
-/** Resolve um bloqueio crítico (admin ou operações, com justificativa). */
-export const resolverBloqueioPiloto = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) => input)
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as Sb;
-    const org = await orgDoUsuario(supabase, context.userId as string);
-    const justificativa = (data.justificativa ?? "").trim() || "Sem justificativa informada.";
-    await gravarComVerificacao({
-      supabase,
-      tabela: "piloto_bloqueios",
-      id: data.id,
-      organizationId: org,
-      userId: context.userId as string,
-      payload: { status: data.status, justificativa },
-    });
-    return { ok: true };
-  });
-
 /** Cria a pesquisa do piloto — só depois de o caso operacional estar canônico. */
 export const criarPesquisaPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, Check, Lock, Unlock, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador, Linha } from "@/components/prancha-v4/kit";
 import {
   CHECKLIST_SEGURANCA,
   DEVOLUTIVA_DEMO,
@@ -41,10 +43,9 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
 
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-navy/10 bg-cream p-5">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/60">{titulo}</h2>
-      <div className="mt-4 flex flex-col gap-4">{children}</div>
-    </section>
+    <CaCard titulo={titulo} eyebrow="Studio · editor">
+      <div className="flex flex-col gap-4">{children}</div>
+    </CaCard>
   );
 }
 
@@ -87,6 +88,12 @@ export function StudioDevolutivas() {
     .filter((p) => p.aprovado)
     .sort((a, b) => a.ordem - b.ordem);
 
+  // V4-04: leitura do estado local deste preview (nada é salvo nem enviado).
+  // Contagens com denominador explícito ("X de N"); sem percentual.
+  const itensChecklistMarcados = CHECKLIST_SEGURANCA.filter((i) => check[i.id]).length;
+  const alertasDadoPessoal = dados.achados.filter((a) => a.alertaDadoPessoal).length;
+  const rotuloWorkflow = WORKFLOW.find((w) => w.id === workflow)?.label ?? workflow;
+
   return (
     <div className="min-h-screen bg-areia/40">
       {/* Cabeçalho da área interna */}
@@ -104,6 +111,56 @@ export function StudioDevolutivas() {
           </span>
         </div>
       </header>
+
+      {/* V4-04 — faixa de leitura do preview: só contagens do estado local. */}
+      <div className="mx-auto max-w-[1500px] px-5 pt-5" data-studio-v4-resumo>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-studio-kpis>
+          <Indicador
+            rotulo="Achados aprovados"
+            valor={`${achadosVisiveis.length} de ${dados.achados.length}`}
+            apoio="Marcados para a peça externa"
+          />
+          <Indicador
+            rotulo="Pendências aprovadas"
+            valor={`${pendenciasVisiveis.length} de ${dados.pendencias.length}`}
+            apoio="Marcadas para exibição"
+          />
+          <Indicador
+            rotulo="Checklist de segurança"
+            valor={`${itensChecklistMarcados} de ${CHECKLIST_SEGURANCA.length}`}
+            apoio="Itens marcados neste preview"
+          />
+          <Indicador
+            rotulo="Termos proibidos"
+            valor={String(termos.length)}
+            apoio={termos.length ? "Revisar antes de avançar" : "Nenhum detectado"}
+          />
+        </div>
+        <CaCard titulo="Estado da peça" eyebrow="Studio · preview interno" className="mt-4">
+          <div className="grid gap-x-6 sm:grid-cols-2">
+            <Linha rotulo="Estado do workflow" valor={rotuloWorkflow} />
+            <Linha
+              rotulo="Pronto para diagramação"
+              valor={podeDiagramar ? "Liberado" : "Bloqueado"}
+              tom={podeDiagramar ? "sucesso" : "atencao"}
+            />
+            <Linha
+              rotulo="Disclaimer"
+              valor={disclaimerLiberado ? "Edição interna liberada" : "Texto padrão"}
+              tom={disclaimerLiberado ? "atencao" : "neutro"}
+            />
+            <Linha
+              rotulo="Alertas de dado pessoal"
+              valor={String(alertasDadoPessoal)}
+              tom={alertasDadoPessoal ? "critico" : "neutro"}
+            />
+          </div>
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-[11.5px] text-navy/55">
+            <Etiqueta texto="Dados demonstrativos" tom="atencao" />
+            Aprovação aqui é marcação interna de diagramação — não publica, não envia e não libera arquivo ao cliente.
+          </p>
+        </CaCard>
+      </div>
 
       <div className="mx-auto grid max-w-[1500px] gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
         {/* ───────── COLUNA ESQUERDA — EDITOR ───────── */}

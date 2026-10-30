@@ -25,7 +25,25 @@ import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
 
-async function contexto(supabase: any, userId: string) {
+/**
+ * Caso escolhido no GoLive (23/10/2026 — decisão da Proprietária: o GoLive é a
+ * vida COMPLETA de CADA cliente, não só do piloto). As telas /golive/* mandam
+ * `casoId` (id do crm_casos ou o código "CA-…") lido da URL; sem caso
+ * escolhido, o comportamento antigo continua: o caso canônico do piloto.
+ */
+export type CasoGoLive = { casoId?: string | null };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Lê o caso escolhido do payload, sem confiar em nada além de texto curto. */
+export function casoEscolhido(d: unknown): string | undefined {
+  const v = (d as CasoGoLive | null | undefined)?.casoId;
+  if (typeof v !== "string") return undefined;
+  const t = v.trim();
+  return t && t.length <= 80 ? t : undefined;
+}
+
+async function contexto(supabase: any, userId: string, casoId?: string) {
   const membro = await supabase
     .from("organization_members")
     .select("organization_id")
@@ -35,17 +53,31 @@ async function contexto(supabase: any, userId: string) {
   const organizationId = membro.data?.organization_id as string | undefined;
   if (!organizationId) throw new Error("Usuário sem organização ativa.");
 
-  const { data: caso } = await supabase
+  // O caso só vale se for desta organização (filtro explícito + RLS).
+  let consulta = supabase
     .from("crm_casos")
     .select("id, cliente_id, codigo")
     .eq("organization_id", organizationId)
-    .eq("codigo", CODIGO_CASO_GO_LIVE)
-    .is("archived_at", null)
-    .maybeSingle();
-  if (!caso) throw new Error("Caso canônico do piloto não encontrado nesta organização.");
+    .is("archived_at", null);
+  consulta = casoId
+    ? UUID.test(casoId)
+      ? consulta.eq("id", casoId)
+      : consulta.eq("codigo", casoId)
+    : consulta.eq("codigo", CODIGO_CASO_GO_LIVE);
+  const { data: caso } = await consulta.maybeSingle();
+  if (!caso) {
+    throw new Error(
+      casoId
+        ? "Caso escolhido não encontrado nesta organização."
+        : "Caso canônico do piloto não encontrado nesta organização.",
+    );
+  }
 
   return { organizationId, casoId: String(caso.id), clienteId: caso.cliente_id as string | null, userId };
 }
+
+/** Exposto só para teste: resolve organização + caso escolhido (ou o piloto). */
+export const contextoDoCasoGoLive = contexto;
 
 function erro(r: { error: { message: string } | null }) {
   if (r.error) throw new Error(r.error.message);
@@ -76,7 +108,7 @@ const texto = (v: unknown) => String(v ?? "").trim();
 export const registrarLeadGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: {
+    (d: CasoGoLive & {
       nome: string;
       email?: string;
       telefone?: string;
@@ -94,7 +126,7 @@ export const registrarLeadGoLive = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const nome = texto(data.nome);
     if (!nome) throw new Error("Nome é obrigatório.");
     if (nome.length > 160) throw new Error("Nome muito longo.");
@@ -160,11 +192,11 @@ export const registrarLeadGoLive = createServerFn({ method: "POST" })
 
 export const registrarDiscoveryGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { leadId: string; resultado: string; resumo: string }) => d)
+  .inputValidator((d: CasoGoLive & { leadId: string; resultado: string; resumo: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.resumo)) throw new Error("Resumo do discovery é obrigatório.");
 
     erroOuNadaGravado(
@@ -200,11 +232,11 @@ export const registrarDiscoveryGoLive = createServerFn({ method: "POST" })
 
 export const registrarCallGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { leadId: string; resumo: string; ocorridoEm?: string }) => d)
+  .inputValidator((d: CasoGoLive & { leadId: string; resumo: string; ocorridoEm?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.resumo)) throw new Error("Resumo da call é obrigatório.");
     const quando = texto(data.ocorridoEm) || new Date().toISOString();
 
@@ -246,7 +278,7 @@ export const registrarCallGoLive = createServerFn({ method: "POST" })
 export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: {
+    (d: CasoGoLive & {
       leadId: string;
       situacaoCall: string;
       callEm?: string;
@@ -260,7 +292,7 @@ export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.leadId)) throw new Error("Lead é obrigatório.");
     if (!texto(data.situacaoCall)) throw new Error("Situação da call é obrigatória.");
     if (!texto(data.resumo)) throw new Error("Resumo interno é obrigatório.");
@@ -336,11 +368,11 @@ export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
  */
 export const arquivarLeadGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { leadId: string; motivo: string }) => d)
+  .inputValidator((d: CasoGoLive & { leadId: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.leadId)) throw new Error("Lead é obrigatório.");
     if (!texto(data.motivo)) throw new Error("Motivo do arquivamento é obrigatório.");
 
@@ -382,7 +414,7 @@ export const arquivarLeadGoLive = createServerFn({ method: "POST" })
 export const registrarPropostaCanva = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: {
+    (d: CasoGoLive & {
       link: string;
       versao?: number;
       data?: string;
@@ -396,7 +428,7 @@ export const registrarPropostaCanva = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, clienteId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, clienteId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.link)) throw new Error("Link da proposta é obrigatório.");
     if (!texto(data.escopo)) throw new Error("Escopo da proposta é obrigatório.");
 
@@ -430,11 +462,11 @@ export const registrarPropostaCanva = createServerFn({ method: "POST" })
 
 export const adicionarItemEscopoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; categoria?: string; contratoId?: string; propostaId?: string }) => d)
+  .inputValidator((d: CasoGoLive & { titulo: string; categoria?: string; contratoId?: string; propostaId?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.titulo)) throw new Error("Título do item de escopo é obrigatório.");
 
     let contratoId = texto(data.contratoId);
@@ -477,11 +509,11 @@ export const adicionarItemEscopoGoLive = createServerFn({ method: "POST" })
  */
 export const aprovarEscopoPropostaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { propostaId: string; observacao?: string }) => d)
+  .inputValidator((d: CasoGoLive & { propostaId: string; observacao?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const propostaId = texto(data.propostaId);
     if (!propostaId) throw new Error("Escolha a proposta que teve o escopo aprovado.");
 
@@ -529,11 +561,11 @@ export const aprovarEscopoPropostaGoLive = createServerFn({ method: "POST" })
 /** Contrato entra em revisão humana. Não envia, não assina, não cobra. */
 export const enviarContratoParaRevisaoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { contratoId: string; observacao?: string }) => d)
+  .inputValidator((d: CasoGoLive & { contratoId: string; observacao?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const contratoId = texto(data.contratoId);
     if (!contratoId) throw new Error("Escolha o contrato que vai para revisão.");
 
@@ -585,11 +617,11 @@ export const enviarContratoParaRevisaoGoLive = createServerFn({ method: "POST" }
  */
 export const registrarAssinaturaContratoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { contratoId: string; referencia: string; assinadoEm: string; forma?: string }) => d)
+  .inputValidator((d: CasoGoLive & { contratoId: string; referencia: string; assinadoEm: string; forma?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const contratoId = texto(data.contratoId);
     if (!contratoId) throw new Error("Escolha o contrato assinado.");
     if (!texto(data.referencia)) throw new Error("Informe a referência do ato formal de assinatura.");
@@ -639,11 +671,11 @@ export const registrarAssinaturaContratoGoLive = createServerFn({ method: "POST"
 
 export const resolverPessoaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { nome: string; email?: string; telefone?: string }) => d)
+  .inputValidator((d: CasoGoLive & { nome: string; email?: string; telefone?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId } = await contexto(s, context.userId as string);
+    const { organizationId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const email = texto(data.email).toLowerCase();
     const telefone = texto(data.telefone).replace(/\D/g, "");
 
@@ -685,11 +717,11 @@ export const resolverPessoaGoLive = createServerFn({ method: "POST" })
 
 export const registrarMembroNucleoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { nome: string; papel: "contratante_signatario" | "dependente"; base: string }) => d)
+  .inputValidator((d: CasoGoLive & { nome: string; papel: "contratante_signatario" | "dependente"; base: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.nome)) throw new Error("Nome é obrigatório.");
     if (!texto(data.base))
       throw new Error("Relação familiar exige evidência ou decisão humana registrada.");
@@ -727,11 +759,11 @@ export const registrarMembroNucleoGoLive = createServerFn({ method: "POST" })
 
 export const registrarOrdemServicoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { numero: string; resumo: string }) => d)
+  .inputValidator((d: CasoGoLive & { numero: string; resumo: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.numero)) throw new Error("Número da OS é obrigatório.");
 
     const c = await s
@@ -765,11 +797,11 @@ export const registrarOrdemServicoGoLive = createServerFn({ method: "POST" })
 /** Plano de onboarding D0–D14, com marcos declarados e revisão humana pendente. */
 export const criarPlanoOnboardingGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { proximaAcao?: string }) => d)
+  .inputValidator((d: CasoGoLive & { proximaAcao?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
 
     const existente = await s
       .from("case_plans")
@@ -870,11 +902,11 @@ const TIPO_ACHADO: Record<string, string> = {
 
 export const registrarFonteGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; instituicao?: string; tipo?: string; url?: string }) => d)
+  .inputValidator((d: CasoGoLive & { titulo: string; instituicao?: string; tipo?: string; url?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.titulo)) throw new Error("Título da fonte é obrigatório.");
     const pesquisaId = await pesquisaDoCaso(s, organizationId, casoId);
 
@@ -898,14 +930,14 @@ export const registrarFonteGoLive = createServerFn({ method: "POST" })
 
 export const registrarEvidenciaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; tipo?: string; fonteId?: string; descricao?: string }) => d)
+  .inputValidator((d: CasoGoLive & { titulo: string; tipo?: string; fonteId?: string; descricao?: string }) => d)
   .handler(async ({ data, context }) => {
     // Corte 0 (01/10/2026): deixa de ter escritor próprio e delega ao módulo
     // canônico, que é o único que grava evidência. A tela do Go Live continua
     // chamando a mesma função com a mesma assinatura.
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.titulo)) throw new Error("Título da evidência é obrigatório.");
     void userId;
     const r = await gravarEvidenciaCanonica(s, context.userId as string, organizationId, {
@@ -922,11 +954,11 @@ export const registrarEvidenciaGoLive = createServerFn({ method: "POST" })
 
 export const registrarAchadoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; tipo?: string; resumo?: string; evidenciaId?: string; fonteId?: string }) => d)
+  .inputValidator((d: CasoGoLive & { titulo: string; tipo?: string; resumo?: string; evidenciaId?: string; fonteId?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.titulo)) throw new Error("Título do achado é obrigatório.");
     if (!texto(data.evidenciaId) && !texto(data.fonteId))
       throw new Error("Escolha a evidência ou a fonte que sustenta o achado.");
@@ -962,11 +994,11 @@ export const registrarAchadoGoLive = createServerFn({ method: "POST" })
  */
 export const aprovarAchadoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { achadoId: string; impactoArvore?: string; observacao?: string }) => d)
+  .inputValidator((d: CasoGoLive & { achadoId: string; impactoArvore?: string; observacao?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const achadoId = texto(data.achadoId);
     if (!achadoId) throw new Error("Escolha o achado que será aprovado.");
 
@@ -1021,12 +1053,12 @@ export const aprovarAchadoGoLive = createServerFn({ method: "POST" })
 export const registrarFaturaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { numero: string; valor: number; vencimento?: string; descricao?: string; autorizacao?: string }) => d,
+    (d: CasoGoLive & { numero: string; valor: number; vencimento?: string; descricao?: string; autorizacao?: string }) => d,
   )
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, clienteId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, clienteId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.numero)) throw new Error("Número da fatura é obrigatório.");
     if (!(Number(data.valor) > 0)) throw new Error("Informe um valor maior que zero.");
     if (!texto(data.autorizacao))
@@ -1067,11 +1099,11 @@ export const registrarFaturaGoLive = createServerFn({ method: "POST" })
 
 export const registrarPagamentoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { faturaId: string; valor: number; metodo?: string; pagoEm?: string }) => d)
+  .inputValidator((d: CasoGoLive & { faturaId: string; valor: number; metodo?: string; pagoEm?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!(Number(data.valor) > 0)) throw new Error("Informe um valor maior que zero.");
     const quando = texto(data.pagoEm) || new Date().toISOString();
 
@@ -1109,11 +1141,11 @@ export const registrarPagamentoGoLive = createServerFn({ method: "POST" })
 
 export const criarMicroentregaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; fase?: string; prazo?: string; descricao?: string; criterio?: string }) => d)
+  .inputValidator((d: CasoGoLive & { titulo: string; fase?: string; prazo?: string; descricao?: string; criterio?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.titulo)) throw new Error("Título da microentrega é obrigatório.");
     if (!texto(data.criterio)) throw new Error("Escreva o critério de aceite da microentrega.");
 
@@ -1138,11 +1170,11 @@ export const criarMicroentregaGoLive = createServerFn({ method: "POST" })
 
 export const aprovarMicroentregaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; evidencia?: string }) => d)
+  .inputValidator((d: CasoGoLive & { id: string; evidencia?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
 
     erroOuNadaGravado(
       await s
@@ -1184,13 +1216,13 @@ export const aprovarMicroentregaGoLive = createServerFn({ method: "POST" })
 */
 export const salvarRascunhoProjecaoApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string | null; microentregaId?: string | null; resumoSanitizado: string; tipo?: string }) => {
+  .inputValidator((d: CasoGoLive & { id?: string | null; microentregaId?: string | null; resumoSanitizado: string; tipo?: string }) => {
     if (!texto(d?.resumoSanitizado)) throw new Error("Escreva o texto que o cliente vai ler.");
     return d;
   })
   .handler(async ({ data, context }) => {
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const conteudo = texto(data.resumoSanitizado);
     const tipo = texto(data.tipo) || "microentrega";
 
@@ -1234,10 +1266,11 @@ export const salvarRascunhoProjecaoApp = createServerFn({ method: "POST" })
 /** Rascunhos do caso ativo, para o Desk revisar antes de publicar. */
 export const listarRascunhosProjecaoApp = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d?: CasoGoLive) => d ?? {})
+  .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const r = await s
       .from("app_projections")
       .select("id,projection_type,content_sanitized,updated_at,created_at")
@@ -1262,13 +1295,13 @@ export const listarRascunhosProjecaoApp = createServerFn({ method: "GET" })
 /** Publica um rascunho já revisado. Aqui, sim, o guard recusa. */
 export const publicarRascunhoProjecaoApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string }) => {
+  .inputValidator((d: CasoGoLive & { id: string }) => {
     if (!texto(d?.id)) throw new Error("Rascunho não informado.");
     return d;
   })
   .handler(async ({ data, context }) => {
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const { data: rascunho } = await s
       .from("app_projections")
       .select("id,projection_type,content_sanitized,approval_status")
@@ -1323,11 +1356,11 @@ export const publicarRascunhoProjecaoApp = createServerFn({ method: "POST" })
 
 export const publicarNoAppGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { microentregaId: string; resumoSanitizado: string; tipo?: string }) => d)
+  .inputValidator((d: CasoGoLive & { microentregaId: string; resumoSanitizado: string; tipo?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.resumoSanitizado)) throw new Error("Escreva o texto que o cliente vai ler.");
 
     /*
@@ -1388,11 +1421,11 @@ function situacaoHumana(valor: unknown): string {
 
 export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { tipo: "contrato" | "proposta"; id: string }) => d)
+  .inputValidator((d: CasoGoLive & { tipo: "contrato" | "proposta"; id: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const id = texto(data.id);
     if (!id) throw new Error("Escolha o contrato ou a proposta que será publicada.");
     if (data.tipo !== "contrato" && data.tipo !== "proposta") throw new Error("Tipo inválido.");
@@ -1517,11 +1550,11 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
 /** Despublicar arquiva a projeção com motivo — o histórico permanece. */
 export const despublicarDoAppGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; motivo: string }) => d)
+  .inputValidator((d: CasoGoLive & { id: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.motivo)) throw new Error("Informe o motivo de despublicar.");
 
     erroOuNadaGravado(
@@ -1552,11 +1585,11 @@ export const despublicarDoAppGoLive = createServerFn({ method: "POST" })
  */
 export const definirProximaAcaoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { proximaAcao: string; responsavel?: string; prazo?: string; marco?: string }) => d)
+  .inputValidator((d: CasoGoLive & { proximaAcao: string; responsavel?: string; prazo?: string; marco?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.proximaAcao)) throw new Error("Descreva a próxima ação.");
 
     const prazo = texto(data.prazo) || null;

@@ -33,17 +33,37 @@ export function AbrirDocumentoContrato({
       return;
     }
     const doc = documentoImprimivelDoContrato(html, identificacao);
-    const janela = window.open("", "_blank", "noopener,noreferrer");
-    if (!janela) {
-      toast.error("O navegador bloqueou a nova aba. Libere o pop-up deste site e tente de novo.");
-      return;
-    }
-    janela.document.open();
-    janela.document.write(doc);
-    janela.document.close();
-    // Deixa o layout assentar antes de chamar a impressão.
-    janela.setTimeout(() => janela.print(), 350);
-    toast.success(`Documento aberto. Em "Salvar como PDF", sugira o nome ${nomeArquivoContrato(identificacao)}.`);
+    // Defeito relatado pela Proprietária em 24/10/2026: este botão "abre uma
+    // janela em branco bloqueada pelo navegador". Era literal — a versão
+    // anterior fazia `window.open("", "_blank")` e só DEPOIS escrevia o HTML
+    // dentro da aba, então qualquer bloqueador de pop-up matava uma aba que
+    // nascia vazia, e o contrato de 8 páginas não era lido.
+    //
+    // Agora o documento é impresso de um iframe oculto na própria página: não
+    // existe aba nova para bloquear. O HTML é o mesmo da prévia, e continua
+    // sem enviar, assinar, cobrar ou persistir nada.
+    const quadro = document.createElement("iframe");
+    quadro.setAttribute("aria-hidden", "true");
+    quadro.title = `Documento do contrato — ${identificacao.caso}`;
+    quadro.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+    quadro.srcdoc = doc;
+    quadro.onload = () => {
+      const janela = quadro.contentWindow;
+      if (!janela) {
+        toast.error("Não foi possível montar o documento para impressão. Recarregue a tela e tente de novo.");
+        quadro.remove();
+        return;
+      }
+      // `afterprint` cobre o caso normal; o prazo é a rede de segurança para
+      // navegador que não dispara o evento — sem ela o iframe ficaria preso.
+      const limpar = () => quadro.remove();
+      janela.addEventListener("afterprint", limpar, { once: true });
+      window.setTimeout(limpar, 120_000);
+      janela.focus();
+      janela.print();
+    };
+    document.body.appendChild(quadro);
+    toast.success(`Documento aberto para impressão. Em "Salvar como PDF", sugira o nome ${nomeArquivoContrato(identificacao)}.`);
   }
 
   return (

@@ -7,7 +7,9 @@ import { PainelCalls } from "@/components/crm/painel-calls";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
+import { ComercialV4Topo } from "@/components/crm/comercial-v4-topo";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { registrarInteracao } from "@/lib/crm-fluxo.functions";
 import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
 import { estadoCall, ROTULO_ESTADO_CALL, type EstadoCall } from "@/lib/painel-calls";
 import {
@@ -21,6 +23,12 @@ import {
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { Etiqueta, Pessoa, type Tom } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
+// Frente 2 (19/10/2026) — produtos_recomendados aqui é só leitura (edição
+// completa fica na Mesa de Propostas, /leads); este componente dá ao
+// atendente, durante a call, a visão real do catálogo PP-01–09
+// (planner_catalog_feed) ao decidir o que recomendar. Reaproveitado de
+// /catalogo e /leads — não é segunda implementação.
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/calls")({
@@ -32,13 +40,13 @@ export const Route = createFileRoute("/_authenticated/calls")({
   ),
   head: () => ({
     meta: [
-      { title: "CRM Vivo & Discovery Calls — Clube Ancestral" },
+      { title: "Mesa de Discovery — Clube Ancestral" },
       {
         name: "description",
         content:
           "Entrada comercial: calls agendadas e realizadas, roteiro SPIN, consentimento e handoff para pessoa/caso. KPIs de atraso ficam no Hoje.",
       },
-      { property: "og:title", content: "CRM Vivo & Discovery Calls — Clube Ancestral" },
+      { property: "og:title", content: "Mesa de Discovery — Clube Ancestral" },
       {
         property: "og:description",
         content: "A Mesa de Discovery faz a entrada comercial funcionar — Calls, SPIN e handoff no Desk.",
@@ -250,6 +258,7 @@ function CallsPage() {
   // Qualificação ao vivo do roteiro SPIN — mesma mutação real (salvarLeadDesk)
   // por campo, com controle de pendente/erro por campo para não travar a
   // tela inteira numa única gravação.
+  const registrarInteracaoCaso = useServerFn(registrarInteracao);
   const [campoPendente, setCampoPendente] = useState<string | null>(null);
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
   const [momento, setMomento] = useState<"antes" | "durante" | "revisao">("antes");
@@ -265,6 +274,41 @@ function CallsPage() {
           return resto;
         });
         void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+        /*
+         * Gravação dupla em crm_interactions (ordem de 19/10/2026): a coluna
+         * crm_interactions.case_id é NOT NULL (types.ts + migration
+         * 20260820195845) — um lead em Discovery normalmente ainda não tem
+         * case_id (só é gravado no Handoff Discovery, handoff-discovery.
+         * functions.ts, quando o lead passa a eixo_comercial "ganho"). Para
+         * esse lead comum, a interação do roteiro SPIN continua só em
+         * `leads`, como já funcionava.
+         * Regra exata aplicada aqui: só quando ESTE lead específico já tem
+         * `case_id` preenchido (reaproveito de caso já existente no Handoff,
+         * ou edição tardia de um lead que já tornou-se caso) é que a mesma
+         * resposta do roteiro também gera uma interação real em
+         * crm_interactions, usando o mesmo `registrarInteracao` que o painel
+         * de Fluxo Comercial já usa — nenhuma lógica nova, nenhuma coluna
+         * nova.
+         */
+        const leadAtual = ((qLeads.data ?? []) as LeadDesk[]).find((l) => l.id === leadId);
+        if (leadAtual?.case_id) {
+          const rotuloCampo = ROTULO_CAMPO_ROTEIRO[campo] ?? campo;
+          const valorTexto = Array.isArray(valor) ? valor.join(", ") : String(valor ?? "não registrado");
+          try {
+            await registrarInteracaoCaso({
+              data: {
+                case_id: leadAtual.case_id,
+                tipo: "call",
+                canal: "desk_only",
+                direcao: "interno",
+                resumo_interno: `Mesa de Discovery · roteiro SPIN · ${rotuloCampo}: ${valorTexto}`,
+              },
+            });
+          } catch {
+            // A gravação em crm_interactions é um espelho adicional: se falhar,
+            // o campo já está salvo no lead (gravação principal) e não trava a Mesa.
+          }
+        }
       }
     } catch {
       setErrosCampo((e) => ({ ...e, [campo]: "Falha ao salvar." }));
@@ -310,7 +354,7 @@ function CallsPage() {
 
   return (
     <SaasShell
-      titulo="CRM Vivo & Discovery Calls"
+      titulo="Mesa de Discovery"
       descricao="Calls agendadas e realizadas, roteiro SPIN e consentimento. O handoff do Discovery vira oportunidade abaixo, na Mesa."
     >
       <FonteAlimento
@@ -324,31 +368,32 @@ function CallsPage() {
         </p>
       ) : null}
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Calls Agendadas</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{agendadas.length}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{agendadas.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Realizadas</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{realizadas.length}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{realizadas.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">No-Show</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{noShow.length}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{noShow.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Taxa de Qualificação</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{taxaQualificacao === null ? "—" : `${taxaQualificacao}%`}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{taxaQualificacao === null ? "—" : `${taxaQualificacao}%`}</p>
         </div>
       </div>
 
       {/*
-        Nem funil nem Kanban por etapa comercial aqui — pedido explícito da
-        Proprietária: ambos pertencem exclusivamente a /leads (PR #157). Esta
-        rota é só a mesa operacional de atendimento ao vivo: KPIs de
-        atendimento, agenda do dia, roteiro SPIN e handoff.
+        21/10/2026 — nova decisão da Proprietária (prancha V4): funil vivo,
+        aquisição por canal, conversão, origem e qualidade e leads por etapa
+        voltam ao topo de /calls, acima da Mesa — só leitura, mesmos leads.
+        Revoga a regra de 14/10/2026 (PR #157) apenas para esta tela.
       */}
+      <ComercialV4Topo leads={leadsReais} />
       <nav aria-label="Momentos da call" className="mb-4 grid grid-cols-3 gap-2">
         {([ ["antes", "Antes"], ["durante", "Durante"], ["revisao", "Revisão"] ] as const).map(([valor, titulo]) => (
           <Button key={valor} variant={momento === valor ? "default" : "outline"} className="min-h-11" aria-pressed={momento === valor} onClick={() => setMomento(valor)}>{titulo}</Button>
@@ -387,22 +432,38 @@ function CallsPage() {
         real que já existe abaixo (agenda/consentimento, roteiro SPIN ao
         lado das respostas, revisão e handoff no PainelCalls).
       */}
+      {/*
+        22/10/2026 — acabamento visual: no celular (375 px) estes três cartões
+        descritivos empilhavam logo abaixo da própria navegação de momentos,
+        repetindo o mesmo rótulo e empurrando o trabalho real para fora da
+        primeira tela. Nada foi removido: os três continuam no documento e
+        aparecem juntos a partir de sm:. No celular fica visível o cartão do
+        momento ativo, que é o único que descreve o que a pessoa está fazendo
+        agora. A composição homologada em 14/10 (2 colunas, topo sem Kanban)
+        não muda.
+      */}
       <ol className="mb-6 grid gap-3 sm:grid-cols-3" data-l04-momentos>
-        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <li
+          className={`rounded-xl border border-navy/10 bg-cream/40 p-4 sm:block ${momento === "antes" ? "" : "hidden"}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">1 · Antes da call</p>
           <p className="mt-1 text-sm font-medium text-navy">Agenda do dia e consentimento</p>
           <p className="mt-1 text-[11px] text-navy/55">
             Horário, canal, responsável e permissão de gravação — confirmados antes de começar.
           </p>
         </li>
-        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <li
+          className={`rounded-xl border border-navy/10 bg-cream/40 p-4 sm:block ${momento === "durante" ? "" : "hidden"}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">2 · Durante</p>
           <p className="mt-1 text-sm font-medium text-navy">Roteiro SPIN ao lado das respostas</p>
           <p className="mt-1 text-[11px] text-navy/55">
             Situação, Problema, Implicação e Necessidade — pergunta e resposta na mesma tela.
           </p>
         </li>
-        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <li
+          className={`rounded-xl border border-navy/10 bg-cream/40 p-4 sm:block ${momento === "revisao" ? "" : "hidden"}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">3 · Revisão</p>
           <p className="mt-1 text-sm font-medium text-navy">Resumo validado e handoff</p>
           <p className="mt-1 text-[11px] text-navy/55">
@@ -614,6 +675,14 @@ function CallsPage() {
                   />
                 </label>
                 {errosCampo.resumo_call ? <p className="mt-0.5 text-[11px] text-terracotta">{errosCampo.resumo_call}</p> : null}
+              </div>
+            ) : null}
+            {selecionado ? (
+              <div data-calls-produto-pai-real className="mt-4 border-t border-navy/10 pt-4">
+                <p className="mb-1 text-xs font-medium text-navy/60">
+                  Catálogo real ao vivo — para decidir "produtos/serviços recomendados" (edição completa em /leads)
+                </p>
+                <PlanejadorProdutosPai />
               </div>
             ) : null}
           </CaCard>

@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
   CAMADAS_WHATSAPP,
@@ -76,11 +77,13 @@ const Bloco = ({
   descricao?: string;
   children: React.ReactNode;
 }) => (
-  <section id={id} className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-5">
-    <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-    {descricao && <p className="mt-1 text-[12px] text-navy/55">{descricao}</p>}
-    <div className="mt-3 text-sm text-navy/70">{children}</div>
-  </section>
+  // V4-05: o bloco vira CaCard; a âncora fica no invólucro para o drill-down.
+  <div id={id} className="scroll-mt-24">
+    <CaCard titulo={titulo}>
+      {descricao && <p className="-mt-2 text-[12px] text-navy/55">{descricao}</p>}
+      <div className="mt-3 text-sm text-navy/70">{children}</div>
+    </CaCard>
+  </div>
 );
 
 // CA17-MARKETING-E-INDICADORES-VIVOS (09/09/2026): indicador publicado
@@ -143,7 +146,7 @@ function Marketing() {
           consumidor="O Comercial (CRM Vivo) na entrada de cada lead — fronteira declarada abaixo"
           detalheTecnico="carregarConversao"
         />
-        <div className="rounded-xl border border-gold/40 bg-cream/50 p-4 text-sm text-navy/75">
+        <CaCard eyebrow="Fronteira" titulo="Marketing × Comercial" className="text-sm text-navy/75">
           <p>
             <strong className="text-navy">Marketing</strong> — {FRONTEIRA_MARKETING_COMERCIAL.marketing}
           </p>
@@ -151,7 +154,7 @@ function Marketing() {
             <strong className="text-navy">Comercial</strong> — {FRONTEIRA_MARKETING_COMERCIAL.comercial}
           </p>
           <p className="mt-2 text-[12px] text-navy/55">{FRONTEIRA_MARKETING_COMERCIAL.regra}</p>
-        </div>
+        </CaCard>
 
         <nav className="flex flex-wrap gap-2">
           {SECOES_MARKETING.map((s) => (
@@ -181,7 +184,7 @@ function Marketing() {
           {([dados]) => <ConteudoMarketing dados={dados as DadosMarketing} />}
         </EstadoDados>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
+        <CaCard>
           <button
             type="button"
             onClick={() => setTecnicoAberto((v) => !v)}
@@ -213,7 +216,7 @@ function Marketing() {
               </table>
             </div>
           )}
-        </section>
+        </CaCard>
       </div>
     </SaasShell>
   );
@@ -531,36 +534,6 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
         </Bloco>
 
-        <details className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-          <summary className="cursor-pointer font-serif text-lg text-navy">
-            Leitura complementar de aquisição
-          </summary>
-          <div className="mt-4 space-y-5">
-        <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING.find((s) => s.hash === "conteudo-ctas")!.descricao}>
-          {/*
-            27/08/2026 — "conteúdo vai pra área de comunicação" (Proprietária).
-            editorial_content_items já é consultado de verdade em
-            /biblioteca-mensagens (message-library.functions.ts) — aqui nunca
-            foi, apesar do mapa técnico desta página dizer "parcial/real".
-            Vira ponte, não duplicata.
-          */}
-          <p>
-            Conteúdo editorial (posts, CTAs, temas por etapa de funil) é governado na Biblioteca de Mensagens, junto
-            dos modelos de WhatsApp, e-mail e portal — não aqui.
-          </p>
-          <Link
-            to="/biblioteca-mensagens"
-            search={{ alerta: undefined, caso: undefined, codigo: undefined }}
-            className="mt-3 inline-block rounded-lg border border-navy/15 px-3 py-1.5 text-[13px] text-navy hover:border-gold"
-          >
-            Abrir Biblioteca de Mensagens e Conteúdos
-          </Link>
-          <p data-marketing-vazio="captura" className="mt-2 text-[12px] text-navy/55">
-            {VAZIOS_MARKETING.captura} Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna
-            fica declarada, sem estimativa.
-          </p>
-        </Bloco>
-
         <Bloco id="atribuicao" titulo="Atribuição e origem" descricao={SECOES_MARKETING.find((s) => s.hash === "atribuicao")!.descricao}>
           <p data-marketing-vazio="atribuicao" className="mb-3">
             {entrada.atribuicoes.length === 0
@@ -642,6 +615,50 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </ul>
         </Bloco>
 
+        <Bloco id="aprendizados" titulo="Aprendizados das campanhas" descricao={SECOES_MARKETING.find((s) => s.hash === "aprendizados")!.descricao}>
+          <p>
+            Derivado do desempenho por canal acima — nunca uma lista fixa. Leitura de canal é insumo interno de
+            decisão humana; nenhum aprendizado registrado aqui aciona campanha, verba, link ou mensagem.
+          </p>
+          <ul data-marketing="aprendizados-campanha" className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/70">
+            {aprendizados.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        </Bloco>
+
+        <CaCard>
+        <details>
+          <summary className="cursor-pointer font-serif text-lg text-navy">
+            Leitura complementar de aquisição
+          </summary>
+          <div className="mt-4 space-y-5">
+        <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING.find((s) => s.hash === "conteudo-ctas")!.descricao}>
+          {/*
+            27/08/2026 — "conteúdo vai pra área de comunicação" (Proprietária).
+            editorial_content_items já é consultado de verdade em
+            /biblioteca-mensagens (message-library.functions.ts) — aqui nunca
+            foi, apesar do mapa técnico desta página dizer "parcial/real".
+            Vira ponte, não duplicata.
+          */}
+          <p>
+            Conteúdo editorial (posts, CTAs, temas por etapa de funil) é governado na Biblioteca de Mensagens, junto
+            dos modelos de WhatsApp, e-mail e portal — não aqui.
+          </p>
+          <Link
+            to="/biblioteca-mensagens"
+            search={{ alerta: undefined, caso: undefined, codigo: undefined }}
+            className="mt-3 inline-block rounded-lg border border-navy/15 px-3 py-1.5 text-[13px] text-navy hover:border-gold"
+          >
+            Abrir Biblioteca de Mensagens e Conteúdos
+          </Link>
+          <p data-marketing-vazio="captura" className="mt-2 text-[12px] text-navy/55">
+            {VAZIOS_MARKETING.captura} Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna
+            fica declarada, sem estimativa.
+          </p>
+        </Bloco>
+
+
         <Bloco id="funil-aquisicao" titulo="Funil de aquisição" descricao={SECOES_MARKETING.find((s) => s.hash === "funil-aquisicao")!.descricao}>
           {/*
             27/08/2026 — era referência 100% estática, nunca lia banco. Ganha
@@ -684,19 +701,9 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
         </Bloco>
 
-        <Bloco id="aprendizados" titulo="Aprendizados das campanhas" descricao={SECOES_MARKETING.find((s) => s.hash === "aprendizados")!.descricao}>
-          <p>
-            Derivado do desempenho por canal acima — nunca uma lista fixa. Leitura de canal é insumo interno de
-            decisão humana; nenhum aprendizado registrado aqui aciona campanha, verba, link ou mensagem.
-          </p>
-          <ul data-marketing="aprendizados-campanha" className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/70">
-            {aprendizados.map((a) => (
-              <li key={a}>{a}</li>
-            ))}
-          </ul>
-        </Bloco>
           </div>
         </details>
+        </CaCard>
 
         <Bloco id="links-comercial" titulo="Links contextuais para Comercial" descricao={SECOES_MARKETING.find((s) => s.hash === "links-comercial")!.descricao}>
           <div className="flex flex-wrap gap-2">

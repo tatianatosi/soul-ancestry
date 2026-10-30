@@ -20,7 +20,7 @@ import {
   producaoPorSemana,
 } from "@/lib/golive-pesquisa";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
@@ -31,6 +31,7 @@ import {
 } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Pesquisa — Go-live Clube Ancestral" },
@@ -49,10 +50,10 @@ const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Revisão", "Public
 function PesquisaGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  const novaFonte = useServerFn(registrarFonteGoLive);
-  const novaEvidencia = useServerFn(registrarEvidenciaGoLive);
-  const novoAchado = useServerFn(registrarAchadoGoLive);
-  const aprovarAchado = useServerFn(aprovarAchadoGoLive);
+  const novaFonte = useEscritorGoLive(registrarFonteGoLive);
+  const novaEvidencia = useEscritorGoLive(registrarEvidenciaGoLive);
+  const novoAchado = useEscritorGoLive(registrarAchadoGoLive);
+  const aprovarAchado = useEscritorGoLive(aprovarAchadoGoLive);
 
   const acaoFonte = (
     <Acao
@@ -246,7 +247,7 @@ function PesquisaGoLive() {
         <Bloco titulo="Pesquisa do caso">
           <p className="text-sm text-navy/70">Nenhuma linha de pesquisa aberta</p>
           <div className="pt-2">
-            <Link to="/golive/caso">
+            <Link search={true} to="/golive/caso">
               <Button size="sm">Abrir o caso</Button>
             </Link>
           </div>

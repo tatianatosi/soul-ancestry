@@ -3,13 +3,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
-import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
+import { ChipsEscolha, MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+// Frente 2 (19/10/2026) — "Produtos/serviços recomendados" abaixo é a lista
+// curada de sinal comercial (gate de via inviável incluído); o seletor de
+// produto-pai REAL (PP-01–09, planner_catalog_feed) vem deste componente já
+// existente (antes só em /catalogo), reaproveitado aqui — não duplicado.
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -66,7 +72,10 @@ import {
   type IndicadorLeads,
 } from "@/lib/crm-vivo-metricas";
 import { CaCard } from "@/components/ui/ca-card";
-import { BarrasHorizontais, Etiqueta, FunilVisualSvg, GraficoColunas, Pessoa } from "@/components/prancha-v4/kit";
+import { Clock, Filter, User } from "lucide-react";
+
+import { BarrasHorizontais, Etiqueta, GraficoColunas, Pessoa } from "@/components/prancha-v4/kit";
+import { FunilDegraus } from "@/components/prancha-v4/funil-degraus";
 import { humano } from "@/lib/rotulos-golive";
 import { listarComercial, listarVinculos as listarVinculosComercial, totalInvestimentoMarketing } from "@/lib/comercial.functions";
 import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
@@ -237,7 +246,7 @@ function LeadsPage() {
   const funilItens = ETAPAS_PIPELINE.map((etapa) => {
     const total = pipelineLeads.filter((l) => etapaPipeline(l) === etapa).length;
     const percentual = pipelineLeads.length ? Math.round((total / pipelineLeads.length) * 100) : 0;
-    return { rotulo: ROTULO_ETAPA_PIPELINE[etapa], valor: percentual, apoio: `${total} leads` };
+    return { rotulo: ROTULO_ETAPA_PIPELINE[etapa], valor: percentual, apoio: `${total} leads`, total };
   });
   /*
     Bloco superior de KPIs comerciais e blocos de Propostas/Saúde comercial
@@ -338,6 +347,13 @@ function LeadsPage() {
     rotulo: ROTULO_ETAPA_PIPELINE[etapa],
     leads: pipelineLeads.filter((l) => etapaPipeline(l) === etapa),
   }));
+  // KPIs da prancha V4 — mesmos leads do kanban: "Discovery" é a coluna
+  // Discovery; "Parados" é quem mostra o chip "Lead parado há N dias" (≥ 7).
+  const discoveryAbertas = colunasPipeline.find((c) => c.etapa === "discovery")?.leads.length ?? 0;
+  const leadsParados = pipelineLeads.filter((l) => {
+    const dias = diasParado(l);
+    return dias !== null && dias >= 7;
+  }).length;
 
   const visiveis = leads.filter((l) => {
     // CRM Vivo (27/09/2026): convertido em caso ou encerrado sai do pipeline, salvo pedido explícito.
@@ -415,12 +431,230 @@ function LeadsPage() {
           </Secao>
       </div>
       {/*
-        Bloco 1 — KPIs de performance comercial (Prancha V4, 13/10/2026):
-        investimento real de marketing_investments, leads entrantes e taxa
-        de conversão do mesmo pipelineLeads do funil, propostas ativas de
-        listarComercial("proposals") — sem dado fictício, sem KPI inventado.
+        19/10/2026 — conferência bloco a bloco com a prancha V4 (Comercial /
+        CRM Vivo): a ordem da prancha é 4 KPIs → cartão-cabeçalho "Funil
+        comercial vivo" → trio (Aquisição | Conversão | Origem e qualidade) →
+        kanban de 5 colunas. Os KPIs da prancha saem do MESMO pipelineLeads
+        do funil e do kanban — nenhuma conta paralela. Os indicadores que já
+        existiam (investimento, entrantes, taxa, propostas, filas clicáveis)
+        continuam, abaixo do kanban, como leitura complementar.
       */}
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-topo>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-topo data-leads-kpis-prancha>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Leads ativos</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{pipelineLeads.length}</p>
+          <p className="mt-1 text-[11px] text-navy/55">em cinco etapas</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Discovery</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{discoveryAbertas}</p>
+          <p className="mt-1 text-[11px] text-navy/55">conversas abertas</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Conversão</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{taxaConversao === null ? "—" : `${taxaConversao}%`}</p>
+          <p className="mt-1 text-[11px] text-navy/55">{taxaConversao === null ? "Sem dados suficientes" : "lead → cliente"}</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Parados</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{leadsParados}</p>
+          <p className="mt-1 text-[11px] text-navy/55">com alerta visível</p>
+        </div>
+      </div>
+
+      {/*
+        Cartão-cabeçalho do funil (prancha V4): título, trilha das etapas e os
+        dois botões. "Filtros" rola até a seção de filtros real (mesmos
+        campos), "Novo lead" abre o mesmo NovoLeadDialog real — nenhum botão
+        decorativo novo.
+      */}
+      <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-6 shadow-sm" data-leads-funil-cabecalho>
+        <div className="min-w-0">
+          <h2 className="font-serif text-xl text-navy">Funil comercial vivo</h2>
+          <p className="mt-1 text-xs text-navy/60">Origem → Discovery → diagnóstico → proposta → contrato</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="#leads-filtros"
+            className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+          >
+            <Filter className="h-3.5 w-3.5" aria-hidden="true" />
+            Filtros
+          </a>
+          <button
+            type="button"
+            onClick={() => setNovoLeadAberto(true)}
+            className="rounded-full bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+          >
+            Novo lead
+          </button>
+        </div>
+      </section>
+
+      {/*
+        Trio infográfico central (prancha V4): os 3 gráficos aparecem sempre.
+        Sem lead, Aquisição desenha as colunas de todos os canais em zero,
+        Conversão desenha os 5 degraus com "0" e Origem e qualidade desenha
+        os trilhos vazios — e o texto diz "Sem dados suficientes". "Origem e
+        qualidade" mostra a taxa real de conversão a contrato por canal
+        ("N de M"), não uma nota Alta/Boa/Média sem fonte.
+      */}
+      <div className="mb-6 grid gap-6 lg:grid-cols-3">
+        <CaCard
+          titulo="Aquisição por canal"
+          eyebrow="Comercial · Volume real por origem"
+          data-leads-aquisicao-canal
+          className="rounded-2xl p-6"
+        >
+          <GraficoColunas
+            itens={aquisicaoPorCanal.length ? aquisicaoPorCanal : ORIGENS_LEAD.map((o) => ({ rotulo: o.rotulo, valor: 0 }))}
+            tituloAcessivel={
+              aquisicaoPorCanal.length
+                ? `Aquisição por canal: ${aquisicaoPorCanal.map((c) => `${c.rotulo} ${c.valor}`).join(", ")}`
+                : "Aquisição por canal: nenhum lead registrado em nenhum canal"
+            }
+          />
+          {aquisicaoPorCanal.length ? null : (
+            <p className="mt-2 text-xs text-navy/60" data-leads-aquisicao-canal-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+        </CaCard>
+
+        <CaCard
+          titulo="Conversão por etapa"
+          eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
+          data-leads-funil
+          className="rounded-2xl p-6"
+        >
+          <FunilDegraus
+            etapas={funilItens.map((i) => ({ rotulo: i.rotulo, total: i.total }))}
+            tituloAcessivel={`Funil comercial: ${funilItens
+              .map((i) => (pipelineLeads.length ? `${i.rotulo} ${i.apoio} (${i.valor}%)` : `${i.rotulo} 0`))
+              .join(", ")}`}
+            rodape="Pipeline atual · sem recorte de período"
+          />
+          {pipelineLeads.length ? null : (
+            <p className="mt-2 text-xs text-navy/60" data-leads-funil-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+        </CaCard>
+
+        <CaCard
+          titulo="Origem e qualidade"
+          eyebrow="Comercial · Taxa real de conversão a contrato"
+          data-leads-qualidade-canal
+          className="rounded-2xl p-6"
+        >
+          <BarrasHorizontais
+            itens={
+              qualidadePorCanal.length
+                ? qualidadePorCanal
+                : ORIGENS_LEAD.slice(0, 4).map((o) => ({ rotulo: o.rotulo, valor: 0, apoio: "sem lead", tom: tomDoCanal(o.valor) }))
+            }
+            tituloAcessivel={
+              qualidadePorCanal.length
+                ? `Qualidade por canal: ${qualidadePorCanal.map((c) => `${c.rotulo} ${c.valor}%`).join(", ")}`
+                : "Qualidade por canal: nenhum lead registrado"
+            }
+          />
+          {qualidadePorCanal.length ? null : (
+            <p className="mt-2 text-xs text-navy/60" data-leads-qualidade-canal-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+          <p className="mt-3 text-xs text-navy/70" data-leads-sem-proxima-acao>
+            {contagemIndicadores.sem_proxima_acao > 0
+              ? `${contagemIndicadores.sem_proxima_acao} lead(s) sem próxima ação definida.`
+              : "Nenhum lead sem próxima ação."}
+          </p>
+        </CaCard>
+      </div>
+
+      {/*
+        Kanban de 5 colunas (prancha V4): Leads · Discovery · Diagnóstico ·
+        Proposta · Contrato. As colunas aparecem sempre — sem lead, cada uma
+        mostra seu "0" e o vazio honesto. Cartão: nome, código · canal,
+        próximo passo, alertas, responsável e data da próxima ação, todos de
+        campo real do lead; "parado há N dias" vem de
+        `ultimo_followup_em`/`created_at`, nunca de prazo de exemplo.
+      */}
+      <section className="mb-6" data-leads-quadro-etapas aria-label="Funil comercial vivo por etapa">
+        <h3 className="mb-3 font-serif text-lg text-navy">Quadro por etapa</h3>
+        {pipelineLeads.length === 0 ? (
+          <p className="mb-3 text-sm text-navy/60" data-leads-quadro-etapas-vazio>
+            Sem dados suficientes
+          </p>
+        ) : null}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5" data-leads-quadro-etapas-colunas>
+          {colunasPipeline.map((coluna) => (
+            <div key={coluna.etapa} className="min-w-0 rounded-2xl border border-navy/10 bg-cream/40 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="font-serif text-[11px] uppercase tracking-wide text-navy/70">{coluna.rotulo}</span>
+                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-card px-1.5 text-[10px] font-semibold text-navy shadow-sm">
+                  {coluna.leads.length}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {coluna.leads.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-navy/15 px-2 py-3 text-center text-[11px] text-navy/45">
+                    Nenhum lead nesta etapa.
+                  </p>
+                ) : (
+                  coluna.leads.map((l) => {
+                    const dias = diasParado(l);
+                    return (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => {
+                          setSelecionado(l.id ?? null);
+                          setRascunho({});
+                        }}
+                        className="block w-full rounded-xl border border-navy/10 bg-card p-3 text-left shadow-sm hover:border-gold"
+                      >
+                        <span className="block truncate text-sm font-semibold text-navy">{l.nome}</span>
+                        <span className="mt-0.5 flex min-w-0 flex-wrap items-center gap-1 text-[11px] text-navy/55">
+                          <span className="truncate">{l.codigo ?? "Sem código"}</span>
+                          {l.origem ? (
+                            <span className={`rounded-full border px-1.5 py-px text-[10px] font-medium ${CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]}`}>
+                              {rotulo("origem", l.origem)}
+                            </span>
+                          ) : (
+                            <span>· canal não registrado</span>
+                          )}
+                        </span>
+                        <span className="mt-2 block border-t border-navy/5 pt-2 text-[11px] text-navy/70">
+                          <strong className="font-semibold text-navy">Próximo passo:</strong>{" "}
+                          {l.proxima_acao ? humano(l.proxima_acao, "") : "não registrado"}
+                        </span>
+                        <span className="mt-2 flex flex-wrap items-center gap-1.5">
+                          {dias !== null && dias >= 7 ? <Etiqueta texto={`Lead parado há ${dias} dias`} tom="critico" /> : null}
+                          {!l.proxima_acao ? <Etiqueta texto="Sem próxima ação" tom="atencao" /> : null}
+                        </span>
+                        <span className="mt-2 flex items-center justify-between gap-2 border-t border-navy/5 pt-2 text-[10px] text-navy/55">
+                          <span className="flex min-w-0 items-center gap-1">
+                            <User className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span className="truncate">{l.responsavel_nome || "Sem responsável"}</span>
+                          </span>
+                          <span className="flex shrink-0 items-center gap-1 tabular-nums">
+                            <Clock className="h-3 w-3" aria-hidden="true" />
+                            {l.proxima_acao_em ? dataBr(l.proxima_acao_em) : "Sem data"}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Leitura complementar já existente (investimento, entrantes, taxa, propostas) — mesmas fontes. */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-complementares>
         <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
           <p className="text-[11px] uppercase tracking-wide text-navy/55">Investimento em Marketing</p>
           <p className="font-serif text-2xl text-navy">
@@ -490,165 +724,6 @@ function LeadsPage() {
       </div>
 
       {/*
-        Cabeçalho de ações do funil (Proprietária, 13/10/2026): os dois
-        botões do mockup já existem como ações reais nesta tela — "Filtros"
-        rola até a seção de filtros real (mesmos campos), "+ Novo lead" abre
-        o mesmo NovoLeadDialog real já usado no cadastro — nenhum botão
-        decorativo novo.
-      */}
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-serif text-lg text-navy">Funil comercial vivo</h2>
-        <div className="flex items-center gap-2">
-          <a
-            href="#leads-filtros"
-            className="rounded-full border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
-          >
-            Filtros
-          </a>
-          <button
-            type="button"
-            onClick={() => setNovoLeadAberto(true)}
-            className="rounded-full bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
-          >
-            + Novo lead
-          </button>
-        </div>
-      </div>
-
-      {/*
-        Trio infográfico central (Proprietária, 13/10/2026 — mockup de
-        referência "sem dados reais", layout aprovado, dado real aqui): 3
-        cartões lado a lado. "Origem e qualidade" do mockup pedia uma nota
-        Alta/Boa/Média sem fonte real — substituída pela taxa de conversão
-        a contrato por canal (dado real mais próximo da intenção).
-      */}
-      <div className="mb-6 grid gap-6 lg:grid-cols-3">
-        <CaCard
-          titulo="Aquisição por canal"
-          eyebrow="Comercial · Volume real por origem"
-          data-leads-aquisicao-canal
-          className="rounded-2xl p-6"
-        >
-          {aquisicaoPorCanal.length ? (
-            <GraficoColunas
-              itens={aquisicaoPorCanal}
-              tituloAcessivel={`Aquisição por canal: ${aquisicaoPorCanal.map((c) => `${c.rotulo} ${c.valor}`).join(", ")}`}
-            />
-          ) : (
-            <p className="text-sm text-navy/60" data-leads-aquisicao-canal-vazio>
-              Sem dados suficientes
-            </p>
-          )}
-        </CaCard>
-
-        <CaCard
-          titulo="Conversão por etapa"
-          eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
-          data-leads-funil
-          className="rounded-2xl p-6"
-        >
-          {pipelineLeads.length ? (
-            <FunilVisualSvg etapas={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
-          ) : (
-            <p className="text-sm text-navy/60" data-leads-funil-vazio>
-              Sem dados suficientes
-            </p>
-          )}
-        </CaCard>
-
-        <CaCard
-          titulo="Qualidade por canal"
-          eyebrow="Comercial · Taxa real de conversão a contrato"
-          data-leads-qualidade-canal
-          className="rounded-2xl p-6"
-        >
-          {qualidadePorCanal.length ? (
-            <BarrasHorizontais
-              itens={qualidadePorCanal}
-              tituloAcessivel={`Qualidade por canal: ${qualidadePorCanal.map((c) => `${c.rotulo} ${c.valor}%`).join(", ")}`}
-            />
-          ) : (
-            <p className="text-sm text-navy/60" data-leads-qualidade-canal-vazio>
-              Sem dados suficientes
-            </p>
-          )}
-          <p className="mt-3 text-xs text-navy/70" data-leads-sem-proxima-acao>
-            {contagemIndicadores.sem_proxima_acao > 0
-              ? `${contagemIndicadores.sem_proxima_acao} lead(s) sem próxima ação definida.`
-              : "Nenhum lead sem próxima ação."}
-          </p>
-        </CaCard>
-      </div>
-
-      {/*
-        Quadro por etapa (Prancha Visual do Desk, kit de referência
-        13/09/2026 — "Camada visual aprovada, sem backend, sem dados reais":
-        o layout de 5 colunas é o aprovado; os cartões aqui são
-        `pipelineLeads` reais agrupados por `etapaPipeline`, com "parado há
-        N dias" calculado de `ultimo_followup_em`/`created_at` real — nunca
-        um lead ou prazo de exemplo.
-      */}
-      <CaCard
-        titulo="Quadro por etapa"
-        eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
-        data-leads-quadro-etapas
-        className="mb-6 rounded-2xl p-6"
-      >
-        {pipelineLeads.length === 0 ? (
-          <p className="text-sm text-navy/60" data-leads-quadro-etapas-vazio>
-            Sem dados suficientes
-          </p>
-        ) : (
-          <div className="grid gap-4 overflow-x-auto sm:grid-cols-3 lg:grid-cols-5" data-leads-quadro-etapas-colunas>
-            {colunasPipeline.map((coluna) => (
-              <div key={coluna.etapa} className="min-w-[180px] rounded-xl border border-navy/10 bg-cream/40 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-navy/60">{coluna.rotulo}</span>
-                  <span className="rounded-full bg-navy/10 px-2 py-0.5 text-[11px] font-medium text-navy">{coluna.leads.length}</span>
-                </div>
-                <div className="space-y-2">
-                  {coluna.leads.length === 0 ? (
-                    <p className="text-[11px] text-navy/45">Nenhum lead nesta etapa.</p>
-                  ) : (
-                    coluna.leads.map((l) => {
-                      const dias = diasParado(l);
-                      return (
-                        <button
-                          key={l.id}
-                          type="button"
-                          onClick={() => {
-                            setSelecionado(l.id ?? null);
-                            setRascunho({});
-                          }}
-                          className="block w-full rounded-lg border border-navy/10 bg-card p-2.5 text-left shadow-sm"
-                        >
-                          <span className="block truncate text-sm font-medium text-navy">{l.nome}</span>
-                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                            {l.proxima_acao ? (
-                              <Etiqueta texto={humano(l.proxima_acao, "")} tom="atencao" />
-                            ) : (
-                              <Etiqueta texto="Sem próxima ação" tom="neutro" />
-                            )}
-                            {l.origem ? (
-                              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]}`}>
-                                {rotulo("origem", l.origem)}
-                              </span>
-                            ) : null}
-                            {dias !== null && dias >= 7 ? <Etiqueta texto={`Lead parado há ${dias} dias`} tom="critico" /> : null}
-                            {l.responsavel_nome ? <Etiqueta texto={l.responsavel_nome} tom="neutro" /> : null}
-                          </div>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CaCard>
-
-      {/*
         Bloco 4 — Propostas comerciais (Prancha V4, 13/10/2026): mesma
         `listarComercial("proposals")` que já alimenta Financeiro/Formalização
         — sem campo inventado (o schema real não tem "rota consular", então
@@ -662,7 +737,7 @@ function LeadsPage() {
         className="mb-6 rounded-2xl p-6"
       >
         {qPropostas.isLoading ? (
-          <p className="text-sm text-navy/60">Carregando…</p>
+          <CarregandoDesk linhas={3} rotulo="Carregando as propostas comerciais" />
         ) : propostasVisiveis.length === 0 ? (
           <p className="text-sm text-navy/60" data-leads-propostas-vazio>
             Sem dados suficientes
@@ -1101,7 +1176,13 @@ function LeadsPage() {
                 onChange={(x) => set("telefone")(formatarTelefone(x))}
                 erro={motivoCampoInvalido("Telefone", "telefone", String(campo("telefone") ?? ""))}
               />
-              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
+              {/*
+                19/10/2026 — Diretriz v2.0 (Reintegração micro GoLive): chip de
+                um toque do dicionário CA-04 ("Origem do lead"), mesma lista
+                `ORIGENS_LEAD` e mesmo campo `set("origem")` de antes — só a
+                forma de escolher muda de dropdown para clique direto.
+              */}
+              <ChipsEscolha label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
               <Selecao
                 label="Área responsável"
                 valor={campo("area_responsavel")}
@@ -1136,7 +1217,8 @@ function LeadsPage() {
 
           <FichaSecao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
             <div className="grid gap-3 md:grid-cols-2">
-              <Selecao label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
+              {/* 19/10/2026 — chip de um toque (dicionário CA-04 "Objetivo principal"/interesse do lead). */}
+              <ChipsEscolha label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
               {/* CRM Vivo (27/09/2026): país de interesse tem um só campo editável —
                   "Nacionalidades de interesse", abaixo. O valor único antigo fica só leitura. */}
               {campo("nacionalidade") ? (
@@ -1407,9 +1489,11 @@ function LeadsPage() {
                 valor={campo("localidades_conhecidas")}
                 onChange={set("localidades_conhecidas")}
               />
-              <MultiSelecao
+              {/* 19/10/2026 — chip de um toque, multi-escolha (dicionário CA-04 "Nacionalidade de interesse"). */}
+              <ChipsEscolha
                 label="Nacionalidades de interesse"
                 opcoes={NACIONALIDADES}
+                multiplo
                 valores={(editado.nacionalidades_interesse ?? []) as string[]}
                 onChange={set("nacionalidades_interesse")}
               />
@@ -1503,6 +1587,15 @@ function LeadsPage() {
             <p className="mt-2 text-xs text-navy/60">
               Despesas de terceiros são sempre do cliente: o Clube não antecipa nem reembolsa. Nenhum valor ou link de cobrança é editável aqui.
             </p>
+            {/*
+              Frente 2 (19/10/2026): conecta esta tela à fonte real de
+              Produto-Pai — PP-01–09, planner_catalog_feed — para a
+              recomendação acima ser escolhida olhando o catálogo vivo, não
+              só rótulos fixos. Mesmo componente de /catalogo; sem query nova.
+            */}
+            <div data-leads-produto-pai-real className="mt-4">
+              <PlanejadorProdutosPai />
+            </div>
           </FichaSecao>
 
           <FichaSecao

@@ -3,11 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 
-import { Etiqueta, type Tom } from "@/components/prancha-v4/kit";
+import { EstadoVazio } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Linha, type Tom } from "@/components/prancha-v4/kit";
 import { papelDoRegistro } from "@/lib/caso-ficha";
 import { posicionar, ROTULO_URGENCIA } from "@/lib/matriz-posicionamento";
 import { ROTULO_SINAL, type SinalPrioridade } from "@/lib/prioridade-matriz";
 import { listarInconsistencias } from "@/lib/qualidade.functions";
+import { ROTULO_DOMINIO, ROTULO_SEVERIDADE, SEVERIDADES } from "@/lib/qualidade.server";
 import { listarRegistros } from "@/lib/saas.functions";
 
 /*
@@ -216,6 +219,81 @@ export function RecomendacoesQualidadeV4() {
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+/*
+ * V4-04 (18/10/2026) — composição de /qualidade: distribuição das
+ * inconsistências em aberto (abertas ou reconhecidas) por domínio e por
+ * severidade. Mesma queryKey de KpisQualidadeV4/AbaInconsistencias — sem
+ * round-trip novo. Só contagem; sem percentual (o denominador "todas as
+ * inconsistências possíveis" não existe). Domínios e severidades vêm do
+ * vocabulário real (qualidade.server.ts), nunca de rótulo novo. Zero após
+ * leitura válida é zero — não é erro.
+ */
+export function PanoramaQualidadeV4() {
+  const fnIssues = useServerFn(listarInconsistencias);
+  const issuesQuery = useQuery({
+    queryKey: ["qualidade", "issues", "", "", ""],
+    queryFn: () => fnIssues({ data: { severidade: "", status: "", dominio: "" } }),
+  });
+
+  const abertas = useMemo(
+    () =>
+      ((issuesQuery.data?.inconsistencias ?? []) as Record<string, unknown>[]).filter((i) =>
+        ["aberta", "reconhecida"].includes(String(i["status"])),
+      ),
+    [issuesQuery.data],
+  );
+  const contar = (campo: string, valor: string) => abertas.filter((i) => String(i[campo]) === valor).length;
+
+  if (issuesQuery.isLoading) {
+    return <div className="h-40 animate-pulse rounded-2xl border border-navy/10 bg-cream/40" data-qualidade-panorama-carregando />;
+  }
+  if (issuesQuery.isError) {
+    return (
+      <p className="rounded-2xl border border-terracotta/30 bg-terracotta/5 p-4 text-sm text-terracotta" data-qualidade-panorama-erro>
+        A distribuição das inconsistências não pôde ser lida agora — falha de leitura, não ausência de registro.
+      </p>
+    );
+  }
+
+  return (
+    <div className="grid gap-4" data-qualidade-panorama>
+      <CaCard titulo="Inconsistências em aberto por domínio" eyebrow="Radar & Matrizes · qualidade">
+        {abertas.length === 0 ? (
+          <EstadoVazio mensagem="Nenhuma inconsistência aberta ou reconhecida na leitura atual." />
+        ) : (
+          <ul>
+            {Object.entries(ROTULO_DOMINIO).map(([dominio, rotulo]) => {
+              const n = contar("dominio", dominio);
+              return (
+                <li key={dominio}>
+                  <Linha rotulo={rotulo} valor={String(n)} tom={n > 0 ? "atencao" : "neutro"} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CaCard>
+      <CaCard titulo="Inconsistências em aberto por severidade" eyebrow="Radar & Matrizes · qualidade">
+        {abertas.length === 0 ? (
+          <EstadoVazio mensagem="Nenhuma inconsistência aberta ou reconhecida na leitura atual." />
+        ) : (
+          <ul>
+            {SEVERIDADES.map((sev) => {
+              const n = contar("severidade", sev);
+              const tom: Tom = n === 0 ? "neutro" : sev === "critica" ? "critico" : "atencao";
+              return (
+                <li key={sev}>
+                  <Linha rotulo={ROTULO_SEVERIDADE[sev] ?? sev} valor={String(n)} tom={tom} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CaCard>
     </div>
   );
 }

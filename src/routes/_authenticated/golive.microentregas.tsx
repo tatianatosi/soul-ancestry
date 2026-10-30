@@ -13,7 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Barras } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ import { RascunhosApp } from "@/components/golive/rascunhos-app";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/microentregas")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Microentregas — Go-live Clube Ancestral" },
@@ -47,9 +48,9 @@ export const Route = createFileRoute("/_authenticated/golive/microentregas")({
 function MicroentregasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  const aprovar = useServerFn(aprovarMicroentregaGoLive);
-  const salvarRascunho = useServerFn(salvarRascunhoProjecaoApp);
-  const criar = useServerFn(criarMicroentregaGoLive);
+  const aprovar = useEscritorGoLive(aprovarMicroentregaGoLive);
+  const salvarRascunho = useEscritorGoLive(salvarRascunhoProjecaoApp);
+  const criar = useEscritorGoLive(criarMicroentregaGoLive);
 
   const itens = useMemo<MicroentregaGoLive[]>(
     () => (caso?.microentregas ?? []) as MicroentregaGoLive[],
@@ -166,7 +167,7 @@ function MicroentregasGoLive() {
                       confirmacao="Microentrega aprovada."
                     />
                   )}
-                  <Link to="/golive/caso">
+                  <Link search={true} to="/golive/caso">
                     <Button size="sm" variant="outline">Abrir Caso 360</Button>
                   </Link>
                 </div>
