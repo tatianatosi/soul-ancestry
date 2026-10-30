@@ -1,6 +1,7 @@
 -- ============================================================================
 -- Ativação de caso cede à proprietária — remove os dois portões que sobraram
 -- Proposta de 24/10/2026. APLICADA PELO LOVABLE (comando L1), nunca pelo Claude Code.
+-- ESTADO: JÁ APLICADO em 25/10/2026 — ver supabase/pendentes/README.md.
 --
 -- Objetivo: a Proprietária (staff_access role=admin, status=active) pode ativar
 -- um caso mesmo com pendências de onboarding, como ela pediu várias vezes.

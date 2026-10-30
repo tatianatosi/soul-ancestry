@@ -1,6 +1,7 @@
 -- Ana Luiza (CA-CID-AT-FAM-2026-001) — preservação do histórico do contrato
 -- vindo do banco antigo congelado (zsxpdbhdvbuulwpepemd) + complemento de cadastro.
 -- Autorização: Proprietária, 20/10/2026 ("aprovo as correções somente em relação a Ana Luiza").
+-- ESTADO: NÃO APLICADO; BLOQUEADO_POR_TAMANHO — ver supabase/pendentes/README.md.
 --
 -- O QUE FAZ
 -- 1) Cria public.contract_history_imports (somente leitura para admin/operações,
