@@ -23,8 +23,17 @@ import {
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
+import { rotuloAnoArvore } from "@/lib/arvore-publicacao";
 
 export type VinculoArvoreCliente = { de: string; para: string; tipo: "pai_mae" | "conjuge" };
+
+/**
+ * 29/10/2026 — ano sob o nome no cartão da Árvore, autorizado pela
+ * Proprietária. Sai só de perfil do próprio caso com `client_visibility =
+ * 'aprovada'` e data registrada; nunca de nota interna, timeline ou dedução
+ * por nome.
+ */
+export type AnoArvoreCliente = { pessoa_id: string; rotulo: string };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -84,6 +93,8 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
      * de/para/tipo — nenhuma nota, fonte ou status interno.
      */
     vinculosArvore: VinculoArvoreCliente[];
+    /** Anos autorizados por pessoa publicada (29/10/2026), para o cartão da Árvore. */
+    anosArvore: AnoArvoreCliente[];
     /** Régua das 5 etapas, estado do caso e perfil da titular (13/10/2026). */
     resumoCaso: ResumoCasoCliente | null;
   }> => {
@@ -142,6 +153,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         checklist: { itens: [], total: 0, concluidos: 0 },
         pessoasMapeadas: 0,
         vinculosArvore: [],
+        anosArvore: [],
         resumoCaso: null,
       };
     const alvo = [String(casoAtivo.id)];
@@ -227,6 +239,31 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         }));
     }
 
+    // 29/10/2026 — anos autorizados: perfil do próprio caso, visibilidade
+    // "aprovada", não arquivado, com data registrada e pessoa já publicada na
+    // Árvore. Falha de leitura devolve lista vazia, nunca ano inventado.
+    let anosArvore: AnoArvoreCliente[] = [];
+    if (publicados.size > 0) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const prof = await (supabaseAdmin as any)
+          .from("genealogical_person_profiles")
+          .select("id, research_person_id, nascimento_data, nascimento_precisao, morte_data, morte_precisao")
+          .eq("case_id", String(casoAtivo.id))
+          .eq("client_visibility", "aprovada")
+          .is("archived_at", null)
+          .or("nascimento_data.not.is.null,morte_data.not.is.null")
+          // O nó da Árvore é publicado por pessoa da pesquisa (pessoa_id =
+          // research_person_id do perfil), nunca pelo id interno do perfil.
+          .in("research_person_id", [...publicados]);
+        anosArvore = ((prof.data ?? []) as any[])
+          .map((r) => ({ pessoa_id: String(r.research_person_id), rotulo: rotuloAnoArvore(r) }))
+          .filter((a): a is AnoArvoreCliente => Boolean(a.rotulo));
+      } catch {
+        anosArvore = [];
+      }
+    }
+
     // Acesso ao caso já decidido pela RLS de `portal_casos`; leitura do resumo
     // no servidor, recortada a campos sanitizados (sem CPF/RG/endereço).
     let resumoCaso: ResumoCasoCliente | null = null;
@@ -240,6 +277,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     return {
       resumoCaso,
       vinculosArvore,
+      anosArvore,
       projecoes,
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,

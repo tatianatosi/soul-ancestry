@@ -3161,17 +3161,51 @@
   .app-genograma-circulo {
   stroke-width: 6;
 }
+/* origin/main (29/10) — nós em cartão com ano de nascimento, preservado no merge. */
+[data-app-cliente] .app-genograma-cartao {
+  fill: var(--ca-white);
+  stroke: var(--ca-border);
+  stroke-width: 1.5;
+}
+[data-app-cliente] [data-genograma-no][data-geracao-um] .app-genograma-cartao {
+  fill: var(--ca-navy);
+  stroke: var(--ca-navy);
+}
+[data-app-cliente]
+  [data-genograma-no][data-geracao-um]
+  :is(.app-genograma-nome, .app-genograma-geracao) {
+  fill: var(--ca-white);
+}
+[data-app-cliente] [data-genograma-no][data-raiz] .app-genograma-cartao {
+  stroke: var(--ca-terracotta);
+  stroke-width: 3;
+}
+[data-app-cliente]
+  [data-genograma-no]:is(:focus-visible, [aria-pressed="true"])
+  .app-genograma-cartao {
+  stroke: var(--app-brand-gold);
+  stroke-width: 3;
+}
 [data-app-cliente] .app-genograma-iniciais {
   fill: var(--app-brand-gold);
   font: 600 24px var(--ca-font-title);
 }
 [data-app-cliente] .app-genograma-nome {
-  fill: var(--ca-ink);
-  font: 500 12px var(--ca-font-body);
+  fill: var(--ca-navy);
+  font: 600 12px var(--ca-font-body);
 }
 [data-app-cliente] .app-genograma-geracao {
   fill: var(--ca-text-muted);
   font: 11px var(--ca-font-body);
+}
+[data-app-cliente] .app-genograma-ano {
+  fill: var(--ca-navy);
+  fill-opacity: 0.68;
+  font: 600 11px var(--ca-font-body);
+}
+[data-app-cliente] [data-genograma-no][data-geracao-um] .app-genograma-ano {
+  fill: var(--ca-white);
+  fill-opacity: 1;
 }
 [data-app-cliente] .app-genograma-detalhe {
   border-top: 2px solid var(--app-brand-gold);
@@ -3283,4 +3317,46 @@
   [data-app-cliente] .app-genograma-toolbar > div {
     justify-content: flex-end;
   }
+}
+
+/* Fechamento 27/10 — selo terracota, semáforo do Radar e anel do ancestral de origem (escopo App). */
+[data-app-cliente] [data-selo-estado-caso] {
+  background: #9a3a2f;
+  color: #f0eee9;
+}
+[data-app-cliente] [data-aba-radar] .app-chip[data-tom="ok"] {
+  background: #e6ece7;
+  color: #3f5247;
+  border: 1px solid #7a8b7b;
+}
+[data-app-cliente] [data-aba-radar] .app-chip[data-tom="analise"] {
+  background: #fef5e7;
+  color: #6b4e0e;
+  border: 1px solid #fcb73a;
+}
+[data-app-cliente] [data-aba-radar] .app-chip[data-tom="pendente"] {
+  background: #ecdfcd;
+  color: #9a3a2f;
+  border: 1px solid #9a3a2f;
+}
+[data-app-cliente] #conteudo-portal [data-aba-radar] .app-chip[data-tom="ok"] {
+  background: #e6ece7;
+  color: #3f5247;
+}
+[data-app-cliente] #conteudo-portal [data-aba-radar] .app-chip[data-tom="analise"] {
+  background: #fef5e7;
+  color: #6b4e0e;
+}
+[data-app-cliente] #conteudo-portal [data-aba-radar] .app-chip[data-tom="pendente"] {
+  background: #ecdfcd;
+  color: #9a3a2f;
+}
+[data-app-cliente] [data-genograma-no] .app-genograma-circulo {
+  stroke: #c2a84d;
+  stroke-width: 3;
+}
+[data-app-cliente] [data-genograma-no][data-raiz] .app-genograma-circulo {
+  stroke: #9a3a2f;
+  stroke-width: 5;
+  paint-order: stroke;
 }
