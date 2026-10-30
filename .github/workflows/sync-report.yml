@@ -39,7 +39,7 @@ jobs:
             let published = null;
             if (issue) {
               const m = (issue.body || "").match(/<!-- published_sha: ([0-9a-f]{40}) -->/);
-              if (m) published = m[1];
+              if (m && !/^0{40}$/.test(m[1])) published = m[1];
             }
             const marcar = context.payload.inputs && context.payload.inputs.marcar_publicado === "true";
             if (marcar) published = head;
