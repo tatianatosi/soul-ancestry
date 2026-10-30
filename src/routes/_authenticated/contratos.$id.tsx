@@ -396,7 +396,7 @@ function ContratoDetalhe() {
           rotulo="Enviar ao cliente"
           acaoExterna="enviar_contrato"
           variant="outline"
-          efeito="Tenta a etapa de envio do instrumento ao cliente. Nada sai sem esta confirmação."
+          efeito="Cria um rascunho de envio na fila de comunicações do caso, aguardando sua aprovação — nenhum e-mail sai automaticamente."
           onConfirmar={async () => {
             const r = await externa({ data: { contract_id: id, etapa: "envio" } });
             setAviso(r.mensagem);
