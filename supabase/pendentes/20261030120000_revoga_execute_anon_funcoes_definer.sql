@@ -1,4 +1,4 @@
--- ESTADO: NÃO APLICADO (proposta). Aplicar somente pelo chat do Lovable, com autorização da Proprietária.
+-- ESTADO: JÁ APLICADO em 30/10/2026, com autorização da Proprietária (aplicado via consulta SQL do projeto Lovable; confirmado: zero funções DEFINER não-trigger executáveis por anon).
 --
 -- O que faz
 --   Retira o direito de EXECUTE de `anon` e de `PUBLIC` em 35 funções SECURITY DEFINER do schema
