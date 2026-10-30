@@ -9,6 +9,7 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { supabase } from "@/integrations/supabase/client";
 import {
   arquivarDocumento,
+  retirarDocumentoDoApp,
   baixarDocumento,
   listarClientesECasos,
   listarDocumentos,
@@ -94,6 +95,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
   const salvarDoc = useServerFn(salvarDocumento);
   const baixar = useServerFn(baixarDocumento);
   const arquivar = useServerFn(arquivarDocumento);
+  const retirarDoApp = useServerFn(retirarDocumentoDoApp);
   const registrar = useServerFn(registrarConsentimento);
   const revogar = useServerFn(revogarConsentimento);
   const excecao = useServerFn(registrarExcecaoConsentimento);
@@ -316,6 +318,23 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                     >
                       Baixar (registra auditoria)
                     </button>
+                  )}
+                  {d["liberado_cliente"] === true && (
+                    <AcaoOperacional
+                      rotulo="Retirar do App"
+                      className="rounded-lg border border-navy/30 px-2 py-1 text-[11px] text-navy"
+                      acaoExterna="retirar_documento_do_app"
+                      efeito="O documento deixa de aparecer no App Cliente e volta a pendente de revisão. Nada é apagado; pode ser liberado de novo depois."
+                      onConfirmar={async (motivo) => {
+                        try {
+                          await retirarDoApp({ data: { id: d["id"], motivo } });
+                          toast.success("Documento retirado do App; segue guardado e pendente de revisão.");
+                          atualizar();
+                        } catch (e) {
+                          toast.error((e as Error).message);
+                        }
+                      }}
+                    />
                   )}
                   <AcaoOperacional
                     rotulo="Arquivar"
