@@ -25,7 +25,6 @@ def ferramenta():
         return "bun"
     return "npm"
 
-
 def executar_script_npm(nome_script, mensagem_erro):
     cmd = ferramenta()
     print(f"\n> {cmd} run {nome_script}")

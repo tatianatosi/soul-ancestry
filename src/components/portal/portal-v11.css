@@ -3144,6 +3144,13 @@
   stroke: var(--app-brand-gold);
   stroke-width: 3;
 }
+/* origin/main (29/10) — rótulo de geração ("G1 · Você"), usado por genograma-familiar.tsx. */
+[data-app-cliente] .app-genograma-rotulo {
+  fill: var(--app-brand-gold);
+  font: 600 10px var(--ca-font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 [data-app-cliente] [data-genograma-no] {
   cursor: pointer;
   outline: none;

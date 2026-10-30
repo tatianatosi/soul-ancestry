@@ -146,8 +146,8 @@ export async function gravarComVerificacao(opcoes: {
       const campos = divergencias.map((d) => d.campo);
       console.warn(`[persistencia] Divergência em ${tabela}:${id}`, campos);
     }
-  } catch (e) {
-    console.warn(`[persistencia] Falha na comparação pós-gravação em ${tabela}:${id}`, e);
+  } catch {
+    console.warn(`[persistencia] Falha na comparação pós-gravação em ${tabela}:${id}`);
   }
   const divergentes = new Set(divergencias.map((d) => d.campo));
 
@@ -190,8 +190,8 @@ export async function inserirComVerificacao(opcoes: {
         divergencias,
       );
     }
-  } catch (e) {
-    console.warn(`[persistencia] Falha na comparação pós-inserção em ${tabela}:${linha.id}`, e);
+  } catch {
+    console.warn(`[persistencia] Falha na comparação pós-inserção em ${tabela}:${linha.id}`);
   }
 
   return {

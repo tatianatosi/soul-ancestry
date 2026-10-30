@@ -1,18 +1,13 @@
-# Publicar Home e Documentos e conferir no link público
+# Árvore: pontos 1 a 4 (já feitos hoje)
 
-## O que já está pronto
-Os cinco ajustes de 27/10 já estão na versão atual: régua "Preparação do seu caso" com "Andamento da pesquisa", semáforo no Radar, Árvore legível, grupos vazios de Documentos fechados e Histórico na Conta. Não muda nada no App, só a publicação e a conferência.
+Os quatro ajustes já foram feitos hoje e ainda não foram publicados:
+1. Nome da geração escrito em cima de cada linha (G6 a "G1 · Você"), sem o "G" pequeno dentro dos cartões.
+2. Cartões mais juntos, entre as gerações e dentro da mesma linha.
+3. A Árvore abre mostrando de G6 (Heinrich Friedmann) até "Você" (Ana Luiza), em 375 e 1280 px; "Restaurar visão" volta para essa mesma vista.
+4. Linhas de filiação e de união mais finas.
 
-## Passos
-1. Pedir a publicação da versão atual em https://soul-ancestry.lovable.app, sem rodar a verificação de segurança antes (como você pediu).
-2. Esperar cerca de um minuto e abrir o link público pela prévia administrativa do caso da Ana, no celular (375 px) e no computador (1280 px).
-3. Conferir:
-   - **Home:** o percentual do topo ("Andamento da pesquisa") e a régua das cinco etapas não se contradizem; selo "Caso ativo" em terracota.
-   - **Radar:** "Sinal das situações" com verde-sálvia "Compartilhado", dourado "Em preparação" e terracota "Aguardando orientação", com os números registrados.
-   - **Documentos:** "Solicitados" aberto com o botão de envio; grupos vazios fechados com "Nada por aqui ainda"; "Entregas Liberadas" com os 3 documentos e Baixar.
-   - Sem rolagem lateral e sem erros de página.
-4. Relatar o resultado com prints e avisar se algo no link público ainda estiver na versão antiga.
-
-## Limites
-- Não invento pedidos de documentos nem situações: hoje não há pedidos registrados para a Ana.
-- O percentual continua sendo o andamento real da pesquisa; não será trocado por 100%.
+## O que farei ao aprovar
+- Não refaço o desenho. Só confiro de novo no caso da Ana, em 375 e 1280 px: rótulos em cima, árvore inteira visível, nenhuma linha por cima de nomes, sem rolagem lateral.
+- Rodo os testes da Árvore.
+- Monto o PDF de comparação com a página 6 do mockup, se a pasta de arquivos estiver disponível.
+- Não publico. Não mudo parentescos, cores nem outras abas.

@@ -30,7 +30,9 @@ describe("ano sob o nome na Árvore (29/10/2026, autorizado pela Proprietária)"
     expect(noOtto?.ano).toBeNull();
     const linhasRudolf = semAno.nos.find((n) => n.pessoa.chave === "rudolf");
     expect((noRudolf?.altura ?? 0) - (linhasRudolf?.altura ?? 0)).toBe(16);
-    // O ano fica entre o nome e o rótulo da geração, sem sobrepor nenhum.
-    expect((noRudolf?.ano ? 26 + (noRudolf.linhas.length - 1) * 16 + 18 : 0)).toBeLessThan(noRudolf?.geracaoY ?? 0);
+    // O ano fica dentro do cartão, abaixo do nome.
+    expect((noRudolf?.ano ? 26 + (noRudolf.linhas.length - 1) * 16 + 18 : 0)).toBeLessThan(noRudolf?.altura ?? 0);
+
+
   });
 });

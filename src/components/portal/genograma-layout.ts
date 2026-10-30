@@ -30,20 +30,24 @@ export const CARTAO_LARGURA = 170;
 export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPessoa?: Readonly<Record<string, string>>) {
   const geracoes = [...new Set(pessoas.map((p) => p.geracao ?? 1))].sort((a, b) => b - a);
   const largura = Math.max(540, ...geracoes.map((g) => pessoas.filter((p) => (p.geracao ?? 1) === g).length * 200 + 80));
-  let y = 60;
+  let y = 44;
+  const rotulos: { geracao: number; y: number }[] = [];
   const nos = geracoes.flatMap((g) => {
     const grupo = pessoas.filter((p) => (p.geracao ?? 1) === g);
     const linhaY = y;
     const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome), ano: anosPorPessoa?.[pessoa.chave] ?? null }));
     const temAno = preparados.some((p) => p.ano);
-    const altura = 30 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * 16 + (temAno ? 16 : 0) + 22;
-    y += altura + 110;
-    return preparados.map((p, coluna) => ({ ...p, altura, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 200, y: linhaY, geracaoY: altura - 14 }));
+    const altura = 22 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * 16 + (temAno ? 16 : 0) + 8;
+    rotulos.push({ geracao: g, y: linhaY - 10 });
+    y += altura + 64;
+    return preparados.map((p, coluna) => ({ ...p, altura, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 186, y: linhaY }));
   });
-  return { nos, largura, altura: Math.max(300, y - 60) };
+  return { nos, rotulos, largura, altura: Math.max(240, y - 44) };
 }
 
-export function enquadramentoGenograma(largura: number, viewport: number) {
-  const zoom = Math.min(1, Math.max(0.4, (viewport - 24) / largura));
+/** Opens showing every generation (oldest to "Você") when the viewport height is known. */
+export function enquadramentoGenograma(largura: number, viewport: number, alturaConteudo?: number, alturaViewport?: number) {
+  const porAltura = alturaConteudo && alturaViewport ? (alturaViewport - 16) / alturaConteudo : 1;
+  const zoom = Math.round(Math.min(1, Math.max(0.3, Math.min((viewport - 24) / largura, porAltura))) * 100) / 100;
   return { zoom, left: Math.max(0, (largura * zoom - viewport) / 2), top: 0 };
 }

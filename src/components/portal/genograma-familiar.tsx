@@ -17,11 +17,11 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas
   const enquadrar = useCallback(() => {
     const el = viewport.current;
     if (!el) return;
-    const quadro = enquadramentoGenograma(layout.largura, el.clientWidth);
+    const quadro = enquadramentoGenograma(layout.largura, el.clientWidth, layout.altura, el.clientHeight);
     setSelecionada(null);
     setZoom(quadro.zoom);
     requestAnimationFrame(() => el.scrollTo({ left: quadro.left, top: quadro.top }));
-  }, [layout.largura]);
+  }, [layout.largura, layout.altura]);
   useEffect(() => { enquadrar(); }, [enquadrar]);
   useEffect(() => {
     const no = layout.nos.find((n) => n.pessoa.chave === selecionada);
@@ -34,7 +34,7 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas
       <div className="app-genograma-toolbar">
         <label className="text-sm text-navy">Pessoa <select aria-label="Focar pessoa" value={selecionada ?? ""} onChange={(e) => setSelecionada(e.target.value || null)}><option value="">Toda a família</option>{pessoas.map((p) => <option key={p.chave} value={p.chave}>{p.nome}</option>)}</select></label>
         <div className="flex items-center gap-1" role="group" aria-label="Ampliação da árvore">
-          <Button variant="ghost" size="icon" title="Diminuir" aria-label="Diminuir árvore" disabled={zoom <= 0.4} onClick={() => setZoom((z) => Math.max(0.4, z - 0.2))}><Minus /></Button>
+          <Button variant="ghost" size="icon" title="Diminuir" aria-label="Diminuir árvore" disabled={zoom <= 0.3} onClick={() => setZoom((z) => Math.max(0.3, Math.round((z - 0.2) * 100) / 100))}><Minus /></Button>
           <span className="w-12 text-center text-xs text-navy" aria-live="polite">{Math.round(zoom * 100)}%</span>
           <Button variant="ghost" size="icon" title="Ampliar" aria-label="Ampliar árvore" disabled={zoom >= 2} onClick={() => setZoom((z) => Math.min(2, z + 0.2))}><Plus /></Button>
           <Button variant="ghost" size="icon" title="Restaurar visão" aria-label="Restaurar visão da árvore" onClick={enquadrar}><RotateCcw /></Button>
@@ -62,24 +62,24 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas
             const interposto = layout.nos.some((n) => n.y === esq.y && n.x > esq.x && n.x < dir.x);
             const m = CARTAO_LARGURA / 2;
             const uniao = interposto || esq.y !== dir.y
-              ? `M${esq.x} ${esq.y} V${Math.min(esq.y, dir.y) - 24} H${dir.x} V${dir.y}`
+              ? `M${esq.x} ${esq.y} V${Math.min(esq.y, dir.y) - 4} H${dir.x} V${dir.y}`
               : `M${esq.x + m} ${esq.y + esq.altura / 2} L${dir.x - m} ${dir.y + dir.altura / 2}`;
             const intermediario = layout.nos.some((n) => n.y > sup.y && n.y < inf.y);
             const corredor = layout.largura - 20 - (i % 4) * 6;
             const filiacao = a.y === b.y
-              ? `M${a.x} ${a.y} V${a.y - 30} H${b.x} V${b.y}`
+              ? `M${a.x} ${a.y} V${a.y - 4} H${b.x} V${b.y}`
               : intermediario
                 ? `M${sup.x} ${saida} V${saida + 18} H${corredor} V${chegada - 18} H${inf.x} V${chegada}`
                 : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`;
             return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : filiacao}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
-          {layout.nos.map(({ pessoa: p, x, y, linhas, ano, geracaoY, altura }) => (
+          {layout.rotulos.map((r) => <text key={`g${r.geracao}`} data-genograma-rotulo x={12} y={r.y} className="app-genograma-rotulo">G{r.geracao}{r.geracao === 1 ? " · Você" : ""}</text>)}
+          {layout.nos.map(({ pessoa: p, x, y, linhas, ano, altura }) => (
             <g key={p.chave} transform={`translate(${x} ${y})`} role="button" tabIndex={0} aria-label={`Abrir ${p.nome}`} aria-pressed={p.chave === selecionada} data-genograma-no data-raiz={p.chave === raizId || undefined} data-geracao-um={p.geracao === 1 || undefined} onClick={() => setSelecionada(p.chave)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelecionada(p.chave); } }}>
               <rect x={-CARTAO_LARGURA / 2} y={0} width={CARTAO_LARGURA} height={altura} rx={8} className="app-genograma-cartao" />
               <text textAnchor="middle" y={26} className="app-genograma-nome">{linhas.map((linha, i) => <tspan key={i} x={0} dy={i === 0 ? 0 : 16}>{linha}</tspan>)}</text>
               {/* Ano só quando a equipe liberou a data do perfil (29/10/2026). */}
               {ano ? <text data-genograma-ano textAnchor="middle" y={26 + (linhas.length - 1) * 16 + 18} className="app-genograma-ano">{ano}</text> : null}
-              <text textAnchor="middle" y={geracaoY} className="app-genograma-geracao">G{p.geracao}{p.geracao === 1 ? " · Você" : ""}</text>
             </g>
           ))}
         </svg>
