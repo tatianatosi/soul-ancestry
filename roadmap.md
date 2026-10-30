@@ -472,3 +472,7 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [ ] EXEC-07 homologação final — depende de login real da Ana
 - [x] Acervo recebido (24/10): localizados Registro Unificado PDF/texto e Dossiê Consolidado PDF em uploads/mirror; mesmos nomes/conteúdos/tamanhos das três referências de evidencias já vinculadas à Ana. Nenhuma duplicação, upload ou alteração de acesso executada.
 - [ ] Mostrar acervo em Documentos: BLOQUEADO_POR_DADO — os três recebidos são material interno; não localizadas certidões nem versões sanitizadas para entrega à família. Leitura temporária do armazenamento retornou NoSuchKey nesta sessão; sem substituir diagnóstico por exposição de conteúdo interno.
+
+- [x] 30/10: Rascunho interno v3 do contrato da Ana gerado pelo botão Salvar rascunho. Aberto: itens de escopo ainda trazem o rateio antigo 4.800/2.400 (aguarda decisão da Proprietária).
+- [x] 30/10: Trocar o rateio do escopo (3 linhas → R$ 3.200 com nome completo) e gerar a v4
+- [x] 30/10: Árvore inteira no celular + publicar
