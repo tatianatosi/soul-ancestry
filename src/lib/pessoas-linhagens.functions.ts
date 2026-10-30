@@ -18,6 +18,7 @@ import {
 } from "@/lib/pessoas-linhagens";
 import { clienteElegivelParaPerfil, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { exigirPersistenciaConferida } from "@/lib/verificacao-persistencia";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -743,6 +744,13 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       }
     };
 
+    /*
+     * 30/10/2026 — resgate da PR #32. Desde 24/10 os helpers compartilhados
+     * só registram aviso quando a releitura diverge, e a tela mostrava "Salvo
+     * e confirmado no banco" mesmo assim. Na ficha genealógica a regra volta
+     * a ser estrita: releitura vazia ou valor diferente do enviado é erro,
+     * antes de propagar vínculo, auditoria ou linha do tempo.
+     */
     if (data.id) {
       const r = await gravarComVerificacao({
         supabase,
@@ -752,6 +760,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: valores,
       });
+      exigirPersistenciaConferida(valores, r.registro);
       await registrarVinculo(data.id);
       return { registro: r.registro } as any;
     }
@@ -763,6 +772,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: valores,
     });
+    exigirPersistenciaConferida(valores, r.registro);
     await registrarVinculo(r.id);
     return { registro: r.registro } as any;
   });

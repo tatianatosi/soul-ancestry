@@ -24,8 +24,9 @@ Nada daqui é aplicado automaticamente. Um arquivo nesta pasta é uma proposta, 
 | `20261023140000_rateio_igualitario_condicao_ana.sql` | JÁ APLICADO em 23/10 | Versão 3 da condição comercial do caso `CA-CID-AT-FAM-2026-001`: rateio igualitário de R$ 3.200,00 por contratante adulto |
 | `20261023150000_redacao_canonica_rateio_familiar_ana.sql` | JÁ APLICADO em 23/10 | Versão 4: redação canônica (Pacote Áustria § 58c), nome completo do dependente, rateio igualitário explícito no `payment_terms` |
 | `20261023160000_libera_fatura_ana_checklist_e_flags.sql` | JÁ APLICADO em 23/10 | Conclui os 2 itens abertos do `onboarding_checklist` e reconcilia as 3 flags do portão do App |
-| `20261024120000_documentos_reais_ana_liberados.sql` | NÃO APLICADO; BLOQUEADO_POR_DADO | Proposta de inserção/publicação de documentos, não schema. Materiais recebidos contêm informações internas; faltam versões sanitizadas e correspondência documental comprovada. |
-| `20261024170000_ativacao_cede_a_proprietaria.sql` | JÁ APLICADO em 25/10 | Registrado em `drizzle/migrations/0002_ativacao_cede_a_proprietaria.sql`; consulta ao banco confirmou `piloto_cede = true` e `ativacao_cede = true`. |
+| `20261024120000_documentos_reais_ana_liberados.sql` | DADOS JÁ NO BANCO (criados em 25/10, por outro caminho; conferido em 30/10); este SQL não precisa ser aplicado. CURADORIA PENDENTE | Proposta de inserção/publicação de documentos, não schema. Os 3 documentos que ela insere já existem no caso, liberados. Continua sem comprovação de que o conteúdo seja sanitizado; ver "Conferência do banco em 30/10/2026". |
+| `20261020150000_ana_luiza_historico_contrato_banco_antigo.sql` (vive na PR #173, não nesta pasta) | JÁ APLICADO em 30/10 | Cria `contract_history_imports` (RLS + FORCE RLS, só leitura para admin/operações) e importa do banco antigo `zsxpd…` 6 versões, 84 validações e 20 eventos do contrato `a11a…c1` como histórico, sem tocar nas 2 versões vigentes. Corrige telefone e nascimento de Ana e quadra/lote de Ana, Adair e Alice (só onde estava errado ou vazio). Aplicado pelo Claude Code com a ferramenta de banco do Lovable, sob autorização explícita da Proprietária; o conteúdo foi enviado em 13 blocos com MD5 conferido contra o arquivo da PR. Uma diferença em relação ao arquivo: a policy usa `has_org_role(organization_id, …)`, porque `has_role` não existe neste banco. |
+| `20261024170000_ativacao_cede_a_proprietaria.sql` | JÁ APLICADO em 25/10 | Registrado em `drizzle/migrations/0002_ativacao_cede_a_proprietaria.sql`; consulta ao banco confirmou `piloto_cede = true` e `ativacao_cede = true`. O arquivo ainda não traz a linha `ESTADO:` no cabeçalho (o `scripts/sync-check.sh` da PR #200 acusa isso); o cabeçalho não foi alterado por esta atualização do README. |
 
 ### Conferência do banco em 25/10/2026
 
@@ -35,8 +36,21 @@ Nada daqui é aplicado automaticamente. Um arquivo nesta pasta é uma proposta, 
 - Todas as 194 tabelas públicas têm o mesmo conjunto de colunas que os tipos gerados. Nenhuma migration de schema pendente foi identificada nesta comparação; isso não comprova toda regra funcional, política ou uso em tela.
 - Nenhum documento foi publicado, nenhum dado foi alterado e nenhum deploy foi executado nesta conferência.
 
+### Conferência do banco em 30/10/2026 (somente leitura)
+
+Consultas `SELECT` no banco do Lovable Cloud, caso `CA-CID-AT-FAM-2026-001`. Nada foi escrito, publicado ou aplicado.
+
+- **Documentos do caso:** 3 linhas em `documents`, as mesmas da proposta `20261024120000` (mesmos títulos e nomes de arquivo), criadas em 25/10/2026 às 12:41 UTC, com `status = 'liberado'`, `liberado_cliente = true`, `origem = 'interno'` e arquivo no storage. `liberado_em` está nulo (a proposta gravaria `now()`), o que indica que entraram por outro caminho, não por este SQL. Reaplicar o arquivo não insere nada (`NOT EXISTS` por título).
+- **Storage:** o bucket `documentos` tem 3 objetos no total, todos desse caso, enviados em 13/10/2026 (dois PDFs e um `.md`). Não há outros formatos no banco.
+- **Ativação e acesso:** `crm_casos.ativado_em` preenchido em 25/10/2026 às 14:40 UTC; `client_portal_case_access` com 0 linhas para o caso, ou seja, nenhum acesso de cliente registrado ao portal.
+- **Outros formatos do mesmo conteúdo existem fora do banco** (Google Drive e Dropbox da Proprietária): o dossiê consolidado em Google Doc e em PDF (14/08), uma auditoria do dossiê em PDF e documentos de apoio. Nenhum está marcado como sanitizado ou aprovado para o cliente. O PDF do Drive (432.667 bytes) difere do PDF do storage (432.805 bytes), portanto não são o mesmo arquivo.
+- **O que foi e o que não foi lido:** foi lido o Google Doc do dossiê de 14/08, que contém dados comerciais e operacionais internos (funil do lead, regras de cobrança, divisão de escopo por processo) e dados de outras pessoas da família. Os arquivos que estão liberados no banco (PDFs e `.md` de 13/10) **não foram abertos**; portanto não se sabe se eles repetem esse conteúdo.
+- **Conclusão:** o bloqueio por dado desta proposta continua válido como pendência de curadoria, não como falta de SQL. Cabe à Proprietária decidir se os 3 documentos liberados ficam como estão, se são substituídos por versões sanitizadas ou se voltam a `liberado_cliente = false` (por proposta nova nesta pasta, aplicada pelo Lovable). Enquanto não houver acesso de cliente ao portal, não há exposição registrada.
+
 As três foram aplicadas por mim direto via a ferramenta do Lovable, sob autorização explícita da Proprietária, **antes** de a regra 3 existir. Ficam registradas aqui porque a regra proíbe que vivam em `supabase/migrations/`. Os três blocos são idempotentes: reaplicar vira no-op.
 
 ## O que ainda falta neste caso, e não é SQL
+
+(Atualização de 30/10/2026: o caso já foi ativado, `ativado_em` de 25/10. O texto abaixo explica por que a ativação nunca pôde vir de SQL.)
 
 A ativação do caso (`status → ativo`, `ativado_em`) não pode vir daqui. A trigger `fn_guard_ativacao()` exige sessão autenticada de admin ou operações, verificada por `auth.uid()` — uma conexão SQL não tem usuário. É um clique da Proprietária em `/onboarding/a11a0000-0000-4000-8000-000000000002`, pelo writer `ativarCasoComChecks`, que caminha a máquina de estados espelhada em trigger no banco.
