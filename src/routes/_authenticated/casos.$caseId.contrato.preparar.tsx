@@ -32,6 +32,7 @@ import { anexosIaV, entradaDeValores, gatesBloqueados, pendenciasDosAnexos } fro
 import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
+import { AnexosTresCamadasPainel } from "@/components/governanca/anexos-tres-camadas";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
 import { CartoesFormalizacao } from "@/components/contrato/cartoes-formalizacao";
 import { GovernancaFormalizacao } from "@/components/contrato/governanca-formalizacao";
@@ -983,6 +984,19 @@ function Pagina() {
                     }
                   />
                 </div>
+                <details className="mt-3 rounded-lg border border-navy/10 p-3" data-anexos-tres-camadas-detalhe>
+                  <summary className="cursor-pointer text-xs font-medium text-navy">
+                    Anexos I–V em três camadas (instância técnica, conteúdo jurídico, instância do caso)
+                  </summary>
+                  <div className="mt-3">
+                    <AnexosTresCamadasPainel
+                      instancias={qi.data}
+                      carregando={qi.isLoading}
+                      erro={qi.error}
+                      aoTentarNovamente={() => void qi.refetch()}
+                    />
+                  </div>
+                </details>
               </CaCard>
             </div>
 
