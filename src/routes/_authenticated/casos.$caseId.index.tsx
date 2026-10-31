@@ -8,6 +8,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { CardsVidaDoCliente } from "@/components/caso/cards-vida-do-cliente";
+import { ConferenciaPilotoCaso } from "@/components/caso/conferencia-piloto-caso";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -3074,6 +3075,9 @@ function FichaCaso() {
                 {/* Corte U3 (28/09/2026): decisões que só a equipe toma, lidas do dado real. */}
                 <div className="mb-4">
                   <PendenciasHumanasCaso caseId={id} />
+                </div>
+                <div className="mb-4">
+                  <ConferenciaPilotoCaso caseId={id} />
                 </div>
 
                 {/*

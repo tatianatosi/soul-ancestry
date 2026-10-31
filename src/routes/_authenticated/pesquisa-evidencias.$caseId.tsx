@@ -34,11 +34,9 @@ import {
   gatilhosDaEvidencia,
   relatorioVisivelAoCliente,
 } from "@/lib/pesquisa-cadeia";
-import {
-  cadeiaPesquisaDoCaso,
-  mudarEstadoEvidencia,
-  prepararAreaPesquisa,
-} from "@/lib/pesquisa-cadeia.functions";
+import { cadeiaPesquisaDoCaso, prepararAreaPesquisa } from "@/lib/pesquisa-cadeia.functions";
+import { mudarSituacaoEvidencia } from "@/lib/evidencia-canonica.functions";
+import { EvidenciasCanonicasPainel } from "@/components/pesquisa/evidencias-canonicas-painel";
 import { EditarVisaoPesquisa } from "@/components/pesquisa/editar-visao-pesquisa";
 import { FioPessoaUnificada } from "@/components/pesquisa/fio-pessoa-unificada";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
@@ -157,7 +155,15 @@ function AreaPesquisaEvidencias() {
 
   const mudarEvidencia = useMutation({
     mutationFn: (v: { id: string; status: string; nota: string; caseId: string }) =>
-      mudarEstadoEvidencia({ data: v }),
+      mudarSituacaoEvidencia({
+        data: {
+          caseId: v.caseId,
+          id: v.id,
+          para: v.status,
+          justificativa: v.nota,
+          origem: "pesquisa_evidencias_do_caso",
+        },
+      }),
     onSuccess: () => {
       toast.success("Situação da evidência atualizada.");
       void qc.invalidateQueries({ queryKey: ["cadeia-pesquisa", caseId] });
@@ -701,6 +707,9 @@ function AreaPesquisaEvidencias() {
                 ))}
               </ul>
             )}
+          </Bloco>
+          <Bloco titulo="Registro canônico de evidências">
+            <EvidenciasCanonicasPainel caseId={caseId} />
           </Bloco>
           <LastroDeFontes caseId={caseId} tipoAlvo="evidencia" />
         </div>
