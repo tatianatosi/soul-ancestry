@@ -541,14 +541,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Não religar: rotuloTabela em src/lib/rotulo-negocio.ts já é o rótulo de negócio das tabelas (hoje chamado por motores-primordiais.tsx, também órfão)",
   },
   {
-    modulo: "lib/tema-clausula-texto.ts",
-    veredicto: "RELIGAR",
-    motivo:
-      "Achado da Proprietária de 08/09 ('não sei o que estou aprovando') nunca foi ligado: clausulasDoTema não tem chamador em tela nem em teste, e matriz-juridica.tsx segue declarando que não guarda redação de cláusula. Nenhum outro caminho mostra a cláusula por tema.",
-    destino:
-      "src/routes/_authenticated/matriz-juridica.tsx: exibir clausulasDoTema(l.tema_codigo) em cada tema, somente leitura, com a versão VERSAO_TEXTO_EXIBIDO",
-  },
-  {
     modulo: "lib/varredura-completude.ts",
     veredicto: "AGUARDA_DECISAO",
     motivo:
