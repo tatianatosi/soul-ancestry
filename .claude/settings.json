@@ -26,5 +26,10 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "security-guidance@anthropic-plugin-directory": true,
+    "typescript-lsp@anthropic-plugin-directory": true,
+    "pr-review-toolkit@anthropic-plugin-directory": true
   }
 }
