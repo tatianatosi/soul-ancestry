@@ -59,6 +59,7 @@ import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticate
 import { Route as AcessoIndexRouteImport } from './routes/acesso.index'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
+import { Route as ApiErroRouteImport } from './routes/api/erro'
 import { Route as ApiPesquisaAssistenteRouteImport } from './routes/api/pesquisa-assistente'
 import { Route as ApiSaudeRouteImport } from './routes/api/saude'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
@@ -402,6 +403,11 @@ const AcessoSemPermissaoRoute = AcessoSemPermissaoRouteImport.update({
   id: '/sem-permissao',
   path: '/sem-permissao',
   getParentRoute: () => AcessoRoute,
+} as any)
+const ApiErroRoute = ApiErroRouteImport.update({
+  id: '/api/erro',
+  path: '/api/erro',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPesquisaAssistenteRoute = ApiPesquisaAssistenteRouteImport.update({
   id: '/api/pesquisa-assistente',
@@ -869,6 +875,7 @@ export interface FileRoutesByFullPath {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -992,6 +999,7 @@ export interface FileRoutesByTo {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -1119,6 +1127,7 @@ export interface FileRoutesById {
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -1246,6 +1255,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
     | '/api/saude'
     | '/canvas/$token'
@@ -1369,6 +1379,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
     | '/api/saude'
     | '/canvas/$token'
@@ -1495,6 +1506,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
     | '/api/saude'
     | '/canvas/$token'
@@ -1579,6 +1591,7 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  ApiErroRoute: typeof ApiErroRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   ApiSaudeRoute: typeof ApiSaudeRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
@@ -1943,6 +1956,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/acesso/sem-permissao'
       preLoaderRoute: typeof AcessoSemPermissaoRouteImport
       parentRoute: typeof AcessoRoute
+    }
+    '/api/erro': {
+      id: '/api/erro'
+      path: '/api/erro'
+      fullPath: '/api/erro'
+      preLoaderRoute: typeof ApiErroRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/pesquisa-assistente': {
       id: '/api/pesquisa-assistente'
@@ -2731,6 +2751,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  ApiErroRoute: ApiErroRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   ApiSaudeRoute: ApiSaudeRoute,
   CanvasTokenRoute: CanvasTokenRoute,

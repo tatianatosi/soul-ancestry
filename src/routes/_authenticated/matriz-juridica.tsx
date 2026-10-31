@@ -15,6 +15,7 @@ import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { separarNotaTecnica } from "@/lib/rotulo-negocio";
+import { VERSAO_TEXTO_EXIBIDO, clausulasDoTema } from "@/lib/tema-clausula-texto";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import "@/components/desk/mockup4-superficies.css";
 
@@ -32,6 +33,42 @@ export const Route = createFileRoute("/_authenticated/matriz-juridica")({
   }),
   component: MatrizPage,
 });
+
+/**
+ * Texto vigente do contrato-base que o tema governa (08/09/2026: "não sei o que
+ * estou aprovando"). Somente leitura: a matriz continua sem guardar redação, ela
+ * mostra a cláusula vigente na versão indicada. Tema sem cláusula correspondente
+ * diz isso em voz alta, nunca fica em silêncio.
+ */
+function TextoVigenteDoTema({ temaCodigo }: { temaCodigo: string }) {
+  const clausulas = clausulasDoTema(temaCodigo);
+  return (
+    <div className="mb-3 rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs" data-tema-texto-vigente>
+      <p className="font-medium text-navy">
+        Texto vigente que este tema governa · contrato-base {VERSAO_TEXTO_EXIBIDO}
+      </p>
+      {clausulas.length === 0 ? (
+        <p className="mt-1 text-navy/60">Este tema ainda não tem cláusula correspondente no contrato-base.</p>
+      ) : (
+        <ol className="mt-2 space-y-2">
+          {clausulas.map((c) => (
+            <li key={c.numero}>
+              <p className="font-medium text-navy">
+                Cláusula {c.numero} — {c.titulo}
+              </p>
+              <ul className="mt-1 list-disc space-y-1 pl-4 text-navy/70">
+                {c.itens.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      )}
+      <p className="mt-2 text-navy/50">Somente leitura. Aprovar o tema é aprovar este texto nesta versão.</p>
+    </div>
+  );
+}
 
 function MatrizPage() {
   const autoridade = useAutoridade();
@@ -148,6 +185,7 @@ function MatrizPage() {
               titulo={l.tema}
               descricao={`${l.bloqueia_assinatura ? "Bloqueia assinatura" : "Não bloqueia assinatura"} · impacto: ${l.impacto_templates.join(", ")} · status atual: ${rotuloStatusTema(l.status)}`}
             >
+              <TextoVigenteDoTema temaCodigo={l.tema_codigo} />
               <div className="grid gap-3 md:grid-cols-2">
                 <Selecao
                   label="Status"

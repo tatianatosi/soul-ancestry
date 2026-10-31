@@ -47,9 +47,10 @@ describe("D6 Radar & Matrizes — legenda de ordem por sinal na Matriz", () => {
     expect(matriz).toContain("data-radar-chip-sinal=");
   });
 
-  it("mostra chip Sem dados reais quando a carteira canônica está vazia", () => {
+  it("mostra chip Dados insuficientes quando a carteira canônica está vazia", () => {
+    // 31/10/2026 — o editor trocou "Sem dados reais" por "Dados insuficientes" (mesmo estado, vazio honesto).
     expect(matriz).toContain("data-radar-chip-sem-dados");
-    expect(matriz).toMatch(/Sem dados reais/);
+    expect(matriz).toMatch(/Dados insuficientes/);
   });
 
   it("conta casos por sinal a partir do array já posicionado, sem query nova", () => {

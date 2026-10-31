@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 
 import { destinoLinkAuth } from "../lib/link-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportarErroCliente } from "../lib/producao-erros-navegador";
 import { configPublicaDoServidor, scriptDeConfigPublica } from "@/lib/config-publica";
 import { supabase } from "../integrations/supabase/client";
 import { ehTransicaoDeIdentidade } from "../lib/guarda-sessao";
@@ -66,6 +67,7 @@ function ErrorComponent({ error: erroBruto, reset }: { error: unknown; reset: ()
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportarErroCliente(error, { mechanism: "tanstack_root_error_component" });
   }, [error]);
 
   return (

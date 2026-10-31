@@ -63,7 +63,8 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
     modulo: "golive-escritores.functions.ts",
     fn: "publicarNoAppGoLive",
     veredicto: "CASCA_DUPLICADA",
-    motivo: "Virou caminho secundário depois que o rascunho editável passou a ser o fluxo de publicação.",
+    motivo:
+      "Virou caminho secundário depois que o rascunho editável passou a ser o fluxo de publicação.",
     destino: "Rascunho editável + publicação na Biblioteca de Evidências",
   },
 
@@ -109,16 +110,40 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
   },
 
   /* ---------- aguarda decisão da Proprietária ---------- */
-  ...(
-    ["registrarDiscoveryGoLive", "registrarCallGoLive", "resolverPessoaGoLive", "registrarPagamentoGoLive"] as const
-  ).map((fn) => ({
+  /*
+   * 31/10/2026 — o motivo antigo dizia que a canonicidade do GoLive não estava
+   * decidida. Está: a decisão de 23/10 (AGENTS.md) o fez a vida completa de cada
+   * cliente, dentro do Desk. Discovery e call separados viraram casca duplicada
+   * de `registrarAtendimentoGoLive`; Pessoa e Pagamento seguem aguardando uma
+   * decisão MENOR e nomeada.
+   */
+  ...(["registrarDiscoveryGoLive", "registrarCallGoLive"] as const).map((fn) => ({
     modulo: "golive-escritores.functions.ts",
     fn,
-    veredicto: "AGUARDA_DECISAO" as const,
+    veredicto: "CASCA_DUPLICADA" as const,
     motivo:
-      "Escritores do Desk paralelo /golive, cuja canonicidade a Proprietária ainda não decidiu (AGENTS.md). Religar antes da decisão criaria segundo caminho vivo.",
-    destino: "Decisão: /golive é canônico, é legado ou funde com o Desk do menu",
+      "Discovery e call separados ficaram sem tela: `registrarAtendimentoGoLive` grava os dois no mesmo lead (status_call, resumo_call, discovery_resultado) e em crm_interactions, e é o escritor de /golive/leads e /golive/comercial.",
+    destino:
+      "src/lib/golive-escritores.functions.ts#registrarAtendimentoGoLive (montado em golive.leads e golive.comercial)",
   })),
+  {
+    modulo: "golive-escritores.functions.ts",
+    fn: "resolverPessoaGoLive",
+    veredicto: "AGUARDA_DECISAO",
+    motivo:
+      "Reutiliza ou cria cliente por e-mail/telefone no GoLive, mas a ficha Pessoa 360 já cria e edita pessoa por conta própria; religar abriria um segundo caminho de cadastro de pessoa.",
+    destino:
+      "Decisão: o GoLive cria/reutiliza pessoa por e-mail e telefone, ou isso fica só na ficha Pessoa 360",
+  },
+  {
+    modulo: "golive-escritores.functions.ts",
+    fn: "registrarPagamentoGoLive",
+    veredicto: "AGUARDA_DECISAO",
+    motivo:
+      "Grava pagamento como confirmado e marca a fatura como paga à mão; fatura e pagamento pertencem ao contratante e a confirmação manual tem efeito financeiro.",
+    destino:
+      "Decisão: o Desk pode confirmar pagamento manualmente, ou só entra por integração e conciliação",
+  },
   ...(
     [
       "painelPiloto",
@@ -138,14 +163,16 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
       "Superfície do piloto 5A.1, escrita e nunca montada em tela. Precisa da decisão de manter o piloto como superfície própria ou absorvê-lo no Caso 360.",
     destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
   })),
-  ...(["carregarPilotoAna", "definirIdCanonicoPiloto", "materializarPilotoAna"] as const).map((fn) => ({
-    modulo: "piloto-ana.functions.ts",
-    fn,
-    veredicto: "AGUARDA_DECISAO" as const,
-    motivo:
-      "Leitor, escritor e materializador do piloto específico da Ana; mesma decisão pendente do piloto 5A.1.",
-    destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
-  })),
+  ...(["carregarPilotoAna", "definirIdCanonicoPiloto", "materializarPilotoAna"] as const).map(
+    (fn) => ({
+      modulo: "piloto-ana.functions.ts",
+      fn,
+      veredicto: "AGUARDA_DECISAO" as const,
+      motivo:
+        "Leitor, escritor e materializador do piloto específico da Ana; mesma decisão pendente do piloto 5A.1.",
+      destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
+    }),
+  ),
 
   /* ---------- aguarda decisão (17/10/2026) ---------- */
   {
@@ -154,7 +181,8 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
     veredicto: "AGUARDA_DECISAO" as const,
     motivo:
       "Ficou órfã pelo corte radical de 17/10/2026 em /painel (Hoje vira só a grade da Prancha V4, desk-01-hoje): o bloco 'Radar de marcos jurídicos' não tem equivalente nessa grade e parou de ser chamado. A função e a consulta continuam corretas, só sem tela dona.",
-    destino: "Decisão: ganha tela/aba própria (ex. dentro de Jurídico & Contrato) ou fica fora do Desk por ora",
+    destino:
+      "Decisão: ganha tela/aba própria (ex. dentro de Jurídico & Contrato) ou fica fora do Desk por ora",
   },
 
   /* ---------- religar: lacuna real de operação ---------- */
