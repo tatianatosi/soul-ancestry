@@ -191,13 +191,13 @@ function PainelConsolidado() {
       {/* Topo — 4 KPIs (grade V4, desk-01-hoje). */}
       <dl className="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
-          { rotulo: "Decisões do dia", valor: decisoesDoDia, apoio: "aguardando você", to: "/golive/aprovacoes" },
+          { rotulo: "Decisões do dia", valor: decisoesDoDia, apoio: `caso ${caso.codigo}`, to: "/golive/aprovacoes" },
           { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/casos" },
           { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisa de decisão", to: "/casos" },
           {
             rotulo: "Microentregas para revisão",
             valor: microentregasAguardandoRevisao,
-            apoio: "prontas para conferir",
+            apoio: `caso ${caso.codigo}`,
             to: "/microentregas",
           },
         ].map((k) => (
@@ -217,7 +217,7 @@ function PainelConsolidado() {
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <CaCard
           titulo="Decisões prioritárias"
-          eyebrow={`Fonte: fila de aprovações · ${decisoesDoDia} pendente(s)`}
+          eyebrow={`Fonte: fila de aprovações do caso ${caso.codigo} · ${decisoesDoDia} pendente(s)`}
           acao={
             <Button asChild size="sm" variant="outline">
               <Link to="/golive/aprovacoes">Abrir</Link>
@@ -310,7 +310,7 @@ function PainelConsolidado() {
 
         <CaCard
           titulo="Microentregas prontas para revisão"
-          eyebrow="concluída === false"
+          eyebrow={`Caso ${caso.codigo}`}
           acao={
             <Button asChild size="sm" variant="outline">
               <Link to="/microentregas">Abrir</Link>

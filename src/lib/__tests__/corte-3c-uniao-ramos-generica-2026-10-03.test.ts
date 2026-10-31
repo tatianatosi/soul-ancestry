@@ -152,7 +152,7 @@ describe("Corte 3c — o escritor existe e a aba Jornada deixou de depender da d
 
   it("o Desk tem painel montado na Jornada do Caso 360", () => {
     const caso = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
-    const aba = caso.indexOf('<SecaoAncora id="jornada"');
+    const aba = caso.search(/<SecaoAncora\s+id="jornada"/);
     const painel = caso.indexOf("<PublicarUniaoRamos caseId={id} />", aba);
     expect(aba).toBeGreaterThan(-1);
     expect(painel).toBeGreaterThan(aba);

@@ -75,7 +75,7 @@ function LinhaPessoa({ caseId, p, onMudou }: { caseId: string; p: Linha; onMudou
     onError: (e: Error) => toast.error(e.message),
   });
   const mDespublicar = useMutation({
-    mutationFn: () => despublicar({ data: { caseId, projecaoId: p.publicacao!.id, motivo } }),
+    mutationFn: () => despublicar({ data: { caseId, projecaoId: p.publicacao!.id, motivo: motivo.trim() || "Decisão da Proprietária (sem motivo escrito)" } }),
     onSuccess: () => {
       toast.success("Pessoa retirada da árvore do App.");
       setRetirando(false);
@@ -170,7 +170,7 @@ function LinhaPessoa({ caseId, p, onMudou }: { caseId: string; p: Linha; onMudou
           />
           <button
             type="button"
-            disabled={mDespublicar.isPending || motivo.trim().length < 5}
+            disabled={mDespublicar.isPending}
             onClick={() => mDespublicar.mutate()}
             className="rounded bg-terracotta px-3 py-1 text-cream disabled:opacity-40"
           >

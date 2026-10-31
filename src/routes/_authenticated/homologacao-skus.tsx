@@ -107,7 +107,10 @@ function HomologacaoSkusPage() {
       const entrada = { itens, decisoes, motivo, confirmado };
       setErros(validarConfirmacaoLote(entrada));
       const ids = selecaoHomologavel(entrada);
-      if (!ids.length) return null;
+      if (!ids.length) {
+        // 26/10/2026: antes devolvia null e o diálogo fechava sem dizer nada.
+        throw new Error("Nenhum SKU marcado para homologar. Marque ao menos um item antes de confirmar.");
+      }
       return confirmar({
         data: { ids, motivo: motivo.trim() || motivoConfirmacao.trim() },
       });

@@ -145,8 +145,10 @@ describe("o campo editável existe no Desk; só a assinatura chega ao App (07/10
 
   it("no App, na Conta, só a assinatura — nenhum rastro de upsell", () => {
     const conta = readFileSync("src/routes/portal/conta.tsx", "utf8");
-    expect(conta).toMatch(/data-conta-assinatura-valor/);
-    expect(conta).toMatch(/Sua assinatura/);
+    // 26/10/2026 — Lovable (mockup17, blindagem comercial): o bloco de
+    // assinatura deixou de mostrar valor; mostra nome e situação prevista.
+    expect(conta).toMatch(/data-conta-assinatura-nome/);
+    expect(conta).toMatch(/Condição do projeto familiar/);
     expect(conta).not.toMatch(/upsellsPublicados/);
     expect(conta).not.toMatch(/data-conta-upsell/);
     expect(conta).not.toMatch(/Próximo nível disponível/);

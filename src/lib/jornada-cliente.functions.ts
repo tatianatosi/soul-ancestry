@@ -121,7 +121,7 @@ export const registrarInteracao = createServerFn({ method: "POST" })
         visibilidade: data.visibilidade ?? "interna",
         corrige_interacao_id: data.corrigeInteracaoId ?? null,
         registrado_por: context.userId as string,
-        data_origin: "registro_humano",
+        data_origin: "real", // CHECK do banco: real|fixture_demo|importado|migrado
       })
       .select("*")
       .single();

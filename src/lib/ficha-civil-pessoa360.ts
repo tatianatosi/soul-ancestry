@@ -6,6 +6,7 @@
  * valor é inventado e nenhuma frase de preenchimento é usada.
  */
 import { TEXTO_ESTADO_CAMPO } from "@/lib/ficha-master-estado-campos";
+import { mascararCpf as mascararCpfCanonico } from "@/lib/validacao-pessoa";
 
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -20,9 +21,20 @@ export type PessoaCivil = {
   campos: CampoCivil[];
 };
 
+/*
+ * 26/10/2026 — esta máscara mostrava só os 2 últimos dígitos
+ * (`•••.•••.•••-45`), contrariando a decisão da Proprietária de 22/10/2026,
+ * que definiu `•••.•••.123-45` (5 últimos, o bastante para conferir
+ * identidade no dia a dia). O resultado era o mesmo CPF mascarado de dois
+ * jeitos: 5 dígitos na Pessoa 360 e 2 aqui, na ficha civil do Caso 360.
+ *
+ * Passa a usar a máscara canônica de `validacao-pessoa`. O estado honesto do
+ * campo é preservado: CPF incompleto continua sendo "pendente de validação",
+ * não um número parcial que pareça completo.
+ */
 function mascararCpf(cpf: string): string {
   const d = cpf.replace(/\D/g, "");
-  return d.length === 11 ? `•••.•••.•••-${d.slice(9)}` : "pendente de validação";
+  return d.length === 11 ? mascararCpfCanonico(cpf) : "pendente de validação";
 }
 
 function dataPtBr(valor: string): string {

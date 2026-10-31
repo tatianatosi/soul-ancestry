@@ -146,13 +146,21 @@ describe("a trava desarma os botões, não só mostra o aviso", () => {
     expect(rota).toContain("{bloqueioPrevia ?");
   });
 
+  /*
+   * 26/10/2026 — decisão da Proprietária (opção "b"): a tela do instrumento
+   * (`DocumentoDoInstrumento`) passou a oferecer "Gerar documento com o dado
+   * atual", que parametriza e regera a prévia ANTES do download — nunca
+   * existe documento desatualizado para baixar. Os botões de PDF/DOCX
+   * continuam exatamente como eram: só aceitam `previaId`, e é essa garantia
+   * que este teste protege.
+   */
   it("sem id de prévia, o botão não chama o servidor", () => {
     for (const alvo of [
       "src/components/contrato/baixar-pdf-contrato.tsx",
       "src/components/contrato/baixar-docx-contrato.tsx",
     ]) {
       const src = ler(alvo);
-      expect(src).toMatch(/if \(!previaId\)[\s\S]{0,200}return;/);
+      expect(src, alvo).toMatch(/if \(!previaId\)[\s\S]{0,200}return;/);
     }
   });
 });

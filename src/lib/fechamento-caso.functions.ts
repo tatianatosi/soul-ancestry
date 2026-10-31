@@ -250,7 +250,7 @@ export const abrirTarefaGate = createServerFn({ method: "POST" })
         prazo: data.prazo ?? null,
         responsavel_id: context.userId as string,
         created_by: context.userId as string,
-        data_origin: "registro_humano",
+        data_origin: "real", // CHECK do banco: real|fixture_demo|importado|migrado
       })
       .select("id,titulo,status")
       .single();

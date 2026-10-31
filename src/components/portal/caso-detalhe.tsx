@@ -13,6 +13,7 @@ import {
   prepararEnvioDocumento,
 } from "@/lib/portal-cliente.functions";
 import { AVISO_PUBLICACAO_CLIENTE } from "@/lib/projecoes-cliente";
+import { mensagemDeFalha } from "@/lib/portal-linguagem-viva";
 
 const CATEGORIAS = [
   { valor: "duvida", rotulo: "Dúvida" },
@@ -86,7 +87,8 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] }),
-    onError: (e: Error) => setErro(e.message),
+    // 26/10/2026 (auditoria): nunca repassar texto cru de erro do servidor/banco ao cliente.
+    onError: (e: unknown) => setErro(mensagemDeFalha(e)),
     onSettled: () => setEnviando(null),
   });
 
@@ -97,7 +99,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
       setMensagem("");
       queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] });
     },
-    onError: (e: Error) => setErro(e.message),
+    onError: (e: unknown) => setErro(mensagemDeFalha(e)),
   });
 
   async function baixarDocumento(id: string) {
@@ -106,7 +108,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
       const r = await baixar({ data: { documentoId: id } });
       window.open(r.url, "_blank", "noopener");
     } catch (e) {
-      setErro((e as Error).message);
+      setErro(mensagemDeFalha(e));
     }
   }
 

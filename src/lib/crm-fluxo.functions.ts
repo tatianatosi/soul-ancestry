@@ -290,7 +290,7 @@ export const registrarInteracao = createServerFn({ method: "POST" })
         contact_id: (data["contact_id"] as string) || null,
         opportunity_id: (data["opportunity_id"] as string) || null,
         case_id: (data["case_id"] as string) || null,
-        tipo: data["tipo"],
+        tipo: tipoInteracaoDoBanco(data["tipo"] as string),
         canal: (data["canal"] as string) || (data["tipo"] as string),
         direcao: (data["direcao"] as string) || "internal",
         ocorrido_em: (data["ocorreu_em"] as string) || new Date().toISOString(),
@@ -302,7 +302,7 @@ export const registrarInteracao = createServerFn({ method: "POST" })
         prazo_proxima_acao: (data["prazo_proxima_acao"] as string) || null,
         corrige_interacao_id: (data["corrige_interacao_id"] as string) || null,
         registrado_por: userId,
-        data_origin: "registro_interno",
+        data_origin: "real", // CHECK do banco: real|fixture_demo|importado|migrado
       })
       .select("*")
       .maybeSingle();
@@ -496,3 +496,12 @@ export const arquivarOportunidade = createServerFn({ method: "POST" })
     });
     return { ok: true as const };
   });
+
+/** CHECK crm_interactions_tipo_chk: call|whatsapp|email|reuniao|sistema|outro. */
+function tipoInteracaoDoBanco(tipo: string | null | undefined): string {
+  const t = String(tipo ?? "");
+  if (["call", "whatsapp", "email", "reuniao", "sistema", "outro"].includes(t)) return t;
+  if (t.startsWith("whatsapp")) return "whatsapp";
+  if (t.startsWith("email")) return "email";
+  return "outro";
+}

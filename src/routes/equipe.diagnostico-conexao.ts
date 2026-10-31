@@ -23,9 +23,38 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/equipe/diagnostico-conexao")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
         const { diagnosticoDoServidor, urlDoServidor, chavePublicavelDoServidor, chaveSecretaDoServidor } =
           await import("@/lib/config-servidor");
+
+        /*
+         * 26/10/2026 (auditoria pré-lançamento, M1): a rota era pública e gastava
+         * a chave secreta a cada acesso. Agora só responde a admin ativo,
+         * com o token da sessão no cabeçalho Authorization.
+         */
+        const negado = () =>
+          new Response(JSON.stringify({ erro: "Acesso restrito à administração." }), {
+            status: 401,
+            headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+          });
+        const token = (request.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+        if (!token) return negado();
+        {
+          const { createClient: criar } = await import("@supabase/supabase-js");
+          const cliente = criar(urlDoServidor(), chavePublicavelDoServidor(), {
+            auth: { persistSession: false, autoRefreshToken: false },
+            global: { headers: { Authorization: `Bearer ${token}` } },
+          });
+          const { data: quem } = await cliente.auth.getUser(token);
+          if (!quem?.user) return negado();
+          const { data: staff } = await cliente
+            .from("staff_access")
+            .select("role,status")
+            .eq("auth_user_id", quem.user.id)
+            .is("archived_at", null)
+            .maybeSingle();
+          if (staff?.status !== "active" || staff?.role !== "admin") return negado();
+        }
 
         const base = diagnosticoDoServidor();
         const url = urlDoServidor();

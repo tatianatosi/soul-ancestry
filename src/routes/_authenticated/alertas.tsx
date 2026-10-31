@@ -218,6 +218,15 @@ function AlertasPage() {
 
       {q.isLoading ? (
         <CarregandoDesk />
+      ) : q.isError ? (
+        // 26/10/2026 (auditoria): sem este ramo, falha de leitura caía no
+        // mesmo "Nenhum alerta neste filtro" de uma fila realmente vazia.
+        <div role="alert" className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-terracotta">
+          <p>Não foi possível ler os alertas. Isto é uma falha de leitura, não ausência de alertas.</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => void q.refetch()}>
+            Tentar novamente
+          </Button>
+        </div>
       ) : linhas.length === 0 ? (
         <VazioDesk titulo="Nenhum alerta neste filtro" descricao="Sem sinais pendentes para os filtros escolhidos." />
       ) : (

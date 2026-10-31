@@ -25,8 +25,8 @@ describe("P24 — taxonomia dos 8 nomes exatos da Proprietária no índice do Ca
 
 describe("P24 — Documentos e Financeiro são seções novas, reaproveitando dado já carregado", () => {
   it("seção Documentos existe, lê qDocumentos (sem query nova) e linka para a gestão completa", () => {
-    const inicio = pagina.indexOf('<SecaoAncora id="documentos"');
-    const fim = pagina.indexOf('<SecaoAncora id="financeiro"');
+    const inicio = pagina.search(/<SecaoAncora\s+id="documentos"/);
+    const fim = pagina.search(/<SecaoAncora\s+id="financeiro"/);
     expect(inicio).toBeGreaterThan(-1);
     const bloco = pagina.slice(inicio, fim);
     expect(bloco).toContain("qDocumentos.data");
@@ -34,8 +34,8 @@ describe("P24 — Documentos e Financeiro são seções novas, reaproveitando da
   });
 
   it("seção Financeiro existe, lê qFinanceiro (sem query nova) e não duplica o CTA de pagamento/cobrança", () => {
-    const inicio = pagina.indexOf('<SecaoAncora id="financeiro"');
-    const fim = pagina.indexOf('<details id="secao-log"');
+    const inicio = pagina.search(/<SecaoAncora\s+id="financeiro"/);
+    const fim = pagina.search(/<details\s+id="secao-log"/);
     expect(inicio).toBeGreaterThan(-1);
     const bloco = pagina.slice(inicio, fim);
     expect(bloco).toContain("qFinanceiro.data");
@@ -47,8 +47,8 @@ describe("P24 — Documentos e Financeiro são seções novas, reaproveitando da
 
 describe("P24 — nenhuma tabela, rota ou escritor novo", () => {
   it("não introduz nenhum novo useServerFn nem novo useQuery além dos já existentes na tela", () => {
-    const inicio = pagina.indexOf('<SecaoAncora id="documentos"');
-    const fim = pagina.indexOf('<details id="secao-log"');
+    const inicio = pagina.search(/<SecaoAncora\s+id="documentos"/);
+    const fim = pagina.search(/<details\s+id="secao-log"/);
     const bloco = pagina.slice(inicio, fim);
     expect(bloco).not.toContain("useServerFn(");
     expect(bloco).not.toContain("useQuery(");

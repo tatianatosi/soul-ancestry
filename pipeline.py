@@ -4,6 +4,9 @@ import shutil
 import subprocess
 import sys
 
+BRANCHES_PROIBIDAS = {"main", "master"}
+
+
 def executar(comando, mensagem_erro):
     try:
         resultado = subprocess.run(
@@ -21,10 +24,12 @@ def executar(comando, mensagem_erro):
         print(f"Detalhes técnicos:\n{detalhe}")
         sys.exit(1)
 
+
 def ferramenta():
     if shutil.which("bun") and (os.path.exists("bun.lock") or os.path.exists("bunfig.toml")):
         return "bun"
     return "npm"
+
 
 SKIP_DIRS = {
     "node_modules", ".git", ".next", "dist", "build", "venv",
@@ -42,6 +47,7 @@ PADROES = (
     re.compile(r"código restante", re.IGNORECASE),
 )
 
+
 def linha_incompleta(linha):
     texto = linha.strip()
     if not texto:
@@ -51,12 +57,14 @@ def linha_incompleta(linha):
         return False
     return any(padrao.search(texto) for padrao in PADROES)
 
+
 def sensivel(linha_status):
     caminho = linha_status[3:].strip().strip('"')
     nome = os.path.basename(caminho.split(" -> ")[-1])
     if nome == ".env.example":
         return False
     return nome == ".env" or nome.startswith(".env.")
+
 
 print("INICIANDO PIPELINE (build + typecheck -> branch atual; o merge é aprovado por humano no GitHub)\n")
 
@@ -102,10 +110,34 @@ print("Typecheck concluído.")
 
 print("\n4/5 Preparando a branch atual...")
 branch_atual = executar("git branch --show-current", "Falha ao detectar a branch atual.")
-if not branch_atual or branch_atual == "main":
-    print("ERRO: rode o pipeline numa branch de trabalho (não na main nem em HEAD solto). O merge na main é feito por aprovação humana no GitHub.")
+if not branch_atual or branch_atual in BRANCHES_PROIBIDAS:
+    print(
+        "ERRO: rode o pipeline numa branch de trabalho (não em "
+        f"{' ou '.join(sorted(BRANCHES_PROIBIDAS))} nem em HEAD solto). "
+        "O merge na main é feito por aprovação humana no GitHub."
+    )
     sys.exit(1)
 print(f"Branch atual: {branch_atual}. Sem troca de branch.")
+
+# Merge em andamento com conflito não resolvido: `git add .` marcaria o
+# arquivo como resolvido sem checar o conteúdo, e os marcadores de conflito
+# (<<<<<<<, =======, >>>>>>>) poderiam ser commitados literalmente.
+resultado_merge = subprocess.run(
+    ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+    capture_output=True, text=True,
+)
+if resultado_merge.returncode == 0:
+    saida_conflitos = executar(
+        "git diff --name-only --diff-filter=U", "Falha ao checar conflitos de merge."
+    )
+    arquivos_em_conflito = [l for l in saida_conflitos.splitlines() if l.strip()]
+    if arquivos_em_conflito:
+        print("ERRO: há conflitos de merge não resolvidos:")
+        for item in arquivos_em_conflito:
+            print(f"  - {item}")
+        print("\nResolva os conflitos antes de rodar o pipeline. Ele não resolve, nem comita, nem aborta o merge.")
+        sys.exit(1)
+    print("Merge em andamento (MERGE_HEAD presente), sem arquivos não resolvidos. Seguindo.")
 
 status = executar("git status --porcelain", "Falha ao ler o status do Git.")
 if any(sensivel(l) for l in status.splitlines() if l.strip()):

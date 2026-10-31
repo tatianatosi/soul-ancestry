@@ -10,7 +10,13 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicacoesDeFase02, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
+import {
+  jornadaSanitizada,
+  publicacoesDeEntrega,
+  publicacoesDeFase01,
+  publicacoesDeFase02,
+  ROTULOS_ETAPA_CLIENTE,
+} from "@/lib/portal-dados-vivos";
 import { ehPessoaPublicada, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
 import { textoParaCliente } from "@/lib/portal-linguagem-viva";
@@ -21,7 +27,11 @@ const PASSOS_CASO = ["Onboarding", "Pesquisa", "Documentos", "Validação", "Ent
 
 function dataCurta(iso: string | null): string {
   if (!iso) return "sem data";
-  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(iso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 /**
@@ -60,7 +70,12 @@ function noRealDeItem(item: PublicacaoCliente): NoEvento {
     categoria: historico ? "gold" : "navy",
     rotuloCategoria: historico ? "Passado" : "Presente",
     dataPrincipal: historico ? (ano ? String(ano) : null) : dataCurta(item.publicadoEm),
-    titulo: item.tipo === "microentrega" ? "Da nossa jornada" : item.tipo === "linha_tempo" ? "Marco da história" : item.tipoRotulo,
+    titulo:
+      item.tipo === "microentrega"
+        ? "Da nossa jornada"
+        : item.tipo === "linha_tempo"
+          ? "Marco da história"
+          : item.tipoRotulo,
     conteudo: item.conteudo,
   };
 }
@@ -163,7 +178,9 @@ function TrilhaCompacta({
               >
                 {i + 1}
               </span>
-              {i < passos.length - 1 ? <span className="mx-1 h-px flex-1 bg-navy/10" aria-hidden="true" /> : null}
+              {i < passos.length - 1 ? (
+                <span className="mx-1 h-px flex-1 bg-navy/10" aria-hidden="true" />
+              ) : null}
             </div>
           );
         })}
@@ -171,7 +188,8 @@ function TrilhaCompacta({
       {/* Ajuste 2026-09-12: microtexto explícito — o dourado sozinho não deixava claro que é a etapa atual. */}
       {passoAtualIndice !== null ? (
         <p className="mt-2 text-center text-[10px] text-navy/55">
-          Você está aqui: <span className="font-semibold text-navy">{passos[passoAtualIndice]}</span>
+          Você está aqui:{" "}
+          <span className="font-semibold text-navy">{passos[passoAtualIndice]}</span>
         </p>
       ) : null}
     </div>
@@ -201,73 +219,117 @@ function TimelineVertical({
   variante?: "gold" | "navy";
   /** Marcos publicados que já registram uma União de Ramos (projeção `uniao_ramos`). */
   idsUniao?: ReadonlySet<string>;
-  /** Etapa atual do caso (src/lib/etapas-caso.ts), destacada na Linha do Processo. */
+  /** Etapa da PREPARAÇÃO do caso (src/lib/etapas-caso.ts), destacada na Linha do Processo (L4-A). */
   etapaAtual?: string | null;
 }) {
   return (
     <div className="app-jornada-linha min-w-0" data-linha-tom={variante}>
-      <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
+      <div
+        className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")}
+        aria-hidden="true"
+      />
       <div className="py-4">
-      <h2 className={cn("mb-3 text-[11px] font-semibold uppercase tracking-[0.2em]", variante === "gold" ? "text-gold" : "text-navy")}>{eyebrow}</h2>
-      {etapaAtual ? (
-        <p className="mb-3 rounded-xl border-2 border-gold bg-gold/10 px-3 py-2 text-sm text-navy" data-jornada-etapa-atual>
-          <span className="block text-[10px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Preparação do caso</span>
-          {etapaAtual}
-        </p>
-      ) : null}
-      {eventos.length === 0 ? (
-        <div><p className="py-3 text-sm leading-relaxed text-navy/60">
-          {variante === "gold"
-            ? "As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família."
-            : "Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar."}
-        </p><p className="app-estado-editorial mt-2">Em pesquisa</p></div>
-      ) : (
-        <div className="relative">
-          <div className={cn("app-jornada-fio absolute inset-y-0 left-0 w-0.5 rounded-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
-          <ol className="relative">
-            {eventos.map((no, i) => (
-              <li key={no.id} className="relative pb-5 pl-4 last:pb-0" data-jornada-no={no.categoria}>
-                <span
-                  className={cn(
-                    "app-jornada-ponto absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full",
-                    no.categoria === "gold" && "bg-gold",
-                    no.categoria === "gold-soft" && "bg-gold/50",
-                    no.categoria === "navy" && (no.id === "__agora__" ? "bg-navy ring-4 ring-gold/30" : "bg-navy/35"),
-                  )}
-                  aria-hidden="true"
-                />
-                {/* Mockup p.4: linha ancestral abre pelo ano; linha do processo, pelo marco. */}
-                <div className="app-jornada-evento" data-rotulo-categoria={no.rotuloCategoria}>
-                  {variante === "gold" ? (
-                    <>
-                      <h3 className="font-serif text-lg leading-none text-navy">{no.dataPrincipal ?? no.titulo}</h3>
-                      {no.dataPrincipal ? <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gold">{no.titulo}</p> : null}
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="font-serif text-base leading-snug text-navy">{no.titulo}</h3>
-                      {no.dataPrincipal ? <p className="mt-0.5 text-[11px] text-navy/55">{no.dataPrincipal}</p> : null}
-                    </>
-                  )}
-                  {idsUniao?.has(no.id) ? (
-                    <span className="mt-1 inline-flex rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy" data-jornada-pilula-uniao>União de Ramos</span>
+        <h2
+          className={cn(
+            "mb-3 text-[11px] font-semibold uppercase tracking-[0.2em]",
+            variante === "gold" ? "text-gold" : "text-navy",
+          )}
+        >
+          {eyebrow}
+        </h2>
+        {etapaAtual ? (
+          <p
+            className="mb-3 rounded-xl border-2 border-gold bg-gold/10 px-3 py-2 text-sm text-navy"
+            data-jornada-etapa-atual
+          >
+            <span className="block text-[10px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">
+              Preparação do caso
+            </span>
+            {etapaAtual}
+          </p>
+        ) : null}
+        {eventos.length === 0 ? (
+          <div>
+            <p className="py-3 text-sm leading-relaxed text-navy/60">
+              {variante === "gold"
+                ? "As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família."
+                : "Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar."}
+            </p>
+            <p className="app-estado-editorial mt-2">Em pesquisa</p>
+          </div>
+        ) : (
+          <div className="relative">
+            <div
+              className={cn(
+                "app-jornada-fio absolute inset-y-0 left-0 w-0.5 rounded-full",
+                variante === "gold" ? "bg-gold" : "bg-navy",
+              )}
+              aria-hidden="true"
+            />
+            <ol className="relative">
+              {eventos.map((no, i) => (
+                <li
+                  key={no.id}
+                  className="relative pb-5 pl-4 last:pb-0"
+                  data-jornada-no={no.categoria}
+                >
+                  <span
+                    className={cn(
+                      "app-jornada-ponto absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full",
+                      no.categoria === "gold" && "bg-gold",
+                      no.categoria === "gold-soft" && "bg-gold/50",
+                      no.categoria === "navy" &&
+                        (no.id === "__agora__" ? "bg-navy ring-4 ring-gold/30" : "bg-navy/35"),
+                    )}
+                    aria-hidden="true"
+                  />
+                  {/* Mockup p.4: linha ancestral abre pelo ano; linha do processo, pelo marco. */}
+                  <div className="app-jornada-evento" data-rotulo-categoria={no.rotuloCategoria}>
+                    {variante === "gold" ? (
+                      <>
+                        <h3 className="font-serif text-lg leading-none text-navy">
+                          {no.dataPrincipal ?? no.titulo}
+                        </h3>
+                        {no.dataPrincipal ? (
+                          <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gold">
+                            {no.titulo}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="font-serif text-base leading-snug text-navy">{no.titulo}</h3>
+                        {no.dataPrincipal ? (
+                          <p className="mt-0.5 text-[11px] text-navy/55">{no.dataPrincipal}</p>
+                        ) : null}
+                      </>
+                    )}
+                    {idsUniao?.has(no.id) ? (
+                      <span
+                        className="mt-1 inline-flex rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy"
+                        data-jornada-pilula-uniao
+                      >
+                        União de Ramos
+                      </span>
+                    ) : null}
+                    <p className="mt-1 text-xs leading-relaxed text-navy/70">{no.conteudo}</p>
+                  </div>
+                  {no.dataSecundaria ? (
+                    <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p>
                   ) : null}
-                  <p className="mt-1 text-xs leading-relaxed text-navy/70">{no.conteudo}</p>
-                </div>
-                {no.dataSecundaria ? <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p> : null}
-                {no.destino ? (
-                  <LinkPortal
-                    to={no.destino}
-                    className="mt-1 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-                  >
-                    {no.rotuloCta ?? "Ver próxima ação"}
-                  </LinkPortal>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
+                  {no.destino ? (
+                    <LinkPortal
+                      to={no.destino}
+                      className="mt-1 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                    >
+                      {no.rotuloCta ?? "Ver próxima ação"}
+                    </LinkPortal>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -278,21 +340,69 @@ function TimelineVertical({
  * ANCESTRAL e LINHA DO PROCESSO, em vez de um item misturado na mesma
  * lista (era o nó tipo "ponte" antes desta composição em duas colunas).
  */
-function JornadaIntercalada({ ancestral, processo }: { ancestral: NoEvento[]; processo: NoEvento[] }) {
-  const linhas = Array.from({ length: Math.max(ancestral.length, processo.length) }, (_, i) => [ancestral[i], processo[i]]).flat().filter((n): n is NoEvento => Boolean(n));
-  return <div className="app-jornada-intercalada"><h2 className="font-serif text-xl text-navy">História ancestral e processo</h2>{linhas.length === 0 ? <p className="mt-3 text-sm text-navy/70">Os marcos da sua história aparecerão aqui quando forem compartilhados.</p> : <ol className="mt-4 border-l-2 border-gold pl-4">{linhas.map((n) => <li key={n.id} className="app-jornada-evento relative mb-5"><span className="app-chip" data-tom={n.categoria === "navy" ? "analise" : "preparo"}>{n.categoria === "navy" ? "Processo" : "Ancestral"}</span><h3 className="mt-2 font-serif text-xl text-navy">{n.dataPrincipal ?? n.titulo}</h3><p className="mt-2 text-sm text-navy/70">{n.conteudo}</p>{n.destino ? <LinkPortal to={n.destino} className="mt-2 inline-flex text-sm text-navy underline">{n.rotuloCta ?? "Ver na Jornada"}</LinkPortal> : null}</li>)}</ol>}</div>;
+function JornadaIntercalada({
+  ancestral,
+  processo,
+}: {
+  ancestral: NoEvento[];
+  processo: NoEvento[];
+}) {
+  const linhas = Array.from({ length: Math.max(ancestral.length, processo.length) }, (_, i) => [
+    ancestral[i],
+    processo[i],
+  ])
+    .flat()
+    .filter((n): n is NoEvento => Boolean(n));
+  return (
+    <div className="app-jornada-intercalada">
+      <h2 className="font-serif text-xl text-navy">História ancestral e processo</h2>
+      {linhas.length === 0 ? (
+        <p className="mt-3 text-sm text-navy/70">
+          Os marcos da sua história aparecerão aqui quando forem compartilhados.
+        </p>
+      ) : (
+        <ol className="mt-4 border-l-2 border-gold pl-4">
+          {linhas.map((n) => (
+            <li key={n.id} className="app-jornada-evento relative mb-5">
+              <span className="app-chip" data-tom={n.categoria === "navy" ? "analise" : "preparo"}>
+                {n.categoria === "navy" ? "Processo" : "Ancestral"}
+              </span>
+              <h3 className="mt-2 font-serif text-xl text-navy">{n.dataPrincipal ?? n.titulo}</h3>
+              <p className="mt-2 text-sm text-navy/70">{n.conteudo}</p>
+              {n.destino ? (
+                <LinkPortal to={n.destino} className="mt-2 inline-flex text-sm text-navy underline">
+                  {n.rotuloCta ?? "Ver na Jornada"}
+                </LinkPortal>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
 }
 
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
   return (
     <div className="app-jornada-uniao app-uniao-ramos relative" data-uniao-ramos>
-      <p className="app-uniao-rotulo text-[10px] font-semibold uppercase tracking-widest">Momentos de União</p>
+      <p className="app-uniao-rotulo text-[10px] font-semibold uppercase tracking-widest">
+        Momentos de União
+      </p>
       {pontes.length > 0 ? (
         <ul className="mt-2 space-y-1.5">
-          {pontes.map((p, i) => <li key={i} className="app-uniao-citacao text-sm italic leading-relaxed">“{p.texto}”</li>)}
+          {pontes.map((p, i) => (
+            <li key={i} className="app-uniao-citacao text-sm italic leading-relaxed">
+              “{p.texto}”
+            </li>
+          ))}
         </ul>
       ) : (
-        <div><p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p><p className="app-estado-editorial mt-2">Em pesquisa</p></div>
+        <div>
+          <p className="mt-1.5 text-sm leading-relaxed text-navy/60">
+            Os encontros da história da família aparecerão aqui quando forem compartilhados.
+          </p>
+          <p className="app-estado-editorial mt-2">Em pesquisa</p>
+        </div>
       )}
     </div>
   );
@@ -324,7 +434,7 @@ export function PortalJornada() {
   const fase2 = useVisibilidade("fase02");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
-    const abreJornada = (r: typeof entrega.visibilidade) => r.estado === "released";
+  const abreJornada = (r: typeof entrega.visibilidade) => r.estado === "released";
 
   return (
     <PortalShell titulo="Nossa jornada" descricao={COPY_TELAS.jornada.descricao}>
@@ -347,12 +457,12 @@ export function PortalJornada() {
             const destino = vivo.proximaAcao?.destino ?? null;
             const ritmoRotulo =
               jornada.ritmo === "sem_publicacao"
-                 ? "Estamos preparando os primeiros passos para compartilhar com você"
+                ? "Estamos preparando os primeiros passos para compartilhar com você"
                 : jornada.ritmo === "regular"
-                   ? "Veja os trechos já compartilhados com sua família"
+                  ? "Veja os trechos já compartilhados com sua família"
                   : jornada.ritmo === "atencao"
                     ? "Próxima atualização em preparação"
-                     : "A próxima atualização será compartilhada quando estiver pronta";
+                    : "A próxima atualização será compartilhada quando estiver pronta";
             // Prévia não é sinônimo de demonstração: o acesso master abre caso
             // real. Roteiro editorial e passo fixo pertencem só ao caso demo.
             const ehDemo = Boolean(previa) && (previa?.identidade?.fonte ?? "demo") === "demo";
@@ -368,7 +478,9 @@ export function PortalJornada() {
 
             // Monta os nós: roteiro editorial na demo, ordem cronológica real no cliente real.
             const nos: No[] = ehDemo
-              ? ORDEM_NARRATIVA_DEMO_SOPHIA.map((id) => jornada.linha.find((item) => item.id === id))
+              ? ORDEM_NARRATIVA_DEMO_SOPHIA.map((id) =>
+                  jornada.linha.find((item) => item.id === id),
+                )
                   .filter((item): item is PublicacaoCliente => Boolean(item))
                   .map(noDemoDeItem)
               : [...jornada.linha]
@@ -385,7 +497,11 @@ export function PortalJornada() {
                    * Ancestral. Fora fica só o nó de pessoa.
                    */
                   .filter((item) => !ehPessoaPublicada(item))
-                  .sort((a, b) => new Date(a.publicadoEm ?? 0).getTime() - new Date(b.publicadoEm ?? 0).getTime())
+                  .sort(
+                    (a, b) =>
+                      new Date(a.publicadoEm ?? 0).getTime() -
+                      new Date(b.publicadoEm ?? 0).getTime(),
+                  )
                   .map(noRealDeItem);
 
             // Marcos aprovados para a família também pertencem à linha viva.
@@ -393,7 +509,8 @@ export function PortalJornada() {
             if (!ehDemo) {
               for (const marco of vivo.historico ?? []) {
                 const texto = textoParaCliente(marco.texto);
-                if (!texto || nos.some((no) => no.tipo === "evento" && no.conteudo === texto)) continue;
+                if (!texto || nos.some((no) => no.tipo === "evento" && no.conteudo === texto))
+                  continue;
                 nos.push({
                   tipo: "evento",
                   id: `marco-${marco.id}`,
@@ -418,8 +535,12 @@ export function PortalJornada() {
               banco. A demo segue com o roteiro editorial próprio.
             */
             if (ehDemo) {
-              const temHistoria = jornada.linha.some((i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.historiaProjecaoId);
-              const temCaso = jornada.linha.some((i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.casoProjecaoId);
+              const temHistoria = jornada.linha.some(
+                (i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.historiaProjecaoId,
+              );
+              const temCaso = jornada.linha.some(
+                (i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.casoProjecaoId,
+              );
               if (temHistoria && temCaso) {
                 // Roteiro editorial: a ponte entra após o 3º evento (posição 4 do roteiro).
                 nos.splice(3, 0, { tipo: "ponte", texto: UNIAO_DE_RAMOS_DEMO_SOPHIA.legenda });
@@ -430,7 +551,9 @@ export function PortalJornada() {
               const inserir = jornada.pontes
                 .map((ponte) => ({
                   ponte,
-                  idx: nos.findIndex((n) => n.tipo === "evento" && n.id === ponte.historiaProjecaoId),
+                  idx: nos.findIndex(
+                    (n) => n.tipo === "evento" && n.id === ponte.historiaProjecaoId,
+                  ),
                 }))
                 .filter((x) => x.idx !== -1)
                 .sort((a2, b2) => b2.idx - a2.idx);
@@ -439,20 +562,22 @@ export function PortalJornada() {
               }
             }
 
-
-             // Nó final: apenas quando a próxima ação tem destino liberado.
+            // Nó final: apenas quando a próxima ação tem destino liberado.
             // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
-            if (destino) nos.push({
-              tipo: "evento",
-              id: "__agora__",
-              categoria: "navy",
-              rotuloCategoria: "Presente",
-              dataPrincipal: "Agora",
-              titulo: "Próxima ação",
-              conteudo: jornada.proximoPasso,
-              destino,
-              rotuloCta: destino?.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação",
-            });
+            if (destino)
+              nos.push({
+                tipo: "evento",
+                id: "__agora__",
+                categoria: "navy",
+                rotuloCategoria: "Presente",
+                dataPrincipal: "Agora",
+                titulo: "Próxima ação",
+                conteudo: jornada.proximoPasso,
+                destino,
+                rotuloCta: destino?.includes("documentos")
+                  ? "Ver documentos solicitados"
+                  : "Ver próxima ação",
+              });
 
             // P3 (25/09/2026): próxima entrega — só a data sanitizada que a
             // view portal_casos projeta; nenhum título ou detalhe interno.
@@ -488,9 +613,11 @@ export function PortalJornada() {
             const pontes = nos.filter((n): n is NoPonte => n.tipo === "ponte");
             const idsUniao = new Set(ehDemo ? [] : jornada.pontes.map((p) => p.historiaProjecaoId));
             const etapasCaso = vivo.resumoCaso?.etapas ?? [];
-            const etapaAtualRotulo = etapasCaso.length === 0
-              ? null
-              : (etapasCaso.find((e) => e.estado !== "concluido")?.rotulo ?? "Concluída — as cinco etapas de preparação");
+            const etapaAtualRotulo =
+              etapasCaso.length === 0
+                ? null
+                : (etapasCaso.find((e) => e.estado !== "concluido")?.rotulo ??
+                  "Concluída — as cinco etapas de preparação");
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
@@ -503,86 +630,194 @@ export function PortalJornada() {
                       bloco narrativo aprovado: etapa, próxima atualização e o
                       estado vazio de publicação por linha.
                     */
-                     <div data-jornada-vazio className="space-y-5">
-                       <div data-jornada-narrativa-vazia className="app-v11-abertura text-cream">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Nossa jornada</p>
-                         <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
-                         <p className="mt-2 text-sm leading-relaxed text-cream/80">{ritmoRotulo}</p>
+                    <div data-jornada-vazio className="space-y-5">
+                      <div data-jornada-narrativa-vazia className="app-v11-abertura text-cream">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">
+                          Nossa jornada
+                        </p>
+                        <h2 className="mt-1 font-serif text-2xl text-cream">
+                          Uma história começando a ganhar forma
+                        </h2>
+                        <p className="mt-2 text-sm leading-relaxed text-cream/80">{ritmoRotulo}</p>
                       </div>
-                        {/* Reconciliação: régua e marcos do rascunho preservados; grade atual mantém uma coluna no celular. */}
-                        <div data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8">
-                          <section id="linha-origem" className="relative min-w-0 scroll-mt-20 py-2">
-                           <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Linha Ancestral</h2>
-                           <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
-                            <p className="app-estado-editorial mt-2">Em pesquisa</p>
-                         </section>
-                          <section id="linha-processo" className="relative min-w-0 scroll-mt-20 py-2">
-                           <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-navy">Linha do Processo</h2>
-                           <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
-                            <p className="app-estado-editorial mt-2">Em pesquisa</p>
-                         </section>
-                          {pontes.length > 0 ? (<div className="relative col-span-1 md:col-span-2">
-                           <MomentosDeUniao pontes={pontes} />
-                         </div>) : null}
-                          <section id="linha-memoria" className="relative col-span-1 md:col-span-2 scroll-mt-20 border-t border-border py-4">
-                            <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
-                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias e os materiais de memória aparecerão aqui quando forem compartilhados com a família.</p>
-                          </section>
+                      {/* Reconciliação: régua e marcos do rascunho preservados; grade atual mantém uma coluna no celular. */}
+                      <div
+                        data-jornada-duas-linhas
+                        className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8"
+                      >
+                        <section id="linha-origem" className="relative min-w-0 scroll-mt-20 py-2">
+                          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+                            Linha Ancestral
+                          </h2>
+                          <p className="mt-2 text-sm leading-relaxed text-navy/60">
+                            As histórias das gerações anteriores aparecerão aqui quando estiverem
+                            prontas para a família.
+                          </p>
+                          <p className="app-estado-editorial mt-2">Em pesquisa</p>
+                        </section>
+                        <section id="linha-processo" className="relative min-w-0 scroll-mt-20 py-2">
+                          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-navy">
+                            Linha do Processo
+                          </h2>
+                          <p className="mt-2 text-sm leading-relaxed text-navy/60">
+                            Os próximos passos aparecerão aqui quando estiverem prontos para
+                            compartilhar.
+                          </p>
+                          <p className="app-estado-editorial mt-2">Em pesquisa</p>
+                        </section>
+                        {pontes.length > 0 ? (
+                          <div className="relative col-span-1 md:col-span-2">
+                            <MomentosDeUniao pontes={pontes} />
+                          </div>
+                        ) : null}
+                        <section
+                          id="linha-memoria"
+                          className="relative col-span-1 md:col-span-2 scroll-mt-20 border-t border-border py-4"
+                        >
+                          <h2 className="flex items-center gap-2 font-serif text-xl text-navy">
+                            <BookOpen className="h-5 w-5" aria-hidden="true" />
+                            Memória
+                          </h2>
+                          <p className="mt-2 text-sm leading-relaxed text-navy/60">
+                            As histórias e os materiais de memória aparecerão aqui quando forem
+                            compartilhados com a família.
+                          </p>
+                        </section>
                       </div>
                     </div>
                   ) : (
                     <>
-                       <div className="app-v11-abertura text-cream">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Nossa jornada</p>
-                         <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
-                         <p className="mt-2 text-sm leading-relaxed text-cream/80">{vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}</p>
+                      <div className="app-v11-abertura text-cream">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">
+                          Nossa jornada
+                        </p>
+                        <h2 className="mt-1 font-serif text-2xl text-cream">
+                          Uma história começando a ganhar forma
+                        </h2>
+                        <p className="mt-2 text-sm leading-relaxed text-cream/80">
+                          {vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}
+                        </p>
                       </div>
-                        <div data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8">
-                          <div className="app-jornada-mobile"><JornadaIntercalada ancestral={linhaAncestral} processo={linhaProcesso} /></div>
-                          <div id="linha-origem" className="app-jornada-desktop relative min-w-0 scroll-mt-20">
-                          <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" idsUniao={idsUniao} />
+                      <div
+                        data-jornada-duas-linhas
+                        className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8"
+                      >
+                        <div className="app-jornada-mobile">
+                          <JornadaIntercalada ancestral={linhaAncestral} processo={linhaProcesso} />
                         </div>
-                          <div id="linha-processo" className="app-jornada-desktop relative min-w-0 scroll-mt-20">
-                          <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" idsUniao={idsUniao} etapaAtual={etapaAtualRotulo} />
-                            {passoAtualIndice !== null ? (
-                              <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
-                            ) : null}
+                        <div
+                          id="linha-origem"
+                          className="app-jornada-desktop relative min-w-0 scroll-mt-20"
+                        >
+                          <TimelineVertical
+                            eventos={linhaAncestral}
+                            eyebrow="Linha Ancestral"
+                            variante="gold"
+                            idsUniao={idsUniao}
+                          />
                         </div>
-                          {/* Mockup p.4: "Momentos de União" é o cartão abaixo das duas linhas. */}
-                          {pontes.length > 0 ? (<div className="relative col-span-1 md:col-span-2">
-                           <MomentosDeUniao pontes={pontes} />
-                         </div>) : null}
-                         <section id="linha-memoria" className="relative col-span-1 md:col-span-2 scroll-mt-20 border-t border-border py-4">
-                           <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
-                           <p className="mt-2 text-sm leading-relaxed text-navy/75">As histórias e os materiais de memória compartilhados com sua família ficam reunidos no Legado.</p>
-                           <LinkPortal to="/portal/legado" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver o Legado</LinkPortal>
-                         </section>
+                        <div
+                          id="linha-processo"
+                          className="app-jornada-desktop relative min-w-0 scroll-mt-20"
+                        >
+                          <TimelineVertical
+                            eventos={linhaProcesso}
+                            eyebrow="Linha do Processo"
+                            variante="navy"
+                            idsUniao={idsUniao}
+                            etapaAtual={etapaAtualRotulo}
+                          />
+                          {/*
+                              Achado 25 (design critique, 27/10/2026): esta
+                              trilha e o bloco "Preparação do caso" dentro de
+                              TimelineVertical (acima) mostram DOIS progressos
+                              de fase distintos, sem rótulo que explicasse a
+                              diferença — pareciam um widget duplicado/quebrado.
+                              São fontes diferentes por desenho, já registradas
+                              como divergência não resolvida por invenção
+                              (§29, comentário de etapaDoCasoCliente em
+                              portal-dados-vivos.ts): esta trilha usa as 8
+                              fases de `case_plans.fase_jornada`; o bloco acima
+                              usa as 5 etapas canônicas de `etapas-caso.ts`.
+                              Nenhum de-para entre as duas foi aprovado — o
+                              rótulo apenas nomeia a trilha, sem mesclar dados.
+                            */}
+                          {passoAtualIndice !== null ? (
+                            <div className="mt-3">
+                              <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-navy/45">
+                                Passo a passo da jornada
+                              </p>
+                              <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />
+                            </div>
+                          ) : null}
+                        </div>
+                        {/* Mockup p.4: "Momentos de União" é o cartão abaixo das duas linhas. */}
+                        {pontes.length > 0 ? (
+                          <div className="relative col-span-1 md:col-span-2">
+                            <MomentosDeUniao pontes={pontes} />
+                          </div>
+                        ) : null}
+                        <section
+                          id="linha-memoria"
+                          className="relative col-span-1 md:col-span-2 scroll-mt-20 border-t border-border py-4"
+                        >
+                          <h2 className="flex items-center gap-2 font-serif text-xl text-navy">
+                            <BookOpen className="h-5 w-5" aria-hidden="true" />
+                            Memória
+                          </h2>
+                          <p className="mt-2 text-sm leading-relaxed text-navy/75">
+                            As histórias e os materiais de memória compartilhados com sua família
+                            ficam reunidos no Legado.
+                          </p>
+                          <LinkPortal
+                            to="/portal/legado"
+                            className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4"
+                          >
+                            Ver o Legado
+                          </LinkPortal>
+                        </section>
                       </div>
                     </>
                   )}
 
-                   {((abreJornada(entrega.visibilidade) && temMateriais) ||
-                     (abreJornada(fase1.visibilidade) && temFase01) ||
-                     (abreJornada(fase2.visibilidade) && temFase02)) && (
+                  {((abreJornada(entrega.visibilidade) && temMateriais) ||
+                    (abreJornada(fase1.visibilidade) && temFase01) ||
+                    (abreJornada(fase2.visibilidade) && temFase02)) && (
                     <p className="text-[11px] text-navy/50">
                       Material publicado:{" "}
-                       {abreJornada(entrega.visibilidade) && temMateriais ? (
-                        <LinkPortal to="/portal/entregas" className="underline underline-offset-2 hover:text-navy/70">
+                      {abreJornada(entrega.visibilidade) && temMateriais ? (
+                        <LinkPortal
+                          to="/portal/entregas"
+                          className="underline underline-offset-2 hover:text-navy/70"
+                        >
                           ver materiais liberados
                         </LinkPortal>
                       ) : null}
-                       {abreJornada(entrega.visibilidade) && temMateriais && abreJornada(fase1.visibilidade) && temFase01 ? " · " : null}
-                       {abreJornada(fase1.visibilidade) && temFase01 ? (
-                        <LinkPortal to="/portal/fase-01" className="underline underline-offset-2 hover:text-navy/70">
+                      {abreJornada(entrega.visibilidade) &&
+                      temMateriais &&
+                      abreJornada(fase1.visibilidade) &&
+                      temFase01
+                        ? " · "
+                        : null}
+                      {abreJornada(fase1.visibilidade) && temFase01 ? (
+                        <LinkPortal
+                          to="/portal/fase-01"
+                          className="underline underline-offset-2 hover:text-navy/70"
+                        >
                           ver relatório preparado
                         </LinkPortal>
                       ) : null}
-                       {((abreJornada(entrega.visibilidade) && temMateriais) || (abreJornada(fase1.visibilidade) && temFase01)) &&
-                       abreJornada(fase2.visibilidade) && temFase02
+                      {((abreJornada(entrega.visibilidade) && temMateriais) ||
+                        (abreJornada(fase1.visibilidade) && temFase01)) &&
+                      abreJornada(fase2.visibilidade) &&
+                      temFase02
                         ? " · "
                         : null}
-                       {abreJornada(fase2.visibilidade) && temFase02 ? (
-                        <LinkPortal to="/portal/fase-02" className="underline underline-offset-2 hover:text-navy/70">
+                      {abreJornada(fase2.visibilidade) && temFase02 ? (
+                        <LinkPortal
+                          to="/portal/fase-02"
+                          className="underline underline-offset-2 hover:text-navy/70"
+                        >
                           ver atualização seguinte
                         </LinkPortal>
                       ) : null}

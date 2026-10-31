@@ -203,6 +203,10 @@ export function LinkPortal({
   children: ReactNode;
 }) {
   const fonte = useContext(FontePortalContext);
+  // 26/10/2026: mantém o caso escolhido (?casoId) ao trocar de aba; sem isso a
+  // família com mais de um caso via casos diferentes em abas diferentes.
+  const busca = useSearch({ strict: false }) as { casoId?: string };
+  const casoId = typeof busca?.casoId === "string" ? busca.casoId : undefined;
   if (fonte?.previa && fonte.aoNavegar) {
     return (
       <button type="button" onClick={() => fonte.aoNavegar?.(to)} className={className}>
@@ -211,7 +215,11 @@ export function LinkPortal({
     );
   }
   return (
-    <Link to={to} className={className}>
+    <Link
+      to={to}
+      search={casoId && to.startsWith("/portal") ? ({ casoId } as never) : undefined}
+      className={className}
+    >
       {children}
     </Link>
   );

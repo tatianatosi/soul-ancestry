@@ -64,7 +64,13 @@ describe("CA08-JURIDICO-PROPORCIONAL — leitura só diagnostica, nunca bloqueia
     expect(validacaoCaso).toContain('"protocolo"');
     expect(validacaoCaso).toContain('"publicacao_juridica"');
     expect(validacaoCaso).toContain('"acesso_sensivel_menor"');
-    for (const proibido of ["lead", "discovery", "pesquisa", "rascunho_bloqueado", "os_interna_bloqueada"]) {
+    for (const proibido of [
+      "lead",
+      "discovery",
+      "pesquisa",
+      "rascunho_bloqueado",
+      "os_interna_bloqueada",
+    ]) {
       expect(validacaoCaso.toLowerCase()).not.toContain(proibido);
     }
   });
@@ -72,8 +78,9 @@ describe("CA08-JURIDICO-PROPORCIONAL — leitura só diagnostica, nunca bloqueia
 
 describe("CA08-JURIDICO-PROPORCIONAL — mostrado no Caso 360, sem tela nova nem formulário duplicado", () => {
   it("a seção 'Validação jurídica deste caso' existe dentro do bloco Jurídico já existente", () => {
-    const inicio = caso360.indexOf('<SecaoAncora id="comercial"');
-    const fim = caso360.indexOf('<SecaoAncora id="tecnico"');
+    // Prettier pode quebrar <SecaoAncora\n  id="X" em múltiplas linhas.
+    const inicio = caso360.search(/<SecaoAncora\s+id="comercial"/);
+    const fim = caso360.search(/<SecaoAncora\s+id="tecnico"/);
     const bloco = caso360.slice(inicio, fim);
     expect(bloco).toContain("Validação jurídica deste caso");
     expect(bloco).toContain("Decisão de ato formal, não bloqueio universal");
@@ -98,10 +105,15 @@ describe("CA08-JURIDICO-PROPORCIONAL — mostrado no Caso 360, sem tela nova nem
   });
 
   it("a ponte para o motor e a matriz de contrato (4 links) continua intacta — nenhum link removido", () => {
-    const inicioJuridico = caso360.indexOf('<SecaoAncora id="comercial"');
-    const fimJuridico = caso360.indexOf('<SecaoAncora id="tecnico"');
+    const inicioJuridico = caso360.search(/<SecaoAncora\s+id="comercial"/);
+    const fimJuridico = caso360.search(/<SecaoAncora\s+id="tecnico"/);
     const blocoJuridico = caso360.slice(inicioJuridico, fimJuridico);
-    for (const ponte of ["/casos/$caseId/contrato/preparar", "/contratos", "/matriz-juridica", "/ordens-servico"]) {
+    for (const ponte of [
+      "/casos/$caseId/contrato/preparar",
+      "/contratos",
+      "/matriz-juridica",
+      "/ordens-servico",
+    ]) {
       expect(blocoJuridico, `Jurídico devia linkar para ${ponte}`).toContain(ponte);
     }
   });

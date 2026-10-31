@@ -416,7 +416,8 @@ export const getContexto = createServerFn({ method: "GET" })
         .from("user_roles")
         .select("role")
         .eq("organization_id", organizationId)
-        .eq("user_id", context.userId),
+        .eq("user_id", context.userId)
+        .is("archived_at", null),
     ]);
 
     // Para a equipe interna, staff_access é a fonte canônica da autorização.
@@ -666,13 +667,20 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       (k) => JSON.stringify(anterior[k] ?? null) !== JSON.stringify(alteracoes[k] ?? null),
     );
     if (diff.length === 0) {
-      return { ok: true, alterados: [] as string[], ignorados, salvoEm: new Date().toISOString() };
+      return {
+        ok: true,
+        alterados: [] as string[],
+        naoGuardados: [] as string[],
+        ignorados,
+        salvoEm: new Date().toISOString(),
+      };
     }
 
     // eventos_financeiros não tem coluna updated_by (confirmado na migration):
     // gravarComVerificacao sempre grava updated_by, então essa tabela precisa
     // do mesmo UPDATE verificado manualmente, sem esse campo.
     let salvoEm: string;
+    let naoGuardados: string[] = [];
     if (data.entidade === "eventos_financeiros") {
       const { data: linhaAtualizada, error: erroAtualizar } = await supabase
         .from(data.entidade)
@@ -685,7 +693,8 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       if (!linhaAtualizada) throw new Error("NENHUMA_LINHA_AFETADA: nada foi gravado.");
       for (const campo of diff) {
         if (JSON.stringify((linhaAtualizada as any)[campo] ?? null) !== JSON.stringify(alteracoes[campo] ?? null)) {
-          console.warn(`[saas] Divergência tolerada em ${data.entidade}:${data.id} no campo "${campo}"`);
+          console.warn(`[saas] Divergência em ${data.entidade}:${data.id} no campo "${campo}"`);
+          naoGuardados.push(campo);
         }
       }
       salvoEm = new Date().toISOString();
@@ -699,6 +708,7 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
         payload: alteracoes,
       });
       salvoEm = gravacao.salvoEm;
+      naoGuardados = gravacao.divergencias.map((d) => d.campo);
     }
 
     // Registro de alterações do caso (quem, quando, o quê) — sensíveis mascarados.
@@ -755,7 +765,13 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       });
     }
 
-    return { ok: true, alterados: diff, ignorados, salvoEm };
+    return {
+      ok: true,
+      alterados: diff.filter((c) => !naoGuardados.includes(c)),
+      naoGuardados: naoGuardados.filter((c) => diff.includes(c)),
+      ignorados,
+      salvoEm,
+    };
 
   });
 
@@ -1093,7 +1109,7 @@ export const listarUsuarios = createServerFn({ method: "GET" })
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const [membros, papeis, perfis] = await Promise.all([
       supabase.from("organization_members").select("user_id,created_at,archived_at").eq("organization_id", organizationId),
-      supabase.from("user_roles").select("user_id,role").eq("organization_id", organizationId),
+      supabase.from("user_roles").select("user_id,role").eq("organization_id", organizationId).is("archived_at", null),
       supabase.from("profiles").select("id,nome,email"),
     ]);
     const perfilPorId = new Map(
@@ -1121,20 +1137,28 @@ export const definirPapel = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     if (data.conceder) {
+      // 27/10/2026: upsert (não insert puro) — reativa um papel arquivado em
+      // vez de bater em "duplicate" e deixá-lo preso em archived_at.
       const { data: linha, error } = await supabase
         .from("user_roles")
-        .insert({ organization_id: organizationId, user_id: data.userId, role: data.papel })
+        .upsert(
+          { organization_id: organizationId, user_id: data.userId, role: data.papel, archived_at: null },
+          { onConflict: "organization_id,user_id,role" },
+        )
         .select("id");
-      if (error && !error.message.includes("duplicate")) throw new Error(error.message);
-      if (!error && !linha?.length) throw new Error("NENHUMA_LINHA_AFETADA: papel não foi concedido.");
+      if (error) throw new Error(error.message);
+      if (!linha?.length) throw new Error("NENHUMA_LINHA_AFETADA: papel não foi concedido.");
     } else {
-      // papéis não são apagados fisicamente aqui: a remoção só é permitida ao admin via política
+      // 27/10/2026 (item 2 da auditoria pré-lançamento, autorizado): o
+      // comentário anterior já dizia "não apagados fisicamente", mas o
+      // código ainda fazia .delete(). Agora arquiva de fato (archived_at).
       const { data: linha, error } = await supabase
         .from("user_roles")
-        .delete()
+        .update({ archived_at: new Date().toISOString() })
         .eq("organization_id", organizationId)
         .eq("user_id", data.userId)
         .eq("role", data.papel)
+        .is("archived_at", null)
         .select("id");
       if (error) throw new Error("Remoção de papel indisponível: registre a alteração com um admin.");
       if (!linha?.length) throw new Error("NENHUMA_LINHA_AFETADA: papel não foi removido — verifique se ele existia.");
