@@ -47,11 +47,18 @@ O `AGENTS.md` proíbe deploy, migration e merge sem autorização explícita.
 6. **Conferir no ar.** Abra `<url>/api/saude`: precisa responder `ok: true`. Se `sha`
    vier preenchido, tem de ser o HEAD publicado; `sha: null` é limite conhecido do
    ambiente (não é falha) — registre assim, não invente.
-7. **Registrar.** Antes, `git fetch` de novo: se a main ainda está no HEAD do passo 1,
-   dispare `sync-report.yml` com `marcar_publicado=true` (`actions_run_trigger`,
-   `run_workflow`) e confirme que a issue `painel-sync` mostra "Commits na main
-   depois do último Publish: 0". Se a main avançou, **não marque** (marcaria um
-   commit que não foi publicado): diga quantos commits ficaram de fora.
+7. **Registrar.** O workflow marca o HEAD da main **no instante em que roda**, não o
+   commit que você publicou. Quando a Proprietária edita no Lovable, a main recebe
+   commits a cada minuto (31/10: `8574598` entrou entre a conferência e o disparo, e o
+   painel registrou como publicado um commit nunca verificado). Por isso:
+   `git fetch` e `get_project` **logo antes** do disparo; só dispare se
+   `latest_commit_sha` do Lovable e o HEAD da main ainda forem o commit do passo 1.
+   Disparado, abra a issue `painel-sync` e confira que o "Último Publish registrado"
+   é **o commit do passo 1**. Se for outro, diga isso no relatório (não esconda) e
+   corrija na próxima publicação. Se a main avançou antes do disparo, **não marque**:
+   diga quantos commits ficaram de fora. Com edição ativa no Lovable
+   (commits de `gpt-engineer-app[bot]` nos últimos minutos), prefira esperar a
+   Proprietária parar a publicar e marcar.
 
 ## Relatório final (curto)
 
