@@ -5484,6 +5484,42 @@ export type Database = {
           },
         ]
       }
+      contract_history_imports: {
+        Row: {
+          contract_id: string
+          id: string
+          import_note: string | null
+          imported_at: string
+          organization_id: string
+          payload: Json
+          source_created_at: string | null
+          source_project: string
+          source_table: string
+        }
+        Insert: {
+          contract_id: string
+          id: string
+          import_note?: string | null
+          imported_at?: string
+          organization_id: string
+          payload: Json
+          source_created_at?: string | null
+          source_project: string
+          source_table: string
+        }
+        Update: {
+          contract_id?: string
+          id?: string
+          import_note?: string | null
+          imported_at?: string
+          organization_id?: string
+          payload?: Json
+          source_created_at?: string | null
+          source_project?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
       contract_parameter_previews: {
         Row: {
           anexos: Json

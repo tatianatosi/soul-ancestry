@@ -317,7 +317,7 @@ export const carregarPesquisaModulo = createServerFn({ method: "GET" })
      */
     const catalogoFontes = await supabase
       .from("genealogical_sources_catalog")
-      .select("id,nome,pais,modelo_acesso,nivel_de_fonte")
+      .select("id,nome,pais:pais_eixo,modelo_acesso,nivel_de_fonte")
       .eq("organization_id", organizationId)
       .is("archived_at", null)
       .order("nome", { ascending: true });

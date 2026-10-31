@@ -61,7 +61,7 @@ export function PublicarUniaoRamos({ caseId }: { caseId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
   const mDespublicar = useMutation({
-    mutationFn: (projecaoId: string) => despublicar({ data: { caseId, projecaoId, motivo } }),
+    mutationFn: (projecaoId: string) => despublicar({ data: { caseId, projecaoId, motivo: motivo.trim() || "Decisão da Proprietária (sem motivo escrito)" } }),
     onSuccess: () => {
       toast.success("União de Ramos retirada do App.");
       setRetirando(null);
@@ -118,7 +118,7 @@ export function PublicarUniaoRamos({ caseId }: { caseId: string }) {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      disabled={motivo.trim().length < 5 || mDespublicar.isPending}
+                      disabled={mDespublicar.isPending}
                       onClick={() => mDespublicar.mutate(u.id)}
                       className="rounded-lg bg-terracotta px-2.5 py-1 text-[11px] text-cream disabled:opacity-60"
                     >

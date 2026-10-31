@@ -9,7 +9,12 @@ import { CompartilharAchadoCliente } from "@/components/portal/compartilhar-acha
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos";
-import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
+import {
+  PRATELEIRAS,
+  prateleiraDe,
+  type PrateleiraId,
+  type PublicacaoCliente,
+} from "@/lib/projecoes-cliente";
 import { listarEncontrosLinhagemApp } from "@/lib/legado-app.functions";
 import { CartaoAchado, CartaoEditorial } from "@/components/portal/elementos-mockup";
 
@@ -67,15 +72,55 @@ export function PortalLegado() {
           {([vivo]) => {
             const entregas = legadoSanitizado(vivo.projecoes);
             const materiaisPublicados = publicacoesDeEntrega(vivo.projecoes).filter((item) =>
-              ["achado", "relatorio_fase", "relatorio_f1", "relatorio_f2", "microentrega"].includes(item.tipo),
+              ["achado", "relatorio_fase", "relatorio_f1", "relatorio_f2", "microentrega"].includes(
+                item.tipo,
+              ),
             );
-            const acervo = [...entregas, ...materiaisPublicados];
+            // Achado 23 (design critique, 27/10/2026): os mesmos itens
+            // tipo "achado" apareciam em "Seus Achados" E eram redistribuídos
+            // de novo pelas Coleções via prateleiraDe() — mesmo padrão de
+            // exclusão já usado em arvore.tsx (idsComPessoa), sem tocar em
+            // prateleiraDe() (compartilhada com a Biblioteca Mestre do Desk).
+            const achados = materiaisPublicados.filter((i) => i.tipo === "achado");
+            const idsComAchado = new Set(achados.map((a) => String(a.id)));
+            const acervo = [...entregas, ...materiaisPublicados].filter(
+              (e) => !idsComAchado.has(String(e.id)),
+            );
             const colecoes = [
-              { id: "cadernos", rotulo: "Cadernos", dica: "Histórias compartilhadas", itens: acervo.filter((e) => prateleiraDe(e) === "cadernos") },
-              { id: "relatorios", rotulo: "Dossiês", dica: "Sínteses da pesquisa familiar", itens: acervo.filter((e) => prateleiraDe(e) === "relatorios" && !["relatorio_f1", "relatorio_f2"].includes(e.tipo)) },
-              { id: "fase1", rotulo: "Relatórios Fase 1", dica: "Primeira fase da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f1") },
-              { id: "fase2", rotulo: "Relatórios Fase 2", dica: "Continuidade da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f2") },
-              { id: "memoria", rotulo: "Memórias", dica: "Narrativas para guardar", itens: acervo.filter((e) => ["memoria", "narrativas"].includes(prateleiraDe(e))) },
+              {
+                id: "cadernos",
+                rotulo: "Cadernos",
+                dica: "Histórias compartilhadas",
+                itens: acervo.filter((e) => prateleiraDe(e) === "cadernos"),
+              },
+              {
+                id: "relatorios",
+                rotulo: "Dossiês",
+                dica: "Sínteses da pesquisa familiar",
+                itens: acervo.filter(
+                  (e) =>
+                    prateleiraDe(e) === "relatorios" &&
+                    !["relatorio_f1", "relatorio_f2"].includes(e.tipo),
+                ),
+              },
+              {
+                id: "fase1",
+                rotulo: "Relatórios Fase 1",
+                dica: "Primeira fase da pesquisa",
+                itens: acervo.filter((e) => e.tipo === "relatorio_f1"),
+              },
+              {
+                id: "fase2",
+                rotulo: "Relatórios Fase 2",
+                dica: "Continuidade da pesquisa",
+                itens: acervo.filter((e) => e.tipo === "relatorio_f2"),
+              },
+              {
+                id: "memoria",
+                rotulo: "Memórias",
+                dica: "Narrativas para guardar",
+                itens: acervo.filter((e) => ["memoria", "narrativas"].includes(prateleiraDe(e))),
+              },
             ];
 
             return (
@@ -86,14 +131,13 @@ export function PortalLegado() {
                       duplicado), no padrão navy já usado no hero da Home. */}
                   <section className="app-legado-editorial">
                     <BookOpen className="app-legado-simbolo h-7 w-7" aria-hidden="true" />
-                    <p className="text-xs uppercase text-gold">
-                       Acervo da família
-                    </p>
+                    <p className="text-xs uppercase text-gold">Acervo da família</p>
                     <h2 className="mt-1 font-serif text-xl text-navy">
-                       Histórias para guardar e compartilhar
+                      Histórias para guardar e compartilhar
                     </h2>
                     <p className="mt-2 text-sm text-navy/70">
-                        Um lugar para reunir as histórias e os materiais preparados para permanecer com a sua família.
+                      Um lugar para reunir as histórias e os materiais preparados para permanecer
+                      com a sua família.
                     </p>
                   </section>
 
@@ -106,11 +150,14 @@ export function PortalLegado() {
                     Reaproveita `vivo.proximaAcao` — a mesma projeção sanitizada
                     que a Home já usa, nenhum dado novo.
                   */}
-                   {vivo.proximaAcao?.acao ? (
-                     <p data-legado-continuidade className="border-l-2 border-gold/60 py-1 pl-4 text-sm text-navy/75">
-                       {vivo.proximaAcao.acao}
-                     </p>
-                   ) : null}
+                  {vivo.proximaAcao?.acao ? (
+                    <p
+                      data-legado-continuidade
+                      className="border-l-2 border-gold/60 py-1 pl-4 text-sm text-navy/75"
+                    >
+                      {vivo.proximaAcao.acao}
+                    </p>
+                  ) : null}
 
                   {casoId && !carregandoEncontros ? (
                     <section data-legado-encontros className="space-y-3">
@@ -122,31 +169,45 @@ export function PortalLegado() {
                               <li key={e.id} className="border-b border-border pb-4">
                                 <p className="font-serif text-lg text-navy">{e.titulo}</p>
                                 {e.territoriosMigratorios ? (
-                                  <p className="mt-1 text-xs uppercase tracking-wide text-navy/55">{e.territoriosMigratorios}</p>
+                                  <p className="mt-1 text-xs uppercase tracking-wide text-navy/55">
+                                    {e.territoriosMigratorios}
+                                  </p>
                                 ) : null}
-                                <p className="mt-2 whitespace-pre-line text-sm text-navy/85">{e.resumoAprovado}</p>
+                                <p className="mt-2 whitespace-pre-line text-sm text-navy/85">
+                                  {e.resumoAprovado}
+                                </p>
                               </li>
                             ))}
                           </ul>
                         </>
                       ) : (
-                        <div data-legado-encontros-vazio><CartaoEditorial texto="Os encontros de linhagem terão seu lugar aqui quando a equipe aprovar e liberar para a família." /></div>
+                        <div data-legado-encontros-vazio>
+                          <CartaoEditorial texto="Os encontros de linhagem terão seu lugar aqui quando a equipe aprovar e liberar para a família." />
+                        </div>
                       )}
                     </section>
                   ) : null}
 
-                  <aside aria-label="Aviso sobre Encontros de Linhagem" className="border-l-2 border-gold/60 py-2 pl-4">
-                    <p className="mb-1 text-sm font-medium text-navy">Sobre os Encontros de Linhagem</p>
-                    <p data-legado-disclaimer className="text-xs leading-relaxed text-navy/70">{DISCLAIMER_ENCONTROS}</p>
+                  <aside
+                    aria-label="Aviso sobre Encontros de Linhagem"
+                    className="border-l-2 border-gold/60 py-2 pl-4"
+                  >
+                    <p className="mb-1 text-sm font-medium text-navy">
+                      Sobre os Encontros de Linhagem
+                    </p>
+                    <p data-legado-disclaimer className="text-xs leading-relaxed text-navy/70">
+                      {DISCLAIMER_ENCONTROS}
+                    </p>
                   </aside>
 
                   {/* "Seus Achados" (mockup original, 13/10/2026): só achados publicados para a família. */}
                   <section data-legado-achados className="space-y-3">
                     <h2 className="font-serif text-xl text-navy">Seus Achados</h2>
                     {(() => {
-                      const achados = materiaisPublicados.filter((i) => i.tipo === "achado");
                       if (achados.length === 0) {
-                        return <CartaoEditorial texto="Os achados da sua família terão seu lugar aqui quando forem aprovados e compartilhados." />;
+                        return (
+                          <CartaoEditorial texto="Os achados da sua família terão seu lugar aqui quando forem aprovados e compartilhados." />
+                        );
                       }
                       return (
                         <div className="grid gap-2.5">
@@ -170,68 +231,91 @@ export function PortalLegado() {
                   <div className="app-prateleiras" data-legado-prateleiras>
                     {colecoes.map((p) => {
                       const itens = p.itens;
-                      const IconeColecao = p.id === "cadernos" ? BookOpen : p.id === "relatorios" ? FileText : Feather;
+                      const IconeColecao =
+                        p.id === "cadernos" ? BookOpen : p.id === "relatorios" ? FileText : Feather;
                       return (
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                            className="app-colecao flex min-w-0 flex-col"
+                          className="app-colecao flex min-w-0 flex-col"
                         >
                           <details className="app-colecao-detalhe" open>
-                          <summary className="app-colecao-resumo">
-                            <span className="app-colecao-capa" data-capa={p.id} aria-hidden="true"><IconeColecao className="h-6 w-6" /></span>
-                            <div className="min-w-0">
-                            <div>
-                              <p className="text-xs font-medium uppercase text-navy/60">
-                                Coleção
-                             </p>
-                              <h2 className="mt-0.5 font-serif text-xl text-navy">{p.rotulo}</h2>
-                              <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
-                            </div>
-                            <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                                 {itens.length === 0 ? "Em preparação" : `${itens.length} ${itens.length === 1 ? "material" : "materiais"}`}
-                            </span>
-                          </div>
-                          <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
-                          </summary>
-                          {itens.length === 0 ? (
-                              <div className="mt-3"><CartaoEditorial texto={
-                                 p.id === "cadernos"
-                                   ? "Os cadernos da família aparecerão aqui quando forem liberados."
-                                   : p.id === "relatorios"
-                                     ? "Os dossiês e relatórios terão seu lugar aqui quando forem liberados para a família."
-                                     : p.id === "fase1" || p.id === "fase2"
-                                       ? "O relatório desta fase aparecerá aqui quando for aprovado e compartilhado com a família."
-                                       : "As memórias aparecerão aqui quando estiverem prontas para a família."
-                             } /></div>
-                          ) : (
-                            <ul className="mt-3 space-y-2">
-                              {itens.map((item) => (
-                                <li
-                                  key={item.id}
-                                  className="border-b border-border py-4"
-                                >
-                                  <details open>
-                                  <summary className="min-h-11 cursor-pointer font-serif text-lg text-navy">
-                                    {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
-                                    {item.publicadoEm && dataPublicacao(item.publicadoEm) ? <span className="ml-2 font-sans text-xs text-navy/60">{dataPublicacao(item.publicadoEm)}</span> : null}
-                                  </summary>
-                                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
-                                     {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
+                            <summary className="app-colecao-resumo">
+                              <span
+                                className="app-colecao-capa"
+                                data-capa={p.id}
+                                aria-hidden="true"
+                              >
+                                <IconeColecao className="h-6 w-6" />
+                              </span>
+                              <div className="min-w-0">
+                                <div>
+                                  <p className="text-xs font-medium uppercase text-navy/60">
+                                    Coleção
                                   </p>
-                                  <p className="mt-1 whitespace-pre-line text-sm text-navy/85">
-                                    {item.conteudo}
-                                  </p>
-                                  {item.publicadoEm && dataPublicacao(item.publicadoEm) ? (
-                                    <p className="mt-2 text-[11px] text-navy/45">
-                                      Publicado em {dataPublicacao(item.publicadoEm)}
-                                    </p>
-                                  ) : null}
-                                  </details>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
+                                  <h2 className="mt-0.5 font-serif text-xl text-navy">
+                                    {p.rotulo}
+                                  </h2>
+                                  <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
+                                </div>
+                                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                                  {itens.length === 0
+                                    ? "Em preparação"
+                                    : `${itens.length} ${itens.length === 1 ? "material" : "materiais"}`}
+                                </span>
+                              </div>
+                              <ChevronDown
+                                className="app-detalhe-seta h-4 w-4 shrink-0"
+                                aria-hidden="true"
+                              />
+                            </summary>
+                            {itens.length === 0 ? (
+                              <div className="mt-3">
+                                <CartaoEditorial
+                                  texto={
+                                    p.id === "cadernos"
+                                      ? "Os cadernos da família aparecerão aqui quando forem liberados."
+                                      : p.id === "relatorios"
+                                        ? "Os dossiês e relatórios terão seu lugar aqui quando forem liberados para a família."
+                                        : p.id === "fase1" || p.id === "fase2"
+                                          ? "O relatório desta fase aparecerá aqui quando for aprovado e compartilhado com a família."
+                                          : "As memórias aparecerão aqui quando estiverem prontas para a família."
+                                  }
+                                />
+                              </div>
+                            ) : (
+                              <ul className="mt-3 space-y-2">
+                                {itens.map((item) => (
+                                  <li key={item.id} className="border-b border-border py-4">
+                                    <details open>
+                                      <summary className="min-h-11 cursor-pointer font-serif text-lg text-navy">
+                                        {item.tipo === "microentrega"
+                                          ? "Da nossa jornada"
+                                          : item.tipoRotulo}
+                                        {item.publicadoEm && dataPublicacao(item.publicadoEm) ? (
+                                          <span className="ml-2 font-sans text-xs text-navy/60">
+                                            {dataPublicacao(item.publicadoEm)}
+                                          </span>
+                                        ) : null}
+                                      </summary>
+                                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
+                                        {item.tipo === "microentrega"
+                                          ? "Da nossa jornada"
+                                          : item.tipoRotulo}
+                                      </p>
+                                      <p className="mt-1 whitespace-pre-line text-sm text-navy/85">
+                                        {item.conteudo}
+                                      </p>
+                                      {item.publicadoEm && dataPublicacao(item.publicadoEm) ? (
+                                        <p className="mt-2 text-[11px] text-navy/45">
+                                          Publicado em {dataPublicacao(item.publicadoEm)}
+                                        </p>
+                                      ) : null}
+                                    </details>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </details>
                         </section>
                       );
@@ -246,9 +330,17 @@ export function PortalLegado() {
                     em 03/10: somente membros do mesmo processo e família,
                     coberto pelo anexo de privacidade do contrato.
                   */}
-                   <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/75">Entrevistas, acervo e novas descobertas terão seu lugar nas coleções quando forem compartilhados com a família.</p>
-                    <details className="app-legado-compartilhar"><summary className="flex items-center gap-3 font-serif text-xl text-navy"><span className="flex-1">Compartilhar com a família</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary><CompartilharAchadoCliente achados={entregas} /></details>
-
+                  <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/75">
+                    Entrevistas, acervo e novas descobertas terão seu lugar nas coleções quando
+                    forem compartilhados com a família.
+                  </p>
+                  <details className="app-legado-compartilhar">
+                    <summary className="flex items-center gap-3 font-serif text-xl text-navy">
+                      <span className="flex-1">Compartilhar com a família</span>
+                      <ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" />
+                    </summary>
+                    <CompartilharAchadoCliente achados={entregas} />
+                  </details>
                 </div>
               </BlocoVisibilidade>
             );

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { comoUnico } from "@/lib/portal-vinculo";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { semFixtures } from "@/lib/fixtures";
@@ -22,10 +23,12 @@ export const escopoDoPortal = createServerFn({ method: "GET" })
 
     const acesso = await supabase
       .from("client_portal_access")
-      .select("id, access_level, access_status")
+      .select("id, access_level, access_status, updated_at")
       .eq("auth_user_id", context.userId)
       .is("archived_at", null)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(10)
+      .then(comoUnico);
 
     const temAcesso =
       !!acesso.data && acesso.data.access_status === "active" && acesso.data.access_level === "client_workspace";
@@ -42,7 +45,7 @@ export const escopoDoPortal = createServerFn({ method: "GET" })
     }
 
     const [docs, casos] = await Promise.all([
-      supabase.from("documents").select("id, liberado_cliente, is_demo").eq("liberado_cliente", true),
+      supabase.from("documents").select("id, liberado_cliente").eq("liberado_cliente", true),
       // portal_casos não expõe is_demo (a view só tem id/codigo/titulo/...) —
       // selecionar uma coluna inexistente falhava a consulta inteira e
       // zerava "casosReais" para qualquer cliente real, sempre.

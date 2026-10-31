@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { comoUnico } from "@/lib/portal-vinculo";
 import { urlDeRetorno } from "@/lib/origem-canonica";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
@@ -9,6 +10,7 @@ import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 import { entregasLiberadasParaCliente } from "@/lib/portal-entregas";
 import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
+import { STATUS_FATURA_SIMPLES } from "@/lib/portal-cliente.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -190,10 +192,12 @@ export const portalContexto = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     const acesso = await supabase
       .from("client_portal_access")
-      .select("id, access_level, access_status, client_id, organization_id")
+      .select("id, access_level, access_status, client_id, organization_id, updated_at")
       .eq("auth_user_id", context.userId)
       .is("archived_at", null)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(10)
+      .then(comoUnico);
 
     if (!acesso.data || acesso.data.access_status !== "active") {
       return { autorizado: false as const, cliente: null, casos: [], nivel: null };
@@ -237,9 +241,11 @@ export const portalCaso = createServerFn({ method: "GET" })
       const helpers = await import("./portal.server");
       const acesso = await supabase
         .from("client_portal_access")
-        .select("id, organization_id")
+        .select("id, organization_id, updated_at")
         .eq("auth_user_id", context.userId)
-        .maybeSingle();
+        .order("updated_at", { ascending: false })
+      .limit(10)
+      .then(comoUnico);
       if (acesso.data && !caso) {
         await helpers.registrarEvento({
           organizationId: acesso.data.organization_id,
@@ -278,7 +284,7 @@ export const portalDocumentos = createServerFn({ method: "GET" })
     const [docs, casos] = await Promise.all([
       supabase
         .from("documents")
-        .select("id, case_id, titulo, liberado_cliente, liberado_em, is_demo")
+        .select("id, case_id, titulo, liberado_cliente, liberado_em")
         .order("created_at", { ascending: false }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
@@ -291,12 +297,8 @@ export const portalProposta = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const acesso = await supabase
-      .from("client_portal_access")
-      .select("client_id")
-      .eq("auth_user_id", context.userId)
-      .is("archived_at", null)
-      .maybeSingle();
+    const acesso = await supabase.from("client_portal_access").select("client_id, access_status, updated_at")
+      .eq("auth_user_id", context.userId).is("archived_at", null).limit(10).then(comoUnico);
     // CA-APP-01: invoices tem RLS própria do portal — fonte viva certa.
     const [casos, faturas] = await Promise.all([
       supabase.from("portal_casos").select("id, codigo, titulo, pais, via, status"),
@@ -315,7 +317,8 @@ export const portalProposta = createServerFn({ method: "GET" })
       await Promise.all(
         casosDasFaturas.map(async (caseId) => {
           const { data, error } = await supabase.rpc("portal_sou_contratante_financeiro", { p_case_id: caseId });
-          if (error) throw new Error(error.message);
+          // 26/10/2026: nunca repassar texto cru do banco ao cliente.
+          if (error) throw new Error("Não foi possível conferir a condição financeira agora. Tente de novo em instantes.");
           return [caseId, Boolean(data)] as const;
         }),
       ),
@@ -323,7 +326,9 @@ export const portalProposta = createServerFn({ method: "GET" })
     const faturasVisiveis = faturasBrutas.filter((f) => souContratantePorCaso.get(f.case_id) === true);
     return {
       casos: (casos.data ?? []) as any[],
-      faturas: faturasVisiveis,
+      // 26/10/2026: status interno ("emitida", "paga"...) nunca ia para o
+      // vocabulário do cliente aqui — era mostrado cru em proposta.tsx.
+      faturas: faturasVisiveis.map((f) => ({ ...f, statusRotulo: STATUS_FATURA_SIMPLES[f.status] ?? "Em aberto" })),
       restritoAoContratante: faturasVisiveis.length === 0 && faturasBrutas.length > 0,
     };
   });

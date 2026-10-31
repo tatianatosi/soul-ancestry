@@ -36,7 +36,8 @@ export function useSessaoInterna(): boolean {
       const { data: papeis, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", usuario.id);
+        .eq("user_id", usuario.id)
+        .is("archived_at", null);
       if (!ativo) return;
       setInterna(
         decidirSuperficieInterna({

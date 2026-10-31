@@ -64,7 +64,10 @@ describe("Obrigatórios do contrato da Ana: só o que tem fonte real", () => {
     expect(t).not.toContain('campo: "vencimentos"');
     expect(t).not.toContain('campo: "ancestral_referencia"');
     // E o motivo fica registrado no próprio código.
-    expect(t).toContain("continuam pendência\n     * humana declarada");
+    // 27/10/2026: indentação do comentário mudou com o Prettier (3 espaços,
+    // não 5) — checa as duas frases separadamente em vez da quebra de linha exata.
+    expect(t).toContain("continuam pendência");
+    expect(t).toContain("humana declarada");
     expect(t).toContain("ancestral de si mesma");
   });
 

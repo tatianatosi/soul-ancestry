@@ -27,7 +27,7 @@ export const obterOnboarding = createServerFn({ method: "GET" })
     semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const papeis = await meusPapeis(supabase, organizationId);
+    const papeis = await meusPapeis(supabase, organizationId, context.userId as string);
 
     const caso = await supabase
       .from("crm_casos")
@@ -141,7 +141,7 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const papeis = await meusPapeis(supabase, organizationId);
+    const papeis = await meusPapeis(supabase, organizationId, context.userId as string);
 
     const atual = await supabase
       .from("case_activation_checks")
@@ -256,7 +256,7 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const papeis = await meusPapeis(supabase, organizationId);
+    const papeis = await meusPapeis(supabase, organizationId, context.userId as string);
     if (!podeAtivar(papeis)) {
       await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
         resumo: "Tentativa de ativação recusada: papel sem permissão",
@@ -417,7 +417,7 @@ export const suspenderCaso = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const papeis = await meusPapeis(supabase, organizationId);
+    const papeis = await meusPapeis(supabase, organizationId, context.userId as string);
     if (!podeAtivar(papeis))
       return { ok: false, erro: "Somente admin ou operações podem suspender." };
     const motivo = (data.motivo ?? "").trim() || "Suspensão sem motivo informado.";

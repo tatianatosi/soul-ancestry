@@ -164,6 +164,9 @@ function Importacoes() {
             onChange={(e) => {
               setCsv(e.target.value);
               setMapeamento({});
+              // 26/10/2026 (auditoria): sem isto, editar o CSV depois de pré-visualizar
+              // mantinha "Confirmar importação" habilitado e importava texto nunca visto na prévia.
+              mPreview.reset();
             }}
           />
 
@@ -181,7 +184,10 @@ function Importacoes() {
                     <select
                       className="rounded border border-navy/15 px-2 py-1 text-xs"
                       value={mapaEfetivo[c.campo] ?? ""}
-                      onChange={(e) => setMapeamento({ ...mapaEfetivo, [c.campo]: e.target.value })}
+                      onChange={(e) => {
+                        setMapeamento({ ...mapaEfetivo, [c.campo]: e.target.value });
+                        mPreview.reset(); // mapeamento mudou: a prévia anterior não vale mais
+                      }}
                     >
                       <option value="">— não mapear —</option>
                       {cabecalho.map((h) => (
