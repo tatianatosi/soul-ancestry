@@ -63,13 +63,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: criar uma página de prévia do kit que use esta fixture ou aposentá-la, já que o kit é exercitado por telas reais",
   },
   {
-    modulo: "components/contratos/painel-estado-contratual.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "JuridicoContratoV4, montado em contratos.index.tsx:157, lê o mesmo painelContratual e mostra as mesmas contagens (bloqueios, pendências, revisão, anexos ausentes, OS impedidas, exceções) na casca V4.",
-    destino: "components/contratos/juridico-contrato-v4.tsx em /contratos",
-  },
-  {
     modulo: "components/desk/kanban-tarefas.tsx",
     veredicto: "CASCA_DUPLICADA",
     motivo:

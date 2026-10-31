@@ -62,7 +62,7 @@ describe("peças de contrato montadas nas telas", () => {
   });
   it("inventário exporta CSV e mantém o V4 sem o painel de 7 contadores", () => {
     const idx = ler("src/routes/_authenticated/contratos.index.tsx");
-    expect(idx).not.toContain("<PainelEstadoContratual"); // decisão V4 de 21/10 mantida
+    expect(idx).toContain("<PainelEstadoContratual"); // 31/10: religado dentro do bloco recolhido; topo V4 intacto
     expect(idx).toContain("baixarCsvInventario");
   });
 });

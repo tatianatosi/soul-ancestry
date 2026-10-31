@@ -1,3 +1,4 @@
+import { PainelEstadoContratual } from "@/components/contratos/painel-estado-contratual";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { PainelCatalogo } from "@/components/painel/painel-catalogo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -162,6 +163,10 @@ function ContratosPage() {
       <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4" open={novo}>
         <summary className="cursor-pointer font-medium text-navy">Abrir instrumentos, inventário e gestão contratual</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
+      {/* 31/10/2026 — a Proprietária mandou religar o estado contratual; fica dentro do bloco recolhido para manter o topo V4 com 4 indicadores. */}
+      <div className="mb-6" data-contratos-estado-contratual>
+        <PainelEstadoContratual />
+      </div>
       <CaCard
         className="mb-6"
         eyebrow="Inventário patrimonial"
