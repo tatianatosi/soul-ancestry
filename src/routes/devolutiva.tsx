@@ -1,8 +1,29 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { decidirAcessoDesk } from "@/lib/superficie-interna-regras";
 import { CLIENT_ONE_PAGES, onePageByCaso, ONE_PAGE_GUILHERME } from "@/data/client-one-page";
 import { ClientResearchOnePageModal } from "@/components/client-research-one-page";
 
 export const Route = createFileRoute("/devolutiva")({
+  // 25/10/2026 (auditoria pré-lançamento): a página mostra one-pages com nomes
+  // de clientes e estava aberta sem login. Mesmo portão do Desk (_authenticated).
+  ssr: false,
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    const usuario = data.session?.user ?? null;
+    if (!usuario) throw redirect({ to: "/equipe/entrar" });
+    const { data: papeis, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", usuario.id)
+      .is("archived_at", null);
+    const decisao = decidirAcessoDesk({
+      autenticado: true,
+      papeis: (papeis ?? []).map((p) => p.role as string),
+      erroLeitura: Boolean(error),
+    });
+    if (decisao === "portal") throw redirect({ to: "/portal" });
+  },
   validateSearch: (search: Record<string, unknown>): { cliente?: string } => ({
     cliente: typeof search["cliente"] === "string" ? search["cliente"] : undefined,
   }),

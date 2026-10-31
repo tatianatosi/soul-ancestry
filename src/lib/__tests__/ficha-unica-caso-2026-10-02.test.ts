@@ -53,7 +53,9 @@ describe("ficha-unica-caso (02/10/2026) — Ficha Única progressiva, sem duas f
 
     const origem = blocos.find((b) => b.id === "origem-documentos")!;
     expect(origem.rotaEdicao?.to).toBe("/pessoas-linhagens/$caseId");
-    expect(origem.campos?.find((c) => c.rotulo === "Documento principal liberado")?.valor).toBe("Certidão");
+    expect(origem.campos?.find((c) => c.rotulo === "Documento principal liberado")?.valor).toBe(
+      "Certidão",
+    );
   });
 
   it("com piloto: gera os blocos de preparação de pesquisa (pessoas, vínculos, hipóteses, lacunas, fontes, documentos, plano), cada um com dono 'Pesquisa do caso'", () => {
@@ -61,13 +63,34 @@ describe("ficha-unica-caso (02/10/2026) — Ficha Única progressiva, sem duas f
       caseId: "c1",
       ficha: null,
       piloto: {
-        pesquisa: { id: "rc1", country_context: "Itália", status: "em_andamento", external_research_authorization_status: "autorizado", external_research_gate_status: "liberado", family_line_summary_internal: "resumo" },
-        pessoas: [{ id: "p1", canonical_name: "Ana", person_status: "ativo", identity_status: "confirmed" }],
-        vinculos: [{ person_from_id: "p1", person_to_id: "p1", relation_type: "mae", status: "confirmado", supporting_evidence_count: 2 }],
+        pesquisa: {
+          id: "rc1",
+          country_context: "Itália",
+          status: "em_andamento",
+          external_research_authorization_status: "autorizado",
+          external_research_gate_status: "liberado",
+          family_line_summary_internal: "resumo",
+        },
+        pessoas: [
+          { id: "p1", canonical_name: "Ana", person_status: "ativo", identity_status: "confirmed" },
+        ],
+        vinculos: [
+          {
+            person_from_id: "p1",
+            person_to_id: "p1",
+            relation_type: "mae",
+            status: "confirmado",
+            supporting_evidence_count: 2,
+          },
+        ],
         hipoteses: [{ titulo: "H1", status: "aberta", grau_confianca: "media" }],
-        lacunas: [{ title: "Falta certidão", category: "documento", severity: "alta", status: "aberta" }],
+        lacunas: [
+          { title: "Falta certidão", category: "documento", severity: "alta", status: "aberta" },
+        ],
         fontes: [{ title: "Antenati", source_status: "catalogada", source_type: "arquivo" }],
-        solicitacoes: [{ requested_document_type: "certidao", status: "pendente", person_id: "p1" }],
+        solicitacoes: [
+          { requested_document_type: "certidao", status: "pendente", person_id: "p1" },
+        ],
         bloqueios: [],
         planoAberto: true,
       },
@@ -93,7 +116,11 @@ describe("ficha-unica-caso (02/10/2026) — Ficha Única progressiva, sem duas f
     expect(pessoas.rotaEdicao?.to).toBe("/pessoas-linhagens/$caseId");
 
     const hipoteses = blocos.find((b) => b.id === "hipoteses")!;
-    expect(hipoteses.rotaEdicao).toEqual({ to: "/pesquisa-modulo/$id", params: { id: "rc1" }, label: "Abrir hipóteses estruturadas" });
+    expect(hipoteses.rotaEdicao).toEqual({
+      to: "/pesquisa-modulo/$id",
+      params: { id: "rc1" },
+      label: "Abrir hipóteses estruturadas",
+    });
 
     const plano = blocos.find((b) => b.id === "plano-acao")!;
     expect(plano.rotaEdicao?.to).toBe("/plano-acao/$caseId");
@@ -137,7 +164,7 @@ describe("Corte Ficha Única (02/10/2026) — Caso 360 monta um único component
       Estava depois de "País e via", "Hipótese e radar" e "Riscos
       identificados". Agora abre a aba.
     */
-    const aba = casoIndex.indexOf('<SecaoAncora id="tecnico"');
+    const aba = casoIndex.search(/<SecaoAncora\s+id="tecnico"/);
     const ficha = casoIndex.indexOf("<PainelFichaUnica", aba);
     const paisEVia = casoIndex.indexOf('titulo="País e via"', aba);
     expect(aba).toBeGreaterThan(-1);
@@ -156,7 +183,9 @@ describe("Corte Ficha Única (02/10/2026) — Caso 360 monta um único component
 describe("Corte Ficha Única (02/10/2026) — os dois componentes antigos foram removidos, não só desmontados", () => {
   it("ficha-master.tsx e ficha-piloto-genealogica.tsx (componentes) não existem mais no disco", () => {
     expect(() => readFileSync("src/components/caso/ficha-master.tsx", "utf8")).toThrow();
-    expect(() => readFileSync("src/components/caso/ficha-piloto-genealogica.tsx", "utf8")).toThrow();
+    expect(() =>
+      readFileSync("src/components/caso/ficha-piloto-genealogica.tsx", "utf8"),
+    ).toThrow();
   });
 
   it("o módulo puro ficha-piloto-genealogica.ts (não o componente) continua existindo — ainda usado por outros motores", () => {

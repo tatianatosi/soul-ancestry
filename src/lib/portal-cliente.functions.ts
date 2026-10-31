@@ -9,6 +9,14 @@ import { projetarProximaAcaoCliente, sinaisDoCasoPortal } from "@/lib/motor-caso
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
+ * 26/10/2026 (auditoria pré-lançamento) — texto para toda falha de escrita
+ * que chega ao cliente. Antes várias funções jogavam `r.error.message` ou
+ * `error.message` direto (texto cru do Postgres/Storage: nome de coluna,
+ * policy, tabela) na tela do cliente. Nunca expõe detalhe interno.
+ */
+const ERRO_ESCRITA_CLIENTE = "Não foi possível concluir agora. Tente de novo em instantes.";
+
+/**
  * Espaço do cliente: leitura e escrita mínimas, sempre com o client autenticado
  * do próprio usuário. RLS valida client_id + organization_id + caso autorizado
  * em cada consulta. Nenhuma dessas funções envia e-mail, WhatsApp ou aciona
@@ -117,7 +125,7 @@ export const meuCaso = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true }),
       supabase
         .from("documents")
-        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at, is_demo")
+        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at")
         .eq("case_id", data.casoId)
         .order("created_at", { ascending: false }),
       supabase
@@ -158,6 +166,13 @@ export const meuCaso = createServerFn({ method: "GET" })
     // sinal real de fixture (is_demo/dados_teste), não o filtro P0.2 que
     // sempre escondia tudo aqui (ver correção acima e no rodapé do arquivo).
     const docs = semFixtures((documentos.data ?? []) as any[]);
+
+    // 26/10/2026 (auditoria, regra do AGENTS.md): fatura pertence ao
+    // contratante. Familiar que não é contratante não vê faturas aqui;
+    // falha da checagem esconde (fail-closed), nunca mostra.
+    const contratante = await supabase.rpc("portal_sou_contratante_financeiro", { p_case_id: data.casoId });
+    const podeVerFaturas = !contratante.error && contratante.data === true;
+    const faturasVisiveis = podeVerFaturas ? listaFaturas : [];
 
     return {
       caso: {
@@ -200,7 +215,7 @@ export const meuCaso = createServerFn({ method: "GET" })
           motivo: d.revisao_motivo as string | null,
           enviadoEm: d.created_at as string,
         })),
-      faturas: listaFaturas.map((f) => ({
+      faturas: faturasVisiveis.map((f) => ({
         id: f.id as string,
         numero: f.numero as string | null,
         descricao: f.descricao as string | null,
@@ -236,7 +251,7 @@ export const prepararEnvioDocumento = createServerFn({ method: "POST" })
     const assinado = await (supabaseAdmin as any).storage
       .from(h.BUCKET_DOCUMENTOS)
       .createSignedUploadUrl(caminho);
-    if (assinado.error) throw new Error(assinado.error.message);
+    if (assinado.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return { caminho, token: assinado.data.token as string, url: assinado.data.signedUrl as string };
   });
 
@@ -260,6 +275,24 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
     const caso = await h.casoAutorizado(supabase, data.casoId);
     if (!caso) throw new Error("Caso não disponível para o seu acesso.");
+    // 25/10/2026: o caminho vem do navegador; só aceita a pasta de envio do
+    // próprio caso que o passo 1 gerou (sem "..", sem outro caso ou organização).
+    const prefixo = `${acesso.organization_id}/${data.casoId}/cliente/`;
+    if (typeof data.caminho !== "string" || !data.caminho.startsWith(prefixo) || data.caminho.includes("..")) {
+      throw new Error("Envio inválido: arquivo fora da pasta do seu caso. Envie de novo.");
+    }
+    // 26/10/2026: tamanho e tipo conferidos no arquivo que de fato subiu,
+    // não no número que o navegador informou.
+    const pasta = data.caminho.slice(0, data.caminho.lastIndexOf("/"));
+    const nomeNoArmazenamento = data.caminho.slice(pasta.length + 1);
+    const { supabaseAdmin: adminArmazenamento } = await import("@/integrations/supabase/client.server");
+    const listagem = await (adminArmazenamento as any).storage
+      .from(h.BUCKET_DOCUMENTOS)
+      .list(pasta, { search: nomeNoArmazenamento, limit: 5 });
+    const objeto = ((listagem.data ?? []) as any[]).find((o) => o?.name === nomeNoArmazenamento);
+    if (!objeto) throw new Error("Não encontramos o arquivo enviado. Envie de novo.");
+    const tamanhoReal = Number(objeto.metadata?.size ?? data.tamanho);
+    h.validarArquivoCliente(nomeNoArmazenamento, tamanhoReal);
 
     const inserido = await supabase
       .from("documents")
@@ -276,12 +309,12 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
         solicitacao_id: data.solicitacaoId ?? null,
         storage_path: data.caminho,
         nome_arquivo: data.nomeArquivo,
-        tamanho_bytes: data.tamanho,
+        tamanho_bytes: tamanhoReal,
         status: "pendente_de_revisao",
       })
       .select("id")
       .maybeSingle();
-    if (inserido.error) throw new Error(inserido.error.message);
+    if (inserido.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     const portal = await import("./portal.server");
     if (data.solicitacaoId) {
@@ -293,7 +326,7 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
         .eq("organization_id", acesso.organization_id)
         .select("id")
         .maybeSingle();
-      if (atualizado.error) throw new Error(atualizado.error.message);
+      if (atualizado.error) throw new Error(ERRO_ESCRITA_CLIENTE);
       if (!atualizado.data?.id) {
         throw new Error("NENHUMA_LINHA_AFETADA: solicitação de documento não encontrada neste caso.");
       }
@@ -342,7 +375,7 @@ export const baixarEntrega = createServerFn({ method: "POST" })
     const assinado = await (supabaseAdmin as any).storage
       .from(h.BUCKET_DOCUMENTOS)
       .createSignedUrl(doc.data.storage_path, 120);
-    if (assinado.error) throw new Error(assinado.error.message);
+    if (assinado.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     await portal.adminClient.from("audit_logs").insert({
       organization_id: acesso.organization_id,
@@ -386,7 +419,7 @@ export const abrirTicket = createServerFn({ method: "POST" })
       })
       .select("id")
       .maybeSingle();
-    if (ticket.error) throw new Error(ticket.error.message);
+    if (ticket.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     const msg = await supabase.from("portal_ticket_messages").insert({
       organization_id: acesso.organization_id,
@@ -394,7 +427,7 @@ export const abrirTicket = createServerFn({ method: "POST" })
       autor_tipo: "cliente",
       corpo: mensagem,
     });
-    if (msg.error) throw new Error(msg.error.message);
+    if (msg.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     await h.alertaInternoTicket({
       organizationId: acesso.organization_id,
@@ -456,7 +489,7 @@ export const responderTicketCliente = createServerFn({ method: "POST" })
       autor_tipo: "cliente",
       corpo: mensagem,
     });
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     // Fila interna da equipe (sem envio externo e sem conteúdo da mensagem).
     const t = await supabase
@@ -487,7 +520,7 @@ export const minhasEntregas = createServerFn({ method: "GET" })
     const [docs, casos] = await Promise.all([
       supabase
         .from("documents")
-        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo, is_demo")
+        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo")
         .order("created_at", { ascending: false }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
@@ -546,7 +579,7 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     // 12/10/2026 — fail-closed: falha de leitura é erro, nunca "nenhuma fatura".
-    if (faturas.error) throw new Error(faturas.error.message);
+    if (faturas.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
     const semFixturesFaturas = semFixtures((faturas.data ?? []) as any[]);
     const casosDasFaturas = [...new Set(semFixturesFaturas.map((f) => f.case_id).filter(Boolean))] as string[];
@@ -554,7 +587,7 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       await Promise.all(
         casosDasFaturas.map(async (caseId) => {
           const { data, error } = await supabase.rpc("portal_sou_contratante_financeiro", { p_case_id: caseId });
-          if (error) throw new Error(error.message);
+          if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
           return [caseId, Boolean(data)] as const;
         }),
       ),
@@ -599,6 +632,37 @@ export const autorizarCompartilhamentoAchado = createServerFn({ method: "POST" }
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
+
+    /*
+     * 26/10/2026 (auditoria pré-lançamento): a policy de INSERT de
+     * app_projection_shares só confere organização e que quem compartilha é
+     * o titular — não que o destinatário é da MESMA família/caso. Sem esta
+     * checagem, o titular podia compartilhar um achado com qualquer client_id
+     * da organização, inclusive de outra família, e a policy de SELECT
+     * (`compartilhado_com_client_id = portal_meu_cliente()`) deixava essa
+     * pessoa ler o achado. Defesa em profundidade na aplicação: o
+     * destinatário precisa ter acesso ATIVO ao mesmo caso do achado.
+     */
+    const projecao = await supabase.from("portal_projecoes").select("case_id").eq("id", data.projecaoId).maybeSingle();
+    const caseIdDoAchado = (projecao.data as { case_id?: string } | null)?.case_id ?? null;
+    if (!caseIdDoAchado) throw new Error("Não foi possível autorizar: achado não encontrado ou não é seu.");
+    // A policy de leitura de client_portal_case_access só deixa a pessoa ver a
+    // PRÓPRIA linha — para conferir o vínculo de OUTRO cliente é preciso a
+    // ponte admin (mesmo padrão já usado neste arquivo), sempre com filtro
+    // explícito de organização.
+    const { supabaseAdmin: pontePortal } = await import("@/integrations/supabase/client.server");
+    const vinculoDestino = await (pontePortal as any)
+      .from("client_portal_case_access")
+      .select("id, client_portal_access:client_portal_access_id!inner(client_id, organization_id)")
+      .eq("case_id", caseIdDoAchado)
+      .eq("access_status", "active")
+      .eq("client_portal_access.client_id", data.compartilharComClienteId)
+      .eq("client_portal_access.organization_id", acesso.organization_id)
+      .maybeSingle();
+    if (!vinculoDestino.data) {
+      throw new Error("Não foi possível autorizar: a pessoa escolhida não tem acesso a este caso.");
+    }
+
     const r = await supabase
       .from("app_projection_shares")
       .insert({
@@ -609,7 +673,7 @@ export const autorizarCompartilhamentoAchado = createServerFn({ method: "POST" }
       })
       .select("id")
       .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     if (!r.data?.id) {
       throw new Error("Não foi possível autorizar: confirme que este achado é seu e que já foi aprovado.");
     }
@@ -634,7 +698,7 @@ export const revogarCompartilhamentoAchadoPortal = createServerFn({ method: "POS
       .is("revogado_em", null)
       .select("id")
       .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     if (!r.data?.id) {
       throw new Error("Não foi possível revogar: confirme que a autorização existe e é sua.");
     }
@@ -663,7 +727,7 @@ export const membrosDoMeuCaso = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     await h.acessoDoCliente(supabase, context.userId as string);
     const { data, error } = await supabase.rpc("portal_membros_do_meu_caso");
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return ((data ?? []) as any[]).map((m) => ({
       casoId: String(m.case_id),
       clienteId: String(m.cliente_id),
@@ -684,7 +748,7 @@ export const meusCompartilhamentosDeAchado = createServerFn({ method: "GET" })
       .from("app_projection_shares")
       .select("id, projection_id, compartilhado_com_client_id, autorizado_em, revogado_em")
       .order("autorizado_em", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return {
       meuClienteId: acesso.client_id as string,
       compartilhamentos: (data ?? []) as Record<string, any>[],
@@ -722,6 +786,6 @@ export const registrarTempoNaAba = createServerFn({ method: "POST" })
       tab: data.tab,
       duracao_ms: duracaoMs,
     });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return { ok: true as const };
   });

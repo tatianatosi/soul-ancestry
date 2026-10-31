@@ -115,7 +115,9 @@ export const ROTAS_FORA_DO_MENU = [
  * Classificação do saneamento V4 (03/10/2026). Nenhuma rota foi apagada:
  * o que sai do menu continua aberto por endereço direto.
  */
-export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<Record<string, "ALIMENTO_CONTEXTUAL" | "LEGADO_SEM_MENU">> = {
+export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<
+  Record<string, "ALIMENTO_CONTEXTUAL" | "LEGADO_SEM_MENU">
+> = {
   "/governanca/dicionario-calls-crm": "ALIMENTO_CONTEXTUAL",
   "/crm-mestre": "ALIMENTO_CONTEXTUAL",
   "/etiquetas": "ALIMENTO_CONTEXTUAL",
@@ -198,7 +200,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "comercial",
     to: "/leads",
     label: "Comercial",
-    descricao: "Leads e oportunidades, Discovery, propostas, contratos e condições comerciais e origem.",
+    descricao:
+      "Leads e oportunidades, Discovery, propostas, contratos e condições comerciais e origem.",
     icone: "comercial",
     agrupador: true,
     sub: [
@@ -208,18 +211,32 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/contratos", label: "Contratos e condições" },
       { to: "/conversao", label: "Conversão e origem" },
     ],
-    prefixos: ["/leads", "/calls", "/propostas", "/contratos", "/contrato-parametros", "/conversao", "/crm-mestre"],
+    prefixos: [
+      "/leads",
+      "/calls",
+      "/propostas",
+      "/contratos",
+      "/contrato-parametros",
+      "/conversao",
+      "/crm-mestre",
+    ],
   },
   {
     id: "casos",
     to: "/casos",
     label: "Casos",
-    descricao: "Todos os casos, Caso 360, GoLive (vida do cliente), onboarding, ordens de serviço, entregas com validação e operação.",
+    descricao:
+      "Todos os casos, Caso 360, GoLive (vida do cliente), onboarding, ordens de serviço, entregas com validação e operação.",
     icone: "casos",
     agrupador: true,
     sub: [
       { to: "/casos", label: "Todos os casos" },
       { to: "/casos", hash: "visao", label: "Caso 360" },
+      // 27/10/2026 (auditoria de espectro completo, achado 2.2): esta entrada
+      // morava no grupo Pesquisa, enquanto as outras 3 variantes de `/casos`
+      // ficavam aqui — mesma rota-base, dividida por âncora, em dois grupos
+      // sem critério visível. Movida para junto das outras.
+      { to: "/casos", hash: "tecnico", label: "Ficha Única do caso" },
       // 23/10/2026 — decisão da Proprietária: o GoLive é a vida COMPLETA de cada
       // cliente e tem lugar próprio dentro de Casos (o Caso 360 é o resumo macro).
       { to: "/golive", label: "GoLive · Vida do cliente" },
@@ -234,7 +251,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "pessoas",
     to: "/clientes",
     label: "Pessoas & Famílias",
-    descricao: "Pessoa 360, núcleos familiares, participantes, acessos ao App Cliente e visão administrativa do App.",
+    descricao:
+      "Pessoa 360, núcleos familiares, participantes, acessos ao App Cliente e visão administrativa do App.",
     icone: "pessoas",
     agrupador: true,
     sub: [
@@ -244,18 +262,26 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/acessos-portal", label: "Acessos ao App Cliente" },
       { to: "/app-cliente-como-pessoa", label: "Visão administrativa do App" },
     ],
-    prefixos: ["/clientes", "/pessoas", "/nucleos", "/nucleos-duplicidades", "/pessoas-linhagens", "/acessos-portal", "/app-cliente-como-pessoa"],
+    prefixos: [
+      "/clientes",
+      "/pessoas",
+      "/nucleos",
+      "/nucleos-duplicidades",
+      "/pessoas-linhagens",
+      "/acessos-portal",
+      "/app-cliente-como-pessoa",
+    ],
   },
   {
     id: "pesquisa",
     to: "/pesquisa-modulo",
     label: "Pesquisa",
-    descricao: "Painel de pesquisa, achados, hipóteses, evidências, solicitações documentais, bibliotecas, fontes e relatórios.",
+    descricao:
+      "Painel de pesquisa, achados, hipóteses, evidências, solicitações documentais, bibliotecas, fontes e relatórios.",
     icone: "pesquisa",
     agrupador: true,
     sub: [
       { to: "/pesquisa-modulo", label: "Painel de pesquisa" },
-      { to: "/casos", hash: "tecnico", label: "Ficha Única do caso" },
       { to: "/evidencias", label: "Evidências" },
       { to: "/atendimento", label: "Solicitações documentais" },
       { to: "/biblioteca", label: "Biblioteca de documentos" },
@@ -281,7 +307,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "marketing",
     to: "/marketing",
     label: "Marketing",
-    descricao: "Dashboard, campanhas, origem de leads, biblioteca de mensagens e métricas de campanha.",
+    descricao:
+      "Dashboard, campanhas, origem de leads, biblioteca de mensagens e métricas de campanha.",
     icone: "marketing",
     agrupador: true,
     sub: [
@@ -304,7 +331,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "governanca",
     to: "/configuracoes",
     label: "Configuração",
-    descricao: "Perfil institucional, catálogo e preços, equipe, integrações, modelos, decisões, radar e matrizes jurídicas.",
+    descricao:
+      "Perfil institucional, catálogo e preços, equipe, integrações, modelos, decisões, radar e matrizes jurídicas.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -320,9 +348,22 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/privacidade", label: "Privacidade e consentimento" },
     ],
     prefixos: [
-      "/configuracoes", "/catalogo", "/equipe", "/integracoes", "/governanca", "/importacoes", "/qualidade",
-      "/matriz-juridica", "/privacidade", "/etiquetas", "/homologacao-skus", "/conciliacao-catalogo",
-      "/divergencias-catalogo", "/escopo-origem", "/historico", "/ops-excecoes",
+      "/configuracoes",
+      "/catalogo",
+      "/equipe",
+      "/integracoes",
+      "/governanca",
+      "/importacoes",
+      "/qualidade",
+      "/matriz-juridica",
+      "/privacidade",
+      "/etiquetas",
+      "/homologacao-skus",
+      "/conciliacao-catalogo",
+      "/divergencias-catalogo",
+      "/escopo-origem",
+      "/historico",
+      "/ops-excecoes",
     ],
   },
 ] as const;
@@ -359,9 +400,13 @@ export const SETORES_DESK: readonly SetorDesk[] = GRUPOS_DESK.map((g) => ({
 export const SETORES_DESK_V5 = SETORES_DESK;
 
 /** Rotas do menu de lado que precisam de caso: com caseId na URL, vão ao caso certo. */
-export function destinoDaAba(aba: AbaSetor, rotaAtual: string): { to: string; hash?: string; caseId?: string } {
+export function destinoDaAba(
+  aba: AbaSetor,
+  rotaAtual: string,
+): { to: string; hash?: string; caseId?: string } {
   const m = /^\/casos\/([^/#?]+)/.exec(rotaAtual);
-  if (aba.to === "/casos" && aba.hash && m) return { to: "/casos/$caseId", hash: aba.hash, caseId: m[1] };
+  if (aba.to === "/casos" && aba.hash && m)
+    return { to: "/casos/$caseId", hash: aba.hash, caseId: m[1] };
   return { to: aba.to, hash: aba.hash };
 }
 
@@ -493,8 +538,32 @@ export function rotasSemLink(): string[] {
   return ROTAS_PRESERVADAS.filter((r) => !menu.has(r) && !(r in CLASSIFICACAO_SANEAMENTO_V4));
 }
 
+/*
+ * Achado 13 (pendências da auditoria, 27/10/2026): esta função tinha lógica
+ * real contando duplicatas dentro de cada grupo de GRUPOS_DESK; na
+ * migração para SETORES_DESK_V5 (commit 68da7b21) o corpo foi substituído
+ * por `return []` e nunca reescrito contra a nova fonte — ficou um guarda
+ * inerte, sempre "limpo" mesmo que uma duplicata real apareça. RELIGADA:
+ * GRUPOS_DESK continua sendo a fonte real (SETORES_DESK_V5 é só um apelido
+ * derivado dela, linha 400), então a lógica original continua válida sem
+ * nenhuma reescrita de dados.
+ *
+ * Um mesmo destino (rota + hash) não pode se repetir DENTRO de um grupo.
+ * Entre grupos, a repetição é link contextual declarado (ex.: Validação
+ * Jurídica em Governança com atalho em Comercial e Casos) — não é falha nova.
+ */
 export function destinosDuplicados(): string[] {
-  return [];
+  const dup: string[] = [];
+  for (const g of GRUPOS_DESK) {
+    const vistos = new Set<string>();
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      const chave = `${g.id}:${s.to}#${s.hash ?? ""}`;
+      if (vistos.has(chave)) dup.push(chave);
+      vistos.add(chave);
+    }
+  }
+  return dup;
 }
 
 export function grupoDonoDaRota(rota: string): string | null {
@@ -507,14 +576,55 @@ export function grupoDonoDaRota(rota: string): string | null {
   return null;
 }
 
+/*
+ * Achado 13: mesmo caso de destinosDuplicados — ficou `return []` fixo
+ * desde a migração para SETORES_DESK_V5. RELIGADA contra GRUPOS_DESK (a
+ * mesma fonte real).
+ *
+ * Mesmo destino (rota + hash) citado em mais de um grupo. Com os grupos
+ * sem sobreposição, a lista deve ficar vazia — mas agora é calculada, não
+ * assumida.
+ */
 export function destinosSobrepostos(): string[] {
-  return [];
+  const visto = new Map<string, string[]>();
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      const chave = `${s.to}#${s.hash ?? ""}`;
+      const grupos = visto.get(chave) ?? [];
+      grupos.push(g.id);
+      visto.set(chave, grupos);
+    }
+  }
+  return [...visto.entries()].filter(([, grupos]) => grupos.length > 1).map(([chave]) => chave);
 }
 
-export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [];
+/** Sem atalhos cruzados declarados hoje: cada rota mora em um único grupo. */
+export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] =
+  [];
 
+/*
+ * Achado 13: o corpo também virou `return null` fixo na mesma migração.
+ * Como LINKS_CONTEXTUAIS já é `[]`, o resultado observável não mudou — mas
+ * a função parou de checar o registro, e um link contextual futuro
+ * declarado em LINKS_CONTEXTUAIS seria ignorado em silêncio. RELIGADA.
+ *
+ * O grupo onde a rota mora, quando ela está sendo citada de fora dele.
+ *
+ * 26/08/2026 — a Proprietária leu o menu como tendo "muitas sobreposições".
+ * As repetições são deliberadas (`LINKS_CONTEXTUAIS`), mas eram indistinguíveis
+ * da entrada canônica: `/matriz-juridica` aparecia com o MESMO rótulo em três
+ * grupos, sem nada dizendo que mora em Governança. Repetição sem marca lê-se
+ * como duplicação.
+ *
+ * Devolve o grupo de origem quando o item é atalho, e null quando é a entrada
+ * canônica — aí não há nada a marcar.
+ */
 export function origemDoAtalho(grupoLabel: string, rota: string): string | null {
-  return null;
+  const registro = LINKS_CONTEXTUAIS.find((l) => l.rota === rota);
+  if (!registro) return null;
+  if (registro.origem === grupoLabel) return null;
+  return registro.tambemEm.includes(grupoLabel) ? registro.origem : null;
 }
 
 export const NATUREZA_BIBLIOTECA: readonly {
@@ -554,7 +664,7 @@ export type DestinoNav = { to: string; hash?: string };
 function hashDaRota(valor: string): string {
   // Aceita tanto "/rota#ancora" quanto a âncora pura ("canais-campanhas").
   const partes = valor.split("#");
-  return (partes.length > 1 ? partes[1] : partes[0] ?? "").trim();
+  return (partes.length > 1 ? partes[1] : (partes[0] ?? "")).trim();
 }
 
 /** Item de menu ativo: hash, quando existe, precisa bater; senão a rota (ou subrota). */

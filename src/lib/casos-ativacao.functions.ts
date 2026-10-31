@@ -4,6 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { resolverOrganizacao, type SupabaseCliente } from "@/lib/onboarding-regras";
 import { z } from "zod";
 import { calcularEtapas, etapaAtual, type CheckLido, type EtapaCalculada } from "@/lib/etapas-caso";
+import { proprietariaOperando } from "@/lib/autoridade.server";
+import { portoesDoPilotoDoCaso } from "@/lib/inventario-portoes.server";
 
 export type EstadoAtivacaoCaso = {
   caseId: string;
@@ -22,6 +24,14 @@ export type EstadoAtivacaoCaso = {
   proximaAcaoCanonica: { nivel: number; motivo: string; prazo: string | null } | null;
   /** Etapa atual das 5 de leitura (etapas-caso.ts); null = todas concluídas. */
   etapaAtual: EtapaCalculada | null;
+  /**
+   * Peça A do laudo "nada persiste" (#189, 27/10/2026): bloqueios do
+   * piloto (`piloto_bloqueios`) que `fn_piloto_caso_guard` de fato
+   * verifica — vazio para caso não-piloto. `bloqueiaAtivacaoHoje` é
+   * role-aware: desde 25/10 esse guard cede a quem está logado como admin
+   * ativo (ver src/lib/inventario-portoes.server.ts).
+   */
+  portoesPiloto: { descricao: string; bloqueiaAtivacaoHoje: boolean }[];
 };
 
 type BloqueioReal = { regra: string; motivo: string };
@@ -148,10 +158,14 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
         proximaAcaoCanonica: null,
         etapaAtual: etapaAtual(
           calcularEtapas(
-            [...(mapa?.entries() ?? [])].map(([check_key, v]) => ({ check_key, ...v })) as CheckLido[],
+            [...(mapa?.entries() ?? [])].map(([check_key, v]) => ({
+              check_key,
+              ...v,
+            })) as CheckLido[],
             agora,
           ),
         ),
+        portoesPiloto: [],
       });
     }
 
@@ -166,6 +180,13 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
      * cases ativos: para um caso já ativo o card continua mostrando "Caso
      * ativo" e não precisa reavaliar bloqueios.
      */
+    // Peça A do laudo "nada persiste" (#189, 27/10/2026): a mesma pergunta
+    // de bloqueiosReais (acima), mas agora somando piloto_bloqueios — a
+    // fonte real que fn_piloto_caso_guard verifica, não lida aqui antes.
+    // Role-aware: um único cálculo serve para todos os casos desta lista
+    // (mesmo usuário logado em cada linha).
+    const souProprietariaOperando = await proprietariaOperando(supabase, context.userId as string);
+
     await Promise.all(
       resultado.map(async (r) => {
         r.total = TOTAL_OBRIGATORIOS_HOJE;
@@ -182,6 +203,16 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
         r.motivos = reais.map((b) => b.motivo);
         r.pendentes = reais.length;
         r.validados = Math.max(0, TOTAL_OBRIGATORIOS_HOJE - reais.length);
+
+        const portoesPiloto = await portoesDoPilotoDoCaso(
+          supabase,
+          r.caseId,
+          souProprietariaOperando,
+        );
+        r.portoesPiloto = portoesPiloto.map((p) => ({
+          descricao: p.protege,
+          bloqueiaAtivacaoHoje: Boolean(p.bloqueiaAtivacaoHoje),
+        }));
       }),
     );
 
@@ -200,9 +231,14 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
         _cases: idsNaoAtivos,
       });
       const porCasoCanonica = new Map(
-        ((canonicas ?? []) as { case_id: string; nivel: number; motivo: string; prazo: string | null }[]).map(
-          (p) => [p.case_id, { nivel: p.nivel, motivo: p.motivo, prazo: p.prazo }],
-        ),
+        (
+          (canonicas ?? []) as {
+            case_id: string;
+            nivel: number;
+            motivo: string;
+            prazo: string | null;
+          }[]
+        ).map((p) => [p.case_id, { nivel: p.nivel, motivo: p.motivo, prazo: p.prazo }]),
       );
       for (const r of resultado) {
         r.proximaAcaoCanonica = porCasoCanonica.get(r.caseId) ?? null;
@@ -229,6 +265,7 @@ export const lerEtapasCaso = createServerFn({ method: "GET" })
       .select("contrato_assinado")
       .eq("id", data.caseId)
       .maybeSingle();
-    const contratoAssinado = (caso as { contrato_assinado?: boolean | null } | null)?.contrato_assinado;
+    const contratoAssinado = (caso as { contrato_assinado?: boolean | null } | null)
+      ?.contrato_assinado;
     return calcularEtapas((linhas ?? []) as CheckLido[], Date.now(), { contratoAssinado });
   });

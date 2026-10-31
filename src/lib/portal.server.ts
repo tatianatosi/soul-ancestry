@@ -9,6 +9,7 @@
  * - nenhuma resposta pública revela se um e-mail existe;
  * - nenhum token/magic link é gravado em banco ou log.
  */
+import { melhorVinculo } from "@/lib/portal-vinculo";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { chavePublicavelDoServidor, urlDoServidor } from "@/lib/config-servidor";
@@ -153,8 +154,13 @@ export async function exigirGestor(supabase: any, userId: string) {
   const organizationId = membro.data?.organization_id as string | undefined;
   if (!organizationId) throw new Error("Organização não encontrada para este usuário.");
 
-  const papeis = await supabase.from("user_roles").select("role").eq("organization_id", organizationId);
+  // 25/10/2026: papéis DESTA pessoa (antes: de toda a organização) + staff_access ativo.
+  const [papeis, staff] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("organization_id", organizationId).eq("user_id", userId).is("archived_at", null),
+    supabase.from("staff_access").select("role,status").eq("auth_user_id", userId).is("archived_at", null).maybeSingle(),
+  ]);
   const lista = ((papeis.data ?? []) as { role: string }[]).map((p) => p.role);
+  if (staff.data?.status === "active" && staff.data.role && !lista.includes(staff.data.role)) lista.push(staff.data.role);
   const gestor = lista.some((p) => PAPEIS_GESTAO.includes(p));
   if (!gestor) throw new Error("Apenas admin e operações podem gerenciar acessos ao portal.");
   return { organizationId, papeis: lista, userId };
@@ -185,12 +191,14 @@ export async function acessoPorEmail(email: string) {
   const { data } = await admin
     .from("client_portal_access")
     .select(
-      "id, organization_id, client_id, email, access_status, access_level, invitation_expires_at, auth_user_id, first_authenticated_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at",
+      "id, organization_id, client_id, email, access_status, access_level, invitation_expires_at, auth_user_id, first_authenticated_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at, updated_at",
     )
     .eq("email", normalizarEmail(email))
     .is("archived_at", null)
-    .limit(1);
-  return (data ?? [])[0] ?? null;
+    .order("updated_at", { ascending: false })
+    .limit(10);
+  // 26/10/2026: com reconvite há mais de uma linha; usa a utilizável, não a revogada.
+  return melhorVinculo((data ?? []) as any[]);
 }
 
 

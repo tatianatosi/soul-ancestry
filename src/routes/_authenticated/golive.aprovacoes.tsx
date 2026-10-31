@@ -162,17 +162,9 @@ function AprovacoesGoLive() {
         <Acao
           rotulo="Publicar no App"
           titulo="Publicar versão sanitizada"
-          campos={[
-            {
-              nome: "confirmacao",
-              rotulo: 'Digite PUBLICAR para confirmar',
-              obrigatorio: true,
-              ajuda: "A família passa a ver título, número e situação. Valor e cláusulas não são publicados.",
-            },
-          ]}
-          aoConfirmar={async (v) => {
-            if ((v["confirmacao"] ?? "").trim().toUpperCase() !== "PUBLICAR")
-              throw new Error("Digite PUBLICAR para confirmar a publicação.");
+          campos={[]}
+          aoConfirmar={async () => {
+            // 25/10/2026: sem digitar palavra; o botão de confirmar do diálogo basta.
             return publicar({
               data: { tipo: item.grupo === "Contrato" ? "contrato" : "proposta", id: item.id },
             });

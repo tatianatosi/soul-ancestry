@@ -40,7 +40,7 @@ describe("Caso 360 como página única", () => {
     // de alterações, mapa de persistência) virou <details id="secao-log">
     // recolhida por padrão — mesma seção, mesmo conteúdo, só não é mais
     // literalmente uma <SecaoAncora>. O regex passa a casar as duas formas.
-    const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
+    const secoes = [...pagina.matchAll(/<SecaoAncora\s+id="(\w+)"|<details\s+id="secao-(\w+)"/g)].map(
       (m) => m[1] ?? m[2],
     );
     // P24 (26/09/2026): Documentos e Financeiro somam-se às 6, a pedido
@@ -62,8 +62,8 @@ describe("Caso 360 como página única", () => {
     // "Formalização" em 2026-09-26 (P24) — mesmo conteúdo, nome que já
     // descrevia o que a seção sempre fez (eixo comercial/formalização +
     // ponte para contrato/jurídico/OS).
-    const inicioFormalizacao = pagina.indexOf('<SecaoAncora id="comercial"');
-    const fimFormalizacao = pagina.indexOf('<SecaoAncora id="tecnico"');
+    const inicioFormalizacao = pagina.search(/<SecaoAncora\s+id="comercial"/);
+    const fimFormalizacao = pagina.search(/<SecaoAncora\s+id="tecnico"/);
     const blocoFormalizacao = pagina.slice(inicioFormalizacao, fimFormalizacao);
     for (const ponte of ["/casos/$caseId/contrato/preparar", "/contratos", "/matriz-juridica", "/ordens-servico"]) {
       expect(blocoFormalizacao, `Formalização devia linkar para ${ponte}`).toContain(ponte);
@@ -96,7 +96,7 @@ describe("Caso 360 como página única", () => {
     // índice resolve para uma âncora real (mesmo conjunto de ids, sem
     // nenhum órfão dos dois lados) — nenhum clique leva a lugar nenhum.
     const doIndice = [...pagina.matchAll(/\{ id: "(\w+)", rotulo:/g)].map((m) => m[1]);
-    const doDom = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
+    const doDom = [...pagina.matchAll(/<SecaoAncora\s+id="(\w+)"|<details\s+id="secao-(\w+)"/g)].map(
       (m) => m[1] ?? m[2],
     );
     expect(new Set(doIndice)).toEqual(new Set(doDom));
@@ -104,7 +104,7 @@ describe("Caso 360 como página única", () => {
   });
 
   it("cada seção tem âncora alcançável pelo índice", () => {
-    const ids = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
+    const ids = [...pagina.matchAll(/<SecaoAncora\s+id="(\w+)"|<details\s+id="secao-(\w+)"/g)].map(
       (m) => m[1] ?? m[2],
     );
     expect(pagina).toContain("href={`#secao-${a.id}`}");

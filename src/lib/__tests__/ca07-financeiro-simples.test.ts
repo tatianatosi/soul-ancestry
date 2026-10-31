@@ -34,14 +34,20 @@ describe("CA07-FINANCEIRO-SIMPLES — os oito campos aparecem no Caso 360 e na V
   });
 
   it("só existem dois botões de ação financeira interna: Registrar pagamento e Preparar cobrança", () => {
-    const bloco = caso360.slice(caso360.indexOf('id="resumo-financeiro"'), caso360.indexOf('id="resumo-financeiro"') + 6800);
+    // Janela ampliada: Prettier pode reformatar o bloco e aumentar a distância até os botões.
+    const bloco = caso360.slice(
+      caso360.indexOf('id="resumo-financeiro"'),
+      caso360.indexOf('id="resumo-financeiro"') + 9000,
+    );
     expect(bloco).toContain("Registrar pagamento");
     expect(bloco).toContain("Preparar cobrança");
   });
 
   it("a Visão Geral é só leitura — nenhum botão de ação financeira lá, mesmo cálculo do Caso 360", () => {
     expect(visaoGeral).not.toMatch(/Registrar pagamento|Preparar cobrança/);
-    expect(visaoGeral).toContain('import { ROTULO_STATUS_FINANCEIRO_CASO, type ResumoFinanceiroCaso } from "@/lib/financeiro-caso"');
+    expect(visaoGeral).toContain(
+      'import { ROTULO_STATUS_FINANCEIRO_CASO, type ResumoFinanceiroCaso } from "@/lib/financeiro-caso"',
+    );
   });
 });
 
@@ -82,23 +88,41 @@ describe("CA07-FINANCEIRO-SIMPLES — sem dados suficientes, nunca número simul
 
 describe("CA07-FINANCEIRO-SIMPLES — ações internas reusam escritores já existentes", () => {
   it("Registrar pagamento reusa salvarPagamento + conciliarPagamento (mesmo par que /financeiro já usa) — nenhum motor novo", () => {
-    const trecho = caso360.slice(caso360.indexOf("const mRegistrarPagamento"), caso360.indexOf("const mPrepararCobranca"));
+    const trecho = caso360.slice(
+      caso360.indexOf("const mRegistrarPagamento"),
+      caso360.indexOf("const mPrepararCobranca"),
+    );
     expect(trecho).toContain("salvarPagamentoFn(");
     expect(trecho).toContain("conciliarPagamentoFn(");
   });
 
   it("Preparar cobrança reusa salvarFatura, cria/move para rascunho ou emitida — nunca envia nada externo", () => {
-    const trecho = caso360.slice(caso360.indexOf("const mPrepararCobranca"), caso360.indexOf("const [form, setForm]"));
+    const trecho = caso360.slice(
+      caso360.indexOf("const mPrepararCobranca"),
+      caso360.indexOf("const [form, setForm]"),
+    );
     expect(trecho).toContain("salvarFaturaFn(");
     expect(trecho).toMatch(/status:\s*"rascunho"|status:\s*"emitida"/);
-    for (const proibido of ["enviarWhatsapp", "enviarEmail", "sendInvite", "sendEmail", "mailto:", "wa.me"]) {
+    for (const proibido of [
+      "enviarWhatsapp",
+      "enviarEmail",
+      "sendInvite",
+      "sendEmail",
+      "mailto:",
+      "wa.me",
+    ]) {
       expect(trecho).not.toContain(proibido);
     }
   });
 
   it("nenhuma das duas ações toca proposals, contracts ou service_orders — financeiro não bloqueia rascunho comercial", () => {
-    const bloco = caso360.slice(caso360.indexOf("const mRegistrarPagamento"), caso360.indexOf("const [form, setForm]"));
-    expect(bloco).not.toMatch(/\.from\("proposals"\)|\.from\("contracts"\)|\.from\("service_orders"\)/);
+    const bloco = caso360.slice(
+      caso360.indexOf("const mRegistrarPagamento"),
+      caso360.indexOf("const [form, setForm]"),
+    );
+    expect(bloco).not.toMatch(
+      /\.from\("proposals"\)|\.from\("contracts"\)|\.from\("service_orders"\)/,
+    );
   });
 });
 

@@ -177,7 +177,7 @@ function LinhaEditavel({ linha, onMudou }: { linha: LinhaPrecoCatalogo; onMudou:
   });
 
   const mArquivar = useMutation({
-    mutationFn: () => arquivar({ data: { id: linha.id, motivo } }),
+    mutationFn: () => arquivar({ data: { id: linha.id, motivo: motivo.trim().length >= 10 ? motivo : "Decisão da Proprietária (sem motivo escrito)" } }),
     onSuccess: () => {
       toast.success("Linha arquivada, com motivo registrado.");
       setArquivando(false);
@@ -239,7 +239,7 @@ function LinhaEditavel({ linha, onMudou }: { linha: LinhaPrecoCatalogo; onMudou:
             <div className="flex gap-1">
               <button
                 onClick={() => mArquivar.mutate()}
-                disabled={mArquivar.isPending || motivo.trim().length < 10}
+                disabled={mArquivar.isPending}
                 className="rounded-md bg-terracotta px-2 py-1 text-[11px] text-cream disabled:opacity-50"
               >
                 Confirmar arquivamento

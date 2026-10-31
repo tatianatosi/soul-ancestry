@@ -191,18 +191,21 @@ export async function sincronizarVinculo(staff: any, userId: string) {
     );
   if (membership.error) throw new Error(membership.error.message);
 
+  // 27/10/2026 (item 2 da auditoria pré-lançamento, autorizado): sem exclusão
+  // física de papel (AGENTS.md) — arquiva em vez de apagar a linha.
   const papeisRemovidos = await adminClient
     .from("user_roles")
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
     .eq("organization_id", staff.organization_id)
     .eq("user_id", userId)
-    .neq("role", staff.role);
+    .neq("role", staff.role)
+    .is("archived_at", null);
   if (papeisRemovidos.error) throw new Error(papeisRemovidos.error.message);
 
   const papel = await adminClient
     .from("user_roles")
     .upsert(
-      { organization_id: staff.organization_id, user_id: userId, role: staff.role },
+      { organization_id: staff.organization_id, user_id: userId, role: staff.role, archived_at: null },
       { onConflict: "organization_id,user_id,role" },
     );
   if (papel.error) throw new Error(papel.error.message);
@@ -216,11 +219,13 @@ export async function sincronizarVinculo(staff: any, userId: string) {
 /** Remove vínculos operacionais quando o acesso deixa de estar ativo. */
 export async function revogarVinculo(staff: any) {
   if (!staff.auth_user_id) return;
+  // 27/10/2026: idem — arquiva (archived_at), nunca apaga a linha.
   await adminClient
     .from("user_roles")
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
     .eq("organization_id", staff.organization_id)
-    .eq("user_id", staff.auth_user_id);
+    .eq("user_id", staff.auth_user_id)
+    .is("archived_at", null);
 }
 
 /** Cliente publishable no servidor: usado só para disparar e-mails de autenticação. */

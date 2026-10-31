@@ -108,9 +108,10 @@ describe("Visão Geral do Caso 360 usa a partição e renderiza donut acessível
     expect(ramoVazio).not.toContain("conic-gradient");
     expect(ramoVazio).not.toContain("—");
     expect(arquivo).not.toContain('semEvidencia ? "—"');
-    expect(arquivo).toContain("{dossie.confirmados}</span>");
-    expect(arquivo).toContain("{dossie.emRevisao}</span>");
-    expect(arquivo).toContain("{dossie.pendentes}</span>");
+    // Prettier pode quebrar {dossie.confirmados} e </span> em linhas separadas.
+    expect(arquivo).toMatch(/\{dossie\.confirmados\}\s*<\/span>/);
+    expect(arquivo).toMatch(/\{dossie\.emRevisao\}\s*<\/span>/);
+    expect(arquivo).toMatch(/\{dossie\.pendentes\}\s*<\/span>/);
   });
 
   it("três segmentos proporcionais visíveis, cores semânticas", () => {

@@ -225,7 +225,6 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
       pagamento_confirmado: Boolean(caso.data.pagamento_confirmado),
     };
     const motivos = motivosBloqueio(gates);
-    const estado = estadoDoPlano(gates, motivos.length > 0 ? "bloqueado" : "liberado_preparacao");
 
     const plano = await garantirPlanoOnboarding(supabase, {
       organizationId,
@@ -234,6 +233,9 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
       gates,
       responsavel: caso.data.responsavel_principal ?? null,
     });
+    // 26/10/2026: parte do estado GRAVADO do plano. Antes passava um estado
+    // sintético e todo recálculo voltava "em_andamento" para "liberado_preparacao".
+    const estado = estadoDoPlano(gates, (plano as { estado?: string | null }).estado ?? null);
 
     const checklist = checklistComGates(
       gates,

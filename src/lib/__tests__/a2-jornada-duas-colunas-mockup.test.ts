@@ -23,7 +23,9 @@ const codigo = readFileSync(ROTA, "utf8");
 describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
   it("TimelineVertical recebe eventos já filtrados por linha, não a lista mista", () => {
     // Assinatura ganhou `variante` (gold = Linha Ancestral, navy = Processo) no contrato visual v4.
-    expect(codigo).toMatch(/function TimelineVertical\(\{\s*eventos,\s*eyebrow,[\s\S]*?\}: \{\s*eventos: NoEvento\[\];\s*eyebrow: string;/);
+    expect(codigo).toMatch(
+      /function TimelineVertical\(\{\s*eventos,\s*eyebrow,[\s\S]*?\}: \{\s*eventos: NoEvento\[\];\s*eyebrow: string;/,
+    );
   });
 
   it("separa linhaAncestral (categoria !== navy) de linhaProcesso (categoria === navy) a partir do mesmo array `nos`", () => {
@@ -57,12 +59,15 @@ describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
   // mobile and restores two lines at desktop", já verde contra este mesmo
   // arquivo). Mantém Momentos de União como conector abaixo das duas.
   it("empilha no celular e restaura as duas colunas lado a lado a partir de md:", () => {
-    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2/);
+    // Prettier pode quebrar os atributos do <div> em várias linhas; checar seletor e classe separadamente.
+    expect(codigo).toMatch(
+      /data-jornada-duas-linhas[\s\S]{0,40}className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2/,
+    );
   });
 
   it("marca cada coluna com estado vazio honesto, sem inventar item", () => {
     expect(codigo).toMatch(/gerações anteriores aparecerão aqui/);
-    expect(codigo).toMatch(/passoAtualIndice !== null \? \(\s*<div className="mt-3"><TrilhaCompacta/);
+    expect(codigo).toMatch(/passoAtualIndice !== null \? \([\s\S]{0,400}<TrilhaCompacta/);
   });
 
   it("Próxima ação (nó sintético __agora__) cai na Linha do Processo, nunca na Ancestral", () => {
