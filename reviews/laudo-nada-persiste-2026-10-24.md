@@ -108,3 +108,66 @@ O inventário **mostra** portões; não os abre. Abrir qualquer um dos 19 do cas
 Ana (contrato assinado, consentimento, revisão jurídica, representação do menor) é
 decisão sua sobre dado de família real — e, pela regra 3 da Decisão de Hospedagem
 Única, escrita no banco é proposta em `supabase/pendentes/` e aplicada pelo Lovable.
+
+## 6. Revisão de 31/10/2026 — o que mudou desde este laudo
+
+Pedido: revisar este laudo. Reconferi os números centrais contra o banco de
+produção vivo e o estado das três peças propostas na seção 4. Não reescrevo o
+texto acima — fica como registro do que foi medido em 24/10. Isto é o que mudou.
+
+### 6.1 O bloqueio que "provou isto hoje" (seção 3) está fechado
+
+`piloto_bloqueios` com `status='aberto'` e `criticidade='critico'` para o caso da
+Ana: eram 19 em 24/10; **hoje são 0** (reconferido por consulta direta). A PR #196
+("Remove as camadas de bloqueio da ativação do caso — guards cedem à
+Proprietária", mesclada em 25/10) é a causa provável, mas este laudo não a
+investigou linha a linha — fica como achado, não como atribuição comprovada.
+
+### 6.2 Os números da seção 3, reconferidos (metodologia diferente, não comparável 1:1)
+
+| Medida | Laudo (24/10) | Hoje (31/10) |
+|---|---|---|
+| Funções de trigger no schema | 167 | 169 |
+| ...que fazem `RAISE EXCEPTION` | 134 | 137 |
+| Tabelas com trigger que pode recusar escrita | 138 de 143 | 170 de 195 |
+
+O crescimento acompanha o banco (195 tabelas hoje contra 143 em 24/10 — mais
+tabelas novas, não mais travas na mesma base). Não reconferi "278 das 297
+mutations (94%) com `onError`" nem as "98 (33%) sem checar erro": são contagens
+por regex sobre código-fonte que o autor original já havia errado três vezes
+antes de convergir (seção 1); refazer com um grep mais simples teria menos
+rigor que o original, não mais. Ficam como estavam, sem reconfirmação.
+
+### 6.3 As três peças propostas (seção 4)
+
+- **Peça B (tradutor de recusa)** — construída em 29/10 numa branch nunca
+  mesclada (`claude/modest-carson-28pij2`, PR #197, sob o título enganoso
+  "chore: ignora .cartographer/"). Portada para `main` nesta revisão
+  (`src/lib/recusa-traducao.server.ts`, `src/lib/persistencia.server.ts`),
+  depois de reconferir os três textos de recusa que ela traduz contra os
+  gatilhos vivos no banco (`pg_get_functiondef`) — ainda batem. 601 arquivos de
+  teste, 0 falhas; build e typecheck limpos.
+- **Peça A (inventário de portões)** — também construída em 28/10, na mesma
+  branch. Não portada: o diff toca `casos.$caseId.index.tsx` com mais de 5.400
+  linhas de diferença sobre uma versão do arquivo de 25/10, e esse arquivo é o
+  mais editado do repositório (Lovable mexe nele quase todo dia). Cherry-pick
+  direto arrisca reverter ou conflitar com trabalho de UI de uma semana.
+  Precisa de reconstrução deliberada contra o `casos.$caseId.index.tsx` de
+  hoje, não de um merge mecânico.
+- **Peça C (trava contra reincidência)** — depende do arquivo que a Peça A cria
+  (`inventario-portoes.server.ts`); sem a Peça A em `main`, não há onde portar
+  a Peça C ainda.
+- **Primeiro corte proposto (seção 4, lista final)**: item 1 (19 mutations sem
+  `onError`) não foi reconferido nesta revisão — precisa de nova varredura,
+  não suposição a partir do número de 24/10.
+
+### 6.4 Achado relacionado, fora deste laudo
+
+Nesta mesma revisão, a Conta do App Cliente mostrava um valor de condição
+comercial **hardcoded por ID de caso** (só a Ana), que tinha prioridade sobre a
+assinatura real já publicada desde 05/10 — mascarando-a. Não é um portão de
+banco (este laudo não cobre isso), mas é a mesma classe de sintoma ("eu publico
+algo e o cliente nunca vê") por uma causa diferente: um atalho sem fonte viva,
+não uma recusa silenciosa. Corrigido e portado junto nesta sessão
+(`src/lib/portal-dados-vivos.functions.ts` lê `case_commercial_condition` pelo
+caso ativo, para qualquer família).
