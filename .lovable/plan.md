@@ -1,17 +1,15 @@
-# Árvore inteira no celular e publicação
+# Anos nos cartões da Árvore (Otto e Ana Luiza)
 
-Os ajustes de hoje já fazem a Árvore abrir de G6 até "Você" na prévia. Eles ainda não estão no link público, onde o cartão de Ana Luiza continua cortado.
+## O que muda
+- **Otto Reimer:** registrar nascimento em 1895, com precisão "ano", no perfil liberado dele. A fonte é o registro de nascimento de Graz, que você informou em 12/10. Para manter a origem, a nota cita essa fonte e a sua autorização de hoje.
+- **Ana Luiza:** registrar nascimento em 2001 no perfil liberado dela, a partir do cadastro de pesquisa (29/07/2001, data exata). O cartão mostra só o ano.
+- Heinrich, Lotte, Cleusa, Ana Maria e Adair continuam sem ano, porque não há data em nenhum registro.
 
-## Passos
-1. Conferir na prévia, em 375 px (e em 320 px, para celulares menores), se o cartão de Ana Luiza aparece inteiro, com uma pequena folga embaixo, ao abrir e depois de "Restaurar visão".
-2. Se ainda cortar: ajustar só o enquadramento inicial da Árvore, reduzindo um pouco o zoom ou aumentando a altura da área do desenho no celular. Pessoas, ligações, cores e outras abas não mudam.
-3. Rodar os testes da Árvore.
-4. Antes de publicar, consultar o resultado da verificação de segurança. Os 3 achados de preço e contrato continuam abertos e eu aviso sobre eles, mas a publicação não depende deles.
-5. Publicar em https://soul-ancestry.lovable.app e conferir a Árvore no link público em 375 px e 1280 px: G6 a "Você" inteiros, sem rolagem lateral e sem erros.
-
-## Fora do escopo
-- Contrato da Ana: as linhas antigas do rateio continuam aguardando a sua decisão.
-- Parentescos e dados no banco: nada muda.
+## Como
+1. Gravar os dois perfis pela ação de edição de perfil que já existe no Desk, entrando como você, para ficar a auditoria normal. O estado "verificação pendente" não muda.
+2. Conferir na prévia, em 375 e 1280 px: "n. 1895" em Otto, "n. 2001" em Ana Luiza, "n. 1873" em Rudolf, e nenhum outro ano.
+3. Publicar em https://soul-ancestry.lovable.app e conferir a Árvore no link público.
 
 ## Detalhes técnicos
-- O ajuste, se for necessário, fica em `enquadramentoGenograma` (`genograma-layout.ts`), que serve tanto à abertura quanto ao "Restaurar visão". O teste focal ganha um caso com a altura do celular.
+- Campos: `genealogical_person_profiles.nascimento_data` e `nascimento_precisao` (`ano` para Otto, `exata` para Ana Luiza). Se essa ação não existir no Desk, uso uma atualização pontual desses dois perfis, com nota de origem.
+- Código, parentescos e visibilidade não mudam.
