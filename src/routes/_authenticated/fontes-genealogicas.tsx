@@ -29,8 +29,7 @@ import {
   salvarFonte,
 } from "@/lib/fontes-genealogicas.functions";
 import { toast } from "sonner";
-import { PAISES_LINHA_PRIORITARIA } from "@/lib/crm-desk";
-import { resumoFontesPorPais, type FonteCatalogo } from "@/lib/fontes-por-pais";
+import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
 
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Selecao, Texto } from "@/components/caso/campos";
@@ -458,45 +457,6 @@ function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalv
   );
 }
 
-/**
- * Cobertura de fontes por país do Planejador (Corte PAÍSES, 03/10/2026).
- * Somente leitura: país habilitado sem base catalogada diz isso em voz alta,
- * em vez de a equipe procurar uma fonte que não existe e achar que é erro de
- * filtro. Não cria fonte, não consulta acervo externo.
- */
-function CoberturaDeFontesPorPais({ fontes }: { fontes: Fonte[] }) {
-  const resumo = useMemo(
-    () => resumoFontesPorPais(PAISES_LINHA_PRIORITARIA, fontes as unknown as FonteCatalogo[]),
-    [fontes],
-  );
-  return (
-    <Secao
-      titulo="Cobertura de fontes por país"
-      subtitulo="Países habilitados no Planejador e quantas fontes vivas o catálogo tem para cada um."
-      eyebrow="Fontes · países"
-    >
-      <ul className="space-y-2" data-fontes-cobertura-pais>
-        {resumo.map((r) => (
-          <li
-            key={r.valor}
-            data-fontes-pais={r.estado}
-            className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm"
-          >
-            <span className="font-medium text-navy">{r.rotulo}</span>
-            {r.estado === "com_base" ? (
-              <span className="text-xs text-navy/60">
-                {r.fontes} {r.fontes === 1 ? "fonte" : "fontes"} · {r.comRota} com endereço
-              </span>
-            ) : (
-              <span className="max-w-xl text-xs text-terracotta">{r.mensagem}</span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </Secao>
-  );
-}
-
 function FontesGenealogicas() {
   const autoridade = useAutoridade();
   const { podeEscrever: podeEscreverVinculo } = useSaas();
@@ -654,7 +614,7 @@ function FontesGenealogicas() {
 
       <MarcosJuridicosPorPais />
 
-      <CoberturaDeFontesPorPais fontes={(data?.fontes ?? []) as Fonte[]} />
+      <FontesPorPaisPainel />
 
       <div className="grid gap-5 lg:grid-cols-2">
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
