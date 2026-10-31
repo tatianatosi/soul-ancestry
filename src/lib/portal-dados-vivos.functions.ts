@@ -287,8 +287,16 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     // cliente nunca teria a própria linha pelo seu token. Leitura no
     // servidor, com o mesmo bridge e o mesmo recorte explícito por
     // `case_id` das outras consultas admin desta função.
+    // Condição comercial é dado financeiro do contratante, não do núcleo: o
+    // bridge admin ignora a RLS, então o papel é conferido antes
+    // (`portal_sou_contratante_financeiro`, o mesmo gate de `minhasFaturas`).
+    // Falha na conferência é fail-closed: estado neutro, nunca o valor.
     let condicaoComercial: CondicaoComercialCliente | null = null;
     try {
+      const gate = await supabase.rpc("portal_sou_contratante_financeiro", {
+        p_case_id: String(casoAtivo.id),
+      });
+      if (gate.error || gate.data !== true) throw new Error("não contratante");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const cond = await (supabaseAdmin as any)
         .from("case_commercial_condition")
