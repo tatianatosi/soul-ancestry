@@ -5,6 +5,7 @@ import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { rotuloSeloCaso } from "@/lib/selo-caso-cliente";
 
 /**
  * Elementos gráficos do mockup original (13/10/2026), compartilhados pelas
@@ -80,7 +81,8 @@ export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] })
 
 /** Selo do estado real do caso: "Caso ativo" só quando o registro diz ativo. */
 export function SeloEstadoCaso({ resumo }: { resumo: ResumoCasoCliente | null | undefined }) {
-  const texto = resumo?.ativo ? "Caso ativo" : resumo?.statusRotulo ?? "Não registrado";
+  const texto = rotuloSeloCaso(resumo?.statusCaso ?? null, resumo?.ativo);
+  if (!texto) return null;
   return (
     <span
       data-selo-estado-caso

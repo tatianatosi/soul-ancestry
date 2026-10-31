@@ -4,6 +4,8 @@
 -- autenticado". O guard só cede a `auth.uid()` de um admin ativo; uma conexão SQL não tem
 -- usuário, e forjar a sessão para contorná-lo não é aceitável. Precisa sair de uma ação
 -- autenticada no Desk (sessão da Proprietária).
+-- Caminho: Desk → Privacidade → Documentos → "Retirar do App" em cada um dos 3 documentos
+-- (`retirarDocumentoDoApp`, PR #204), com motivo. Este SQL fica só como registro da decisão.
 --
 -- O QUE FAZ
 -- Os 3 documentos do caso CA-CID-AT-FAM-2026-001 (dossiê consolidado e registro

@@ -145,6 +145,17 @@ export function PortalDocumentos() {
               </div>
               </SecaoDocumental>
             </section>
+
+            {/* 4. Entregas — atalho contextual; a lista editorial continua em Legado. */}
+            <section data-documentos-entregas className="app-v11-faixa">
+              <SecaoDocumental tipo="entregas" titulo="Entregas do Legado">
+              <div className="py-1">
+                <h2 className="font-serif text-xl text-navy">Entregas do Legado</h2>
+                <p className="mt-2 text-sm text-navy/70">As histórias e os materiais preparados para a sua família ficam reunidos no Legado, quando estiverem disponíveis.</p>
+                <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 hover:text-terracotta">Conhecer o Legado</LinkPortal>
+              </div>
+              </SecaoDocumental>
+            </section>
             </>
           </div>
         )}
@@ -210,7 +221,15 @@ export function PortalDocumentos() {
             return (
         <div className="app-v11-secoes" data-aba-documentos-vivo>
           <ChecklistDocumental checklist={vivo.data?.checklist} />
-          <>
+          {liberados_lista.length === 0 && recebidos.length === 0 && !solicitado && solicitacoesAbertas.length === 0 ? (
+            <div className="app-cofre-ausencia" data-cofre-ausencia>
+              <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
+              <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
+              <p className="app-estado-editorial mt-3" data-acervo-vazio>Seu acervo está em preparação</p>
+              <div className="mt-4"><EnviarDocumento casoId={casoAtivo} /></div>
+              <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
+            </div>
+          ) : (<>
 
           {/* 1. Solicitados — o que a equipe pediu, com a instrução de envio integrada ao card. */}
           <section data-documentos-solicitados className="app-v11-faixa">
@@ -356,11 +375,40 @@ export function PortalDocumentos() {
               </ul>
             )}
             </div>
-          
+
               </SecaoDocumental>
 </section>
 
-          </>
+          {/*
+            4. Entregas — material editorial (cadernos, relatórios, narrativas)
+            só chega ao portal pelas projeções consumidas pela aba Legado. A aba
+            Documentos NÃO tem fonte por caso para essa lista — a alternativa
+            seria duplicar Legado, o que criaria duas fontes de verdade. A caixa
+            vira atalho canônico para Legado. Bloqueio catalogado em
+            portal-dados-vivos.ts (BLOQUEIOS_CA_PORTAL_02).
+          */}
+          <section data-documentos-entregas className="app-v11-faixa">
+              <SecaoDocumental tipo="entregas" titulo="Entregas do Legado">
+            <div className="py-1">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+               <h2 className="font-serif text-xl text-navy">Entregas do Legado</h2>
+              <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                Cadernos, relatórios e narrativas
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-navy/70">
+               As histórias e os materiais preparados para a sua família ficam reunidos no Legado, quando estiverem disponíveis.
+            </p>
+            <LinkPortal
+              to="/portal/legado"
+               className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 hover:text-terracotta"
+            >
+               Conhecer o Legado
+            </LinkPortal>
+            </div>
+              </SecaoDocumental>
+</section>
+          </>)}
         </div>
           );
           }}
