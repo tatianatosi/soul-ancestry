@@ -72,7 +72,11 @@ export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPesso
     const altura = 22 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * 16 + (temAno ? 16 : 0) + 8;
     rotulos.push({ geracao: g, y: linhaY - 10 });
     y += altura + 64;
-    return preparados.map((p, coluna) => ({ ...p, altura, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 186, y: linhaY }));
+    return preparados.map((p, indice) => {
+      const x = largura / 2 + (indice - (grupo.length - 1) / 2) * 186;
+      coluna.set(p.pessoa.chave, x);
+      return { ...p, altura, x, y: linhaY };
+    });
   });
   return { nos, rotulos, largura, altura: Math.max(240, y - 44) };
 }

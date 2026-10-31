@@ -11,7 +11,7 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas
   const [selecionada, setSelecionada] = useState<string | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const gesto = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
-  const layout = useMemo(() => layoutGenograma(pessoas, anos), [pessoas, anos]);
+  const layout = useMemo(() => layoutGenograma(pessoas, anos, vinculos), [pessoas, anos, vinculos]);
   const porId = new Map(layout.nos.map((n) => [n.pessoa.chave, n]));
   const pessoa = pessoas.find((p) => p.chave === selecionada);
   const enquadrar = useCallback(() => {

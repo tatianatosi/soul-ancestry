@@ -69,7 +69,11 @@ export function PortalArvore() {
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
-            const pessoas = pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null);
+            // 31/10/2026: filiação explícita publicada prevalece sobre número de geração contraditório.
+            const pessoas = geracoesCoerentes(
+              pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null),
+              "vinculosArvore" in vivo ? vivo.vinculosArvore : [],
+            );
             const idsComPessoa = new Set(vivo.projecoes.filter((p) => p.pessoa_id).map((p) => String(p.id)));
             const itens = arvoreSanitizada(vivo.projecoes).filter((p) => !idsComPessoa.has(p.id));
             const painel = painelArvoreGeracoes(itens);
