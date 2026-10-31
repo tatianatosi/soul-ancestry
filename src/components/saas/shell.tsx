@@ -415,8 +415,8 @@ export function SaasShell({
             partir de `sm:` volta a dividir a linha com as ações, como antes.
           */}
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-            <div className="min-w-0 max-w-full">
-              <h1 className="break-words font-serif text-3xl leading-tight text-navy">{titulo}</h1>
+            <div className="w-full min-w-0 max-w-full sm:w-auto sm:flex-1">
+              <h1 className="break-words font-serif text-2xl leading-tight text-navy sm:text-3xl">{titulo}</h1>
               {descricao ? (
                 <p className="overflow-wrap-anywhere mt-1 text-xs text-navy/60">{descricao}</p>
               ) : null}

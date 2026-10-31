@@ -141,6 +141,7 @@ import {
   useAvisoEdicaoNaoSalva,
   useAvisoEdicaoNaoSalvaComConfirmacao,
 } from "@/lib/aviso-edicao-nao-salva";
+import { ArvorePublicadaDesk } from "@/components/desk/arvore-publicada-desk";
 
 import {
   EIXO_COMERCIAL,
@@ -3881,6 +3882,7 @@ function FichaCaso() {
                       </>
                     )}
                   </EstadoDados>
+                  <ArvorePublicadaDesk caseId={id} />
                   <AbaCadastro caseId={id} bloqueado={bloqueado} />
 
                   {/*

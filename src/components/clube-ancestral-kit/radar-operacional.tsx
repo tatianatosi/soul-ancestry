@@ -55,7 +55,7 @@ export function MatrizPrioridadeNominal({
   if (!casos.length) {
     return (
       <KitEmptyState
-        title="Nenhum caso posicionado"
+        title="Dados insuficientes"
         description="A matriz não inventa coordenadas quando faltam dados de urgência ou elegibilidade."
       />
     );
