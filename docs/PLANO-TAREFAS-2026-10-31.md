@@ -29,7 +29,7 @@ obrigatória para marcar motor como comprovado.
 | R3  | #201: resolver o conflito, depois de conferir se o tradutor de recusa já está na `main`; se estiver, fechar com motivo                                                                                                                                                                      | C                           | conflito resolvido ou PR fechada com motivo    |
 | R4  | 14 PRs antigas (#32, #97 a #125, #142): fechar uma a uma depois de conferir que a casca V4 as superou; apagar as 5 `lovable-sync` redundantes                                                                                                                                               | P decide, C prepara a lista | PRs fechadas com motivo                        |
 | R5  | Publicar com a skill `/lancar` e conferir que o painel (#208) registra o commit verificado (hoje registra `8574598`, não verificado)                                                                                                                                                        | P avisa, C executa          | "Último Publish" no painel = commit verificado |
-| R6  | PR #32 (aberta, limpa): a releitura estrita (via #199) e a decisão pós-salvamento já estão na `main`. Só estão na #32: `TarefasDoCaso` no Caso 360, `safe-area` do assistente do Desk e os cartões mobile de Partes em `contratos.$id.tsx`. Portar essas 3 peças ou fechar a #32 com motivo | P decide, C porta           | #32 fechada com motivo                         |
+| R6  | **PR #32 incluída por decisão da Proprietária (31/10), tratada como bloco de persistência (P1 a P3 abaixo).** A releitura estrita de `salvarRegistroG02` e o painel de decisão pós-salvar já estão na `main` (#199); o que só está na #32 é `TarefasDoCaso` no Caso 360, a margem de segurança do assistente e os cartões mobile de Partes | C | #32 fechada com motivo depois do P1 |
 
 ## 2. J — Jornada da Ana
 
@@ -106,6 +106,16 @@ A Proprietária decidiu: religar **todas** as órfãs, inclusive as classificada
 | C    | Teto de despesas do produto-pai no plano de ação (Corte C)                                                                             | em execução  |
 
 Feitos antes das ondas, em 31/10: `tema-clausula-texto` religado em Validação Jurídica; `fontes-por-pais` como seção de leitura (agora vira editável na W2); `ancestral_referencia` confirmado por você e gravado como `validado`.
+
+## 4c. P — Persistência: salvar, desfazer (arquivar/despublicar) e publicar (PR #32 e laudo #189)
+
+A #32 trata de "salvar com releitura real"; a Proprietária pediu que ela entre no plano junto com desfazer e publicar. Estado medido: `gravarComVerificacao` e `inserirComVerificacao` só avisam no console quando a releitura diverge (56 arquivos); só `salvarRegistroG02` é estrito.
+
+| #  | Tarefa                                                                                                                                                                                                                        | Dono                        | Pronto quando                                                |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------ |
+| P1 | Portar o que sobrou da #32 sobre a `main` atual (sem merge da branch antiga): `TarefasDoCaso` no Caso 360, margem de segurança do assistente, cartões mobile de Partes em `contratos.$id.tsx`                                   | C (frente em execução)      | 3 peças na `main`, com teste; #32 fechada com motivo         |
+| P2 | Auditoria de toda escrita: estrita, só aviso, crua, arquivar/despublicar com ou sem releitura e motivo, publicar com ou sem gate antes e releitura depois. Entrega os 15 caminhos de maior risco                                | C (auditoria em execução)   | lista classificada e ordem de execução                       |
+| P3 | Endurecer por módulo (divergência vira erro), começando pelos caminhos de publicar, despublicar e arquivar; decidir o caminho tolerante de `gravarComVerificacao` que grava fora da organização da sessão                       | C executa, P decide o tolerante | testes por módulo; "salvo" só depois da releitura         |
 
 ## 5. E — Esteira e produção
 
