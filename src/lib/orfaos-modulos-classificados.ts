@@ -31,6 +31,14 @@ export type OrfaModulo = {
 
 export const MODULOS_ORFAOS: OrfaModulo[] = [
   {
+    modulo: "lib/useActiveCase.ts",
+    veredicto: "APOSENTADA_CLASSIFICADA",
+    motivo:
+      "O hook resolve o caso pelo diretório estático de src/data; seu último consumidor era o Kit Contratual, que passou a receber o caso real por caseId, e nenhuma tela do Desk deve voltar a ler caso fixo.",
+    destino:
+      "lib/kit-contratual-do-caso.ts e lib/kit-contratual.functions.ts (caso lido do banco pelo caseId da rota)",
+  },
+  {
     modulo: "components/biblioteca/motores-primordiais.tsx",
     veredicto: "AGUARDA_DECISAO",
     motivo:
@@ -91,14 +99,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     motivo:
       "O modelo de entrega por fase vive hoje em relatorios-fase.$caseId.tsx sobre dado real; este componente só renderiza o caso modelo Sophia de src/data/caso-sophia, sem leitura de banco.",
     destino: "routes/_authenticated/relatorios-fase.$caseId.tsx; caso-sophia fica como modelo",
-    riscoVazamento: true,
-  },
-  {
-    modulo: "components/kit-contratual.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "A preparação do contrato opera hoje sobre dados reais em casos.$caseId.contrato.preparar e contratos.$id; este kit lê CaseData de src/data via useActiveCase, que só alimenta o mockup.",
-    destino: "casos.$caseId.contrato.preparar.tsx e contratos.$id.tsx",
     riscoVazamento: true,
   },
   {

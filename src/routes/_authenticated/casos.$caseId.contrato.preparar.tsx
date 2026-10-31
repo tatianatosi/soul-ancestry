@@ -33,6 +33,7 @@ import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
 import { AnexosTresCamadasPainel } from "@/components/governanca/anexos-tres-camadas";
+import { KitContratualDoCaso } from "@/components/contrato/kit-contratual-do-caso";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
 import { CartoesFormalizacao } from "@/components/contrato/cartoes-formalizacao";
 import { GovernancaFormalizacao } from "@/components/contrato/governanca-formalizacao";
@@ -1373,6 +1374,9 @@ function Pagina() {
                 </p>
               ) : null}
               <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
+              <div className="mt-4" data-kit-contratual-caso>
+                <KitContratualDoCaso casoId={casoUuid} />
+              </div>
               <div className="mt-2">
                 <MaterializarRevisados
                   plano={planoRevisados}

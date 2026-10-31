@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useActiveCase } from "@/lib/useActiveCase";
+import { createContext, useContext, useState } from "react";
+import type { CasoDoKit } from "@/lib/kit-contratual-do-caso";
 import { cn } from "@/lib/utils";
 import {
   CONTRATO_BASE_LABEL,
@@ -17,7 +17,7 @@ import {
   STATUS_ETAPA_LABEL,
   mensagemDocumento,
 } from "@/lib/visibilidade";
-import type { CaseContratacao, CaseData, EstadoDocumento } from "@/types/case";
+import type { CaseContratacao, EstadoDocumento } from "@/types/case";
 import {
   AVISO_PREPARO_PROCURACAO,
   bloqueiosProcuracaoEuropeia,
@@ -41,13 +41,22 @@ const NAO_INICIADO = "Ação ainda não iniciada";
  * Nesta visão o Planejador/proposta ainda não declaram país próprio, então o
  * resolvedor lê o país confirmado no caso — sem qualquer país por default.
  */
-function contextoEuropeuDoCaso(caso: CaseData): ContextoProcuracaoEuropeia {
+function contextoEuropeuDoCaso(caso: CasoDoKit): ContextoProcuracaoEuropeia {
   return resolverContextoEuropeu({
     propostaAprovadaVinculada: null,
     produtoSkuHomologado: null,
     planejadorHomologado: null,
-    casoConfirmado: { pais: caso.rota?.pais_principal ?? null, versao: null },
+    casoConfirmado: { pais: caso.pais, versao: null },
   });
+}
+
+/** O caso vem da leitura real (`kitContratualDoCaso`); nenhum caso fixo é importado aqui. */
+const CasoDoKitContext = createContext<CasoDoKit | null>(null);
+
+function useCasoDoKit(): CasoDoKit {
+  const c = useContext(CasoDoKitContext);
+  if (!c) throw new Error("KitContratual precisa receber o caso.");
+  return c;
 }
 
 type ModeloId =
@@ -213,15 +222,23 @@ function estadoDoCard(id: string, c: CaseContratacao | undefined): EstadoDocumen
 
 type AreaId = "visao" | string;
 
-export function KitContratual() {
-  const caso = useActiveCase();
+export function KitContratual({ caso }: { caso: CasoDoKit }) {
+  return (
+    <CasoDoKitContext.Provider value={caso}>
+      <KitContratualCorpo />
+    </CasoDoKitContext.Provider>
+  );
+}
+
+function KitContratualCorpo() {
+  const caso = useCasoDoKit();
   const c = caso.contratacao;
   const [area, setArea] = useState<AreaId>("visao");
   const ctxEuropeu = contextoEuropeuDoCaso(caso);
   const itens = cards(
     c,
-    texto(caso.governanca.responsavel_caso, FALLBACK.aguardando),
-    texto(caso.geral.data_abertura, FALLBACK.aguardando),
+    texto(caso.responsavel, FALLBACK.aguardando),
+    texto(caso.abertoEm, FALLBACK.aguardando),
     ctxEuropeu,
   );
 
@@ -239,8 +256,8 @@ export function KitContratual() {
         <div>
           <h3 className="font-serif text-xl text-navy">Kit Contratual do Caso</h3>
           <p className="mt-1 text-[12px] text-navy/70">
-            Estrutura visual interna e somente leitura. Nenhum documento assinado, link público,
-            upload, edição ou cobrança está habilitado nesta fase.
+            Leitura interna do que está registrado no caso. Nada é enviado, assinado, baixado ou
+            cobrado por aqui; o que não tem registro aparece como não iniciado.
           </p>
         </div>
         <span className="rounded-full border border-plum/30 bg-plum/10 px-3 py-1 text-[11px] font-semibold text-plum">
@@ -268,6 +285,13 @@ export function KitContratual() {
         </nav>
 
         <div className="min-w-0 flex-1">
+          {area === "visao" && caso.avisos.length > 0 && (
+            <ul className="mb-3 space-y-1 rounded-lg border border-gold/40 bg-gold/10 p-3 text-[11px] text-navy" data-kit-avisos>
+              {caso.avisos.map((a) => (
+                <li key={a}>{a}</li>
+              ))}
+            </ul>
+          )}
           {area === "visao" && (
             <div className="grid gap-4 xl:grid-cols-2">
               {itens.map((k) => (
@@ -347,7 +371,7 @@ export function KitContratual() {
 }
 
 function HistoricoContratual() {
-  const caso = useActiveCase();
+  const caso = useCasoDoKit();
   const etapas = caso.contratacao?.timeline ?? [];
   return (
     <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
@@ -419,7 +443,7 @@ const TITULOS: Record<ModeloId, string> = {
 };
 
 function ModeloCorpo({ id }: { id: ModeloId }) {
-  const caso = useActiveCase();
+  const caso = useCasoDoKit();
   const c = caso.contratacao;
 
   return (
@@ -436,8 +460,8 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
 
           {id === "ordem_servico" && (
             <>
-              <Linha l="Código do caso" v={texto(c?.ordem_servico.case_id, caso.geral.case_id)} />
-              <Linha l="Cliente" v={texto(caso.geral.cliente_nome)} />
+              <Linha l="Código do caso" v={texto(c?.ordem_servico.case_id, caso.codigo)} />
+              <Linha l="Cliente" v={texto(caso.clienteNome)} />
               <Linha l="SKU" v={texto(c?.ordem_servico.produto_sku, FALLBACK.aguardando)} />
               <Linha l="Produto" v={texto(c?.ordem_servico.produto_nome, FALLBACK.aguardando)} />
               <Linha l="Escopo" v={texto(c?.ordem_servico.escopo_resumo, FALLBACK.atualizacao)} />
@@ -600,7 +624,7 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
 }
 
 function ProcuracaoPreview({ europeia }: { europeia: boolean }) {
-  const caso = useActiveCase();
+  const caso = useCasoDoKit();
   const c = caso.contratacao;
   const ctx = contextoEuropeuDoCaso(caso);
   const bloqueio = bloqueiosProcuracaoEuropeia(ctx);
