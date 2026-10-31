@@ -30,7 +30,8 @@ describe("tentarEtapaExterna — envio vira rascunho real, nunca um envio autom�
   const bloco = blocoDe("tentarEtapaExterna");
 
   it("cria um rascunho em communication_queue aguardando aprovação humana", () => {
-    expect(bloco).toContain('.from("communication_queue")');
+    expect(bloco).toContain("criarRascunhoSeNaoHouver");
+    expect(readFileSync("src/lib/rascunho-comunicacao.ts", "utf8")).toContain('.from("communication_queue")');
     expect(bloco).toContain('status: "awaiting_approval"');
     expect(bloco).toContain("requires_human_approval: true");
   });
@@ -46,7 +47,7 @@ describe("tentarEtapaExterna — envio vira rascunho real, nunca um envio autom�
   });
 
   it("não duplica: reaproveita rascunho já aguardando aprovação para o mesmo caso", () => {
-    expect(bloco).toContain('.in("status", ["draft_created", "awaiting_approval"])');
+    expect(readFileSync("src/lib/rascunho-comunicacao.ts", "utf8")).toContain('const PENDENTES = ["draft_created", "awaiting_approval"]');
     expect(bloco).toContain("nada duplicado");
   });
 

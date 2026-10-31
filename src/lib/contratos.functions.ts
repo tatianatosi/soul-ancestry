@@ -1552,45 +1552,30 @@ export const tentarEtapaExterna = createServerFn({ method: "POST" })
       ? (await supabase.from("clientes").select("id,nome,email").eq("id", contrato.client_id).maybeSingle()).data
       : null;
 
-    const { data: existente } = await supabase
-      .from("communication_queue")
-      .select("id")
-      .eq("organization_id", organizationId)
-      .eq("case_id", contrato.case_id)
-      .eq("acao_codigo", "envio_contrato")
-      .in("status", ["draft_created", "awaiting_approval"])
-      .is("archived_at", null)
-      .maybeSingle();
-    if (existente?.id) {
+    const nomeCliente = (cliente?.nome as string | undefined) ?? "cliente";
+    const { criarRascunhoSeNaoHouver } = await import("@/lib/rascunho-comunicacao");
+    const fila = await criarRascunhoSeNaoHouver(supabase, {
+      organization_id: organizationId,
+      case_id: contrato.case_id,
+      acao_codigo: "envio_contrato",
+      target_audience: "cliente",
+      visibility: "cliente",
+      suggested_channel: "email",
+      assunto: `${contrato.title ?? "Contrato"} — pronto para envio`,
+      corpo_rascunho: `Olá, ${nomeCliente}. Segue o contrato "${contrato.title ?? ""}" (v${atual?.version_number ?? "?"}) para sua análise. Qualquer dúvida, estamos à disposição.`,
+      status: "awaiting_approval",
+      requires_human_approval: true,
+      created_by: context.userId,
+      observacao_interna: cliente?.email
+        ? `Rascunho criado em /contratos/${data.contract_id}. E-mail do cliente: ${cliente.email}. Envio externo depende de aprovação e ação humana — nenhum e-mail é disparado automaticamente.`
+        : `Rascunho criado em /contratos/${data.contract_id}. Cliente sem e-mail cadastrado — confirme o contato antes de aprovar. Envio externo depende de aprovação e ação humana.`,
+    });
+    if (!fila.criado) {
       return {
         ok: true,
         mensagem: "Já existe um rascunho de envio aguardando aprovação na fila de comunicações deste caso — nada duplicado.",
       };
     }
-
-    const nomeCliente = (cliente?.nome as string | undefined) ?? "cliente";
-    const { data: fila, error } = await supabase
-      .from("communication_queue")
-      .insert({
-        organization_id: organizationId,
-        case_id: contrato.case_id,
-        acao_codigo: "envio_contrato",
-        target_audience: "cliente",
-        visibility: "cliente",
-        suggested_channel: "email",
-        assunto: `${contrato.title ?? "Contrato"} — pronto para envio`,
-        corpo_rascunho: `Olá, ${nomeCliente}. Segue o contrato "${contrato.title ?? ""}" (v${atual?.version_number ?? "?"}) para sua análise. Qualquer dúvida, estamos à disposição.`,
-        status: "awaiting_approval",
-        requires_human_approval: true,
-        created_by: context.userId,
-        observacao_interna: cliente?.email
-          ? `Rascunho criado em /contratos/${data.contract_id}. E-mail do cliente: ${cliente.email}. Envio externo depende de aprovação e ação humana — nenhum e-mail é disparado automaticamente.`
-          : `Rascunho criado em /contratos/${data.contract_id}. Cliente sem e-mail cadastrado — confirme o contato antes de aprovar. Envio externo depende de aprovação e ação humana.`,
-      })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!fila?.id) throw new Error("O rascunho de envio não foi criado.");
 
     await evento(supabase, organizationId, data.contract_id, "send_drafted", { etapa: "envio", communication_queue_id: fila.id });
     await registrarTimelineCaso(supabase, {
