@@ -440,7 +440,6 @@ function PainelHomeMockup({
       )}
 
       <div className="app-home-pilha grid gap-7 pt-2" data-home-paridade-mockup>
-        <section className="app-home-hoje" aria-label="Hoje você está aqui"><h3 className="font-serif text-xl text-navy">Hoje você está aqui</h3><p className="mt-2 text-sm text-navy/75">{resumo?.statusRotulo ?? "A equipe está preparando a próxima atualização da sua família."}</p></section>
         {/*
           Mockup p.3 "Próximos passos": cartões brancos numerados. Só itens
           reais — a próxima ação publicada e os pedidos de documento abertos
@@ -523,7 +522,7 @@ function PainelHomeMockup({
 
         <section aria-label="Achados recentes">
           <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
-            <h3 className="min-w-0 font-serif text-2xl text-navy">Descobertas publicadas</h3>
+            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>

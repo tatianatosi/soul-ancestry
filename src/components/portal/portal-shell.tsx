@@ -5,18 +5,15 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
-import {
-  Home,
-  FileText,
-  Route,
-  Radar,
-  Trees,
-  BookOpen,
-  UserRound,
-} from "lucide-react";
+import { Home, FileText, Route, Radar, Trees, BookOpen, UserRound } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand";
-import { LinkPortal, useFontePortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import {
+  LinkPortal,
+  useFontePortal,
+  usePortalVivo,
+  usePreviaPortal,
+} from "@/components/portal/fonte-portal";
 import { iniciais } from "@/components/portal/elementos-mockup";
 import { portalContexto } from "@/lib/portal.functions";
 import { registrarTempoNaAba, type AbaComTelemetria } from "@/lib/portal-cliente.functions";
@@ -143,25 +140,49 @@ export function PortalShell({
     : [];
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream text-navy" data-marca-guia="oki" data-app-cliente="true" data-app-editorial={rotaAtiva}>
+    <div
+      className="min-h-screen overflow-x-hidden bg-cream text-navy"
+      data-marca-guia="oki"
+      data-app-cliente="true"
+      data-app-editorial={rotaAtiva}
+    >
       {/*
         Faixa navy única e compacta (correção 2026-09-12: duas faixas altas
         empurravam o conteúdo real para baixo da dobra e destoavam do mockup
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream" data-app-cabecalho>
-          <div className="app-layout-largura mx-auto w-full max-w-[740px] px-4 py-2 sm:px-8 sm:py-5">
+        <div className="app-layout-largura mx-auto w-full max-w-[740px] px-4 py-2 sm:px-8 sm:py-5">
           <div className="app-v11-marca grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="flex min-w-0 items-center gap-2">
               <BrandLogo size={40} variant="client-dark" showText />
             </div>
-            <LinkPortal to="/portal/conta" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-gold bg-navy-800 font-serif text-sm font-semibold text-gold" aria-label="Abrir Conta e perfil" data-botao-perfil>{nomeTitular ? iniciais(nomeTitular) : <UserRound className="h-5 w-5" aria-hidden="true" />}</LinkPortal>
+            <LinkPortal
+              to="/portal/conta"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-gold bg-navy-800 font-serif text-sm font-semibold text-gold"
+              aria-label="Abrir Conta e perfil"
+              data-botao-perfil
+            >
+              {nomeTitular ? (
+                iniciais(nomeTitular)
+              ) : (
+                <UserRound className="h-5 w-5" aria-hidden="true" />
+              )}
+            </LinkPortal>
           </div>
 
           <div className="app-v11-identidade max-w-2xl">
-            {primeiroNome ? <p className="font-serif text-lg text-cream sm:text-xl" data-saudacao>Bem-vinda, {primeiroNome}</p> : null}
-            <p className="mb-1 text-xs text-gold">{previa?.titulo ?? data?.cliente?.nome ?? "Sua história familiar"}</p>
-            {rotaAtiva === "/portal" ? <p className="sr-only text-gold">Aplicativo da família</p> : null}
+            {primeiroNome ? (
+              <p className="font-serif text-lg text-cream sm:text-xl" data-saudacao>
+                Bem-vinda, {primeiroNome}
+              </p>
+            ) : null}
+            <p className="mb-1 text-xs text-gold">
+              {previa?.titulo ?? data?.cliente?.nome ?? "Sua história familiar"}
+            </p>
+            {rotaAtiva === "/portal" ? (
+              <p className="sr-only text-gold">Aplicativo da família</p>
+            ) : null}
           </div>
         </div>
 
@@ -186,45 +207,64 @@ export function PortalShell({
         e a navegação das 7 abas continua sendo o rodapé único.
       */}
       <div className="app-layout-largura mx-auto w-full min-w-0 max-w-[740px]">
-         <main id="conteudo-portal" className="min-w-0 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-8 sm:pb-32 sm:pt-8">
-           <div className="app-abertura-tela">
-             <h1 className="font-serif text-2xl font-medium leading-tight text-navy sm:text-4xl">{titulo}</h1>
-             {descricao ? <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{descricao}</p> : null}
-           </div>
-           <AndamentoPublicado rota={rotaAtiva} />
+        <main
+          id="conteudo-portal"
+          className="min-w-0 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-8 sm:pb-32 sm:pt-8"
+        >
+          <div className="app-abertura-tela">
+            {/* prettier-ignore */}
+            <h1 className="font-serif text-2xl font-medium leading-tight text-navy sm:text-4xl">{titulo}</h1>
+            {descricao ? (
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                {descricao}
+              </p>
+            ) : null}
+          </div>
+          <AndamentoPublicado rota={rotaAtiva} />
           <div>{children}</div>
         </main>
       </div>
 
       {nav.length > 0 ? (
-      <nav
-        aria-label="Navegação do aplicativo do cliente"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur"
-      >
-        <div
-           className="app-layout-largura mx-auto grid w-full max-w-[740px] px-1 pb-[env(safe-area-inset-bottom,16px)] sm:px-5"
-          style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+        <nav
+          aria-label="Navegação do aplicativo do cliente"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur"
         >
-          {nav.map(({ to, label, icon: Icon }) => (
-            <LinkPortal
-              key={to}
-              to={to}
-              className={cn(
-                "relative flex min-h-[4rem] min-w-[44px] touch-manipulation flex-col items-center justify-center gap-1 px-0.5 py-2 text-[11px] leading-tight transition-colors duration-200 ease-out sm:min-h-[4.25rem]",
-                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rotaAtiva === to
-                  ? "app-nav-ativo after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold"
-                  : "text-navy/70",
-              )}
-            >
-              <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" aria-hidden="true" />
-              <span className="w-full text-center whitespace-nowrap">{to === "/portal/documentos" ? <><span className="sm:hidden">Docs</span><span className="hidden sm:inline">{label}</span></> : label}</span>
-            </LinkPortal>
-          ))}
-        </div>
-      </nav>
+          <div
+            className="app-layout-largura mx-auto grid w-full max-w-[740px] px-1 pb-[env(safe-area-inset-bottom,16px)] sm:px-5"
+            style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+          >
+            {nav.map(({ to, label, icon: Icon }) => (
+              <LinkPortal
+                key={to}
+                to={to}
+                className={cn(
+                  "relative flex min-h-[4rem] min-w-[44px] touch-manipulation flex-col items-center justify-center gap-1 px-0.5 py-2 text-[11px] leading-tight transition-colors duration-200 ease-out sm:min-h-[4.25rem]",
+                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
+                  rotaAtiva === to
+                    ? "app-nav-ativo after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold"
+                    : "text-navy/70",
+                )}
+              >
+                <Icon
+                  className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]"
+                  aria-hidden="true"
+                />
+                <span className="w-full text-center whitespace-nowrap">
+                  {to === "/portal/documentos" ? (
+                    <>
+                      <span className="sm:hidden">Docs</span>
+                      <span className="hidden sm:inline">{label}</span>
+                    </>
+                  ) : (
+                    label
+                  )}
+                </span>
+              </LinkPortal>
+            ))}
+          </div>
+        </nav>
       ) : null}
-
     </div>
   );
 }

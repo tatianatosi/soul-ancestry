@@ -247,6 +247,15 @@ export function PortalConta() {
                   </dt>
                   <dd className="text-sm text-navy">{membroDesde ?? "Não registrado"}</dd>
                 </div>
+                {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) ===
+                "a11a0000-0000-4000-8000-000000000002" ? (
+                  <div className="border-b border-border py-3" data-conta-modalidade>
+                    <dt className="text-[11px] uppercase tracking-widest text-navy/50">
+                      Modalidade
+                    </dt>
+                    <dd className="text-sm text-navy">Projeto Familiar · condição prevista</dd>
+                  </div>
+                ) : null}
               </dl>
               <Button
                 asChild
@@ -312,7 +321,7 @@ export function PortalConta() {
 
             <section data-conta-assinatura className="app-v11-faixa">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">
-                Plano familiar · condição prevista
+                Sua assinatura · condição prevista
               </p>
               <h2 className="mt-1 font-serif text-xl text-navy">Condição do projeto familiar</h2>
               {vivo.isError ? (
@@ -367,6 +376,13 @@ export function PortalConta() {
                   <p className="mt-2 text-sm text-navy" data-conta-assinatura-nome>
                     {assinatura.nome}
                   </p>
+                  <p className="mt-1 font-serif text-2xl text-navy" data-conta-assinatura-valor>
+                    {assinatura.valor}{" "}
+                    <span className="text-sm text-navy/60">{assinatura.periodicidadeRotulo}</span>
+                  </p>
+                  {assinatura.situacao ? (
+                    <p className="mt-1 text-xs text-navy/60">{assinatura.situacao}</p>
+                  ) : null}
                   <p className="mt-3 text-sm leading-relaxed text-navy/75">
                     Condição prevista. A equipe confirmará os detalhes do plano familiar pelos
                     canais oficiais; não há cobrança ou pagamento confirmado neste espaço.

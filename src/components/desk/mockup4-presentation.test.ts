@@ -40,8 +40,7 @@ describe("Mockup 4 — isolated presentation contracts", () => {
   });
   it("shows conditions as predicted, without asserting active subscriptions", () => {
     const conta = source("src/routes/portal/conta.tsx");
-    // 26/10/2026 — texto atualizado pelo Lovable (mockup17): "Plano familiar".
-    expect(conta).toContain("Plano familiar · condição prevista");
+    expect(conta).toContain("Projeto Familiar · condição prevista");
     expect(conta).not.toContain("3 assinaturas ativas");
   });
   it("uses the existing Case CRUD in list mode and keeps four sequential lots", () => {
