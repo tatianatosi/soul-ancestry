@@ -126,15 +126,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     riscoVazamento: true,
   },
   {
-    modulo: "components/governanca/anexos-tres-camadas.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "AnexosIaV e InstanciaDocumental, montados na preparar (linha ~934), mostram os anexos reais do caso a partir de anexos-instancia; este painel é um retrato estático datado em lib/anexos-tres-camadas, que só ele consome.",
-    destino:
-      "components/contrato/anexos-i-v.tsx e instancia-documental.tsx na tela de preparar do contrato",
-    riscoVazamento: true,
-  },
-  {
     modulo: "components/kit-contratual.tsx",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
