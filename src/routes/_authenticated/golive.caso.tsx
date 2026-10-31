@@ -18,6 +18,7 @@ import { Barras, LinhaDoTempo } from "@/components/golive/graficos";
 import { origemDoSinal } from "@/lib/golive-operacao";
 import { montarFicha, resumoLote, type CampoFicha, type LoteFicha } from "@/lib/golive-ficha";
 import { Button } from "@/components/ui/button";
+import { GoLiveDesk } from "@/components/desk-go-live";
 
 export const Route = createFileRoute("/_authenticated/golive/caso")({
   validateSearch: buscaGoLive,
@@ -127,6 +128,9 @@ function CasoGoLive() {
               <Campo rotulo="Prazo" valor={dataHumana(caso.plano?.prazo ?? caso.caso.prazo)} />
             </dl>
           </section>
+          <Bloco titulo="Registro do caso e checklist de ativação">
+            <GoLiveDesk caso={caso} />
+          </Bloco>
           <FaixaKpis itens={lotes.map((item) => {
             const resumo = resumoLote(item);
             return {

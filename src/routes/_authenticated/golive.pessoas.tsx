@@ -5,7 +5,8 @@ import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell"
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
-import { registrarMembroNucleoGoLive } from "@/lib/golive-escritores.functions";
+import { registrarMembroNucleoGoLive, resolverPessoaGoLive } from "@/lib/golive-escritores.functions";
+import { AcaoConferirPessoa } from "@/components/golive/acoes-registro";
 import { Barras, Rede, Rosca } from "@/components/golive/graficos";
 import {
   coberturaPorGeracao,
@@ -38,6 +39,7 @@ function PessoasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const adicionarMembro = useEscritorGoLive(registrarMembroNucleoGoLive);
+  const conferirPessoa = useEscritorGoLive(resolverPessoaGoLive);
 
   /* Fonte: nucleo_membros (núcleo do caso), case_members e case_dependents.
      Geração e relação só saem de pai_id/mae_id gravados. */
@@ -151,6 +153,9 @@ function PessoasGoLive() {
                   })
                 }
                 confirmacao="Pessoa adicionada ao núcleo."
+              />
+              <AcaoConferirPessoa
+                aoConfirmar={(v) => conferirPessoa({ data: v as Parameters<typeof conferirPessoa>[0]["data"] })}
               />
             </Acoes>
 
