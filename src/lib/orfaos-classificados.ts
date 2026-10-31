@@ -68,14 +68,6 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
   },
 
   /* ---------- aposentada com classificação ---------- */
-  {
-    modulo: "contrato-preparar.functions.ts",
-    fn: "auditoriaPreparacao",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      'Saiu da tela de contrato em 04/10/2026 ("retire as auditorias repetidas"): era a terceira cópia do mesmo registro.',
-    destino: "listarAuditoria em /configuracoes — trilha única da organização",
-  },
   ...(["registrarPerfilInstitucional", "registrarSnapshotInstitucional"] as const).map((fn) => ({
     modulo: "perfil-institucional-persistido.functions.ts",
     fn,

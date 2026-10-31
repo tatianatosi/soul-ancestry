@@ -26,6 +26,7 @@ import {
 } from "@/components/contratos/rotulos";
 import { INVENTARIO_DATA, ROTULO_DOMINIO, itensPorDominio } from "@/lib/inventario-patrimonial";
 import { semFixtures } from "@/lib/fixtures";
+import { baixarCsvInventario } from "@/lib/inventario-csv";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
   head: () => ({
@@ -199,6 +200,16 @@ function ContratosPage() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => baixarCsvInventario()}
+            className="rounded border border-navy/20 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+            data-exportar-inventario-csv
+          >
+            Exportar inventário (CSV)
+          </button>
         </div>
       </CaCard>
 
