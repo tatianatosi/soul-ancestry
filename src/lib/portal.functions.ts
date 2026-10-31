@@ -511,13 +511,18 @@ export const listarEventosAcesso = createServerFn({ method: "GET" })
   .inputValidator((data: { acessoId: string }) => data)
   .handler(async ({ data, context }) => {
     semCache();
+    const helpers = await import("./portal.server");
     const supabase = context.supabase as any;
-    const { data: eventos } = await supabase
+    // Histórico de convites/links é dado de gestão: mesma regra das demais ações desta tela.
+    const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
+    const { data: eventos, error } = await supabase
       .from("client_access_events")
       .select("id, event_type, occurred_at, metadata")
       .eq("client_portal_access_id", data.acessoId)
+      .eq("organization_id", organizationId)
       .order("occurred_at", { ascending: false })
       .limit(50);
+    if (error) throw new Error(error.message);
     return (eventos ?? []) as any[];
   });
 
