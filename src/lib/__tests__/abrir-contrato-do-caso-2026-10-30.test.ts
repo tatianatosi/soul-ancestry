@@ -37,8 +37,18 @@ describe("abrirContratoDoCaso existe e reaproveita sem duplicar", () => {
   it("reconecta contract_case_parameters órfãos ao criar, como criarInstrumento", () => {
     const inicio = fn.indexOf("export const abrirContratoDoCaso");
     const bloco = fn.slice(inicio, inicio + 2500);
-    expect(bloco).toContain("contract_case_parameters");
-    expect(bloco).toContain('.is("contract_id", null)');
+    expect(bloco).toContain("religarParametrosAoContrato(supabase, caso.id");
+    const helper = fn.slice(fn.indexOf("async function religarParametrosAoContrato"));
+    expect(helper).toContain("contract_case_parameters");
+    expect(helper).toContain('.is("contract_id", null)');
+  });
+
+  it("erro ao religar os parâmetros não é engolido", () => {
+    const helper = fn.slice(fn.indexOf("async function religarParametrosAoContrato"), fn.indexOf("async function religarParametrosAoContrato") + 700);
+    expect(helper).toContain("const { error } =");
+    expect(helper).toMatch(/if \(error\) \{\s*throw new Error/);
+    expect(fn.match(/religarParametrosAoContrato\(supabase,/g)).toHaveLength(3);
+    expect(fn.match(/\.from\("contract_case_parameters"\)\s*\.update/g)).toHaveLength(1);
   });
 });
 

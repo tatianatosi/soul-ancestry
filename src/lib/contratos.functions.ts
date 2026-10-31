@@ -24,6 +24,18 @@ export type TipoInstrumento = "contract_base" | "contract_complement" | "amendme
 
 type Sb = { from: (t: string) => any; rpc: (f: string, a?: unknown) => any };
 
+/** Liga ao contrato os parâmetros do Planejador ainda soltos no caso. Falha aparece: sem isto o contrato nasce sem os 22 campos e ninguém vê. */
+async function religarParametrosAoContrato(supabase: Sb, caseId: string, contractId: string, userId: string) {
+  const { error } = await supabase
+    .from("contract_case_parameters")
+    .update({ contract_id: contractId, updated_by: userId })
+    .eq("case_id", caseId)
+    .is("contract_id", null);
+  if (error) {
+    throw new Error(`O contrato foi criado, mas os parâmetros do caso não foram ligados a ele: ${error.message}`);
+  }
+}
+
 async function contexto(supabase: Sb, userId: string) {
   const { data, error } = await supabase
     .from("staff_access")
@@ -334,11 +346,7 @@ export const criarInstrumento = createServerFn({ method: "POST" })
     // documento, endereço, valor, escopo), como aconteceu com o caso real da
     // Ana Luiza: os 22 campos existiam, só nunca foram ligados a este contrato.
     if (data.contract_type === "contract_base" && caseId) {
-      await supabase
-        .from("contract_case_parameters")
-        .update({ contract_id: novo.id, updated_by: context.userId })
-        .eq("case_id", caseId)
-        .is("contract_id", null);
+      await religarParametrosAoContrato(supabase, caseId, novo.id, context.userId as string);
     }
 
     await evento(supabase, organizationId, novo.id, "created", { tipo: data.contract_type });
@@ -411,11 +419,7 @@ export const abrirContratoDoCaso = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!novo?.id) throw new Error("O instrumento não foi criado.");
 
-    await supabase
-      .from("contract_case_parameters")
-      .update({ contract_id: novo.id, updated_by: context.userId })
-      .eq("case_id", caso.id)
-      .is("contract_id", null);
+    await religarParametrosAoContrato(supabase, caso.id, novo.id, context.userId as string);
 
     await evento(supabase, organizationId, novo.id, "created", { tipo: "contract_base", origem: "caso_360" });
     await registrarTimelineCaso(supabase, {
@@ -486,11 +490,7 @@ export const atualizarContrato = createServerFn({ method: "POST" })
       payload: patch,
     });
     if (typeof patch.case_id === "string" && patch.case_id) {
-      await supabase
-        .from("contract_case_parameters")
-        .update({ contract_id: data.id, updated_by: context.userId })
-        .eq("case_id", patch.case_id)
-        .is("contract_id", null);
+      await religarParametrosAoContrato(supabase, patch.case_id, data.id, context.userId as string);
     }
     if (r.registro["case_id"]) {
       await registrarTimelineCaso(supabase, {
