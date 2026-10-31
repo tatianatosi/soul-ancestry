@@ -52,15 +52,10 @@ export const Route = createFileRoute("/_authenticated/fontes-genealogicas")({
       { title: "Fontes e Integrações Genealógicas — Clube Ancestral" },
       {
         name: "description",
-        content:
-          "Catálogo interno de bases genealógicas, matriz de avaliação e backlog de ativação, sem qualquer consulta externa.",
+        content: "Catálogo interno de bases genealógicas, matriz de avaliação e backlog de ativação, sem qualquer consulta externa.",
       },
       { property: "og:title", content: "Fontes e Integrações Genealógicas — Clube Ancestral" },
-      {
-        property: "og:description",
-        content:
-          "Governança documental de fontes: maturidade, termos, risco e próximos passos internos.",
-      },
+      { property: "og:description", content: "Governança documental de fontes: maturidade, termos, risco e próximos passos internos." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -147,82 +142,46 @@ function EditarFonte({ fonte, onSalvo }: { fonte: Fonte; onSalvo: () => void }) 
       <div className="grid gap-2 sm:grid-cols-2">
         <label className="text-[10px] uppercase tracking-wide text-navy/50">
           Documentação
-          <select
-            className={cls}
-            value={form.status_documentacao}
-            onChange={(e) => set("status_documentacao", e.target.value)}
-          >
+          <select className={cls} value={form.status_documentacao} onChange={(e) => set("status_documentacao", e.target.value)}>
             <option value="">—</option>
             {Object.entries(STATUS_DOCUMENTACAO).map(([valor, rotulo]) => (
-              <option key={valor} value={valor}>
-                {rotulo}
-              </option>
+              <option key={valor} value={valor}>{rotulo}</option>
             ))}
           </select>
         </label>
         <label className="text-[10px] uppercase tracking-wide text-navy/50">
           Integração
-          <select
-            className={cls}
-            value={form.status_integracao}
-            onChange={(e) => set("status_integracao", e.target.value)}
-          >
+          <select className={cls} value={form.status_integracao} onChange={(e) => set("status_integracao", e.target.value)}>
             <option value="">—</option>
             {Object.entries(STATUS_INTEGRACAO).map(([valor, rotulo]) => (
-              <option key={valor} value={valor}>
-                {rotulo}
-              </option>
+              <option key={valor} value={valor}>{rotulo}</option>
             ))}
           </select>
         </label>
         <label className="text-[10px] uppercase tracking-wide text-navy/50">
           Scraping
-          <select
-            className={cls}
-            value={form.scraping_status}
-            onChange={(e) => set("scraping_status", e.target.value)}
-          >
+          <select className={cls} value={form.scraping_status} onChange={(e) => set("scraping_status", e.target.value)}>
             <option value="">—</option>
             {Object.entries(SCRAPING_STATUS).map(([valor, rotulo]) => (
-              <option key={valor} value={valor}>
-                {rotulo}
-              </option>
+              <option key={valor} value={valor}>{rotulo}</option>
             ))}
           </select>
         </label>
         <label className="text-[10px] uppercase tracking-wide text-navy/50">
           Última verificação
-          <input
-            type="date"
-            className={cls}
-            value={form.ultima_verificacao}
-            onChange={(e) => set("ultima_verificacao", e.target.value)}
-          />
+          <input type="date" className={cls} value={form.ultima_verificacao} onChange={(e) => set("ultima_verificacao", e.target.value)} />
         </label>
         <label className="text-[10px] uppercase tracking-wide text-navy/50">
           Responsável pela revisão
-          <input
-            className={cls}
-            value={form.responsavel_revisao}
-            onChange={(e) => set("responsavel_revisao", e.target.value)}
-          />
+          <input className={cls} value={form.responsavel_revisao} onChange={(e) => set("responsavel_revisao", e.target.value)} />
         </label>
         <label className="text-[10px] uppercase tracking-wide text-navy/50">
           Próxima ação
-          <input
-            className={cls}
-            value={form.proxima_acao}
-            onChange={(e) => set("proxima_acao", e.target.value)}
-          />
+          <input className={cls} value={form.proxima_acao} onChange={(e) => set("proxima_acao", e.target.value)} />
         </label>
         <label className="text-[10px] uppercase tracking-wide text-navy/50 sm:col-span-2">
           Observação de risco
-          <textarea
-            className={cls}
-            rows={2}
-            value={form.observacao_risco}
-            onChange={(e) => set("observacao_risco", e.target.value)}
-          />
+          <textarea className={cls} rows={2} value={form.observacao_risco} onChange={(e) => set("observacao_risco", e.target.value)} />
         </label>
       </div>
       <AcaoOperacional
@@ -238,17 +197,7 @@ function EditarFonte({ fonte, onSalvo }: { fonte: Fonte; onSalvo: () => void }) 
   );
 }
 
-function CartaoFonte({
-  fonte,
-  matriz,
-  backlog,
-  onSalvo,
-}: {
-  fonte: Fonte;
-  matriz: any[];
-  backlog: any[];
-  onSalvo: () => void;
-}) {
+function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz: any[]; backlog: any[]; onSalvo: () => void }) {
   const [aberto, setAberto] = useState(false);
   const [editando, setEditando] = useState(false);
   const consulta = permiteConsultaAutomatica(fonte);
@@ -256,16 +205,11 @@ function CartaoFonte({
 
   return (
     <article className="rounded-md border border-navy/10 bg-background p-3">
-      <button
-        type="button"
-        onClick={() => setAberto((v) => !v)}
-        className="flex w-full items-start justify-between gap-3 text-left"
-      >
+      <button type="button" onClick={() => setAberto((v) => !v)} className="flex w-full items-start justify-between gap-3 text-left">
         <span>
           <span className="block text-sm font-medium text-navy">{fonte.nome}</span>
           <span className="block text-[11px] text-navy/50">
-            {fonte.pais_eixo} · {rotuloDe(NIVEIS_FONTE as any, fonte.nivel_de_fonte)} ·{" "}
-            {rotuloDe(ESTAGIOS as any, fonte.estagio_maturidade)}
+            {fonte.pais_eixo} · {rotuloDe(NIVEIS_FONTE as any, fonte.nivel_de_fonte)} · {rotuloDe(ESTAGIOS as any, fonte.estagio_maturidade)}
           </span>
         </span>
         <Etiqueta texto={rotuloDe(PRIORIDADES as any, fonte.prioridade)} />
@@ -285,15 +229,9 @@ function CartaoFonte({
             <Campo r="Referência interna" v={fonte.url_referencia_interna} />
           </div>
           <div className="space-y-1">
-            <Campo
-              r="Modo de uso permitido"
-              v={rotuloDe(MODOS_USO as any, fonte.modo_de_uso_permitido)}
-            />
+            <Campo r="Modo de uso permitido" v={rotuloDe(MODOS_USO as any, fonte.modo_de_uso_permitido)} />
             <Campo r="Scraping" v={rotuloDe(SCRAPING_STATUS as any, fonte.scraping_status)} />
-            <Campo
-              r="Documentação"
-              v={rotuloDe(STATUS_DOCUMENTACAO as any, fonte.status_documentacao)}
-            />
+            <Campo r="Documentação" v={rotuloDe(STATUS_DOCUMENTACAO as any, fonte.status_documentacao)} />
             <Campo r="Integração" v={rotuloDe(STATUS_INTEGRACAO as any, fonte.status_integracao)} />
             <Campo r="Risco" v={fonte.risco} />
             <Campo r="Observação de risco" v={fonte.observacao_risco} />
@@ -328,9 +266,7 @@ function CartaoFonte({
 
           {pendencias.length > 0 && (
             <div className="sm:col-span-2">
-              <p className="text-[11px] uppercase tracking-wide text-navy/40">
-                Pendências de governança
-              </p>
+              <p className="text-[11px] uppercase tracking-wide text-navy/40">Pendências de governança</p>
               <ul className="mt-1 list-disc pl-4 text-[11px] text-navy/70">
                 {pendencias.map((p) => (
                   <li key={p}>{p}</li>
@@ -347,8 +283,7 @@ function CartaoFonte({
               <ul className="mt-1 space-y-1 text-[11px] text-navy/70">
                 {matriz.map((m) => (
                   <li key={m.id}>
-                    <strong>{rotuloDe(CRITERIOS_MATRIZ as any, m.criterio)}</strong> · nota{" "}
-                    {m.nota ?? "—"}
+                    <strong>{rotuloDe(CRITERIOS_MATRIZ as any, m.criterio)}</strong> · nota {m.nota ?? "—"}
                     {m.bloqueante ? " · bloqueante" : ""} — {m.parecer_interno ?? "sem parecer"}
                   </li>
                 ))}
@@ -364,8 +299,7 @@ function CartaoFonte({
               <ul className="mt-1 space-y-1 text-[11px] text-navy/70">
                 {backlog.map((b) => (
                   <li key={b.id}>
-                    {b.acao_interna} · {rotuloDe(STATUS_BACKLOG as any, b.status)} · prazo{" "}
-                    {b.prazo ?? "—"} · requer aprovação humana
+                    {b.acao_interna} · {rotuloDe(STATUS_BACKLOG as any, b.status)} · prazo {b.prazo ?? "—"} · requer aprovação humana
                   </li>
                 ))}
               </ul>
@@ -422,8 +356,7 @@ function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalv
     onError: (e: Error) => toast.error(e.message),
   });
   const mArq = useMutation({
-    mutationFn: () =>
-      arquivar({ data: { tabela: "genealogical_sources_catalog", id: fonteId, motivo } }),
+    mutationFn: () => arquivar({ data: { tabela: "genealogical_sources_catalog", id: fonteId, motivo } }),
     onSuccess: () => {
       toast.success("Fonte arquivada com motivo.");
       setMotivo("");
@@ -434,28 +367,18 @@ function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalv
 
   return (
     <div className="mt-2 space-y-3 rounded-lg border border-gold/40 bg-gold/5 p-2">
-      <p className="text-[11px] uppercase tracking-wide text-navy/45">
-        Registrar governança desta fonte
-      </p>
+      <p className="text-[11px] uppercase tracking-wide text-navy/45">Registrar governança desta fonte</p>
 
       <div className="grid gap-2 sm:grid-cols-2">
         <Selecao
           label="Critério avaliado"
           valor={t(aval.criterio)}
-          opcoes={Object.entries(CRITERIOS_MATRIZ).map(([valor, rotulo]) => ({
-            valor,
-            rotulo: String(rotulo),
-          }))}
+          opcoes={Object.entries(CRITERIOS_MATRIZ).map(([valor, rotulo]) => ({ valor, rotulo: String(rotulo) }))}
           onChange={(v) => setAval({ ...aval, criterio: v })}
         />
         <Texto label="Nota" valor={t(aval.nota)} onChange={(v) => setAval({ ...aval, nota: v })} />
         <div className="sm:col-span-2">
-          <Texto
-            area
-            label="Parecer interno"
-            valor={t(aval.parecer_interno)}
-            onChange={(v) => setAval({ ...aval, parecer_interno: v })}
-          />
+          <Texto area label="Parecer interno" valor={t(aval.parecer_interno)} onChange={(v) => setAval({ ...aval, parecer_interno: v })} />
         </div>
         <Selecao
           label="Bloqueante?"
@@ -481,18 +404,11 @@ function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalv
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2">
-        <Texto
-          label="Ação interna"
-          valor={t(back.acao_interna)}
-          onChange={(v) => setBack({ ...back, acao_interna: v })}
-        />
+        <Texto label="Ação interna" valor={t(back.acao_interna)} onChange={(v) => setBack({ ...back, acao_interna: v })} />
         <Selecao
           label="Situação"
           valor={t(back.status)}
-          opcoes={Object.entries(STATUS_BACKLOG).map(([valor, rotulo]) => ({
-            valor,
-            rotulo: String(rotulo),
-          }))}
+          opcoes={Object.entries(STATUS_BACKLOG).map(([valor, rotulo]) => ({ valor, rotulo: String(rotulo) }))}
           onChange={(v) => setBack({ ...back, status: v })}
         />
         <Texto
@@ -502,18 +418,9 @@ function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalv
           onChange={(v) => setBack({ ...back, prazo: v })}
           erro={motivoCampoInvalido("Prazo", "data_futura", t(back.prazo))}
         />
-        <Texto
-          label="Responsável"
-          valor={t(back.responsavel)}
-          onChange={(v) => setBack({ ...back, responsavel: v })}
-        />
+        <Texto label="Responsável" valor={t(back.responsavel)} onChange={(v) => setBack({ ...back, responsavel: v })} />
         <div className="sm:col-span-2">
-          <Texto
-            area
-            label="Motivo da ação"
-            valor={t(back.motivo)}
-            onChange={(v) => setBack({ ...back, motivo: v })}
-          />
+          <Texto area label="Motivo da ação" valor={t(back.motivo)} onChange={(v) => setBack({ ...back, motivo: v })} />
         </div>
         <div className="sm:col-span-2">
           <AcaoOperacional
@@ -540,9 +447,7 @@ function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalv
             capacidade="editar_rascunho"
             efeito="Marca a fonte como arquivada com motivo. Nada é apagado fisicamente."
             size="sm"
-            validacaoFormulario={
-              motivo.trim().length >= 5 ? null : "Escreva o motivo (mínimo 5 letras)."
-            }
+            validacaoFormulario={motivo.trim().length >= 5 ? null : "Escreva o motivo (mínimo 5 letras)."}
             onConfirmar={async () => {
               await mArq.mutateAsync();
             }}
@@ -597,18 +502,13 @@ function FontesGenealogicas() {
   const { podeEscrever: podeEscreverVinculo } = useSaas();
   // Autoridade operacional: vínculo somente leitura vira pendência declarada,
   // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
-  const podeEscrever = !autoridade.bloqueado({
-    capacidade: "avancar_pesquisa_evidencia_microentrega",
-  });
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
   const pendenciaVinculo = podeEscreverVinculo
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(painelFontes);
   const qc = useQueryClient();
-  const { data, isPending, error, refetch } = useQuery({
-    queryKey: ["g08-fontes"],
-    queryFn: () => carregar({} as never),
-  });
+  const { data, isPending, error, refetch } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
   const onSalvo = () => void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
   const [busca, setBusca] = useState("");
 
@@ -650,10 +550,7 @@ function FontesGenealogicas() {
   // Catálogo não lido nunca aparece como catálogo vazio.
   if (!data)
     return (
-      <SaasShell
-        titulo="Fontes, consultas e bases genealógicas"
-        descricao="Catálogo interno de bases, sem consulta externa."
-      >
+      <SaasShell titulo="Fontes, consultas e bases genealógicas" descricao="Catálogo interno de bases, sem consulta externa.">
         <EstadoDados
           carregando={isPending}
           erro={error}
@@ -670,15 +567,7 @@ function FontesGenealogicas() {
     lista.length === 0 ? (
       <EstadoVazio mensagem="Nenhuma fonte nesta lista." />
     ) : (
-      lista.map((f) => (
-        <CartaoFonte
-          key={f.id}
-          fonte={f}
-          matriz={matrizPor(f.id)}
-          backlog={backlogPor(f.id)}
-          onSalvo={onSalvo}
-        />
-      ))
+      lista.map((f) => <CartaoFonte key={f.id} fonte={f} matriz={matrizPor(f.id)} backlog={backlogPor(f.id)} onSalvo={onSalvo} />)
     );
 
   return (
@@ -686,158 +575,130 @@ function FontesGenealogicas() {
       titulo="Fontes, consultas e bases genealógicas"
       descricao="Catálogo interno de bases genealógicas, matriz de avaliação e backlog de ativação."
     >
-      <div className="space-y-5">
-        <header className="space-y-2">
-          <p className="rounded border border-gold/40 bg-gold/10 p-2 text-[11px] text-navy/70">
-            {AVISO_CATALOGO}
-          </p>
-          {/* V4-04: as mesmas quatro contagens da linha-resumo, agora como faixa de KPIs. */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-fontes-kpis>
-            <Indicador
-              rotulo="Fontes catalogadas"
-              valor={String(grupos.total)}
-              apoio={busca.trim() ? "Na busca atual" : "Catálogo interno"}
-            />
-            <Indicador
-              rotulo="Recomendáveis"
-              valor={String(grupos.recomendaveis.length)}
-              apoio="Uso operacional"
-            />
-            <Indicador
-              rotulo="Termos a confirmar"
-              valor={String(grupos.termosAConfirmar.length)}
-              apoio="Aguardam parecer"
-            />
-            <Indicador
-              rotulo="Restritas ou descontinuadas"
-              valor={String(grupos.bloqueadas.length)}
-              apoio="Nunca recomendadas"
-            />
-          </div>
-          <input
-            type="search"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar fonte por nome, país, tipo ou status"
-            className="w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm"
+    <div className="space-y-5">
+      <header className="space-y-2">
+        <p className="rounded border border-gold/40 bg-gold/10 p-2 text-[11px] text-navy/70">{AVISO_CATALOGO}</p>
+        {/* V4-04: as mesmas quatro contagens da linha-resumo, agora como faixa de KPIs. */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-fontes-kpis>
+          <Indicador
+            rotulo="Fontes catalogadas"
+            valor={String(grupos.total)}
+            apoio={busca.trim() ? "Na busca atual" : "Catálogo interno"}
           />
-        </header>
+          <Indicador rotulo="Recomendáveis" valor={String(grupos.recomendaveis.length)} apoio="Uso operacional" />
+          <Indicador rotulo="Termos a confirmar" valor={String(grupos.termosAConfirmar.length)} apoio="Aguardam parecer" />
+          <Indicador
+            rotulo="Restritas ou descontinuadas"
+            valor={String(grupos.bloqueadas.length)}
+            apoio="Nunca recomendadas"
+          />
+        </div>
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar fonte por nome, país, tipo ou status"
+          className="w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm"
+        />
+      </header>
 
-        {pendenciaVinculo || !podeEscrever ? (
-          <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-            Pendência registrada:{" "}
-            {pendenciaVinculo ??
-              "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
-          </p>
-        ) : null}
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
 
-        <div>
-          {novaFonteAberta ? (
-            <div className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-navy/5 p-3">
-              <label className="min-w-[220px] flex-1 text-[10px] uppercase tracking-wide text-navy/50">
-                Nome da nova fonte
-                <input
-                  className="mt-1 w-full rounded border border-navy/15 px-2 py-1 text-[11px]"
-                  value={novaFonteNome}
-                  onChange={(e) => setNovaFonteNome(e.target.value)}
-                />
-              </label>
-              <button
-                type="button"
-                disabled={mCriarFonte.isPending || !novaFonteNome.trim()}
-                onClick={() => mCriarFonte.mutate(novaFonteNome.trim())}
-                className="rounded-lg bg-navy px-4 py-2 text-[11px] text-white disabled:opacity-50"
-              >
-                {mCriarFonte.isPending ? "Criando…" : "Criar fonte"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setNovaFonteAberta(false);
-                  setErroNovaFonte(null);
-                }}
-                className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy"
-              >
-                Cancelar
-              </button>
-              {erroNovaFonte ? (
-                <p className="w-full text-[11px] text-terracotta">{erroNovaFonte}</p>
-              ) : null}
-            </div>
-          ) : (
+      <div>
+        {novaFonteAberta ? (
+          <div className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-navy/5 p-3">
+            <label className="min-w-[220px] flex-1 text-[10px] uppercase tracking-wide text-navy/50">
+              Nome da nova fonte
+              <input
+                className="mt-1 w-full rounded border border-navy/15 px-2 py-1 text-[11px]"
+                value={novaFonteNome}
+                onChange={(e) => setNovaFonteNome(e.target.value)}
+              />
+            </label>
             <button
               type="button"
-              onClick={() => setNovaFonteAberta(true)}
-              className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy hover:bg-navy/5"
+              disabled={mCriarFonte.isPending || !novaFonteNome.trim()}
+              onClick={() => mCriarFonte.mutate(novaFonteNome.trim())}
+              className="rounded-lg bg-navy px-4 py-2 text-[11px] text-white disabled:opacity-50"
             >
-              + Nova fonte
+              {mCriarFonte.isPending ? "Criando…" : "Criar fonte"}
             </button>
-          )}
-        </div>
-
-        <MarcosJuridicosPorPais />
-
-        <CoberturaDeFontesPorPais fontes={(data?.fontes ?? []) as Fonte[]} />
-
-        <div className="grid gap-5 lg:grid-cols-2">
-          <Secao
-            titulo="Recomendáveis para uso operacional"
-            subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas."
+            <button
+              type="button"
+              onClick={() => {
+                setNovaFonteAberta(false);
+                setErroNovaFonte(null);
+              }}
+              className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy"
+            >
+              Cancelar
+            </button>
+            {erroNovaFonte ? <p className="w-full text-[11px] text-terracotta">{erroNovaFonte}</p> : null}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setNovaFonteAberta(true)}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy hover:bg-navy/5"
           >
-            {render(grupos.recomendaveis)}
-          </Secao>
-
-          <Secao
-            titulo="Termos a confirmar"
-            subtitulo="Não avançam para piloto nem homologação até parecer jurídico registrado."
-          >
-            {render(grupos.termosAConfirmar)}
-          </Secao>
-
-          <Secao
-            titulo="Risco alto ou crítico"
-            subtitulo="Exigem observação de risco e revisão antes de qualquer uso."
-          >
-            {render(grupos.riscoAlto)}
-          </Secao>
-
-          <Secao
-            titulo="Restritas e descontinuadas"
-            subtitulo="Nunca aparecem como recomendação operacional nem em sugestão de pesquisa."
-          >
-            {render(grupos.bloqueadas)}
-          </Secao>
-
-          <Secao
-            titulo="Sem verificação registrada"
-            subtitulo="Fonte sem data de última verificação não sustenta decisão operacional."
-          >
-            {render(grupos.semVerificacao)}
-          </Secao>
-        </div>
-
-        <Secao titulo="Catálogo por estágio de maturidade" eyebrow="Fontes · maturidade">
-          {grupos.porEstagio.every((g) => g.fontes.length === 0) ? (
-            <EstadoVazio mensagem="Nenhuma fonte nesta lista." />
-          ) : null}
-          {grupos.porEstagio
-            .filter((g) => g.fontes.length > 0)
-            .map((g) => (
-              <div key={g.estagio} className="space-y-2">
-                <p className="text-[11px] uppercase tracking-wide text-navy/40">
-                  {g.rotulo} ({g.fontes.length})
-                </p>
-                {render(g.fontes)}
-              </div>
-            ))}
-        </Secao>
-
-        <footer className="rounded border border-navy/10 bg-cream/40 p-3 text-[11px] text-navy/60">
-          Registro de acesso a fontes existe apenas como estrutura futura: nenhum log é gerado neste
-          corte e tokens, credenciais ou payloads brutos são recusados pelo banco. Fonte crua nunca
-          aparece no App Cliente.
-        </footer>
+            + Nova fonte
+          </button>
+        )}
       </div>
+
+      <MarcosJuridicosPorPais />
+
+      <CoberturaDeFontesPorPais fontes={(data?.fontes ?? []) as Fonte[]} />
+
+      <div className="grid gap-5 lg:grid-cols-2">
+      <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
+        {render(grupos.recomendaveis)}
+      </Secao>
+
+      <Secao titulo="Termos a confirmar" subtitulo="Não avançam para piloto nem homologação até parecer jurídico registrado.">
+        {render(grupos.termosAConfirmar)}
+      </Secao>
+
+      <Secao titulo="Risco alto ou crítico" subtitulo="Exigem observação de risco e revisão antes de qualquer uso.">
+        {render(grupos.riscoAlto)}
+      </Secao>
+
+      <Secao titulo="Restritas e descontinuadas" subtitulo="Nunca aparecem como recomendação operacional nem em sugestão de pesquisa.">
+        {render(grupos.bloqueadas)}
+      </Secao>
+
+      <Secao titulo="Sem verificação registrada" subtitulo="Fonte sem data de última verificação não sustenta decisão operacional.">
+        {render(grupos.semVerificacao)}
+      </Secao>
+      </div>
+
+      <Secao titulo="Catálogo por estágio de maturidade" eyebrow="Fontes · maturidade">
+        {grupos.porEstagio.every((g) => g.fontes.length === 0) ? (
+          <EstadoVazio mensagem="Nenhuma fonte nesta lista." />
+        ) : null}
+        {grupos.porEstagio
+          .filter((g) => g.fontes.length > 0)
+          .map((g) => (
+            <div key={g.estagio} className="space-y-2">
+              <p className="text-[11px] uppercase tracking-wide text-navy/40">
+                {g.rotulo} ({g.fontes.length})
+              </p>
+              {render(g.fontes)}
+            </div>
+          ))}
+      </Secao>
+
+      <footer className="rounded border border-navy/10 bg-cream/40 p-3 text-[11px] text-navy/60">
+        Registro de acesso a fontes existe apenas como estrutura futura: nenhum log é gerado neste corte e tokens, credenciais ou payloads
+        brutos são recusados pelo banco. Fonte crua nunca aparece no App Cliente.
+      </footer>
+    </div>
     </SaasShell>
   );
 }
