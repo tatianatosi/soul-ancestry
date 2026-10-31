@@ -78,7 +78,9 @@ describe("P5 — Estágio 5 (Relatório): gap crítico fechado — publicado_no_
     const trecho = arquivo.slice(inicio, inicio + 3000);
     expect(trecho).toContain('.eq("source_entity_type", "case_report")');
     expect(trecho).toContain('.eq("source_entity_id", data.reportId)');
-    expect(trecho).toContain("if (existente.data?.id) return { id: existente.data.id as string, criado: false };");
+    expect(trecho).toContain(
+      "if (existente.data?.id) return { id: existente.data.id as string, criado: false };",
+    );
   });
 
   it("projetarRelatorioParaApp passa pelo mesmo filtro de sanitização (conteudoProjetavel)", () => {
@@ -100,7 +102,9 @@ describe("P5 — Estágio 6: motivo da confirmação deixa de ser descartado", (
     const inicio = funcoes.indexOf("export const aprovarProjecao");
     const trecho = funcoes.slice(inicio, inicio + 3600);
     expect(trecho).toContain("motivo?: string");
-    expect(trecho).toContain('acao: data.publicar ? "achado_publicado_no_app" : "achado_aprovado_aguardando_publicacao"');
+    expect(trecho).toContain(
+      'acao: data.publicar ? "achado_publicado_no_app" : "achado_aprovado_aguardando_publicacao"',
+    );
     expect(trecho).toContain("motivo: motivo || null");
   });
 
@@ -143,11 +147,12 @@ describe("P5 — UI: o motivo digitado no diálogo de confirmação agora chega 
   });
 
   it("conteudo-editorial-conectado.tsx (fila da Biblioteca Mestre) passa motivo também", () => {
-    expect(conectado).toContain(
-      "onConfirmar={(motivo) => mAprovar.mutate({ id: item.id, publicar: true, motivo })}",
+    // Prettier pode quebrar a arrow function em duas linhas; checar tolerante a espaço.
+    expect(conectado).toMatch(
+      /onConfirmar=\{\(motivo\)\s*=>\s*mAprovar\.mutate\(\{ id: item\.id, publicar: true, motivo \}\)/,
     );
-    expect(conectado).toContain(
-      "onConfirmar={(motivo) => mDespublicar.mutate({ id: item.id, motivo })}",
+    expect(conectado).toMatch(
+      /onConfirmar=\{\(motivo\)\s*=>\s*mDespublicar\.mutate\(\{ id: item\.id, motivo \}\)/,
     );
   });
 });

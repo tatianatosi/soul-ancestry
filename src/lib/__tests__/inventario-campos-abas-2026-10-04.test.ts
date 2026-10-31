@@ -83,7 +83,8 @@ describe("inventário de campos por aba — recalculado do código", () => {
         ).toBe(true);
       }
     }
-  });
+    // Varre o src inteiro por allowlist; sob a suíte completa passa de 5 s.
+  }, 30_000);
 
   it("o total inventariado é a soma das abas, e é grande o bastante para não ser amostra", () => {
     expect(totalDeCampos()).toBe(INVENTARIO_CAMPOS_ABAS.reduce((s, i) => s + i.campos, 0));

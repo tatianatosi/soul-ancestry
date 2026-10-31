@@ -546,7 +546,7 @@ export async function aprovarPropostaEstruturada(
     );
   }
 
-  const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta);
+  const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta | null);
 
   const { error: erroProposta, data: gravadasAprovacao } = await supabase
     .from("proposals")
@@ -753,17 +753,39 @@ export async function emitirOuRecuperarOS(
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!propostaRecente?.id) {
+    let escolhida = propostaRecente?.id ?? null;
+    if (!escolhida) {
+      // Proprietária: sem proposta aprovada, usa a mais recente do caso.
+      const { proprietariaOperando } = await import("@/lib/autoridade.server");
+      if (await proprietariaOperando(supabase as never, input.userId)) {
+        const { data: qualquer } = await supabase
+          .from("proposals")
+          .select("id")
+          .eq("organization_id", input.org)
+          .eq("case_id", input.caseId)
+          .is("archived_at", null)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        escolhida = qualquer?.id ?? null;
+      }
+    }
+    if (!escolhida) {
       throw new Error(
         "OS/Anexo I exige proposta aprovada para o caso (Proposta → Condição comercial → OS) — nenhuma encontrada.",
       );
     }
-    proposalId = propostaRecente.id;
+    proposalId = escolhida;
   }
 
   const { data: row } = await supabase.from("proposals").select("*").eq("id", proposalId).maybeSingle();
   if (!row || row.organization_id !== input.org) throw new Error("Proposta não encontrada nesta organização.");
-  if (row.status !== "aprovada") throw new Error("OS/Anexo I exige proposta aprovada.");
+  if (row.status !== "aprovada") {
+    // 25/10/2026: a Proprietária gera a OS sem esperar a aprovação formal.
+    const { proprietariaOperando } = await import("@/lib/autoridade.server");
+    if (!(await proprietariaOperando(supabase as never, input.userId)))
+      throw new Error("OS/Anexo I exige proposta aprovada.");
+  }
   const caso = await casoDaCadeia(supabase, input.org, row.case_id);
 
   const { data: condicao } = await supabase
@@ -1008,8 +1030,12 @@ export async function estadoCadeiaOperacional(
       versao: sku?.code ?? null,
     },
     condicao_comercial: {
+      // 26/10/2026: "pendente" não é valor do CHECK de commercial_conditions.status
+      // (rascunho|em_revisao|homologada|recusada|substituida); o escritor grava
+      // "em_revisao" quando há pendência (cadeia-operacional.server.ts, derivarCondicaoComercial).
+      // A comparação nunca era verdadeira e a pendência ficava invisível aqui.
       motivos: condicao
-        ? condicao.status === "pendente"
+        ? condicao.status === "em_revisao"
           ? [condicao.observacao_interna ?? "Condição comercial com pendência declarada."]
           : []
         : ["Condição comercial não persistida a partir da proposta aprovada."],
@@ -1116,13 +1142,26 @@ export async function pendenciasCadeiaPainel(
     etapa: string | null;
   }[] = [];
 
+  // 26/10/2026 (auditoria): os casos eram lidos um a um, em série (~10
+  // consultas por caso). Agora em lotes paralelos de 8: mesmo resultado,
+  // tempo de carga do Painel dividido pelo tamanho do lote.
+  type EstadoCadeia = Awaited<ReturnType<typeof estadoCadeiaOperacional>>;
+  const estados = new Map<string, EstadoCadeia>();
+  const LOTE = 8;
+  for (let i = 0; i < elegiveis.length; i += LOTE) {
+    const lote = elegiveis.slice(i, i + LOTE);
+    const lidos = await Promise.all(
+      lote.map((c) => estadoCadeiaOperacional(supabase, org, c.id).catch(() => null)),
+    );
+    lote.forEach((c, k) => {
+      const e = lidos[k];
+      if (e) estados.set(c.id, e);
+    });
+  }
+
   for (const caso of elegiveis) {
-    let estado: Awaited<ReturnType<typeof estadoCadeiaOperacional>>;
-    try {
-      estado = await estadoCadeiaOperacional(supabase, org, caso.id);
-    } catch {
-      continue;
-    }
+    const estado = estados.get(caso.id);
+    if (!estado) continue;
     const pendencia = pendenciasParaPainel({
       caseId: caso.id,
       rotulo: `${caso.codigo ?? "caso"} · ${caso.titulo ?? "sem título"}`,

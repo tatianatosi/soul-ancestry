@@ -19,7 +19,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Ancestral Canvas"
+const SITE_NAME = "Clube Ancestral"
 const ROOT_DOMAIN = "pluggedresearch.com"
 
 // Sample data for preview mode ONLY (not used in actual email sending).

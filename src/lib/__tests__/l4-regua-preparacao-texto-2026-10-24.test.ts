@@ -27,9 +27,10 @@ describe("L4-A — régua de preparação e percentual com rótulo próprio", ()
 
   it("a Linha do Processo da Jornada rotula a caixa como preparação", () => {
     const jornada = ler("routes/portal/jornada.tsx");
-    expect(jornada).toContain('">Preparação do caso</span>');
+    // Prettier pode quebrar o conteúdo do <span> em sua própria linha; checar a tag de abertura e o texto separadamente.
+    expect(jornada).toMatch(/<span className="[^"]*">\s*Preparação do caso\s*<\/span>/);
     expect(jornada).toContain("Concluída — as cinco etapas de preparação");
-    expect(jornada).not.toContain('">Etapa atual</span>');
+    expect(jornada).not.toMatch(/<span className="[^"]*">\s*Etapa atual\s*<\/span>/);
   });
 
   it("o percentual publicado se chama 'Andamento da pesquisa'", () => {

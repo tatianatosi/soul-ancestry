@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { SaasShell } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
@@ -14,7 +15,8 @@ export const Route = createFileRoute("/_authenticated/governanca/migracao-onboar
       { title: "Migração — gate de onboarding em case_plans — Clube Ancestral" },
       {
         name: "description",
-        content: "Backfill único de motivos_bloqueio de onboarding_planos para case_plans, com prévia antes de gravar.",
+        content:
+          "Backfill único de motivos_bloqueio de onboarding_planos para case_plans, com prévia antes de gravar.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -44,6 +46,9 @@ function MigracaoOnboardingGatePage() {
       setAviso(r.schemaPendente ? (r.aviso ?? null) : null);
       setFalhas(r.falhas ?? []);
     },
+    // Laudo #189, primeiro corte (27/10/2026): sem onError, uma recusa do
+    // banco ficava indistinguível de "nada salva".
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const pendentes = plano ? plano.filter((p) => p.acao === "sincronizar").length : 0;
@@ -75,7 +80,10 @@ function MigracaoOnboardingGatePage() {
         </div>
 
         {aviso ? (
-          <p className="mt-3 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-xs text-terracotta" data-migracao-schema-pendente>
+          <p
+            className="mt-3 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-xs text-terracotta"
+            data-migracao-schema-pendente
+          >
             {aviso}
           </p>
         ) : null}
@@ -92,7 +100,8 @@ function MigracaoOnboardingGatePage() {
 
         {plano && !aviso && (
           <p className="mt-3 text-xs text-navy/70">
-            {plano.length} caso(s) com onboarding_planos · {pendentes} a sincronizar · {semAlvo} sem case_plans(onboarding).
+            {plano.length} caso(s) com onboarding_planos · {pendentes} a sincronizar · {semAlvo} sem
+            case_plans(onboarding).
           </p>
         )}
 
@@ -127,7 +136,10 @@ const ROTULO_PONTE: Record<ItemPonte["acao"], string> = {
 function PontesDaPesquisa() {
   const pontear = useServerFn(pontearFontesDePesquisa);
   const [plano, setPlano] = useState<ItemPonte[] | null>(null);
-  const [resultado, setResultado] = useState<{ copiados: number; falhas: { origemId: string; motivo: string }[] } | null>(null);
+  const [resultado, setResultado] = useState<{
+    copiados: number;
+    falhas: { origemId: string; motivo: string }[];
+  } | null>(null);
 
   const m = useMutation({
     mutationFn: (confirmar: boolean) => pontear({ data: { confirmar } }),
@@ -135,6 +147,7 @@ function PontesDaPesquisa() {
       setPlano(r.plano ?? []);
       setResultado(r.simulado ? null : { copiados: r.copiados ?? 0, falhas: r.falhas ?? [] });
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const aCopiar = plano ? plano.filter((p) => p.acao === "copiar").length : 0;
@@ -165,7 +178,9 @@ function PontesDaPesquisa() {
         </button>
       </div>
 
-      {m.error ? <p className="mt-3 text-xs text-terracotta">{(m.error as Error).message}</p> : null}
+      {m.error ? (
+        <p className="mt-3 text-xs text-terracotta">{(m.error as Error).message}</p>
+      ) : null}
 
       {resultado ? (
         <p className="mt-3 text-xs text-navy/80" data-ponte-resultado>
@@ -186,7 +201,10 @@ function PontesDaPesquisa() {
       {plano && plano.length > 0 ? (
         <ul className="mt-3 space-y-1.5">
           {plano.map((p) => (
-            <li key={`${p.origem}-${p.origemId}`} className="rounded border border-navy/10 p-2 text-xs text-navy/75">
+            <li
+              key={`${p.origem}-${p.origemId}`}
+              className="rounded border border-navy/10 p-2 text-xs text-navy/75"
+            >
               {p.origem === "research_relationships" ? "Relação" : "Evento"}{" "}
               <span className="font-mono">{p.origemId}</span> — {ROTULO_PONTE[p.acao]}
             </li>

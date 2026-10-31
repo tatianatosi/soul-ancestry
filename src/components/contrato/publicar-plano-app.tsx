@@ -43,7 +43,7 @@ export function PublicarPlanoApp({ caseId }: { caseId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
   const mDespublicar = useMutation({
-    mutationFn: () => despublicar({ data: { caseId, projecaoId: q.data!.id, motivo } }),
+    mutationFn: () => despublicar({ data: { caseId, projecaoId: q.data!.id, motivo: motivo.trim() || "Decisão da Proprietária (sem motivo escrito)" } }),
     onSuccess: () => {
       toast.success("Plano retirado do App.");
       setRetirando(false);
@@ -149,7 +149,7 @@ export function PublicarPlanoApp({ caseId }: { caseId: string }) {
           />
           <button
             type="button"
-            disabled={mDespublicar.isPending || motivo.trim().length < 5}
+            disabled={mDespublicar.isPending}
             onClick={() => mDespublicar.mutate()}
             className="rounded bg-terracotta px-3 py-1 text-xs text-cream disabled:opacity-40"
           >

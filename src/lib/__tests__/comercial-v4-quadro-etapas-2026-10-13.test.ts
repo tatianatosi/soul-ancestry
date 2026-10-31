@@ -28,9 +28,16 @@ describe("Comercial — Quadro por etapa (kanban do pipeline real)", () => {
     expect(rota).toContain('dias !== null && dias >= 7 ? <Etiqueta texto={`Lead parado há ${dias} dias`} tom="critico" /> : null');
   });
 
-  it("cada card abre a ficha real do lead (mesmo setSelecionado da gestão abaixo), sem link fictício", () => {
+  /*
+   * 26/10/2026 — achado da auditoria pré-lançamento: o card chamava
+   * setSelecionado direto, trocando de lead e descartando rascunho sem
+   * aviso. Passa a usar `trocarDeLead`, o mesmo guard de confirmação inline
+   * já usado na lista de gestão abaixo — continua sendo a ficha real do
+   * lead, sem link fictício, agora sem perder edição em andamento.
+   */
+  it("cada card abre a ficha real do lead pelo mesmo guard de rascunho pendente da gestão abaixo", () => {
     const trecho = rota.slice(rota.indexOf("data-leads-quadro-etapas-colunas"), rota.indexOf("</CaCard>", rota.indexOf("data-leads-quadro-etapas-colunas")));
-    expect(trecho).toContain("setSelecionado(l.id ?? null)");
+    expect(trecho).toContain("trocarDeLead(l.id ?? null)");
   });
 
   it("vazio honesto quando não há lead no pipeline", () => {

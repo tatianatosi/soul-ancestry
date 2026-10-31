@@ -106,7 +106,9 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
 
 /** A aba mais específica que casa com a rota (e com a âncora, quando houver) fica ativa. */
 function abaAtiva(rota: string, hash: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
-  const comHash = abas.find((a) => a.hash && hash && itemNavAtivo(rota.replace(/^\/casos\/[^/]+$/, "/casos"), hash, a));
+  const comHash = abas.find(
+    (a) => a.hash && hash && itemNavAtivo(rota.replace(/^\/casos\/[^/]+$/, "/casos"), hash, a),
+  );
   if (comHash) return comHash === aba;
   if (aba.hash) return false;
   const melhor = abas
@@ -267,7 +269,20 @@ export function SaasShell({
           })}
         </nav>
         {/* De-Para de retirada (13/10/2026): rotas concorrentes fora do menu principal, recolhidas aqui. */}
-        <details className="mt-4 border-t border-cream/15 pt-3" data-menu-legado>
+        {/*
+          27/10/2026 (auditoria de espectro completo, achado 2.1): MENU_LEGADO_DESK.itens
+          é [] fixo hoje — este bloco ficava sempre visível, sempre vazio, um
+          triângulo que nunca revela nada. O bloco de MENU_CONTA, logo abaixo,
+          já tinha o guard certo (itens.length === 0 && "hidden"); faltava
+          aplicar aqui.
+        */}
+        <details
+          className={cn(
+            "mt-4 border-t border-cream/15 pt-3",
+            MENU_LEGADO_DESK.itens.length === 0 && "hidden",
+          )}
+          data-menu-legado
+        >
           <summary className="flex min-h-11 cursor-pointer items-center px-2 text-[10px] font-semibold uppercase tracking-widest text-cream/60 hover:text-cream">
             {MENU_LEGADO_DESK.label}
           </summary>
@@ -278,14 +293,21 @@ export function SaasShell({
               onClick={() => setAberto(false)}
               className={cn(
                 "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                rotaAtendeDestino(rota, s.to) ? "bg-cream/15 font-medium text-cream" : "text-cream/65 hover:bg-cream/10",
+                rotaAtendeDestino(rota, s.to)
+                  ? "bg-cream/15 font-medium text-cream"
+                  : "text-cream/65 hover:bg-cream/10",
               )}
             >
               {s.label}
             </Link>
           ))}
         </details>
-        <div className={cn("mt-4 border-t border-cream/15 pt-3", MENU_CONTA.itens.length === 0 && "hidden")}>
+        <div
+          className={cn(
+            "mt-4 border-t border-cream/15 pt-3",
+            MENU_CONTA.itens.length === 0 && "hidden",
+          )}
+        >
           <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
             {MENU_CONTA.label}
           </p>
@@ -312,7 +334,9 @@ export function SaasShell({
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
           <p className="truncate">{contexto?.organizacao?.nome ?? "—"}</p>
           <p className="mt-1 truncate text-cream/60">
-            {papeis.length ? papeis.map((p) => PAPEL_LABEL[p] ?? p).join(" · ") : "Sem papel atribuído"}
+            {papeis.length
+              ? papeis.map((p) => PAPEL_LABEL[p] ?? p).join(" · ")
+              : "Sem papel atribuído"}
           </p>
 
           <button
@@ -330,7 +354,10 @@ export function SaasShell({
           sem o bloco navy que subia no celular. A busca leva ao "Encontrar no
           Desk" que já existe; o avatar mostra o perfil real da sessão.
         */}
-        <header className="flex min-w-0 items-center gap-3 border-b border-border bg-card px-4 py-3 md:px-6" data-desk-topbar>
+        <header
+          className="flex min-w-0 items-center gap-3 border-b border-border bg-card px-4 py-3 md:px-6"
+          data-desk-topbar
+        >
           <button
             className="shrink-0 md:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -349,16 +376,25 @@ export function SaasShell({
           </Link>
           <details className="relative shrink-0" data-desk-avatar>
             <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-navy text-[10px] font-medium text-gold" aria-hidden="true">
+              <span
+                className="grid h-7 w-7 place-items-center rounded-full bg-navy text-[10px] font-medium text-gold"
+                aria-hidden="true"
+              >
                 {iniciais}
               </span>
-              <span className="hidden max-w-40 truncate text-xs text-navy/70 sm:inline">{nomeExibido}</span>
+              <span className="hidden max-w-40 truncate text-xs text-navy/70 sm:inline">
+                {nomeExibido}
+              </span>
               <ChevronDown className="h-4 w-4 text-navy/50" aria-hidden="true" />
             </summary>
             <div className="absolute right-0 z-40 mt-1 w-64 rounded-xl border border-navy/10 bg-card p-3 text-sm shadow-lg">
               <p className="truncate font-medium text-navy">{nomeExibido}</p>
-              {contexto?.perfil?.email ? <p className="truncate text-xs text-navy/60">{contexto.perfil.email}</p> : null}
-              <p className="mt-1 truncate text-xs text-navy/50">{contexto?.organizacao?.nome ?? "Clube Ancestral"}</p>
+              {contexto?.perfil?.email ? (
+                <p className="truncate text-xs text-navy/60">{contexto.perfil.email}</p>
+              ) : null}
+              <p className="mt-1 truncate text-xs text-navy/50">
+                {contexto?.organizacao?.nome ?? "Clube Ancestral"}
+              </p>
               <button
                 type="button"
                 onClick={sair}
@@ -381,7 +417,9 @@ export function SaasShell({
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div className="min-w-0 max-w-full">
               <h1 className="break-words font-serif text-3xl leading-tight text-navy">{titulo}</h1>
-              {descricao ? <p className="overflow-wrap-anywhere mt-1 text-xs text-navy/60">{descricao}</p> : null}
+              {descricao ? (
+                <p className="overflow-wrap-anywhere mt-1 text-xs text-navy/60">{descricao}</p>
+              ) : null}
             </div>
             {acoes ? <div className="min-w-0 max-w-full">{acoes}</div> : null}
           </div>
@@ -412,7 +450,9 @@ export function SaasShell({
                     aria-current={ativa ? "page" : undefined}
                     className={cn(
                       "text-[11px] underline-offset-4 transition-colors",
-                      ativa ? "font-semibold text-navy underline" : "text-navy/60 hover:text-navy hover:underline",
+                      ativa
+                        ? "font-semibold text-navy underline"
+                        : "text-navy/60 hover:text-navy hover:underline",
                     )}
                   >
                     {aba.label}
@@ -442,10 +482,18 @@ export function SaasShell({
             {children}
           </div>
         </main>
-        {/* Prancha V4: no celular a navegação entre setores é a barra fixa de ícones embaixo. */}
+        {/*
+          Prancha V4: no celular a navegação entre setores é a barra fixa de
+          ícones embaixo. Achado 28 (design critique, 27/10/2026): com 8
+          setores (vs. 7 abas do App), a barra usava h-12/text-[8px]/ícone de
+          16px — bem mais densa que a barra do App (min-h-16/text-[11px]/
+          ícone de 17-19px) sem que a contagem de itens exigisse isso. Os
+          tamanhos abaixo aproximam a densidade da do App, dentro do espaço
+          que 8 colunas (contra 7) ainda permitem.
+        */}
         <nav
           aria-label="Setores do Desk"
-          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-2 shadow-sm md:hidden"
           data-desk-nav-movel
         >
           {SETORES_DESK.map((setor) => {
@@ -458,11 +506,11 @@ export function SaasShell({
                 aria-current={ativo ? "page" : undefined}
                 aria-label={setor.label}
                 className={cn(
-                  "flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 text-[8px] font-medium",
+                  "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-md px-0.5 text-[10px] font-medium",
                   ativo ? "bg-gold/20 text-navy" : "text-navy/50",
                 )}
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
+                <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                 <span className="max-w-full truncate">{setor.label.split(" ")[0]}</span>
               </Link>
             );

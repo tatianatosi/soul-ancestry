@@ -3,6 +3,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semFixtures } from "@/lib/fixtures";
 import { semCache } from "@/lib/no-store";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { proprietariaOperando } from "@/lib/autoridade.server";
+import { portoesDoPilotoDoCaso } from "@/lib/inventario-portoes.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -17,7 +19,6 @@ async function organizacaoDo(supabase: any, userId: string) {
   if (!data?.organization_id) throw new Error("Usuário sem organização ativa.");
   return data.organization_id as string;
 }
-
 
 /** Carrega a ficha operacional canônica do caso (dados reais, sem inferência). */
 export const carregarFichaCaso = createServerFn({ method: "GET" })
@@ -36,7 +37,18 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    const [membrosBrutos, log, cliente, nucleos, planos, timeline, blueprint, filaDrive, checksAtivacao, historicoFase] = await Promise.all([
+    const [
+      membrosBrutos,
+      log,
+      cliente,
+      nucleos,
+      planos,
+      timeline,
+      blueprint,
+      filaDrive,
+      checksAtivacao,
+      historicoFase,
+    ] = await Promise.all([
       // (bloqueiosReais lido separadamente abaixo, fora do Promise.all de selects
       // simples, porque é uma chamada RPC. membrosBrutos é só para decidir se
       // precisa do fallback abaixo — quem alimenta a tela é `membrosComFallback`.)
@@ -54,9 +66,17 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false })
         .limit(80),
       caso.data.cliente_id
-        ? supabase.from("clientes").select("id, nome, email, telefone").eq("id", caso.data.cliente_id).maybeSingle()
+        ? supabase
+            .from("clientes")
+            .select("id, nome, email, telefone")
+            .eq("id", caso.data.cliente_id)
+            .maybeSingle()
         : Promise.resolve({ data: null }),
-      supabase.from("nucleos_familiares").select("*").eq("case_id", data.id).is("archived_at", null),
+      supabase
+        .from("nucleos_familiares")
+        .select("*")
+        .eq("case_id", data.id)
+        .is("archived_at", null),
       supabase.from("tarefas").select("id").eq("caso_id", data.id).limit(1),
       supabase
         .from("case_timeline_events")
@@ -65,12 +85,23 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         .is("archived_at", null)
         .order("occurred_at", { ascending: false })
         .limit(200),
-      supabase.from("blueprint_parameters").select("*").eq("case_id", data.id).is("archived_at", null),
-      supabase.from("drive_provisioning_queue").select("*").eq("case_id", data.id).is("archived_at", null),
+      supabase
+        .from("blueprint_parameters")
+        .select("*")
+        .eq("case_id", data.id)
+        .is("archived_at", null),
+      supabase
+        .from("drive_provisioning_queue")
+        .select("*")
+        .eq("case_id", data.id)
+        .is("archived_at", null),
       // Requisitos de ativação validados à mão. A ficha derivava tudo da linha
       // do caso e ignorava estes registros: o caso da Ana tinha os 14
       // validados e a tela continuava dizendo "ativação bloqueada".
-      supabase.from("case_activation_checks").select("check_key,label,status,dominio,obrigatorio").eq("case_id", data.id),
+      supabase
+        .from("case_activation_checks")
+        .select("check_key,label,status,dominio,obrigatorio")
+        .eq("case_id", data.id),
       // 07/09/2026 — case_phase_history existe desde 06/09 (trigger automático
       // em crm_casos.fase, PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md seção 10),
       // mas nenhuma tela lia: a gravação era automática, a leitura nunca foi
@@ -89,15 +120,18 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
     // 4 linhas manuais em case_members; qualquer caso novo sem essa
     // sincronização manual mostraria a ficha vazia mesmo com núcleo
     // cadastrado. Passa a usar a mesma função única das outras 4 telas.
-    const membrosComFallback = ((membrosBrutos.data ?? []) as Linha[]).length > 0
-      ? (membrosBrutos.data as Linha[])
-      : await pessoasDoCasoComFallbackNucleo(supabase, data.id);
+    const membrosComFallback =
+      ((membrosBrutos.data ?? []) as Linha[]).length > 0
+        ? (membrosBrutos.data as Linha[])
+        : await pessoasDoCasoComFallbackNucleo(supabase, data.id);
 
     // Dados civis vêm da Pessoa 360 (`clientes`), via cliente_id do caso e dos
     // membros — a equipe não redigita em case_members. Só leitura, por organização.
     const idsPessoa360 = [
       ...new Set(
-        [caso.data.cliente_id, ...membrosComFallback.map((m) => m.cliente_id)].filter(Boolean) as string[],
+        [caso.data.cliente_id, ...membrosComFallback.map((m) => m.cliente_id)].filter(
+          Boolean,
+        ) as string[],
       ),
     ];
     const pessoas360 = idsPessoa360.length
@@ -122,6 +156,15 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
     const { data: bloqueiosReaisData } = await supabase.rpc("case_ativacao_bloqueios_reais", {
       _case: data.id,
     });
+
+    // Peça A do laudo "nada persiste" (#189, 27/10/2026): bloqueiosReais
+    // (acima) nunca leu piloto_bloqueios — a mesma fonte real que
+    // fn_piloto_caso_guard verifica antes de recusar a ativação do caso
+    // piloto. Role-aware (proprietariaOperando): desde 25/10 esse guard
+    // cede à Proprietária, então o portão só bloqueia quem não é ela.
+    // Ver src/lib/inventario-portoes.server.ts.
+    const souProprietariaOperando = await proprietariaOperando(supabase, context.userId as string);
+    const portoesPiloto = await portoesDoPilotoDoCaso(supabase, data.id, souProprietariaOperando);
 
     /*
       24/09/2026 — ordem P0 "Sistema Único Transversal": lead de origem do
@@ -172,10 +215,11 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         valor_atual: string;
         cta_tela: string | null;
       }[],
+      // Peça A (#189): portões do piloto, role-aware. Vazio para casos não-piloto.
+      portoesPiloto,
       historicoFase: (historicoFase.data ?? []) as Linha[],
     };
   });
-
 
 /** Lista enxuta de casos para a aba Casos do Desk. */
 export const listarCasosFicha = createServerFn({ method: "GET" })

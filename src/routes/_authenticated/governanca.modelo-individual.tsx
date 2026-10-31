@@ -77,12 +77,13 @@ function RegistroVersionado() {
       toast.success("Modelo individual registrado.");
       queryClient.invalidateQueries({ queryKey: ["modelo-individual-registro"] });
     },
+    // Laudo #189, primeiro corte (27/10/2026): sem onError, uma recusa do
+    // banco ficava indistinguível de "nada salva".
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const modelo = data?.modelo as
-    | { versao: string; status: string; autor: string | null; criado_em: string }
-    | null
-    | undefined;
+    { versao: string; status: string; autor: string | null; criado_em: string } | null | undefined;
 
   return (
     <CaCard titulo="Registro versionado (organização)">
@@ -98,8 +99,8 @@ function RegistroVersionado() {
           </div>
         ) : (
           <p className="text-navy/65">
-            Modelo ainda não registrado nesta organização. O registro é apenas de governança
-            interna e não libera contrato, assinatura ou cobrança.
+            Modelo ainda não registrado nesta organização. O registro é apenas de governança interna
+            e não libera contrato, assinatura ou cobrança.
           </p>
         )}
         {!modelo && (
@@ -151,7 +152,6 @@ function ModeloIndividualPage() {
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const previa = previaTesteModeloIndividual();
 
-
   return (
     <SaasShell
       titulo={`${MODELO_INDIVIDUAL_NOME} — ${MODELO_INDIVIDUAL_VERSAO}`}
@@ -190,8 +190,13 @@ function ModeloIndividualPage() {
             <div className="space-y-2 text-sm text-navy/65">
               <p>Exatamente uma pessoa adulta como requerente principal.</p>
               <ul className="list-disc space-y-1 pl-5">
-                <li>Parte contratante e signatário por padrão, com confirmação humana obrigatória.</li>
-                <li>Campos: nome, identificação por fonte permitida, papel, estado de dados e documentos, processo individual abrangido, fonte e status de confirmação.</li>
+                <li>
+                  Parte contratante e signatário por padrão, com confirmação humana obrigatória.
+                </li>
+                <li>
+                  Campos: nome, identificação por fonte permitida, papel, estado de dados e
+                  documentos, processo individual abrangido, fonte e status de confirmação.
+                </li>
                 <li>Uma única instância de ANX-INDIVIDUAL, quando aplicável.</li>
               </ul>
             </div>
@@ -208,7 +213,8 @@ function ModeloIndividualPage() {
                 ))}
               </ul>
               <p className="pt-2 text-xs">
-                Promoção a requerente ou signatária exige: {REQUISITOS_INCLUSAO_ACOMPANHANTE.join(" · ")}.
+                Promoção a requerente ou signatária exige:{" "}
+                {REQUISITOS_INCLUSAO_ACOMPANHANTE.join(" · ")}.
               </p>
             </div>
           </CaCard>
@@ -258,9 +264,7 @@ function ModeloIndividualPage() {
                 <Badge variant="outline">{previa.marca}</Badge>
                 {previa.blocos.map((bloco) => (
                   <div key={bloco.titulo} className="rounded-md border bg-cream/40 p-3">
-                    <p className="text-xs uppercase tracking-wide text-navy/65">
-                      {bloco.titulo}
-                    </p>
+                    <p className="text-xs uppercase tracking-wide text-navy/65">{bloco.titulo}</p>
                     <p className="font-mono text-sm text-navy">{bloco.conteudo}</p>
                   </div>
                 ))}

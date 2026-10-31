@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
-import { textoLeadOrigem, textoPaisVia, textoPesquisa, textoProximoPasso } from "@/lib/estado-integrado-caso";
+import {
+  textoLeadOrigem,
+  textoPaisVia,
+  textoPesquisa,
+  textoProximoPasso,
+} from "@/lib/estado-integrado-caso";
 
 /**
  * Ordem P0 "Sistema Único Transversal" (reaberta em 24/09/2026): o Estado
@@ -59,20 +64,28 @@ describe("textos — ausência é dita, nada é inventado", () => {
     expect(textoLeadOrigem({ nome: "Ana" })).toContain("origem não informada");
   });
   it("país/via prefere o dado de trilha e cai para o do caso", () => {
-    expect(textoPaisVia({ pais_linha_prioritaria: "Itália", via_juridica_preliminar: "materna" })).toBe("Itália · materna");
+    expect(
+      textoPaisVia({ pais_linha_prioritaria: "Itália", via_juridica_preliminar: "materna" }),
+    ).toBe("Itália · materna");
     expect(textoPaisVia({ pais: "Portugal", via: "neto" })).toBe("Portugal · neto");
     expect(textoPaisVia({})).toBe("País não definido · via não definida");
   });
   it("pesquisa resume contagens reais ou diz que não foi lida", () => {
     expect(textoPesquisa(null)).toBe("Pesquisa não iniciada ou não lida");
-    expect(textoPesquisa({ pessoas: 4, relacoes: 1, evidencias: 2, confirmadas: 0, achados: 1 })).toBe(
-      "4 pessoa(s) · 1 relação(ões) · 2 evidência(s), 0 aprovada(s) · 1 achado(s)",
-    );
+    expect(
+      textoPesquisa({ pessoas: 4, relacoes: 1, evidencias: 2, confirmadas: 0, achados: 1 }),
+    ).toBe("4 pessoa(s) · 1 relação(ões) · 2 evidência(s), 0 aprovada(s) · 1 achado(s)");
   });
   it("próximo passo sempre diz responsável, prazo e bloqueio — nunca vazio", () => {
     expect(textoProximoPasso(null)).toBe("Próxima ação ainda não calculada");
     expect(
-      textoProximoPasso({ acao: "Pedir certidão", responsavel: null, prazo: null, bloqueios: 0, primeiroBloqueio: null }),
+      textoProximoPasso({
+        acao: "Pedir certidão",
+        responsavel: null,
+        prazo: null,
+        bloqueios: 0,
+        primeiroBloqueio: null,
+      }),
     ).toBe("Pedir certidão · sem responsável · sem prazo — sem bloqueio real");
     expect(
       textoProximoPasso({
@@ -82,12 +95,17 @@ describe("textos — ausência é dita, nada é inventado", () => {
         bloqueios: 2,
         primeiroBloqueio: "Pagamento inicial pendente",
       }),
-    ).toBe("Assinar contrato · Equipe · até 2026-10-01 — 2 bloqueio(s), primeiro: Pagamento inicial pendente");
+    ).toBe(
+      "Assinar contrato · Equipe · até 2026-10-01 — 2 bloqueio(s), primeiro: Pagamento inicial pendente",
+    );
   });
 });
 
 describe("isolamento por organização e caso", () => {
-  const trecho = ficha.slice(ficha.indexOf("const { data: leadOrigem }"), ficha.indexOf("nucleo_completude"));
+  const trecho = ficha.slice(
+    ficha.indexOf("const { data: leadOrigem }"),
+    ficha.indexOf("nucleo_completude"),
+  );
   it("o lead de origem é lido só da organização e do caso da ficha", () => {
     expect(trecho).toContain('.from("leads")');
     expect(trecho).toContain('.eq("organization_id", organizationId)');
@@ -97,11 +115,15 @@ describe("isolamento por organização e caso", () => {
   });
   it("a ficha só carrega caso da organização do usuário (caso de outra org = não encontrado)", () => {
     const carregar = ficha.slice(ficha.indexOf("export const carregarFichaCaso"));
-    expect(carregar).toMatch(/\.from\("crm_casos"\)[\s\S]{0,200}\.eq\("organization_id", organizationId\)/);
+    expect(carregar).toMatch(
+      /\.from\("crm_casos"\)[\s\S]{0,200}\.eq\("organization_id", organizationId\)/,
+    );
   });
   it("a pesquisa do caso também filtra por organização", () => {
     const cadeia = readFileSync("src/lib/pesquisa-cadeia.functions.ts", "utf8");
-    expect(cadeia.match(/\.eq\("organization_id", organizationId\)/g)!.length).toBeGreaterThanOrEqual(10);
+    expect(
+      cadeia.match(/\.eq\("organization_id", organizationId\)/g)!.length,
+    ).toBeGreaterThanOrEqual(10);
   });
 });
 
@@ -109,13 +131,16 @@ describe("releitura após atualização na superfície fonte", () => {
   it("as leituras do bloco não usam cache (reload mostra o persistido)", () => {
     expect(ficha).toContain("semCache();");
     expect(readFileSync("src/lib/pesquisa-cadeia.functions.ts", "utf8")).toContain("semCache();");
-    expect(readFileSync("src/lib/cadeia-operacional.functions.ts", "utf8")).toContain("semCache();");
+    expect(readFileSync("src/lib/cadeia-operacional.functions.ts", "utf8")).toContain(
+      "semCache();",
+    );
   });
   it("o bloco não guarda estado próprio: tudo vem das queries da rota", () => {
     expect(componente).not.toMatch(/useState|useEffect|localStorage/);
   });
   it("o histórico do caso continua vindo da mesma leitura (case_timeline_events)", () => {
     expect(ficha).toContain('.from("case_timeline_events")');
-    expect(rota).toContain("timelineUltimoEvento={((q.data?.timeline ?? [])");
+    // Prettier pode quebrar a prop timelineUltimoEvento em múltiplas linhas.
+    expect(rota).toMatch(/timelineUltimoEvento=\{[\s\S]{0,40}\(q\.data\?\.timeline \?\? \[\]\)/);
   });
 });

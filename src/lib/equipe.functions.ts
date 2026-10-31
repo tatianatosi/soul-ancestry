@@ -23,8 +23,16 @@ export const prepararLoginEquipe = createServerFn({ method: "POST" })
     const h = await import("./equipe.server");
     const email = h.normalizarEmail(data.email);
     if (!h.emailValido(email)) return { bloqueado: false, liberaEmSegundos: 0 };
-    // Somente leitura: a tentativa só é contabilizada quando falha.
-    return h.estadoLimite("staff_login", email, 8, 15);
+    /*
+     * 26/10/2026 (auditoria pré-lançamento, H2): este limite não protegia nada
+     * (a senha é conferida direto no Supabase, que já tem limite próprio) e
+     * podia ser usado para trancar a Proprietária: `registrarFalhaLoginEquipe`
+     * não exige login, então qualquer pessoa contava "falhas" no e-mail dela.
+     * As falhas continuam registradas em auth_throttle para consulta; o
+     * formulário não bloqueia mais por elas.
+     */
+    void h.estadoLimite;
+    return { bloqueado: false, liberaEmSegundos: 0 };
   });
 
 /** Credencial inválida: só a falha consome o limite. */

@@ -146,6 +146,6 @@ describe("Corte 3 — montado na Visão de Caso 360, ao lado de FasesMotorCidada
   });
 
   it("SecaoAncora da Visão continua existindo (não substitui a estrutura das 8 seções)", () => {
-    expect(pagina).toContain('<SecaoAncora id="visao"');
+    expect(pagina).toMatch(/<SecaoAncora\s+id="visao"/);
   });
 });

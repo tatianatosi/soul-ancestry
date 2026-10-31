@@ -18,6 +18,7 @@ import {
 } from "@/lib/documentos.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { exigirPersistenciaConferida } from "@/lib/verificacao-persistencia";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -261,6 +262,50 @@ export const arquivarDocumento = createServerFn({ method: "POST" })
         caseId: r.registro["case_id"] as string,
         eventType: "caso",
         title: "Documento arquivado",
+        summaryInternal: motivo,
+        sourceEntityType: "documents",
+        sourceEntityId: data.id,
+        userId,
+      });
+    }
+    return { ok: true };
+  });
+
+/**
+ * 30/10/2026 — retira do App Cliente um documento já liberado, sem arquivar
+ * nem apagar: volta a "pendente de revisão" e deixa de ser visível ao cliente
+ * até nova liberação. Precisa de sessão autenticada (o guard de `documents`
+ * recusa conexão sem usuário) e de motivo, que vai para a linha do tempo.
+ */
+export const retirarDocumentoDoApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; motivo: string }) => {
+    if (!data?.id) throw new Error("Informe o documento.");
+    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo para retirar o documento do App.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const userId = context.userId as string;
+    const { organizationId, papel } = await contextoDocumentos(supabase, userId);
+    if (!PAPEIS_UPLOAD.includes(papel)) throw new Error("Seu papel não permite retirar documentos do App.");
+    const motivo = data.motivo.trim().slice(0, 500);
+    const payload = { liberado_cliente: false, status: "pendente_de_revisao" };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "documents",
+      id: data.id,
+      organizationId,
+      userId,
+      payload,
+    });
+    exigirPersistenciaConferida(payload, r.registro);
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Documento retirado do App Cliente",
         summaryInternal: motivo,
         sourceEntityType: "documents",
         sourceEntityId: data.id,

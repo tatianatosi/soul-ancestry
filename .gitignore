@@ -50,4 +50,14 @@ dist-ssr
 # configuração, não um checkout aninhado: o aviso acima segue valendo para
 # worktrees, que continuam ignorados.
 !.claude/settings.json
+# Exceção deliberada: skills do projeto (ex.: pendente-sql, que aplica a
+# própria regra 3 acima) precisam versionar para a equipe toda ter o mesmo
+# fluxo, não só quem já tem a sessão. Precisa das duas linhas — a do
+# diretório e a do conteúdo — porque o git não recursa num diretório que
+# ainda está excluído.
+!.claude/skills/
+!.claude/skills/**
 tmp/
+
+# Cartographer skill scratch state (local audit working directory)
+.cartographer/

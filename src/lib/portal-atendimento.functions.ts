@@ -5,6 +5,7 @@ import { contextoDocumentos, type Sb } from "@/lib/documentos.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { contemConteudoInterno } from "@/lib/onboarding-jornada";
+import { proprietariaOperando } from "@/lib/autoridade.server";
 import {
   CLASSIFICACAO_ENTREGA,
   PAPEIS_ENTREGA,
@@ -229,8 +230,9 @@ export const criarSolicitacaoDocumento = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
+    // 25/10/2026: a Proprietária pede documento antes da ativação (é o onboarding).
     const bloqueio = bloqueioAtendimento(caso.data as any);
-    if (bloqueio.bloqueado) {
+    if (bloqueio.bloqueado && !(await proprietariaOperando(supabase as never, context.userId as string))) {
       await auditar(
         organizationId,
         context.userId as string,
@@ -488,7 +490,8 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
         .maybeSingle();
       if (!caso.data) await negar("Entrega sem caso elegível vinculado.", "bloqueado");
       const b = bloqueioAtendimento(caso.data as any);
-      if (b.bloqueado) await negar(`Publicação bloqueada: ${b.motivos.join("; ")}.`, "bloqueado");
+      if (b.bloqueado && !(await proprietariaOperando(supabase as never, context.userId as string)))
+        await negar(`Publicação bloqueada: ${b.motivos.join("; ")}.`, "bloqueado");
 
       const versao = texto(data.versao ?? null, 40);
       patch = {
@@ -890,6 +893,9 @@ export const responderTicketEquipe = createServerFn({ method: "POST" })
       const b = caso?.data
         ? bloqueioAtendimento(caso.data as any)
         : { bloqueado: true, motivos: ["Ticket sem caso elegível vinculado"] };
+      if (b.bloqueado && caso?.data && (await proprietariaOperando(supabase as never, context.userId as string))) {
+        b.bloqueado = false;
+      }
       if (b.bloqueado) {
         await auditar(
           organizationId,

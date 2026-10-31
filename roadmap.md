@@ -1,5 +1,14 @@
 # Roadmap
 
+## 31/10 — Prontidão para o lançamento do fim de semana
+- [ ] Suíte completa de testes: corrigir falhas reais; atualizar só testes que conferem textos já substituídos por decisão aprovada.
+- [ ] Desk diário: abrir cada setor da lateral (`SETORES_DESK`) e Caso 360 da Ana em 1280/375; corrigir telas quebradas, erros de página e HTTP >=400.
+- [ ] App Cliente da Ana: sete abas com dados reais (núcleo Ana, Adair, Alice + Felipe dependente; árvore 8 pessoas/8 relações; contrato v5 3×R$ 3.200); 375/1280 sem overflow.
+- [ ] Árvore: linha G4→G3 de Lotte/Otto não pode passar sobre Cleusa (sugere filiação não registrada).
+- [ ] Verificação de segurança profunda (iniciada 31/10): ler resultado e corrigir o que for código.
+- [ ] Publicar após tudo verificado e conferir no link público.
+- Bloqueios conhecidos: três achados de permissão (aprovar preço, pendências de contrato de outra organização, preparar contrato para assinatura) aguardam a Proprietária definir papéis; anos de Heinrich, Lotte, Ana Maria, Cleusa e Adair sem fonte; pedidos documentais e relatórios não registrados.
+
 ## 27/10 — Correção focal da Árvore (sem publicação)
 - [x] Raiz por par autorizado caso/pessoa (Otto publicado no caso Ana), corte visual G10 removido; abertura/restauração compartilham enquadramento com margem/centro.
 - [x] 18 testes passam; oito pessoas e oito relações persistidas conferidas em 375/1280; restauração repete quadro inicial e nomes reais cabem; PDF original p.6 comparado com antes/candidata. Nomes extremos testados por função, não por caso real inventado.

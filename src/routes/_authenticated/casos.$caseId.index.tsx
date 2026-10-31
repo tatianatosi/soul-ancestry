@@ -1,4 +1,12 @@
-import { createFileRoute, Link, notFound, redirect, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  notFound,
+  redirect,
+  useNavigate,
+  useParams,
+  useRouterState,
+} from "@tanstack/react-router";
 import { CardsVidaDoCliente } from "@/components/caso/cards-vida-do-cliente";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
@@ -10,7 +18,15 @@ import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/compone
 import { CaCard } from "@/components/ui/ca-card";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
 import "@/components/desk/mockup4-superficies.css";
-import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
+import {
+  BarrasHorizontais,
+  DonutEstados,
+  Etiqueta,
+  JornadaMarcos,
+  Linha,
+  LinhaTempoGrafica,
+  Pessoa,
+} from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -38,7 +54,13 @@ import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { PendenciasHumanasCaso } from "@/components/caso/pendencias-humanas-caso";
-import { adicionarPessoaAoCaso, conferirDivergenciaCepMembrosCaso, conferirDivergenciaCpfMembrosCaso, conferirDivergenciaTelefoneMembrosCaso, listarPessoasParaCaso } from "@/lib/caso-canonico.functions";
+import {
+  adicionarPessoaAoCaso,
+  conferirDivergenciaCepMembrosCaso,
+  conferirDivergenciaCpfMembrosCaso,
+  conferirDivergenciaTelefoneMembrosCaso,
+  listarPessoasParaCaso,
+} from "@/lib/caso-canonico.functions";
 import { lerCadeiaOperacional } from "@/lib/cadeia-operacional.functions";
 import { EstadoIntegradoCaso } from "@/components/caso/estado-integrado";
 import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
@@ -94,9 +116,20 @@ import { toast } from "sonner";
 import { abrirContratoDoCaso } from "@/lib/contratos.functions";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
 import { HistoricoPorFase } from "@/components/caso/historico-por-fase";
-import { aprovarEventoTimelineParaCliente, revogarEventoTimelineDoCliente } from "@/lib/timeline-caso.functions";
+import {
+  aprovarEventoTimelineParaCliente,
+  revogarEventoTimelineDoCliente,
+} from "@/lib/timeline-caso.functions";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
-import { cepValido, cpfValido, emailValido, formatarCep, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
+import {
+  cepValido,
+  cpfValido,
+  emailValido,
+  formatarCep,
+  formatarCpf,
+  formatarTelefone,
+  telefoneValido,
+} from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -105,7 +138,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAvisoEdicaoNaoSalva, useAvisoEdicaoNaoSalvaComConfirmacao } from "@/lib/aviso-edicao-nao-salva";
+import {
+  useAvisoEdicaoNaoSalva,
+  useAvisoEdicaoNaoSalvaComConfirmacao,
+} from "@/lib/aviso-edicao-nao-salva";
 
 import {
   EIXO_COMERCIAL,
@@ -514,7 +550,8 @@ function VisaoConcretaCaso({
   } | null;
   entregas: Record<string, unknown>[];
 }) {
-  const cartao = "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]";
+  const cartao =
+    "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]";
   const documentosLiberados = documentos.filter((d) => d["status"] === "liberado").length;
 
   return (
@@ -524,13 +561,20 @@ function VisaoConcretaCaso({
         {timeline.length ? (
           <ul className="space-y-1.5 text-sm text-navy/80">
             {[...timeline]
-              .sort((a, b) => String(b["occurred_at"] ?? b["created_at"] ?? "").localeCompare(String(a["occurred_at"] ?? a["created_at"] ?? "")))
+              .sort((a, b) =>
+                String(b["occurred_at"] ?? b["created_at"] ?? "").localeCompare(
+                  String(a["occurred_at"] ?? a["created_at"] ?? ""),
+                ),
+              )
               .slice(0, 8)
               .map((e) => (
                 <li key={String(e["id"])}>
                   {String(e["title"] ?? "Evento")}{" "}
                   <span className="text-xs text-navy/50">
-                    — {new Date(String(e["occurred_at"] ?? e["created_at"])).toLocaleDateString("pt-BR")}
+                    —{" "}
+                    {new Date(String(e["occurred_at"] ?? e["created_at"])).toLocaleDateString(
+                      "pt-BR",
+                    )}
                   </span>
                 </li>
               ))}
@@ -547,14 +591,21 @@ function VisaoConcretaCaso({
             {membros.slice(0, 8).map((m) => (
               <li key={String(m["id"])}>
                 {String(m["nome"] ?? m["nome_completo"] ?? "Pessoa sem nome registrado")}
-                <span className="text-xs text-navy/50"> — {String(m["papel"] ?? "papel não registrado")}</span>
+                <span className="text-xs text-navy/50">
+                  {" "}
+                  — {String(m["papel"] ?? "papel não registrado")}
+                </span>
               </li>
             ))}
           </ul>
         ) : (
           <p className="text-xs text-navy/55">Nenhum participante confirmado neste núcleo.</p>
         )}
-        <Link to="/pessoas-linhagens/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+        <Link
+          to="/pessoas-linhagens/$caseId"
+          params={{ caseId }}
+          className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
+        >
           Abrir Pessoas & Linhagens
         </Link>
       </div>
@@ -563,27 +614,41 @@ function VisaoConcretaCaso({
         <p className="mb-2 font-serif text-base text-navy">Dossiê documental</p>
         {documentos.length ? (
           <p className="text-sm text-navy/80">
-            {documentos.length} documento(s) registrado(s) · {documentosLiberados} liberado(s) para a cliente.
+            {documentos.length} documento(s) registrado(s) · {documentosLiberados} liberado(s) para
+            a cliente.
           </p>
         ) : (
           <p className="text-xs text-navy/55">Nenhum documento registrado ainda.</p>
         )}
-        <Link to="/biblioteca-evidencias/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+        <Link
+          to="/biblioteca-evidencias/$caseId"
+          params={{ caseId }}
+          className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
+        >
           Abrir Biblioteca de Evidências
         </Link>
       </div>
 
       <div className={cartao}>
         <p className="mb-2 font-serif text-base text-navy">Pesquisa e hipóteses</p>
-        {pesquisa && (pesquisa.fontes.length || pesquisa.evidencias.length || pesquisa.achados.length) ? (
+        {pesquisa &&
+        (pesquisa.fontes.length || pesquisa.evidencias.length || pesquisa.achados.length) ? (
           <p className="text-sm text-navy/80">
-            {pesquisa.fontes.length} fonte(s) · {pesquisa.evidencias.length} evidência(s) · {pesquisa.achados.length} achado(s)
-            {pesquisa.relacoes.length ? ` · ${pesquisa.relacoes.length} relação(ões) genealógica(s)` : ""}.
+            {pesquisa.fontes.length} fonte(s) · {pesquisa.evidencias.length} evidência(s) ·{" "}
+            {pesquisa.achados.length} achado(s)
+            {pesquisa.relacoes.length
+              ? ` · ${pesquisa.relacoes.length} relação(ões) genealógica(s)`
+              : ""}
+            .
           </p>
         ) : (
           <p className="text-xs text-navy/55">Nenhuma linha de pesquisa aberta ainda.</p>
         )}
-        <Link to="/pesquisa-evidencias/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+        <Link
+          to="/pesquisa-evidencias/$caseId"
+          params={{ caseId }}
+          className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
+        >
           Abrir Pesquisa & Evidências
         </Link>
       </div>
@@ -594,18 +659,30 @@ function VisaoConcretaCaso({
           <>
             <p className="text-sm text-navy/80">
               {financeiro.condicaoComercial ?? "Sem condição comercial registrada"}
-              {financeiro.valorContratado ? ` — ${financeiro.valorContratado.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}` : ""}
+              {financeiro.valorContratado
+                ? ` — ${financeiro.valorContratado.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}`
+                : ""}
             </p>
             <p className="text-xs text-navy/55">
-              Recebido: {financeiro.valorRecebido.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}
-              {financeiro.saldoAberto ? ` · Saldo em aberto: ${financeiro.saldoAberto.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}` : ""}
+              Recebido:{" "}
+              {financeiro.valorRecebido.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: financeiro.moeda || "BRL",
+              })}
+              {financeiro.saldoAberto
+                ? ` · Saldo em aberto: ${financeiro.saldoAberto.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}`
+                : ""}
             </p>
             <p className="text-xs text-navy/55">
-              {(ROTULO_STATUS_FINANCEIRO_CASO as Record<string, string>)[financeiro.status] ?? financeiro.status} · {financeiro.proximaAcaoFinanceira}
+              {(ROTULO_STATUS_FINANCEIRO_CASO as Record<string, string>)[financeiro.status] ??
+                financeiro.status}{" "}
+              · {financeiro.proximaAcaoFinanceira}
             </p>
           </>
         ) : (
-          <p className="text-xs text-navy/55">Nenhuma proposta, fatura ou despesa registrada ainda.</p>
+          <p className="text-xs text-navy/55">
+            Nenhuma proposta, fatura ou despesa registrada ainda.
+          </p>
         )}
       </div>
 
@@ -637,7 +714,10 @@ function FichaQuatroLotesGoLive({ casoId }: { casoId: string }) {
   const casoPiloto = data?.encontrado ? data : null;
 
   if (isPending) return <p className="text-sm text-navy/60">Carregando ficha por lotes…</p>;
-  if (isError || !casoPiloto) return <p className="text-xs text-navy/55">Ficha por lotes indisponível para este caso agora.</p>;
+  if (isError || !casoPiloto)
+    return (
+      <p className="text-xs text-navy/55">Ficha por lotes indisponível para este caso agora.</p>
+    );
 
   const lotes = montarFicha(casoPiloto);
   const loteAtual = lotes.find((l) => l.chave === lote) ?? null;
@@ -694,7 +774,9 @@ function CampoFichaLinha({ campo }: { campo: CampoFicha }) {
           {campo.estado}
         </span>
       </div>
-      <p className="mt-1 break-words text-sm">{campo.valor ?? "Sem registro — preencher na tela dona."}</p>
+      <p className="mt-1 break-words text-sm">
+        {campo.valor ?? "Sem registro — preencher na tela dona."}
+      </p>
       <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-navy/60 sm:grid-cols-4">
         <div>
           <dt className="uppercase tracking-wide text-navy/45">Fonte</dt>
@@ -713,7 +795,10 @@ function CampoFichaLinha({ campo }: { campo: CampoFicha }) {
           <dd className="break-words">{campo.visibilidade}</dd>
         </div>
       </dl>
-      <Link to={campo.telaDona} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+      <Link
+        to={campo.telaDona}
+        className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
+      >
         {campo.estado === "registrado" ? "Abrir tela dona" : "Preencher na tela dona"}
       </Link>
     </li>
@@ -734,6 +819,16 @@ function FichaCaso() {
   const atualizar = useServerFn(atualizarRegistro);
   const criar = useServerFn(criarRegistro);
   const qc = useQueryClient();
+  const abrirContrato = useServerFn(abrirContratoDoCaso);
+  const navegarContrato = useNavigate();
+  const mAbrirContrato = useMutation({
+    mutationFn: () => abrirContrato({ data: { caseId: id } }),
+    onSuccess: (r) => {
+      toast.success(r.criado ? "Contrato rascunho criado." : "Contrato existente reaberto — nada duplicado.");
+      void navegarContrato({ to: "/contratos/$id", params: { id: r.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const q = useQuery({
     queryKey: ["ficha-caso", id],
@@ -757,17 +852,6 @@ function FichaCaso() {
     void qc.invalidateQueries({ queryKey: ["ficha-caso", id] });
     void qc.invalidateQueries({ queryKey: ["caso-canonico", id] });
   };
-
-  const abrirContrato = useServerFn(abrirContratoDoCaso);
-  const navegarContrato = useNavigate();
-  const mAbrirContrato = useMutation({
-    mutationFn: () => abrirContrato({ data: { caseId: id } }),
-    onSuccess: (r) => {
-      toast.success(r.criado ? "Contrato rascunho criado." : "Contrato existente reaberto — nada duplicado.");
-      void navegarContrato({ to: "/contratos/$id", params: { id: r.id } });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   // CA04-CASO360-SIMPLES (09/09/2026): fontes já existentes (tarefas,
   // documentos), só filtradas por este caso — nenhuma tabela nova.
@@ -860,8 +944,16 @@ function FichaCaso() {
   const salvarFaturaFn = useServerFn(salvarFatura);
 
   const mRegistrarPagamento = useMutation({
-    mutationFn: async (v: { invoiceId: string; valor: number; pagoEm: string; referenciaExterna: string; motivo: string }) => {
-      const criado = await salvarPagamentoFn({ data: { dados: { invoice_id: v.invoiceId, valor: v.valor } } });
+    mutationFn: async (v: {
+      invoiceId: string;
+      valor: number;
+      pagoEm: string;
+      referenciaExterna: string;
+      motivo: string;
+    }) => {
+      const criado = await salvarPagamentoFn({
+        data: { dados: { invoice_id: v.invoiceId, valor: v.valor } },
+      });
       return conciliarPagamentoFn({
         data: {
           id: criado.id,
@@ -880,7 +972,12 @@ function FichaCaso() {
   });
 
   const mPrepararCobranca = useMutation({
-    mutationFn: (v: { faturaId?: string; valor?: number; vencimento?: string; descricao?: string }) =>
+    mutationFn: (v: {
+      faturaId?: string;
+      valor?: number;
+      vencimento?: string;
+      descricao?: string;
+    }) =>
       v.faturaId
         ? salvarFaturaFn({ data: { id: v.faturaId, dados: { status: "emitida" } } })
         : salvarFaturaFn({
@@ -908,12 +1005,16 @@ function FichaCaso() {
   // nenhuma confirmação estruturada. Os dados continuam num rascunho local
   // (igual ao padrão já usado em financeiro.tsx "Conciliar pagamento"); só
   // o motivo final passa a vir do modal do AcaoOperacional.
-  const [rascunhoPagamento, setRascunhoPagamento] = useState<{ valor: string; pagoEm: string; referencia: string } | null>(
-    null,
-  );
-  const [rascunhoCobranca, setRascunhoCobranca] = useState<{ valor: string; vencimento: string; descricao: string } | null>(
-    null,
-  );
+  const [rascunhoPagamento, setRascunhoPagamento] = useState<{
+    valor: string;
+    pagoEm: string;
+    referencia: string;
+  } | null>(null);
+  const [rascunhoCobranca, setRascunhoCobranca] = useState<{
+    valor: string;
+    vencimento: string;
+    descricao: string;
+  } | null>(null);
 
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
@@ -952,18 +1053,22 @@ function FichaCaso() {
   const mSalvar = useMutation({
     mutationFn: () => atualizar({ data: { entidade: "crm_casos", id, dados: form } }),
     onSuccess: async (r: any) => {
+      const { alterados, naoGuardados } = resumoGravacao(r);
       setErro(null);
       setSalvoEm(new Date().toLocaleTimeString("pt-BR"));
-      setCamposSalvos(Array.isArray(r?.alterados) ? (r.alterados as string[]) : []);
+      setCamposSalvos(alterados);
       // Relê primeiro e só então limpa o rascunho — sem "piscar" o valor antigo.
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["ficha-caso", id] }),
         qc.invalidateQueries({ queryKey: ["caso-canonico", id] }),
       ]);
+      if (naoGuardados.length > 0) {
+        setForm((f) => manterSo(f, naoGuardados)); // rascunho só com o que não ficou
+        toast.warning(avisoNaoGuardados(alterados, naoGuardados));
+        return;
+      }
       setForm({});
-      toast.success(
-        `Salvo e conferido no banco${Array.isArray(r?.alterados) && r.alterados.length ? ` — ${r.alterados.length} campo(s)` : ""}.`,
-      );
+      toast.success(avisoSalvo(alterados));
     },
     onError: (e: unknown) => {
       const classificado = classificarErroPersistencia(e);
@@ -1101,6 +1206,20 @@ function FichaCaso() {
     [q.data],
   );
 
+  /** Peça A do laudo "nada persiste" (#189) — ver src/lib/inventario-portoes.server.ts. */
+  const portoesPiloto = useMemo(
+    () =>
+      ((q.data as any)?.portoesPiloto ?? []) as {
+        portao: string;
+        dominio: string;
+        tabela: string;
+        protege: string;
+        comoAbrir: string | null;
+        bloqueiaAtivacaoHoje: boolean | null;
+      }[],
+    [q.data],
+  );
+
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
 
   // CA04-CASO360-SIMPLES (09/09/2026): hoisted para fora da JSX — o hero
@@ -1112,7 +1231,9 @@ function FichaCaso() {
       caseId: String(caso["id"]),
       rpc: qc2.data.proximaAcaoPrioritaria,
       responsavelPrincipal:
-        (caso["proxima_acao_responsavel"] as string) ?? (caso["responsavel_principal"] as string) ?? null,
+        (caso["proxima_acao_responsavel"] as string) ??
+        (caso["responsavel_principal"] as string) ??
+        null,
       dependencia: (caso["proxima_acao_dependencia"] as string) ?? null,
       criterioConclusao: (caso["proxima_acao_criterio_conclusao"] as string) ?? null,
     });
@@ -1168,7 +1289,11 @@ function FichaCaso() {
     <SaasShell
       visualKit="pantone"
       titulo="Caso 360"
-      descricao={modo === "resumo" ? "Resumo da vida do cliente · visão macro" : "Ficha operacional completa do caso"}
+      descricao={
+        modo === "resumo"
+          ? "Resumo da vida do cliente · visão macro"
+          : "Ficha operacional completa do caso"
+      }
       acoes={
         <div className="flex flex-wrap items-center gap-3">
           <SeletorDeCasos atual={id} codigoAtual={(caso["codigo"] as string | null) ?? null} />
@@ -1228,121 +1353,153 @@ function FichaCaso() {
         mecanismo novo de abas.
       */}
       <div className="mb-4" data-caso360-identidade>
-      <CaCard>
-        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Lote A · Entrada e caso</p>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="truncate font-serif text-2xl text-navy">{String(caso["titulo"] ?? "Caso sem título")}</h2>
-            <p className="mt-1 text-sm text-navy/70" data-caso360-subtitulo>
-              {String(caso["tipo_servico"] ?? "").trim() || "Tipo de serviço não registrado"} ·{" "}
-              {etapaAtualPlanejador ?? "Etapa não registrada"}
-            </p>
-            <p className="mt-0.5 text-xs text-navy/55">
-              {String(caso["codigo"] ?? "Sem código")} · {caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
-            </p>
-          </div>
-          <span
-            className={`rounded-full border px-2.5 py-0.5 text-[11px] ${bloqueiosReais.length ? "border-terracotta/40 bg-terracotta/10 text-navy" : "border-navy/15 text-navy/70"}`}
-            data-caso360-pendencia-informativa
-          >
-            {bloqueiosReais.length
-              ? `${bloqueiosReais.length} pendência(s) de ativação · informa, não impede`
-              : "Sem pendências de ativação"}
-          </span>
-        </div>
-        <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2" data-caso360-origem>
-          <div className="flex flex-wrap gap-1.5">
-            <dt className="text-navy/55">Origem do sinal:</dt>
-            <dd className="text-navy">
-              {(() => {
-                const lead = (q.data as any)?.leadOrigem as Record<string, any> | null | undefined;
-                if (!lead) return "Sem lead de origem vinculado";
-                return [lead.origem, lead.estagio].filter(Boolean).map(String).join(" · ") || "Lead vinculado, sem canal registrado";
-              })()}
-            </dd>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <dt className="text-navy/55">Ativação:</dt>
-            <dd className="text-navy">
-              {bloqueiosReais.length ? `${bloqueiosReais.length} requisito(s) em aberto` : "Elegível para ativação"}
-            </dd>
-          </div>
-        </dl>
-        <div className="mt-3 border-t border-navy/10 pt-3" data-ordem2-identidade-desk>
-        <ChipIdentidadeCaso
-          superficie="Desk"
-          identidade={identidadeDeCrmCaso({
-            id: String(caso["id"]),
-            codigo: (caso["codigo"] as string | null) ?? null,
-            titulo: (caso["titulo"] as string | null) ?? null,
-          })}
-        />
-        </div>
-        {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
-        <nav aria-label="Seções do caso" className="mt-4 flex flex-wrap gap-2 border-t border-navy/10 pt-4">
-          {SECOES.map((a) => (
-            <a
-              key={a.id}
-              href={`#secao-${a.id}`}
-              onClick={() => {
-                setModo("ficha");
-                setSecaoFoco(a.id);
-                setPilulaVisaoConcretaAtiva(false);
-              }}
-              aria-current={secaoFoco === a.id && !pilulaVisaoConcretaAtiva ? "true" : undefined}
-              className={
-                "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
-                (secaoFoco === a.id && !pilulaVisaoConcretaAtiva
-                  ? "border-navy bg-navy text-cream"
-                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-              }
+        <CaCard>
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">
+            Lote A · Entrada e caso
+          </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="truncate font-serif text-2xl text-navy">
+                {String(caso["titulo"] ?? "Caso sem título")}
+              </h2>
+              <p className="mt-1 text-sm text-navy/70" data-caso360-subtitulo>
+                {String(caso["tipo_servico"] ?? "").trim() || "Tipo de serviço não registrado"} ·{" "}
+                {etapaAtualPlanejador ?? "Etapa não registrada"}
+              </p>
+              <p className="mt-0.5 text-xs text-navy/55">
+                {String(caso["codigo"] ?? "Sem código")} ·{" "}
+                {caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
+              </p>
+            </div>
+            <span
+              className={`rounded-full border px-2.5 py-0.5 text-[11px] ${bloqueiosReais.length ? "border-terracotta/40 bg-terracotta/10 text-navy" : "border-navy/15 text-navy/70"}`}
+              data-caso360-pendencia-informativa
             >
-              {a.rotulo}
-            </a>
-          ))}
+              {bloqueiosReais.length
+                ? `${bloqueiosReais.length} pendência(s) de ativação · informa, não impede`
+                : "Sem pendências de ativação"}
+            </span>
+          </div>
           {/*
+          Peça A do laudo "nada persiste" (#189, 27/10/2026): diferente da
+          etiqueta acima, estes portões do piloto (fn_piloto_caso_guard) são
+          um recorte EXATO do que o banco verifica — não informativo. Desde
+          25/10 esse guard cede a quem está logado como admin ativo
+          (fn_proprietaria_operando); para qualquer outro papel, continua
+          recusando a ativação de fato.
+        */}
+          {portoesPiloto.length > 0 ? (
+            <p
+              className="mt-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-xs text-navy"
+              data-caso360-portoes-piloto
+            >
+              {portoesPiloto[0]?.bloqueiaAtivacaoHoje
+                ? `${portoesPiloto.length} bloqueio(s) do piloto recusam a ativação para o seu papel agora (banco, sem contornar): ${portoesPiloto.map((p) => p.protege).join("; ")}.`
+                : `${portoesPiloto.length} bloqueio(s) do piloto continuam abertos, mas cedem para você hoje — outro papel seria recusado pelo banco: ${portoesPiloto.map((p) => p.protege).join("; ")}.`}
+            </p>
+          ) : null}
+          <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2" data-caso360-origem>
+            <div className="flex flex-wrap gap-1.5">
+              <dt className="text-navy/55">Origem do sinal:</dt>
+              <dd className="text-navy">
+                {(() => {
+                  const lead = (q.data as any)?.leadOrigem as
+                    Record<string, any> | null | undefined;
+                  if (!lead) return "Sem lead de origem vinculado";
+                  return (
+                    [lead.origem, lead.estagio].filter(Boolean).map(String).join(" · ") ||
+                    "Lead vinculado, sem canal registrado"
+                  );
+                })()}
+              </dd>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <dt className="text-navy/55">Ativação:</dt>
+              <dd className="text-navy">
+                {bloqueiosReais.length
+                  ? `${bloqueiosReais.length} requisito(s) em aberto`
+                  : "Elegível para ativação"}
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-3 border-t border-navy/10 pt-3" data-ordem2-identidade-desk>
+            <ChipIdentidadeCaso
+              superficie="Desk"
+              identidade={identidadeDeCrmCaso({
+                id: String(caso["id"]),
+                codigo: (caso["codigo"] as string | null) ?? null,
+                titulo: (caso["titulo"] as string | null) ?? null,
+              })}
+            />
+          </div>
+          {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
+          <nav
+            aria-label="Seções do caso"
+            className="mt-4 flex flex-wrap gap-2 border-t border-navy/10 pt-4"
+          >
+            {SECOES.map((a) => (
+              <a
+                key={a.id}
+                href={`#secao-${a.id}`}
+                onClick={() => {
+                  setModo("ficha");
+                  setSecaoFoco(a.id);
+                  setPilulaVisaoConcretaAtiva(false);
+                }}
+                aria-current={secaoFoco === a.id && !pilulaVisaoConcretaAtiva ? "true" : undefined}
+                className={
+                  "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+                  (secaoFoco === a.id && !pilulaVisaoConcretaAtiva
+                    ? "border-navy bg-navy text-cream"
+                    : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+                }
+              >
+                {a.rotulo}
+              </a>
+            ))}
+            {/*
             Decisão da Proprietária, 19/10/2026: pílula própria "Visão
             Concreta" no índice do Caso 360 (não aninhada). Reaproveita a
             mesma seção/sub-aba "Visão" já construída — zero composição
             duplicada — só força a ficha aberta e a sub-aba certa num clique.
           */}
-          <a
-            href="#secao-visao"
-            onClick={() => {
-              setModo("ficha");
-              setSecaoFoco("visao");
-              setAbaVisao("concreta");
-              setPilulaVisaoConcretaAtiva(true);
-            }}
-            aria-current={pilulaVisaoConcretaAtiva ? "true" : undefined}
-            data-pilula-visao-concreta
-            className={
-              "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
-              (pilulaVisaoConcretaAtiva
-                ? "border-navy bg-navy text-cream"
-                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-            }
-          >
-            Visão Concreta
-          </a>
-          <button
-            type="button"
-            onClick={() => {
-              setModo("ficha");
-              setSecaoFoco(null);
-              setPilulaVisaoConcretaAtiva(false);
-            }}
-            className={
-              "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
-              (secaoFoco === null
-                ? "border-gold bg-gold text-navy"
-                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-            }
-          >
-            Ver página completa
-          </button>
-        </nav>
-      </CaCard>
+            <a
+              href="#secao-visao"
+              onClick={() => {
+                setModo("ficha");
+                setSecaoFoco("visao");
+                setAbaVisao("concreta");
+                setPilulaVisaoConcretaAtiva(true);
+              }}
+              aria-current={pilulaVisaoConcretaAtiva ? "true" : undefined}
+              data-pilula-visao-concreta
+              className={
+                "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+                (pilulaVisaoConcretaAtiva
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              Visão Concreta
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                setModo("ficha");
+                setSecaoFoco(null);
+                setPilulaVisaoConcretaAtiva(false);
+              }}
+              className={
+                "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+                (secaoFoco === null
+                  ? "border-gold bg-gold text-navy"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              Ver página completa
+            </button>
+          </nav>
+        </CaCard>
       </div>
       {/*
         G2 (23/10/2026) — decisão da Proprietária: o Caso 360 é a visão MACRO
@@ -1363,20 +1520,24 @@ function FichaCaso() {
           }}
         />
       ) : (
-      <>
-      <div className="mb-4 flex flex-wrap items-center gap-3" data-caso360-modo-ficha>
-        <button
-          type="button"
-          onClick={() => setModo("resumo")}
-          className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy hover:bg-navy/5"
-        >
-          ← Voltar ao resumo (Caso 360)
-        </button>
-        <Link to="/golive" search={{ casoId: id }} className="text-sm text-navy underline decoration-gold underline-offset-4">
-          Vida completa no GoLive
-        </Link>
-      </div>
-      {/*
+        <>
+          <div className="mb-4 flex flex-wrap items-center gap-3" data-caso360-modo-ficha>
+            <button
+              type="button"
+              onClick={() => setModo("resumo")}
+              className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy hover:bg-navy/5"
+            >
+              ← Voltar ao resumo (Caso 360)
+            </button>
+            <Link
+              to="/golive"
+              search={{ casoId: id }}
+              className="text-sm text-navy underline decoration-gold underline-offset-4"
+            >
+              Vida completa no GoLive
+            </Link>
+          </div>
+          {/*
         Prancha V4 (13/10/2026) — grade de cartões da Visão geral do Caso 360,
         organizada pelos 4 lotes da especificação canônica
         (docs/arquitetura/2026-10-13-reparacao-caso-360-padrao-golive-4-lotes.md):
@@ -1392,7 +1553,7 @@ function FichaCaso() {
         `progressoPorFrente` (caso-ficha.ts) deriva cada frente de dado já
         carregado (contrato_assinado, dossiê, documentos_minimos_ok, publicação).
       */}
-      {/*
+          {/*
         Casca V4 (18/10/2026) — uma grade única (1 coluna no celular,
         2 no desktop) na ordem do mockup: Linha do tempo · Participantes ·
         Progresso por frente · Estados do dossiê · Jornada (largura total),
@@ -1401,304 +1562,492 @@ function FichaCaso() {
         lote usam `display: contents` para que os cartões entrem na mesma
         grade e a ordem visual venha de `order-*`.
       */}
-      {(() => {
-        const ESCALA_FRENTE = ["inicial", "em_coleta", "em_andamento", "concluida"] as const;
-        /*
+          {(() => {
+            const ESCALA_FRENTE = ["inicial", "em_coleta", "em_andamento", "concluida"] as const;
+            /*
           DECISÃO EXECUTIVA 14/10/2026 ("ACABAMENTO VISUAL DO CASO 360"):
           contraste suave + respiro (casca V4, 18/10/2026: o cartão avulso
           virou o CaCard canônico — mesma superfície do Desk) e badges de status pelos tokens semânticos reais do projeto
           (sucesso/atencao/critico — AGENTS.md proíbe hex literal e paleta
           Tailwind padrão como emerald-50/amber-50/rose-50/slate-200).
         */
-        const tomStatusCadastral = { completo: "sucesso", parcial: "atencao", pendente: "critico" } as const;
-        const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
-        const progresso = progressoPorFrente({
-          contratoAssinado: Boolean(caso["contrato_assinado"]),
-          dossie: dossieResumo,
-          documentosMinimosOk: Boolean(caso["documentos_minimos_ok"]),
-          documentosRegistrados: ((qDocumentos.data ?? []) as unknown[]).length,
-          publicacao: {
-            publicadas: qVisaoCliente.data?.estadoPublicacao?.publicadas ?? 0,
-            pendentes: qVisaoCliente.data?.estadoPublicacao?.pendentes ?? 0,
-            arquivadas: qVisaoCliente.data?.estadoPublicacao?.arquivadas ?? 0,
-          },
-        });
-        return (
-          <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4 data-desk-mockup4="caso">
-            <section aria-label="Lote A · Entrada e caso" data-caso360-lote="A" className="contents">
-                <div className="order-3 min-w-0" data-caso360-progresso-frente>
-                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Progresso do caso por frente">
-                  {/*
+            const tomStatusCadastral = {
+              completo: "sucesso",
+              parcial: "atencao",
+              pendente: "critico",
+            } as const;
+            const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
+            const progresso = progressoPorFrente({
+              contratoAssinado: Boolean(caso["contrato_assinado"]),
+              dossie: dossieResumo,
+              documentosMinimosOk: Boolean(caso["documentos_minimos_ok"]),
+              documentosRegistrados: ((qDocumentos.data ?? []) as unknown[]).length,
+              publicacao: {
+                publicadas: qVisaoCliente.data?.estadoPublicacao?.publicadas ?? 0,
+                pendentes: qVisaoCliente.data?.estadoPublicacao?.pendentes ?? 0,
+                arquivadas: qVisaoCliente.data?.estadoPublicacao?.arquivadas ?? 0,
+              },
+            });
+            return (
+              <div
+                className="mb-6 grid gap-4 lg:grid-cols-2"
+                data-caso360-resumo-v4
+                data-desk-mockup4="caso"
+              >
+                <section
+                  aria-label="Lote A · Entrada e caso"
+                  data-caso360-lote="A"
+                  className="contents"
+                >
+                  <div className="order-3 min-w-0" data-caso360-progresso-frente>
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote A · Entrada e caso"
+                      titulo="Progresso do caso por frente"
+                    >
+                      {/*
                     13/10/2026 — Proprietária: a barra da prancha é sempre
                     desenhada. Comprimento = degrau atingido na escala de 4
                     estados de `progressoPorFrente` (inicial 1/4 · em coleta 2/4 ·
                     em andamento 3/4 · concluída 4/4); o texto mostra o estado.
                     Escala ordinal, não percentual de execução.
                   */}
-                  <BarrasHorizontais
-                    tituloAcessivel={`Progresso do caso por frente: ${(
-                      [
-                        ["formalizacao", "Formalização"],
-                        ["pesquisa", "Pesquisa"],
-                        ["documentos", "Documentos"],
-                        ["publicacao", "Publicação"],
-                      ] as const
-                    )
-                      .map(([chave, rotulo]) => `${rotulo} ${ROTULO_FRENTE[progresso[chave]].toLowerCase()}`)
-                      .join(", ")}`}
-                    itens={(
-                      [
-                        ["formalizacao", "Formalização"],
-                        ["pesquisa", "Pesquisa"],
-                        ["documentos", "Documentos"],
-                        ["publicacao", "Publicação"],
-                      ] as const
-                    ).map(([chave, rotulo]) => {
-                      const estado = progresso[chave];
-                      const nivel = ESCALA_FRENTE.indexOf(estado as (typeof ESCALA_FRENTE)[number]);
-                      return {
-                        rotulo,
-                        // 19/10/2026 — prancha V4: cada degrau da escala ordinal
-                        // ocupa 1/4 do trilho (inicial já mostra o primeiro
-                        // degrau); só "em andamento" em dourado, como na prancha.
-                        valor: ((Math.max(0, nivel) + 1) / ESCALA_FRENTE.length) * 100,
-                        apoio: ROTULO_FRENTE[estado],
-                        tom: estado === "em_andamento" ? ("gold" as const) : ("navy" as const),
-                      };
-                    })}
-                  />
-                  <ul className="sr-only">
-                    {(["formalizacao", "pesquisa", "documentos", "publicacao"] as const).map((chave) => (
-                      <li key={chave} data-caso360-frente={chave}>
-                        {ROTULO_FRENTE[progresso[chave]]}
-                      </li>
-                    ))}
-                  </ul>
-                </CaCard>
-                </div>
-                <div className="order-1 min-w-0" data-caso360-linha-tempo role="group" aria-label="Linha do tempo do caso">
-                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Linha do tempo">
-                  {(() => {
-                    const quando = (e: any) => new Date(String(e.occurred_at ?? e.created_at ?? 0)).getTime();
-                    const eventos = ((q.data?.timeline ?? []) as any[])
-                      .slice(0, 4)
-                      .sort((a, b) => quando(a) - quando(b))
-                      .map((e) => ({
-                        id: String(e.id),
-                        nome: String(e.title ?? "Evento registrado"),
-                        data:
-                          e.occurred_at || e.created_at
-                            ? new Date(String(e.occurred_at ?? e.created_at)).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
-                            : null,
-                      }));
-                    return <LinhaTempoGrafica eventos={eventos} />;
-                  })()}
-                </CaCard>
-                </div>
-                <div className="order-5 min-w-0 lg:col-span-2" data-caso360-jornada>
-                <CaCard eyebrow="Lote A · Entrada e caso" titulo="Jornada D0–D365">
-                  {(() => {
-                    const marcos = qCadeia.data?.planejador?.marcos ?? [];
-                    const fase = String(qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa ?? "")
-                      .toLowerCase()
-                      .replace(/_/g, " ");
-                    const atual = fase ? marcos.findIndex((m) => String(m).toLowerCase().includes(fase)) : -1;
-                    return (
-                      <div className="mt-1">
-                        <JornadaMarcos marcos={marcos} atual={atual >= 0 ? atual : null} />
-                        {!marcos.length ? (
-                          <p className="mt-2 text-[10px] text-navy/50">Nenhum marco registrado no planejador.</p>
-                        ) : null}
-                      </div>
-                    );
-                  })()}
-                  {/*
+                      <BarrasHorizontais
+                        tituloAcessivel={`Progresso do caso por frente: ${(
+                          [
+                            ["formalizacao", "Formalização"],
+                            ["pesquisa", "Pesquisa"],
+                            ["documentos", "Documentos"],
+                            ["publicacao", "Publicação"],
+                          ] as const
+                        )
+                          .map(
+                            ([chave, rotulo]) =>
+                              `${rotulo} ${ROTULO_FRENTE[progresso[chave]].toLowerCase()}`,
+                          )
+                          .join(", ")}`}
+                        itens={(
+                          [
+                            ["formalizacao", "Formalização"],
+                            ["pesquisa", "Pesquisa"],
+                            ["documentos", "Documentos"],
+                            ["publicacao", "Publicação"],
+                          ] as const
+                        ).map(([chave, rotulo]) => {
+                          const estado = progresso[chave];
+                          const nivel = ESCALA_FRENTE.indexOf(
+                            estado as (typeof ESCALA_FRENTE)[number],
+                          );
+                          return {
+                            rotulo,
+                            // 19/10/2026 — prancha V4: cada degrau da escala ordinal
+                            // ocupa 1/4 do trilho (inicial já mostra o primeiro
+                            // degrau); só "em andamento" em dourado, como na prancha.
+                            valor: ((Math.max(0, nivel) + 1) / ESCALA_FRENTE.length) * 100,
+                            apoio: ROTULO_FRENTE[estado],
+                            tom: estado === "em_andamento" ? ("gold" as const) : ("navy" as const),
+                          };
+                        })}
+                      />
+                      <ul className="sr-only">
+                        {(["formalizacao", "pesquisa", "documentos", "publicacao"] as const).map(
+                          (chave) => (
+                            <li key={chave} data-caso360-frente={chave}>
+                              {ROTULO_FRENTE[progresso[chave]]}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </CaCard>
+                  </div>
+                  <div
+                    className="order-1 min-w-0"
+                    data-caso360-linha-tempo
+                    role="group"
+                    aria-label="Linha do tempo do caso"
+                  >
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote A · Entrada e caso"
+                      titulo="Linha do tempo"
+                    >
+                      {(() => {
+                        const quando = (e: any) =>
+                          new Date(String(e.occurred_at ?? e.created_at ?? 0)).getTime();
+                        const eventos = ((q.data?.timeline ?? []) as any[])
+                          .slice(0, 4)
+                          .sort((a, b) => quando(a) - quando(b))
+                          .map((e) => ({
+                            id: String(e.id),
+                            nome: String(e.title ?? "Evento registrado"),
+                            data:
+                              e.occurred_at || e.created_at
+                                ? new Date(
+                                    String(e.occurred_at ?? e.created_at),
+                                  ).toLocaleDateString("pt-BR", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                  })
+                                : null,
+                          }));
+                        return <LinhaTempoGrafica eventos={eventos} />;
+                      })()}
+                    </CaCard>
+                  </div>
+                  <div className="order-5 min-w-0 lg:col-span-2" data-caso360-jornada>
+                    <CaCard eyebrow="Lote A · Entrada e caso" titulo="Jornada D0–D365">
+                      {(() => {
+                        const marcos = qCadeia.data?.planejador?.marcos ?? [];
+                        const fase = String(
+                          qCadeia.data?.planejador?.fase_jornada ??
+                            qCadeia.data?.planejador?.etapa ??
+                            "",
+                        )
+                          .toLowerCase()
+                          .replace(/_/g, " ");
+                        const atual = fase
+                          ? marcos.findIndex((m) => String(m).toLowerCase().includes(fase))
+                          : -1;
+                        return (
+                          <div className="mt-1">
+                            <JornadaMarcos marcos={marcos} atual={atual >= 0 ? atual : null} />
+                            {!marcos.length ? (
+                              <p className="mt-2 text-[10px] text-navy/50">
+                                Nenhum marco registrado no planejador.
+                              </p>
+                            ) : null}
+                          </div>
+                        );
+                      })()}
+                      {/*
                     Linha de chips do mockup: Etapa atual / Cadência / Próxima
                     ação / Microentrega / Alertas. Cadência não tem fonte
                     carregada nesta tela — mostra o vazio honesto, sem inferir.
                   */}
-                  <dl className="mt-5 grid gap-x-4 gap-y-2 border-t border-navy/10 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-5" data-caso360-jornada-chips>
-                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
-                      <dt className="shrink-0 text-xs text-navy/70">Etapa atual</dt>
-                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
-                        {etapaAtualPlanejador ?? "Etapa não registrada"}
-                      </dd>
-                    </div>
-                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
-                      <dt className="shrink-0 text-xs text-navy/70">Cadência</dt>
-                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-dashed border-navy/20 px-2.5 py-0.5 text-xs text-navy/55">
-                        Sem dado registrado ainda
-                      </dd>
-                    </div>
-                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
-                      <dt className="shrink-0 text-xs text-navy/70">Próxima ação</dt>
-                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
-                        {canonica?.acao ?? "Sem próxima ação definida"}
-                      </dd>
-                    </div>
-                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
-                      <dt className="shrink-0 text-xs text-navy/70">Microentrega</dt>
-                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
-                        {(() => {
-                          const ultima = ((qc2.data?.entregas ?? []) as any[])[0];
-                          return ultima ? String(ultima.title_client ?? "Microentrega sem título") : "Nenhuma microentrega registrada";
-                        })()}
-                      </dd>
-                    </div>
-                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
-                      <dt className="shrink-0 text-xs text-navy/70">Alertas</dt>
-                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
-                        {(() => {
-                          const n = ((qc2.data?.alertas ?? []) as any[]).filter(
-                            (a) => a.criticidade === "critica" && a.status !== "completed",
-                          ).length;
-                          return n ? `${n} crítico(s)` : "Nenhum crítico";
-                        })()}
-                      </dd>
-                    </div>
-                  </dl>
-                </CaCard>
-                </div>
-            </section>
-            <section aria-label="Lote B · Pesquisa e árvore" data-caso360-lote="B" className="contents">
-                <div className="order-2 min-w-0" data-caso360-participantes>
-                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Núcleo familiar e participantes">
-                  {(() => {
-                    const membros = (q.data?.membros ?? []) as any[];
-                    if (!membros.length)
-                      return (
-                        <div className="flex items-center gap-2" data-caso360-participantes-vazio>
-                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/35" aria-hidden="true">
-                            —
-                          </span>
-                          <span className="text-xs text-navy/55">Nenhum participante registrado ainda.</span>
+                      <dl
+                        className="mt-5 grid gap-x-4 gap-y-2 border-t border-navy/10 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-5"
+                        data-caso360-jornada-chips
+                      >
+                        <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                          <dt className="shrink-0 text-xs text-navy/70">Etapa atual</dt>
+                          <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
+                            {etapaAtualPlanejador ?? "Etapa não registrada"}
+                          </dd>
                         </div>
-                      );
-                    return (
-                      <div className="space-y-3">
-                        {membros.slice(0, 4).map((membro, i) => {
-                          const status = String(membro.status_cadastral ?? "pendente") as keyof typeof tomStatusCadastral;
+                        <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                          <dt className="shrink-0 text-xs text-navy/70">Cadência</dt>
+                          <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-dashed border-navy/20 px-2.5 py-0.5 text-xs text-navy/55">
+                            Sem dado registrado ainda
+                          </dd>
+                        </div>
+                        <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                          <dt className="shrink-0 text-xs text-navy/70">Próxima ação</dt>
+                          <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                            {canonica?.acao ?? "Sem próxima ação definida"}
+                          </dd>
+                        </div>
+                        <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                          <dt className="shrink-0 text-xs text-navy/70">Microentrega</dt>
+                          <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                            {(() => {
+                              const ultima = ((qc2.data?.entregas ?? []) as any[])[0];
+                              return ultima
+                                ? String(ultima.title_client ?? "Microentrega sem título")
+                                : "Nenhuma microentrega registrada";
+                            })()}
+                          </dd>
+                        </div>
+                        <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                          <dt className="shrink-0 text-xs text-navy/70">Alertas</dt>
+                          <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                            {(() => {
+                              const n = ((qc2.data?.alertas ?? []) as any[]).filter(
+                                (a) => a.criticidade === "critica" && a.status !== "completed",
+                              ).length;
+                              return n ? `${n} crítico(s)` : "Nenhum crítico";
+                            })()}
+                          </dd>
+                        </div>
+                      </dl>
+                    </CaCard>
+                  </div>
+                </section>
+                <section
+                  aria-label="Lote B · Pesquisa e árvore"
+                  data-caso360-lote="B"
+                  className="contents"
+                >
+                  <div className="order-2 min-w-0" data-caso360-participantes>
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote B · Pesquisa e árvore"
+                      titulo="Núcleo familiar e participantes"
+                    >
+                      {(() => {
+                        const membros = (q.data?.membros ?? []) as any[];
+                        if (!membros.length)
                           return (
-                            <div key={membro.id} className="flex items-center justify-between gap-2">
-                              <Pessoa
-                                nome={String(membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado")}
-                                papel={String(membro.papel ?? "Papel não registrado")}
-                                destaque={i === 0}
-                              />
-                              <Etiqueta
-                                texto={rotulo(STATUS_CADASTRAL, membro.status_cadastral)}
-                                tom={tomStatusCadastral[status] ?? "neutro"}
-                              />
+                            <div
+                              className="flex items-center gap-2"
+                              data-caso360-participantes-vazio
+                            >
+                              <span
+                                className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/35"
+                                aria-hidden="true"
+                              >
+                                —
+                              </span>
+                              <span className="text-xs text-navy/55">
+                                Nenhum participante registrado ainda.
+                              </span>
                             </div>
                           );
-                        })}
-                        {membros.length > 4 ? (
-                          <p className="text-[10px] text-navy/55">+ {membros.length - 4} pessoa(s) em Pessoa e família</p>
-                        ) : null}
-                      </div>
-                    );
-                  })()}
-                </CaCard>
-                </div>
-                <div className="order-4 min-w-0" data-caso360-dossie>
-                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Estados do dossiê">
-                  <DonutEstados
-                    tituloAcessivel={`Estado do dossiê: ${dossieResumo.confirmados} confirmados, ${dossieResumo.emRevisao} em revisão, ${dossieResumo.pendentes} pendentes.`}
-                    segmentos={[
-                      { rotulo: "Confirmados", valor: dossieResumo.confirmados, tom: "sucesso" },
-                      { rotulo: "Em revisão", valor: dossieResumo.emRevisao, tom: "gold" },
-                      { rotulo: "Pendentes", valor: dossieResumo.pendentes, tom: "navy" },
-                    ]}
-                  />
-                  <p className="mt-3 text-[10px] text-navy/55" role={qPesquisa.isError ? "alert" : undefined}>
-                    {qPesquisa.isLoading
-                      ? "Carregando o dossiê…"
-                      : qPesquisa.isError
-                        ? "Não foi possível carregar o dossiê."
-                        : dossieResumo.total
-                          ? `${dossieResumo.total} evidência(s) registrada(s) · situação atual do caso.`
-                          : "Nenhuma evidência registrada no dossiê ainda."}
-                  </p>
-                </CaCard>
-                </div>
-            </section>
-            <section aria-label="Lote C · Proposta, escopo e contrato" data-caso360-lote="C" className="contents">
-                <div className="order-6 min-w-0" data-caso360-formalizacao>
-                <CaCard className="h-full" eyebrow="Lote C · Proposta, escopo e contrato" titulo="Proposta, escopo e contrato">
-                  <div>
-                    <Linha rotulo="Etapa comercial" valor={String(rotulo(EIXO_COMERCIAL, v("eixo_comercial")))} />
-                    <Linha rotulo="Formalização" valor={String(rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao")))} />
-                    <Linha rotulo="Contrato" valor={String(caso["contrato_assinado"] ? "Assinado" : "Assinatura não registrada")} />
+                        return (
+                          <div className="space-y-3">
+                            {membros.slice(0, 4).map((membro, i) => {
+                              const status = String(
+                                membro.status_cadastral ?? "pendente",
+                              ) as keyof typeof tomStatusCadastral;
+                              return (
+                                <div
+                                  key={membro.id}
+                                  className="flex items-center justify-between gap-2"
+                                >
+                                  <Pessoa
+                                    nome={String(
+                                      membro.nome ??
+                                        membro.nome_completo ??
+                                        "Pessoa sem nome registrado",
+                                    )}
+                                    papel={String(membro.papel ?? "Papel não registrado")}
+                                    destaque={i === 0}
+                                  />
+                                  <Etiqueta
+                                    texto={rotulo(STATUS_CADASTRAL, membro.status_cadastral)}
+                                    tom={tomStatusCadastral[status] ?? "neutro"}
+                                  />
+                                </div>
+                              );
+                            })}
+                            {membros.length > 4 ? (
+                              <p className="text-[10px] text-navy/55">
+                                + {membros.length - 4} pessoa(s) em Pessoa e família
+                              </p>
+                            ) : null}
+                          </div>
+                        );
+                      })()}
+                    </CaCard>
                   </div>
-                  <a href="#secao-comercial" onClick={() => setSecaoFoco("comercial")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Formalização</a>
-                </CaCard>
-                </div>
-                <div className="order-7 min-w-0" data-caso360-condicao>
-                <CaCard className="h-full" eyebrow="Lote C · Proposta, escopo e contrato" titulo="Condição comercial">
-                  {qFinanceiro.isLoading ? (
-                    <p className="text-sm text-navy/60" role="status">Carregando condição comercial…</p>
-                  ) : qFinanceiro.isError ? (
-                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar a condição comercial.</p>
-                  ) : (
-                    <p className="text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Nenhuma condição comercial registrada."}</p>
-                  )}
-                  <a href="#secao-financeiro" onClick={() => setSecaoFoco("financeiro")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Financeiro</a>
-                </CaCard>
-                </div>
-            </section>
-            <section aria-label="Lote D · Publicação e App" data-caso360-lote="D" className="contents">
-                <div className="order-8 min-w-0" data-caso360-prontidao-app>
-                <CaCard className="h-full" eyebrow="Lote D · Publicação e App" titulo="Prontidão para o App">
-                  {qVisaoCliente.isLoading ? (
-                    <p className="text-sm text-navy/60" role="status">Carregando o estado do App…</p>
-                  ) : qVisaoCliente.isError || !qVisaoCliente.data ? (
-                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar o estado do App.</p>
-                  ) : (
-                    <div>
-                      <Linha rotulo="Acesso da família" valor={String(qVisaoCliente.data.acesso.liberado ? "Liberado" : "Não liberado")} />
-                      <Linha rotulo="Publicado no App" valor={String(qVisaoCliente.data.estadoPublicacao.publicadas)} />
-                      <Linha rotulo="Aguardando publicação" valor={String(qVisaoCliente.data.estadoPublicacao.pendentes)} />
-                    </div>
-                  )}
-                  <p className="mt-3 text-[11px] text-navy/50">O App mostra só o que foi aprovado e publicado; notas internas ficam no Desk.</p>
-                  <Link to="/app-cliente-como-pessoa" search={{ casoId: id }} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Ver como a família vê</Link>
-                </CaCard>
-                </div>
-                <div className="order-9 min-w-0" data-caso360-acervo>
-                <CaCard className="h-full" eyebrow="Lote D · Publicação e App" titulo="Cofre e acervo">
-                  {qDocumentos.isLoading ? (
-                    <p className="text-sm text-navy/60" role="status">Carregando documentos…</p>
-                  ) : qDocumentos.isError ? (
-                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar os documentos.</p>
-                  ) : (
-                    <div>
-                      <Linha rotulo="Documentos registrados" valor={String(((qDocumentos.data ?? []) as unknown[]).length)} />
-                      <Linha rotulo="Documentos mínimos" valor={String(caso["documentos_minimos_ok"] ? "Confirmados" : "Não confirmados")} />
-                      <Linha rotulo="Disponíveis à família" valor={String(qVisaoCliente.data?.documentosDisponiveis ?? "—")} />
-                    </div>
-                  )}
-                  <a href="#secao-documentos" onClick={() => setSecaoFoco("documentos")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Documentos</a>
-                </CaCard>
-                </div>
-              {/* 21/10/2026 — prancha V4: fila de publicação e acessos do caso, só leitura. */}
-              <div className="mt-6 grid gap-6">
-                <FilaPublicacaoReal caseId={id} />
-                <NucleosAcessoCaso caseId={id} />
+                  <div className="order-4 min-w-0" data-caso360-dossie>
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote B · Pesquisa e árvore"
+                      titulo="Estados do dossiê"
+                    >
+                      <DonutEstados
+                        tituloAcessivel={`Estado do dossiê: ${dossieResumo.confirmados} confirmados, ${dossieResumo.emRevisao} em revisão, ${dossieResumo.pendentes} pendentes.`}
+                        segmentos={[
+                          {
+                            rotulo: "Confirmados",
+                            valor: dossieResumo.confirmados,
+                            tom: "sucesso",
+                          },
+                          { rotulo: "Em revisão", valor: dossieResumo.emRevisao, tom: "gold" },
+                          { rotulo: "Pendentes", valor: dossieResumo.pendentes, tom: "navy" },
+                        ]}
+                      />
+                      <p
+                        className="mt-3 text-[10px] text-navy/55"
+                        role={qPesquisa.isError ? "alert" : undefined}
+                      >
+                        {qPesquisa.isLoading
+                          ? "Carregando o dossiê…"
+                          : qPesquisa.isError
+                            ? "Não foi possível carregar o dossiê."
+                            : dossieResumo.total
+                              ? `${dossieResumo.total} evidência(s) registrada(s) · situação atual do caso.`
+                              : "Nenhuma evidência registrada no dossiê ainda."}
+                      </p>
+                    </CaCard>
+                  </div>
+                </section>
+                <section
+                  aria-label="Lote C · Proposta, escopo e contrato"
+                  data-caso360-lote="C"
+                  className="contents"
+                >
+                  <div className="order-6 min-w-0" data-caso360-formalizacao>
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote C · Proposta, escopo e contrato"
+                      titulo="Proposta, escopo e contrato"
+                    >
+                      <div>
+                        <Linha
+                          rotulo="Etapa comercial"
+                          valor={String(rotulo(EIXO_COMERCIAL, v("eixo_comercial")))}
+                        />
+                        <Linha
+                          rotulo="Formalização"
+                          valor={String(rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao")))}
+                        />
+                        <Linha
+                          rotulo="Contrato"
+                          valor={String(
+                            caso["contrato_assinado"] ? "Assinado" : "Assinatura não registrada",
+                          )}
+                        />
+                      </div>
+                      <a
+                        href="#secao-comercial"
+                        onClick={() => setSecaoFoco("comercial")}
+                        className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+                      >
+                        Abrir Formalização
+                      </a>
+                    </CaCard>
+                  </div>
+                  <div className="order-7 min-w-0" data-caso360-condicao>
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote C · Proposta, escopo e contrato"
+                      titulo="Condição comercial"
+                    >
+                      {qFinanceiro.isLoading ? (
+                        <p className="text-sm text-navy/60" role="status">
+                          Carregando condição comercial…
+                        </p>
+                      ) : qFinanceiro.isError ? (
+                        <p className="text-sm text-terracotta" role="alert">
+                          Não foi possível carregar a condição comercial.
+                        </p>
+                      ) : (
+                        <p className="text-sm text-navy">
+                          {qFinanceiro.data?.condicaoComercial ??
+                            "Nenhuma condição comercial registrada."}
+                        </p>
+                      )}
+                      <a
+                        href="#secao-financeiro"
+                        onClick={() => setSecaoFoco("financeiro")}
+                        className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+                      >
+                        Abrir Financeiro
+                      </a>
+                    </CaCard>
+                  </div>
+                </section>
+                <section
+                  aria-label="Lote D · Publicação e App"
+                  data-caso360-lote="D"
+                  className="contents"
+                >
+                  <div className="order-8 min-w-0" data-caso360-prontidao-app>
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote D · Publicação e App"
+                      titulo="Prontidão para o App"
+                    >
+                      {qVisaoCliente.isLoading ? (
+                        <p className="text-sm text-navy/60" role="status">
+                          Carregando o estado do App…
+                        </p>
+                      ) : qVisaoCliente.isError || !qVisaoCliente.data ? (
+                        <p className="text-sm text-terracotta" role="alert">
+                          Não foi possível carregar o estado do App.
+                        </p>
+                      ) : (
+                        <div>
+                          <Linha
+                            rotulo="Acesso da família"
+                            valor={String(
+                              qVisaoCliente.data.acesso.liberado ? "Liberado" : "Não liberado",
+                            )}
+                          />
+                          <Linha
+                            rotulo="Publicado no App"
+                            valor={String(qVisaoCliente.data.estadoPublicacao.publicadas)}
+                          />
+                          <Linha
+                            rotulo="Aguardando publicação"
+                            valor={String(qVisaoCliente.data.estadoPublicacao.pendentes)}
+                          />
+                        </div>
+                      )}
+                      <p className="mt-3 text-[11px] text-navy/50">
+                        O App mostra só o que foi aprovado e publicado; notas internas ficam no
+                        Desk.
+                      </p>
+                      <Link
+                        to="/app-cliente-como-pessoa"
+                        search={{ casoId: id }}
+                        className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+                      >
+                        Ver como a família vê
+                      </Link>
+                    </CaCard>
+                  </div>
+                  <div className="order-9 min-w-0" data-caso360-acervo>
+                    <CaCard
+                      className="h-full"
+                      eyebrow="Lote D · Publicação e App"
+                      titulo="Cofre e acervo"
+                    >
+                      {qDocumentos.isLoading ? (
+                        <p className="text-sm text-navy/60" role="status">
+                          Carregando documentos…
+                        </p>
+                      ) : qDocumentos.isError ? (
+                        <p className="text-sm text-terracotta" role="alert">
+                          Não foi possível carregar os documentos.
+                        </p>
+                      ) : (
+                        <div>
+                          <Linha
+                            rotulo="Documentos registrados"
+                            valor={String(((qDocumentos.data ?? []) as unknown[]).length)}
+                          />
+                          <Linha
+                            rotulo="Documentos mínimos"
+                            valor={String(
+                              caso["documentos_minimos_ok"] ? "Confirmados" : "Não confirmados",
+                            )}
+                          />
+                          <Linha
+                            rotulo="Disponíveis à família"
+                            valor={String(qVisaoCliente.data?.documentosDisponiveis ?? "—")}
+                          />
+                        </div>
+                      )}
+                      <a
+                        href="#secao-documentos"
+                        onClick={() => setSecaoFoco("documentos")}
+                        className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+                      >
+                        Abrir Documentos
+                      </a>
+                    </CaCard>
+                  </div>
+                  {/* 21/10/2026 — prancha V4: fila de publicação e acessos do caso, só leitura. */}
+                  <div className="mt-6 grid gap-6">
+                    <FilaPublicacaoReal caseId={id} />
+                    <NucleosAcessoCaso caseId={id} />
+                  </div>
+                </section>
               </div>
-            </section>
-          </div>
-        );
-      })()}
+            );
+          })()}
 
-      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">
-          Abrir requisitos de ativação e bloqueios
-        </summary>
-        <div className="mt-4 border-t border-navy/10 pt-4">
-          <ResumoKitCaso caseId={String(caso["id"])} />
-        </div>
-      </details>
-      {/*
+          <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+            <summary className="cursor-pointer text-sm font-medium text-navy">
+              Abrir requisitos de ativação e bloqueios
+            </summary>
+            <div className="mt-4 border-t border-navy/10 pt-4">
+              <ResumoKitCaso caseId={String(caso["id"])} />
+            </div>
+          </details>
+          {/*
         CA04-CASO360-SIMPLES (09/09/2026) — mockup aprovado define a primeira
         superfície: Situação hoje/Próxima ação/Responsável/Prazo/Motivo/
         Impacto e seis ações, acima da dobra. Nada do que existia foi perdido:
@@ -1706,833 +2055,1038 @@ function FichaCaso() {
         continuam abaixo, nos quatro resumos; gates/logs/histórico foram para
         "Dados técnicos e validações", recolhida, no fim da página.
       */}
-      <CaseHealthHero
-        saude={saudeDoCaso({
-          bloqueios: bloqueiosReais.length,
-          temProximaAcao: Boolean(canonica?.acao),
-          temResponsavel: Boolean(canonica?.responsavel),
-          temPrazo: Boolean(canonica?.prazo),
-        })}
-        situacao={caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
-        proximaAcao={canonica?.acao ?? "Sem próxima ação definida"}
-        seloProximaAcao={canonica ? SELO_PROXIMA_ACAO[canonica.origem] : null}
-        responsavel={canonica?.responsavel || "Sem responsável"}
-        prazo={canonica?.prazo ? new Date(String(canonica.prazo)).toLocaleDateString("pt-BR") : "Sem prazo definido"}
-        motivo={derivado.motivo}
-        impacto={
-          bloqueiosReais.length === 0
-            ? "Nenhum bloqueio real — elegível para ativação"
-            : `Ativação bloqueada — ${bloqueiosReais.length} pendência(s), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`
-        }
-        resolverBloqueio={bloqueiosReais.length > 0 && bloqueiosReais[0]?.cta_tela ? { href: bloqueiosReais[0].cta_tela } : null}
-      >
-        <>
-          <button
-            type="button"
-            disabled={mConcluir.isPending || !canonica}
-            onClick={() => mConcluir.mutate()}
-            title="Marca a próxima ação como concluída — sem nova ação necessária por ora."
-            className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream disabled:opacity-40"
+          <CaseHealthHero
+            saude={saudeDoCaso({
+              bloqueios: bloqueiosReais.length,
+              temProximaAcao: Boolean(canonica?.acao),
+              temResponsavel: Boolean(canonica?.responsavel),
+              temPrazo: Boolean(canonica?.prazo),
+            })}
+            situacao={caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
+            proximaAcao={canonica?.acao ?? "Sem próxima ação definida"}
+            seloProximaAcao={canonica ? SELO_PROXIMA_ACAO[canonica.origem] : null}
+            responsavel={canonica?.responsavel || "Sem responsável"}
+            prazo={
+              canonica?.prazo
+                ? new Date(String(canonica.prazo)).toLocaleDateString("pt-BR")
+                : "Sem prazo definido"
+            }
+            motivo={derivado.motivo}
+            impacto={
+              bloqueiosReais.length === 0
+                ? "Nenhum bloqueio real — elegível para ativação"
+                : `Ativação bloqueada — ${bloqueiosReais.length} pendência(s), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`
+            }
+            resolverBloqueio={
+              bloqueiosReais.length > 0 && bloqueiosReais[0]?.cta_tela
+                ? { href: bloqueiosReais[0].cta_tela }
+                : null
+            }
           >
-            Concluir
-          </button>
-          <button
-            type="button"
-            disabled={mReprogramar.isPending}
-            onClick={() => {
-              const atual = canonica?.prazo ? String(canonica.prazo).slice(0, 10) : "";
-              const novo = prompt("Novo prazo (AAAA-MM-DD):", atual);
-              if (!novo?.trim()) return;
-              mReprogramar.mutate(novo.trim());
-            }}
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
-          >
-            Reprogramar
-          </button>
-          <button
-            type="button"
-            onClick={() => document.getElementById("form-tarefa-caso")?.scrollIntoView({ behavior: "smooth" })}
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
-          >
-            Criar tarefa
-          </button>
-          <label className="flex items-center rounded-lg border border-navy/20 px-1 text-sm text-navy hover:bg-navy/5">
-            <select
-              aria-label="Mover fase"
-              className="bg-transparent py-2 pl-2 pr-1 text-sm text-navy outline-none disabled:opacity-40"
-              value=""
-              disabled={mMoverFase.isPending}
-              title="Move a fase comercial deste caso (mesmo campo do dropdown 'Etapa comercial' em Formalização)."
-              onChange={(e) => {
-                const valor = e.target.value;
-                if (!valor) return;
-                mMoverFase.mutate(valor);
-                e.target.value = "";
-              }}
-            >
-              <option value="">Mover fase…</option>
-              {EIXO_COMERCIAL.map((o) => (
-                <option key={o.valor} value={o.valor}>
-                  {o.rotulo}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            disabled={mRegistrarAtualizacao.isPending}
-            onClick={() => {
-              const texto = prompt("O que aconteceu de novo neste caso?");
-              if (!texto?.trim()) return;
-              mRegistrarAtualizacao.mutate(texto.trim());
-            }}
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
-          >
-            Registrar atualização
-          </button>
-          <a
-            href="#secao-jornada"
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
-            title="Abre a seção Jornada, onde a microentrega é preparada e enviada à revisão."
-          >
-            Preparar microentrega
-          </a>
-          <Link
-            to="/app-cliente-como-pessoa"
-            search={{ casoId: String(caso["id"]) }}
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
-          >
-            Abrir Visão Administrativa do Cliente
-          </Link>
-          {clienteId ? (
-            <Link
-              to="/pessoas/$clienteId"
-              params={{ clienteId }}
-              className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm font-medium text-navy hover:bg-gold/20"
-            >
-              Abrir Pessoa 360
-            </Link>
+            <>
+              <button
+                type="button"
+                disabled={mConcluir.isPending || !canonica}
+                onClick={() => mConcluir.mutate()}
+                title="Marca a próxima ação como concluída — sem nova ação necessária por ora."
+                className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream disabled:opacity-40"
+              >
+                Concluir
+              </button>
+              <button
+                type="button"
+                disabled={mReprogramar.isPending}
+                onClick={() => {
+                  const atual = canonica?.prazo ? String(canonica.prazo).slice(0, 10) : "";
+                  const novo = prompt("Novo prazo (AAAA-MM-DD):", atual);
+                  if (!novo?.trim()) return;
+                  mReprogramar.mutate(novo.trim());
+                }}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+              >
+                Reprogramar
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  document
+                    .getElementById("form-tarefa-caso")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+              >
+                Criar tarefa
+              </button>
+              <label className="flex items-center rounded-lg border border-navy/20 px-1 text-sm text-navy hover:bg-navy/5">
+                <select
+                  aria-label="Mover fase"
+                  className="bg-transparent py-2 pl-2 pr-1 text-sm text-navy outline-none disabled:opacity-40"
+                  value=""
+                  disabled={mMoverFase.isPending}
+                  title="Move a fase comercial deste caso (mesmo campo do dropdown 'Etapa comercial' em Formalização)."
+                  onChange={(e) => {
+                    const valor = e.target.value;
+                    if (!valor) return;
+                    mMoverFase.mutate(valor);
+                    e.target.value = "";
+                  }}
+                >
+                  <option value="">Mover fase…</option>
+                  {EIXO_COMERCIAL.map((o) => (
+                    <option key={o.valor} value={o.valor}>
+                      {o.rotulo}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                disabled={mRegistrarAtualizacao.isPending}
+                onClick={() => {
+                  const texto = prompt("O que aconteceu de novo neste caso?");
+                  if (!texto?.trim()) return;
+                  mRegistrarAtualizacao.mutate(texto.trim());
+                }}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+              >
+                Registrar atualização
+              </button>
+              <a
+                href="#secao-jornada"
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+                title="Abre a seção Jornada, onde a microentrega é preparada e enviada à revisão."
+              >
+                Preparar microentrega
+              </a>
+              <Link
+                to="/app-cliente-como-pessoa"
+                search={{ casoId: String(caso["id"]) }}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+              >
+                Abrir Visão Administrativa do Cliente
+              </Link>
+              {clienteId ? (
+                <Link
+                  to="/pessoas/$clienteId"
+                  params={{ clienteId }}
+                  className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm font-medium text-navy hover:bg-gold/20"
+                >
+                  Abrir Pessoa 360
+                </Link>
+              ) : null}
+            </>
+          </CaseHealthHero>
+
+          {erro ? (
+            <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">
+              {erro}
+            </p>
           ) : null}
-        </>
-      </CaseHealthHero>
+          {!erro && !sujo && camposSalvos.length ? (
+            <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/80">
+              Conferido no banco após gravar: {camposSalvos.join(", ")}.
+            </p>
+          ) : null}
+          {pendenciaCadastro ? (
+            <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+              Pendência registrada: {pendenciaCadastro} A edição segue disponível por decisão sua e
+              a gravação pede motivo.
+            </p>
+          ) : null}
 
-      {erro ? (
-        <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">
-          {erro}
-        </p>
-      ) : null}
-      {!erro && !sujo && camposSalvos.length ? (
-        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/80">
-          Conferido no banco após gravar: {camposSalvos.join(", ")}.
-        </p>
-      ) : null}
-      {pendenciaCadastro ? (
-        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-          Pendência registrada: {pendenciaCadastro} A edição segue disponível por decisão sua e a
-          gravação pede motivo.
-        </p>
-      ) : null}
+          {qc2.isError ? (
+            <div
+              role="alert"
+              className="mb-4 space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs"
+            >
+              <p className="font-medium text-destructive">
+                Não foi possível carregar o consolidado canônico do caso (aliases, etiquetas,
+                produto, onboarding, núcleos).
+              </p>
+              <p className="text-navy/80">
+                {qc2.error instanceof Error ? qc2.error.message : "Erro desconhecido."}
+              </p>
+              <BotaoTentarNovamente aoClicar={() => void qc2.refetch()} />
+            </div>
+          ) : null}
 
-      {qc2.isError ? (
-        <div
-          role="alert"
-          className="mb-4 space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs"
-        >
-          <p className="font-medium text-destructive">
-            Não foi possível carregar o consolidado canônico do caso (aliases, etiquetas, produto,
-            onboarding, núcleos).
-          </p>
-          <p className="text-navy/80">
-            {qc2.error instanceof Error ? qc2.error.message : "Erro desconhecido."}
-          </p>
-          <BotaoTentarNovamente aoClicar={() => void qc2.refetch()} />
-        </div>
-      ) : null}
-
-      {/* Ordem P0 (21/09/2026) — Estado Integrado do Caso: consolida os
+          {/* Ordem P0 (21/09/2026) — Estado Integrado do Caso: consolida os
           domínios transversais num só bloco, só leitura, sem duplicar
           nenhuma das queries já feitas acima. */}
-      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir estado integrado e fontes do caso</summary>
-        <div className="mt-4 border-t border-navy/10 pt-4">
-      <EstadoIntegradoCaso
-        caseId={id}
-        caso={caso}
-        cliente={(q.data?.cliente as Record<string, any> | null) ?? null}
-        clienteId={clienteId ?? null}
-        membros={(q.data?.membros ?? []) as Record<string, any>[]}
-        nucleos={(q.data?.nucleos ?? []) as Record<string, any>[]}
-        servicos={(qc2.data?.servicos ?? []) as Record<string, any>[]}
-        produtos={(qc2.data?.produtos ?? []) as Record<string, any>[]}
-        planejador={
-          qCadeia.data?.planejador
-            ? {
-                etapa: qCadeia.data.planejador.etapa ?? null,
-                faseJornada: qCadeia.data.planejador.fase_jornada ?? null,
-                produtoPaiId: qCadeia.data.planejador.produto_pai_id ?? null,
-                rotaConfirmada: qCadeia.data.planejador.rotaConfirmada ?? null,
-                marcos: qCadeia.data.planejador.marcos ?? [],
-              }
-            : null
-        }
-        onboarding={(qc2.data?.onboarding ?? []) as Record<string, any>[]}
-        ultimaEntrega={((qc2.data?.entregas ?? []) as Record<string, any>[])[0] ?? null}
-        timelineUltimoEvento={((q.data?.timeline ?? []) as Record<string, any>[])[0] ?? null}
-        contratoStatus={rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}
-        leadOrigem={((q.data as any)?.leadOrigem ?? null) as Record<string, any> | null}
-        pesquisa={
-          qPesquisa.data
-            ? {
-                pessoas: ((qPesquisa.data as any).pessoas ?? []).length,
-                relacoes: ((qPesquisa.data as any).relacoes ?? []).length,
-                evidencias: ((qPesquisa.data as any).evidencias ?? []).length,
-                confirmadas: estadoDossieDoCaso((qPesquisa.data as any).evidencias ?? []).confirmados,
-                achados: ((qPesquisa.data as any).achados ?? []).length,
-              }
-            : null
-        }
-        proximoPasso={
-          canonica
-            ? {
-                acao: canonica.acao ?? null,
-                responsavel: (canonica as any).responsavel ?? null,
-                prazo: (canonica as any).prazo ?? null,
-                bloqueios: bloqueiosReais.length,
-                primeiroBloqueio: bloqueiosReais[0]?.motivo ?? null,
-              }
-            : null
-        }
-        acessoApp={
-          qVisaoCliente.data
-            ? {
-                liberado: Boolean(qVisaoCliente.data.acesso?.liberado),
-                statusAcesso: qVisaoCliente.data.acesso?.statusAcesso ?? null,
-                ultimoAcessoEm: (qVisaoCliente.data.acesso as any)?.ultimoAcessoEm ?? null,
-              }
-            : null
-        }
-      />
-        </div>
-      </details>
+          <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+            <summary className="cursor-pointer text-sm font-medium text-navy">
+              Abrir estado integrado e fontes do caso
+            </summary>
+            <div className="mt-4 border-t border-navy/10 pt-4">
+              <EstadoIntegradoCaso
+                caseId={id}
+                caso={caso}
+                cliente={(q.data?.cliente as Record<string, any> | null) ?? null}
+                clienteId={clienteId ?? null}
+                membros={(q.data?.membros ?? []) as Record<string, any>[]}
+                nucleos={(q.data?.nucleos ?? []) as Record<string, any>[]}
+                servicos={(qc2.data?.servicos ?? []) as Record<string, any>[]}
+                produtos={(qc2.data?.produtos ?? []) as Record<string, any>[]}
+                planejador={
+                  qCadeia.data?.planejador
+                    ? {
+                        etapa: qCadeia.data.planejador.etapa ?? null,
+                        faseJornada: qCadeia.data.planejador.fase_jornada ?? null,
+                        produtoPaiId: qCadeia.data.planejador.produto_pai_id ?? null,
+                        rotaConfirmada: qCadeia.data.planejador.rotaConfirmada ?? null,
+                        marcos: qCadeia.data.planejador.marcos ?? [],
+                      }
+                    : null
+                }
+                onboarding={(qc2.data?.onboarding ?? []) as Record<string, any>[]}
+                ultimaEntrega={((qc2.data?.entregas ?? []) as Record<string, any>[])[0] ?? null}
+                timelineUltimoEvento={
+                  ((q.data?.timeline ?? []) as Record<string, any>[])[0] ?? null
+                }
+                contratoStatus={rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}
+                leadOrigem={((q.data as any)?.leadOrigem ?? null) as Record<string, any> | null}
+                pesquisa={
+                  qPesquisa.data
+                    ? {
+                        pessoas: ((qPesquisa.data as any).pessoas ?? []).length,
+                        relacoes: ((qPesquisa.data as any).relacoes ?? []).length,
+                        evidencias: ((qPesquisa.data as any).evidencias ?? []).length,
+                        confirmadas: estadoDossieDoCaso((qPesquisa.data as any).evidencias ?? [])
+                          .confirmados,
+                        achados: ((qPesquisa.data as any).achados ?? []).length,
+                      }
+                    : null
+                }
+                proximoPasso={
+                  canonica
+                    ? {
+                        acao: canonica.acao ?? null,
+                        responsavel: (canonica as any).responsavel ?? null,
+                        prazo: (canonica as any).prazo ?? null,
+                        bloqueios: bloqueiosReais.length,
+                        primeiroBloqueio: bloqueiosReais[0]?.motivo ?? null,
+                      }
+                    : null
+                }
+                acessoApp={
+                  qVisaoCliente.data
+                    ? {
+                        liberado: Boolean(qVisaoCliente.data.acesso?.liberado),
+                        statusAcesso: qVisaoCliente.data.acesso?.statusAcesso ?? null,
+                        ultimoAcessoEm: (qVisaoCliente.data.acesso as any)?.ultimoAcessoEm ?? null,
+                      }
+                    : null
+                }
+              />
+            </div>
+          </details>
 
-      {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
-      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir resumos operacionais do caso</summary>
-      <div className="mt-4 grid gap-3 border-t border-navy/10 pt-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/*
+          {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
+          <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+            <summary className="cursor-pointer text-sm font-medium text-navy">
+              Abrir resumos operacionais do caso
+            </summary>
+            <div className="mt-4 grid gap-3 border-t border-navy/10 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/*
           FIDELIDADE-VISUAL-2026-09-23: a contagem de bloqueio já está no
           campo "Impacto" do hero, com o link de resolução — este resumo não
           repete o mesmo número, só aponta para a seção onde onboarding e
           fechamento acontecem.
         */}
-        <a href="#secao-jornada" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
-          <p className="mt-1 text-sm font-medium text-navy">
-            {sugestoes.length ? sugestoes[0].titulo : "Ver jornada, onboarding e fechamento"}
-          </p>
-        </a>
-        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
-          <a href="#secao-pessoas" className="block rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold">
-            <p className="text-[11px] uppercase tracking-wide text-navy/50">Pessoas/família</p>
-            <p className="mt-1 text-sm font-medium text-navy">
-              {(q.data?.membros ?? []).length} pessoa(s) no caso
-            </p>
-          </a>
-          <VinculoNucleo
-            caseId={String(caso["id"])}
-            codigoCaso={(caso["codigo"] as string | null) ?? null}
-            papelRegistro={(caso["papel_registro"] as string | null) ?? null}
-            finalidade={(caso["finalidade_registro"] as string | null) ?? null}
-            estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
-          />
-        </div>
-        <a href="#secao-comercial" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Contrato</p>
-          <p className="mt-1 text-sm font-medium text-navy">{rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}</p>
-          <p className="text-xs text-navy/60">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}</p>
-        </a>
-        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
-          {qPesquisa.isLoading ? (
-            <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
-          ) : qPesquisa.isError ? (
-            <p className="mt-1 text-xs text-terracotta">Não foi possível carregar o resumo de pesquisa.</p>
-          ) : (
-            (() => {
-              const c = qPesquisa.data;
-              const evidencias = c?.evidencias ?? [];
-              /*
+              <a
+                href="#secao-jornada"
+                className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60"
+              >
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                  Jornada/onboarding
+                </p>
+                <p className="mt-1 text-sm font-medium text-navy">
+                  {sugestoes.length ? sugestoes[0].titulo : "Ver jornada, onboarding e fechamento"}
+                </p>
+              </a>
+              <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
+                <a
+                  href="#secao-pessoas"
+                  className="block rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold"
+                >
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                    Pessoas/família
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-navy">
+                    {(q.data?.membros ?? []).length} pessoa(s) no caso
+                  </p>
+                </a>
+                <VinculoNucleo
+                  caseId={String(caso["id"])}
+                  codigoCaso={(caso["codigo"] as string | null) ?? null}
+                  papelRegistro={(caso["papel_registro"] as string | null) ?? null}
+                  finalidade={(caso["finalidade_registro"] as string | null) ?? null}
+                  estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
+                />
+              </div>
+              <a
+                href="#secao-comercial"
+                className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60"
+              >
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">Contrato</p>
+                <p className="mt-1 text-sm font-medium text-navy">
+                  {rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}
+                </p>
+                <p className="text-xs text-navy/60">
+                  {rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}
+                </p>
+              </a>
+              <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                  Pesquisa/entregas
+                </p>
+                {qPesquisa.isLoading ? (
+                  <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
+                ) : qPesquisa.isError ? (
+                  <p className="mt-1 text-xs text-terracotta">
+                    Não foi possível carregar o resumo de pesquisa.
+                  </p>
+                ) : (
+                  (() => {
+                    const c = qPesquisa.data;
+                    const evidencias = c?.evidencias ?? [];
+                    /*
                 §14 linha 6 do De-Para: "Estado do dossiê — Confirmados N,
                 Em revisão N, Pendentes N; donut; reconciliar com o dossiê
                 real". estadoDossieDoCaso classifica cada evidência em
                 exatamente UM dos três buckets (soma = total). Ver
                 pesquisa-cadeia.ts para a fonte canônica.
               */
-              const dossie = estadoDossieDoCaso(evidencias);
-              const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status)).length;
-              const achados = c?.achados?.length ?? 0;
-              // Donut acessível: três segmentos proporcionais, com legenda
-              // textual (status nunca só por cor).
-              const semEvidencia = dossie.total === 0;
-              const donut = (() => {
-                // Sem evidência a rosca continua desenhada, em anel neutro, sem fatia inventada.
-                if (semEvidencia) {
-                  return (
-                    <div
-                      role="img"
-                      aria-label="Dossiê: sem dados suficientes. Nenhuma evidência registrada no caso."
-                      className="relative h-20 w-20 shrink-0 rounded-full bg-navy/10"
-                      data-caso360-dossie-donut
-                      data-caso360-dossie-vazio
-                    >
-                      <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
-                        <span className="font-serif text-lg leading-none text-navy/40">0</span>
-                        <span className="text-[8px] uppercase leading-none tracking-wide text-navy/40">evid.</span>
+                    const dossie = estadoDossieDoCaso(evidencias);
+                    const pendencias = (c?.pendencias ?? []).filter(
+                      (p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status),
+                    ).length;
+                    const achados = c?.achados?.length ?? 0;
+                    // Donut acessível: três segmentos proporcionais, com legenda
+                    // textual (status nunca só por cor).
+                    const semEvidencia = dossie.total === 0;
+                    const donut = (() => {
+                      // Sem evidência a rosca continua desenhada, em anel neutro, sem fatia inventada.
+                      if (semEvidencia) {
+                        return (
+                          <div
+                            role="img"
+                            aria-label="Dossiê: sem dados suficientes. Nenhuma evidência registrada no caso."
+                            className="relative h-20 w-20 shrink-0 rounded-full bg-navy/10"
+                            data-caso360-dossie-donut
+                            data-caso360-dossie-vazio
+                          >
+                            <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
+                              <span className="font-serif text-lg leading-none text-navy/40">
+                                0
+                              </span>
+                              <span className="text-[8px] uppercase leading-none tracking-wide text-navy/40">
+                                evid.
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      const g1 = (dossie.confirmados / dossie.total) * 360;
+                      const g2 = g1 + (dossie.emRevisao / dossie.total) * 360;
+                      return (
+                        <div
+                          role="img"
+                          aria-label={`Dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes`}
+                          className="relative h-20 w-20 shrink-0 rounded-full"
+                          data-caso360-dossie-donut
+                          style={{
+                            background: `conic-gradient(var(--color-emerald-600) 0deg ${g1}deg, var(--gold) ${g1}deg ${g2}deg, color-mix(in srgb, var(--terracotta) 70%, transparent) ${g2}deg 360deg)`,
+                          }}
+                        >
+                          <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
+                            <span className="font-serif text-lg leading-none text-navy">
+                              {dossie.total}
+                            </span>
+                            <span className="text-[8px] uppercase leading-none tracking-wide text-navy/50">
+                              evid.
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })();
+                    return (
+                      <div className="mt-3 flex flex-wrap items-center gap-4">
+                        {donut}
+                        <div className="min-w-0 flex-1">
+                          {semEvidencia ? (
+                            <p className="mb-1 text-xs font-medium text-navy/70">
+                              Sem dados suficientes
+                            </p>
+                          ) : null}
+                          <ul className="space-y-1 text-xs">
+                            <li className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600"
+                                aria-hidden="true"
+                              />
+                              <span className="font-semibold text-emerald-700">
+                                {dossie.confirmados}
+                              </span>
+                              <span className="text-navy/70">confirmados</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 shrink-0 rounded-full bg-gold"
+                                aria-hidden="true"
+                              />
+                              <span className="font-semibold text-navy/80">{dossie.emRevisao}</span>
+                              <span className="text-navy/70">em revisão</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 shrink-0 rounded-full bg-terracotta/70"
+                                aria-hidden="true"
+                              />
+                              <span className="font-semibold text-terracotta">
+                                {dossie.pendentes}
+                              </span>
+                              <span className="text-navy/70">pendentes</span>
+                            </li>
+                          </ul>
+                          <p className="mt-1.5 text-[11px] text-navy/60">
+                            {achados} achado(s)
+                            {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
+                          </p>
+                          <p className="mt-0.5 text-[10px] text-navy/45">
+                            {semEvidencia
+                              ? "Nenhuma evidência registrada no caso ainda."
+                              : `Soma bate com o dossiê real (${dossie.total} evidência(s) no caso).`}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  );
-                }
-                const g1 = (dossie.confirmados / dossie.total) * 360;
-                const g2 = g1 + (dossie.emRevisao / dossie.total) * 360;
-                return (
-                  <div
-                    role="img"
-                    aria-label={`Dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes`}
-                    className="relative h-20 w-20 shrink-0 rounded-full"
-                    data-caso360-dossie-donut
-                    style={{
-                      background: `conic-gradient(var(--color-emerald-600) 0deg ${g1}deg, var(--gold) ${g1}deg ${g2}deg, color-mix(in srgb, var(--terracotta) 70%, transparent) ${g2}deg 360deg)`,
-                    }}
-                  >
-                    <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
-                      <span className="font-serif text-lg leading-none text-navy">{dossie.total}</span>
-                      <span className="text-[8px] uppercase leading-none tracking-wide text-navy/50">evid.</span>
-                    </div>
-                  </div>
-                );
-              })();
-              return (
-                <div className="mt-3 flex flex-wrap items-center gap-4">
-                  {donut}
-                  <div className="min-w-0 flex-1">
-                    {semEvidencia ? (
-                      <p className="mb-1 text-xs font-medium text-navy/70">Sem dados suficientes</p>
-                    ) : null}
-                    <ul className="space-y-1 text-xs">
-                      <li className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600" aria-hidden="true" />
-                        <span className="font-semibold text-emerald-700">{dossie.confirmados}</span>
-                        <span className="text-navy/70">confirmados</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
-                        <span className="font-semibold text-navy/80">{dossie.emRevisao}</span>
-                        <span className="text-navy/70">em revisão</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-terracotta/70" aria-hidden="true" />
-                        <span className="font-semibold text-terracotta">{dossie.pendentes}</span>
-                        <span className="text-navy/70">pendentes</span>
-                      </li>
-                    </ul>
-                    <p className="mt-1.5 text-[11px] text-navy/60">
-                      {achados} achado(s)
-                      {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
-                    </p>
-                    <p className="mt-0.5 text-[10px] text-navy/45">
-                      {semEvidencia
-                        ? "Nenhuma evidência registrada no caso ainda."
-                        : `Soma bate com o dossiê real (${dossie.total} evidência(s) no caso).`}
-                    </p>
-                  </div>
-                </div>
-              );
-            })()
-          )}
-          <ul className="mt-2 space-y-1 text-xs">
-            <li>
-              <Link to="/achados/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Achados genealógicos →
-              </Link>
-            </li>
-            <li>
-              <Link to="/biblioteca-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Biblioteca de evidências →
-              </Link>
-            </li>
-            <li>
-              <Link to="/pesquisa-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Pesquisa e documentos →
-              </Link>
-            </li>
-            <li>
-              <Link to="/pessoas-linhagens/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Pessoas e linhagens →
-              </Link>
-            </li>
-            <li>
-              <Link to="/plano-acao/$caseId" params={{ caseId: id }} search={{ foco: undefined }} className="text-navy underline decoration-gold underline-offset-4">
-                Plano de ação de pesquisa →
-              </Link>
-            </li>
-            <li>
-              <Link to="/relatorios-fase/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Relatórios de fase →
-              </Link>
-            </li>
-            <li>
-              <Link to="/fontes-genealogicas" className="text-navy underline decoration-gold underline-offset-4">
-                Fontes e integrações →
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <div id="resumo-visao-cliente" className="ca-cartao-natureza sm:col-span-2" data-natureza="pessoas" data-como-familia-ve>
-          {/* 18/10/2026 — leitura GoLive "como a família vê" dentro do Caso 360 (não é segundo Caso 360).
+                    );
+                  })()
+                )}
+                <ul className="mt-2 space-y-1 text-xs">
+                  <li>
+                    <Link
+                      to="/achados/$caseId"
+                      params={{ caseId: id }}
+                      className="text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Achados genealógicos →
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/biblioteca-evidencias/$caseId"
+                      params={{ caseId: id }}
+                      className="text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Biblioteca de evidências →
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/pesquisa-evidencias/$caseId"
+                      params={{ caseId: id }}
+                      className="text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Pesquisa e documentos →
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/pessoas-linhagens/$caseId"
+                      params={{ caseId: id }}
+                      className="text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Pessoas e linhagens →
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/plano-acao/$caseId"
+                      params={{ caseId: id }}
+                      search={{ foco: undefined }}
+                      className="text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Plano de ação de pesquisa →
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/relatorios-fase/$caseId"
+                      params={{ caseId: id }}
+                      className="text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Relatórios de fase →
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/fontes-genealogicas"
+                      className="text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Fontes e integrações →
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div
+                id="resumo-visao-cliente"
+                className="ca-cartao-natureza sm:col-span-2"
+                data-natureza="pessoas"
+                data-como-familia-ve
+              >
+                {/* 18/10/2026 — leitura GoLive "como a família vê" dentro do Caso 360 (não é segundo Caso 360).
               Cada porta separa o que está publicado (vai ao App) do que é interno (não sai do Desk). */}
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Como a família vê</p>
-          <p className="mt-1 text-xs text-navy/60">O que o App Cliente mostra hoje — só conteúdo sanitizado, aprovado e publicado.</p>
-          {/* CA06-APP-NO-DESK: preferências sem fonte viva homologada — nunca inferido nem simulado. */}
-          <p className="mt-1 text-xs text-navy/60">Preferências: sem fonte viva homologada</p>
-          {qVisaoCliente.isLoading ? (
-            <div className="mt-2"><CarregandoDesk linhas={2} rotulo="Carregando a visão do cliente" /></div>
-          ) : qVisaoCliente.isError ? (
-            <p className="mt-2 text-xs text-terracotta">Não foi possível carregar a visão do cliente.</p>
-          ) : (
-            (() => {
-              const v = qVisaoCliente.data;
-              const portas: { id: string; titulo: string; natureza: string; publicado: string; interno: string }[] = [
-                {
-                  id: "pesquisa",
-                  titulo: "Pesquisa",
-                  natureza: "pesquisa",
-                  publicado: v?.ultimaAtualizacaoLiberada ? `Atualização liberada: ${v.ultimaAtualizacaoLiberada.tipo}` : "Não registrado",
-                  interno: `${v?.producaoInternaEmRevisao ?? 0} produção(ões) interna(s) em revisão; hipóteses e evidência bruta não saem`,
-                },
-                {
-                  id: "arvore",
-                  titulo: "Árvore",
-                  natureza: "pessoas",
-                  publicado: `${v?.projecoesDeArvore ?? 0} projeção(ões) de árvore publicada(s)`,
-                  interno: "Pessoas e vínculos em pesquisa ou não aprovados",
-                },
-                {
-                  id: "documentos",
-                  titulo: "Documentos",
-                  natureza: "pesquisa",
-                  publicado: `${v?.documentosDisponiveis ?? 0} documento(s) disponível(is) ao titular`,
-                  interno: "Checklist documental e acervo interno — não compartilhados",
-                },
-                {
-                  id: "publicacoes",
-                  titulo: "Publicações",
-                  natureza: "acao",
-                  publicado: `${v?.estadoPublicacao.publicadas ?? 0} publicada(s)`,
-                  interno: `${v?.estadoPublicacao.pendentes ?? 0} pendente(s) · ${v?.microentregasProntasParaRevisao ?? 0} pronta(s) para revisão · ${v?.estadoPublicacao.arquivadas ?? 0} arquivada(s)`,
-                },
-                {
-                  id: "conta",
-                  titulo: "Conta",
-                  natureza: "financeiro",
-                  publicado: v?.acesso.liberado ? `Acesso liberado${v.acesso.statusAcesso ? ` (${v.acesso.statusAcesso})` : ""}` : "Acesso não liberado",
-                  interno: "CPF, RG, endereço e pagamento não confirmado nunca vão ao App",
-                },
-                {
-                  id: "historico",
-                  titulo: "Histórico",
-                  natureza: "neutro",
-                  publicado: v?.ultimaAtualizacaoLiberada ? `Última liberação em ${String(v.ultimaAtualizacaoLiberada.em).slice(0, 10)}` : "Não registrado",
-                  interno: v?.acesso.ultimoAcessoEm ? `Último acesso do cliente: ${String(v.acesso.ultimoAcessoEm).slice(0, 10)}` : "Sem acesso registrado; auditoria fica no Desk",
-                },
-              ];
-              return (
-                <>
-                  <p className="mt-2 text-sm text-navy">
-                    <span className="ca-selo-natureza mr-2" data-natureza="acao">Próximo passo publicado ao cliente</span>
-                    {v?.proximaAcao?.acao ?? "Não registrado"}
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                  Como a família vê
+                </p>
+                <p className="mt-1 text-xs text-navy/60">
+                  O que o App Cliente mostra hoje — só conteúdo sanitizado, aprovado e publicado.
+                </p>
+                {/* CA06-APP-NO-DESK: preferências sem fonte viva homologada — nunca inferido nem simulado. */}
+                <p className="mt-1 text-xs text-navy/60">Preferências: sem fonte viva homologada</p>
+                {qVisaoCliente.isLoading ? (
+                  <div className="mt-2">
+                    <CarregandoDesk linhas={2} rotulo="Carregando a visão do cliente" />
+                  </div>
+                ) : qVisaoCliente.isError ? (
+                  <p className="mt-2 text-xs text-terracotta">
+                    Não foi possível carregar a visão do cliente.
                   </p>
-                  <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {portas.map((p) => (
-                      <li key={p.id} className="ca-cartao-natureza" data-natureza={p.natureza} data-porta-familia={p.id}>
-                        <p className="font-serif text-base text-navy">{p.titulo}</p>
-                        <p className="mt-1 text-xs text-navy/80">
-                          <span className="ca-selo-natureza mr-1" data-natureza="pessoas">Vai ao App</span>
-                          {p.publicado}
+                ) : (
+                  (() => {
+                    const v = qVisaoCliente.data;
+                    const portas: {
+                      id: string;
+                      titulo: string;
+                      natureza: string;
+                      publicado: string;
+                      interno: string;
+                    }[] = [
+                      {
+                        id: "pesquisa",
+                        titulo: "Pesquisa",
+                        natureza: "pesquisa",
+                        publicado: v?.ultimaAtualizacaoLiberada
+                          ? `Atualização liberada: ${v.ultimaAtualizacaoLiberada.tipo}`
+                          : "Não registrado",
+                        interno: `${v?.producaoInternaEmRevisao ?? 0} produção(ões) interna(s) em revisão; hipóteses e evidência bruta não saem`,
+                      },
+                      {
+                        id: "arvore",
+                        titulo: "Árvore",
+                        natureza: "pessoas",
+                        publicado: `${v?.projecoesDeArvore ?? 0} projeção(ões) de árvore publicada(s)`,
+                        interno: "Pessoas e vínculos em pesquisa ou não aprovados",
+                      },
+                      {
+                        id: "documentos",
+                        titulo: "Documentos",
+                        natureza: "pesquisa",
+                        publicado: `${v?.documentosDisponiveis ?? 0} documento(s) disponível(is) ao titular`,
+                        interno: "Checklist documental e acervo interno — não compartilhados",
+                      },
+                      {
+                        id: "publicacoes",
+                        titulo: "Publicações",
+                        natureza: "acao",
+                        publicado: `${v?.estadoPublicacao.publicadas ?? 0} publicada(s)`,
+                        interno: `${v?.estadoPublicacao.pendentes ?? 0} pendente(s) · ${v?.microentregasProntasParaRevisao ?? 0} pronta(s) para revisão · ${v?.estadoPublicacao.arquivadas ?? 0} arquivada(s)`,
+                      },
+                      {
+                        id: "conta",
+                        titulo: "Conta",
+                        natureza: "financeiro",
+                        publicado: v?.acesso.liberado
+                          ? `Acesso liberado${v.acesso.statusAcesso ? ` (${v.acesso.statusAcesso})` : ""}`
+                          : "Acesso não liberado",
+                        interno: "CPF, RG, endereço e pagamento não confirmado nunca vão ao App",
+                      },
+                      {
+                        id: "historico",
+                        titulo: "Histórico",
+                        natureza: "neutro",
+                        publicado: v?.ultimaAtualizacaoLiberada
+                          ? `Última liberação em ${String(v.ultimaAtualizacaoLiberada.em).slice(0, 10)}`
+                          : "Não registrado",
+                        interno: v?.acesso.ultimoAcessoEm
+                          ? `Último acesso do cliente: ${String(v.acesso.ultimoAcessoEm).slice(0, 10)}`
+                          : "Sem acesso registrado; auditoria fica no Desk",
+                      },
+                    ];
+                    return (
+                      <>
+                        <p className="mt-2 text-sm text-navy">
+                          <span className="ca-selo-natureza mr-2" data-natureza="acao">
+                            Próximo passo publicado ao cliente
+                          </span>
+                          {v?.proximaAcao?.acao ?? "Não registrado"}
                         </p>
-                        <p className="mt-1 text-xs text-navy/60">
-                          <span className="ca-selo-natureza mr-1" data-natureza="neutro">Só no Desk</span>
-                          {p.interno}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              );
-            })()
-          )}
-          <Link
-            to="/biblioteca-evidencias/$caseId"
-            params={{ caseId: id }}
-            className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
-          >
-            Preparar, revisar, aprovar, liberar ou despublicar →
-          </Link>
-        </div>
-        <div id="resumo-financeiro" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] sm:col-span-2 lg:col-span-4">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro</p>
-          {qFinanceiro.isLoading ? (
-            <div className="mt-2"><CarregandoDesk linhas={2} rotulo="Carregando o financeiro deste caso" /></div>
-          ) : qFinanceiro.isError ? (
-            <p className="mt-2 text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
-          ) : (
-            <>
-              <dl className="mt-2 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <dt className="text-navy/50">Valor contratado</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.valorContratado == null
-                      ? "Sem dados suficientes"
-                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.valorContratado.toFixed(2)}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Valor recebido</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.moeda} {qFinanceiro.data?.valorRecebido.toFixed(2)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Saldo aberto</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.saldoAberto == null
-                      ? "Sem dados suficientes"
-                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.saldoAberto.toFixed(2)}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Próxima parcela</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.proximaParcela
-                      ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.proximaParcela.valor.toFixed(2)} — ${qFinanceiro.data.proximaParcela.vencimento}`
-                      : "Sem dados suficientes"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Status</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status] : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Despesas de terceiros</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.despesasTerceiros
-                      ? `${qFinanceiro.data.despesasTerceiros.total} registrada(s), ${qFinanceiro.data.despesasTerceiros.aguardandoAprovacao} aguardando aprovação`
-                      : "Sem dados suficientes"}
-                  </dd>
-                </div>
-                {/*
+                        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {portas.map((p) => (
+                            <li
+                              key={p.id}
+                              className="ca-cartao-natureza"
+                              data-natureza={p.natureza}
+                              data-porta-familia={p.id}
+                            >
+                              <p className="font-serif text-base text-navy">{p.titulo}</p>
+                              <p className="mt-1 text-xs text-navy/80">
+                                <span className="ca-selo-natureza mr-1" data-natureza="pessoas">
+                                  Vai ao App
+                                </span>
+                                {p.publicado}
+                              </p>
+                              <p className="mt-1 text-xs text-navy/60">
+                                <span className="ca-selo-natureza mr-1" data-natureza="neutro">
+                                  Só no Desk
+                                </span>
+                                {p.interno}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    );
+                  })()
+                )}
+                <Link
+                  to="/biblioteca-evidencias/$caseId"
+                  params={{ caseId: id }}
+                  className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
+                >
+                  Preparar, revisar, aprovar, liberar ou despublicar →
+                </Link>
+              </div>
+              <div
+                id="resumo-financeiro"
+                className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] sm:col-span-2 lg:col-span-4"
+              >
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro</p>
+                {qFinanceiro.isLoading ? (
+                  <div className="mt-2">
+                    <CarregandoDesk linhas={2} rotulo="Carregando o financeiro deste caso" />
+                  </div>
+                ) : qFinanceiro.isError ? (
+                  <p className="mt-2 text-xs text-terracotta">
+                    Não foi possível carregar o financeiro deste caso.
+                  </p>
+                ) : (
+                  <>
+                    <dl className="mt-2 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                      <div>
+                        <dt className="text-navy/50">Valor contratado</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.valorContratado == null
+                            ? "Sem dados suficientes"
+                            : `${qFinanceiro.data.moeda} ${qFinanceiro.data.valorContratado.toFixed(2)}`}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Valor recebido</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.moeda} {qFinanceiro.data?.valorRecebido.toFixed(2)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Saldo aberto</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.saldoAberto == null
+                            ? "Sem dados suficientes"
+                            : `${qFinanceiro.data.moeda} ${qFinanceiro.data.saldoAberto.toFixed(2)}`}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Próxima parcela</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.proximaParcela
+                            ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.proximaParcela.valor.toFixed(2)} — ${qFinanceiro.data.proximaParcela.vencimento}`
+                            : "Sem dados suficientes"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Status</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data
+                            ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status]
+                            : "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Despesas de terceiros</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.despesasTerceiros
+                            ? `${qFinanceiro.data.despesasTerceiros.total} registrada(s), ${qFinanceiro.data.despesasTerceiros.aguardandoAprovacao} aguardando aprovação`
+                            : "Sem dados suficientes"}
+                        </dd>
+                      </div>
+                      {/*
                   11/10/2026 — resposta normativa da Proprietária (Cláusula 9
                   do Estudo Genealógico v2): despesas de busca são pagas pelo
                   cliente, nunca custo do Clube. Este cartão é só informativo
                   e nunca deduz dos honorários/margem.
                 */}
-                <div>
-                  <dt className="text-navy/50">Custos de busca</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data && qFinanceiro.data.custosBuscaCliente > 0
-                      ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.custosBuscaCliente.toFixed(2)}`
-                      : "R$ 0,00"}
-                  </dd>
-                  <p className="mt-0.5 text-[11px] text-navy/50">Despesas de busca do cliente (não deduzem honorários)</p>
-                  {qFinanceiro.data && qFinanceiro.data.custosBuscaCliente === 0 ? (
-                    <p className="text-[11px] text-navy/40">Nenhuma despesa externa incorrida</p>
-                  ) : null}
-                </div>
-                <div>
-                  <dt className="text-navy/50">Margem bruta</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.margemBruta.toFixed(2)}` : "Sem dados suficientes"}
-                  </dd>
-                  <p className="mt-0.5 text-[11px] text-navy/50">Honorários do Clube (valor liquidado) — sem custo direto a deduzir</p>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Reembolsos (pagamentos estornados)</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.reembolsos
-                      ? `${qFinanceiro.data.reembolsos.total} estorno(s) — ${qFinanceiro.data.moeda} ${qFinanceiro.data.reembolsos.valor.toFixed(2)}`
-                      : "Sem dados suficientes"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Condição comercial</dt>
-                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}</dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Próxima ação financeira</dt>
-                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira}</dd>
-                </div>
-              </dl>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={!qFinanceiro.data?.proximaParcela || Boolean(rascunhoPagamento)}
-                  onClick={() => {
-                    const parcela = qFinanceiro.data?.proximaParcela;
-                    setRascunhoPagamento({
-                      valor: parcela ? String(parcela.valor) : "",
-                      pagoEm: new Date().toISOString().slice(0, 10),
-                      referencia: "",
-                    });
-                  }}
-                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
-                  title={qFinanceiro.data?.proximaParcela ? undefined : "Sem parcela em aberto para registrar."}
-                >
-                  Registrar pagamento
-                </button>
-                <AcaoOperacional
-                  rotulo="Preparar cobrança"
-                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
-                  acaoExterna={qFinanceiro.data?.faturaRascunhoAberta ? "preparar_cobranca_caso" : undefined}
-                  validacaoFormulario={rascunhoCobranca ? "O formulário de nova cobrança já está aberto." : null}
-                  efeito={
-                    qFinanceiro.data?.faturaRascunhoAberta
-                      ? "Emite a fatura em rascunho já existente para este caso. Só prepara internamente."
-                      : undefined
-                  }
-                  onConfirmar={() => {
-                    const rascunho = qFinanceiro.data?.faturaRascunhoAberta;
-                    if (rascunho) {
-                      mPrepararCobranca.mutate({ faturaId: rascunho.faturaId });
-                      return;
-                    }
-                    setRascunhoCobranca({ valor: "", vencimento: "", descricao: "" });
-                  }}
-                />
+                      <div>
+                        <dt className="text-navy/50">Custos de busca</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data && qFinanceiro.data.custosBuscaCliente > 0
+                            ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.custosBuscaCliente.toFixed(2)}`
+                            : "R$ 0,00"}
+                        </dd>
+                        <p className="mt-0.5 text-[11px] text-navy/50">
+                          Despesas de busca do cliente (não deduzem honorários)
+                        </p>
+                        {qFinanceiro.data && qFinanceiro.data.custosBuscaCliente === 0 ? (
+                          <p className="text-[11px] text-navy/40">
+                            Nenhuma despesa externa incorrida
+                          </p>
+                        ) : null}
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Margem bruta</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data
+                            ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.margemBruta.toFixed(2)}`
+                            : "Sem dados suficientes"}
+                        </dd>
+                        <p className="mt-0.5 text-[11px] text-navy/50">
+                          Honorários do Clube (valor liquidado) — sem custo direto a deduzir
+                        </p>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Reembolsos (pagamentos estornados)</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.reembolsos
+                            ? `${qFinanceiro.data.reembolsos.total} estorno(s) — ${qFinanceiro.data.moeda} ${qFinanceiro.data.reembolsos.valor.toFixed(2)}`
+                            : "Sem dados suficientes"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Condição comercial</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Próxima ação financeira</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.proximaAcaoFinanceira}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={!qFinanceiro.data?.proximaParcela || Boolean(rascunhoPagamento)}
+                        onClick={() => {
+                          const parcela = qFinanceiro.data?.proximaParcela;
+                          setRascunhoPagamento({
+                            valor: parcela ? String(parcela.valor) : "",
+                            pagoEm: new Date().toISOString().slice(0, 10),
+                            referencia: "",
+                          });
+                        }}
+                        className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+                        title={
+                          qFinanceiro.data?.proximaParcela
+                            ? undefined
+                            : "Sem parcela em aberto para registrar."
+                        }
+                      >
+                        Registrar pagamento
+                      </button>
+                      <AcaoOperacional
+                        rotulo="Preparar cobrança"
+                        className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+                        acaoExterna={
+                          qFinanceiro.data?.faturaRascunhoAberta
+                            ? "preparar_cobranca_caso"
+                            : undefined
+                        }
+                        validacaoFormulario={
+                          rascunhoCobranca ? "O formulário de nova cobrança já está aberto." : null
+                        }
+                        efeito={
+                          qFinanceiro.data?.faturaRascunhoAberta
+                            ? "Emite a fatura em rascunho já existente para este caso. Só prepara internamente."
+                            : undefined
+                        }
+                        onConfirmar={() => {
+                          const rascunho = qFinanceiro.data?.faturaRascunhoAberta;
+                          if (rascunho) {
+                            mPrepararCobranca.mutate({ faturaId: rascunho.faturaId });
+                            return;
+                          }
+                          setRascunhoCobranca({ valor: "", vencimento: "", descricao: "" });
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-            </>
-          )}
-        </div>
-      </div>
-      </details>
+            </div>
+          </details>
 
-      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir trabalho, documentos e alertas do caso</summary>
-        <div className="mt-4 border-t border-navy/10 pt-4">
-      {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
-      {rascunhoPagamento ? (
-        <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
-          <p className="w-full text-xs text-navy/60">Registrar pagamento</p>
-          <label className="text-xs text-navy/60">
-            Valor pago
-            <input
-              type="number"
-              className={inputCls + " mt-1 w-28"}
-              value={rascunhoPagamento.valor}
-              onChange={(e) => setRascunhoPagamento({ ...rascunhoPagamento, valor: e.target.value })}
-            />
-          </label>
-          <label className="text-xs text-navy/60">
-            Data do pagamento
-            <input
-              type="date"
-              className={inputCls + " mt-1"}
-              value={rascunhoPagamento.pagoEm}
-              onChange={(e) => setRascunhoPagamento({ ...rascunhoPagamento, pagoEm: e.target.value })}
-            />
-          </label>
-          <label className="text-xs text-navy/60">
-            Referência externa
-            <input
-              className={inputCls + " mt-1"}
-              value={rascunhoPagamento.referencia}
-              onChange={(e) => setRascunhoPagamento({ ...rascunhoPagamento, referencia: e.target.value })}
-            />
-          </label>
-          <AcaoOperacional
-            rotulo="Confirmar pagamento"
-            className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
-            acaoExterna="registrar_pagamento_caso"
-            validacaoFormulario={
-              !rascunhoPagamento.valor || !rascunhoPagamento.pagoEm || !rascunhoPagamento.referencia
-                ? "Preencha valor, data e referência antes de confirmar."
-                : null
-            }
-            efeito="Registra o pagamento como confirmado e propaga para o campo que libera o acesso do caso ao Portal do Cliente."
-            onConfirmar={(motivo) => {
-              const parcela = qFinanceiro.data?.proximaParcela;
-              if (!parcela || mRegistrarPagamento.isPending) return;
-              mRegistrarPagamento.mutate({
-                invoiceId: parcela.faturaId,
-                valor: Number(rascunhoPagamento.valor),
-                pagoEm: rascunhoPagamento.pagoEm,
-                referenciaExterna: rascunhoPagamento.referencia,
-                motivo,
-              });
-              setRascunhoPagamento(null);
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setRascunhoPagamento(null)}
-            className="rounded-lg px-3 py-2 text-sm text-navy/60 hover:bg-navy/5"
-          >
-            Cancelar
-          </button>
-        </div>
-      ) : null}
-      {rascunhoCobranca ? (
-        <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
-          <p className="w-full text-xs text-navy/60">Preparar cobrança</p>
-          <label className="text-xs text-navy/60">
-            Valor da cobrança
-            <input
-              type="number"
-              className={inputCls + " mt-1 w-28"}
-              value={rascunhoCobranca.valor}
-              onChange={(e) => setRascunhoCobranca({ ...rascunhoCobranca, valor: e.target.value })}
-            />
-          </label>
-          <label className="text-xs text-navy/60">
-            Vencimento
-            <input
-              type="date"
-              className={inputCls + " mt-1"}
-              value={rascunhoCobranca.vencimento}
-              onChange={(e) => setRascunhoCobranca({ ...rascunhoCobranca, vencimento: e.target.value })}
-            />
-          </label>
-          <label className="text-xs text-navy/60">
-            Descrição interna
-            <input
-              className={inputCls + " mt-1"}
-              value={rascunhoCobranca.descricao}
-              onChange={(e) => setRascunhoCobranca({ ...rascunhoCobranca, descricao: e.target.value })}
-            />
-          </label>
-          <AcaoOperacional
-            rotulo="Confirmar preparação"
-            className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
-            acaoExterna="preparar_cobranca_caso"
-            validacaoFormulario={
-              !rascunhoCobranca.valor || !rascunhoCobranca.vencimento
-                ? "Preencha valor e vencimento antes de confirmar."
-                : null
-            }
-            efeito="Só prepara internamente. Nenhum link, mensagem ou cobrança é enviado ao cliente."
-            onConfirmar={() => {
-              if (mPrepararCobranca.isPending) return;
-              mPrepararCobranca.mutate({
-                valor: Number(rascunhoCobranca.valor),
-                vencimento: rascunhoCobranca.vencimento,
-                descricao: rascunhoCobranca.descricao,
-              });
-              setRascunhoCobranca(null);
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setRascunhoCobranca(null)}
-            className="rounded-lg px-3 py-2 text-sm text-navy/60 hover:bg-navy/5"
-          >
-            Cancelar
-          </button>
-        </div>
-      ) : null}
-      <div className="mb-6 grid gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>
-          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
-            {(qTarefas.data?.tarefas ?? []).slice(0, 3).map((t: any) => (
-              <li key={t.id}>
-                {t.titulo} <span className="text-xs text-navy/50">— {t.status}</span>
-              </li>
-            ))}
-            {!(qTarefas.data?.tarefas ?? []).length ? <li className="text-navy/50">Nenhuma tarefa aberta.</li> : null}
-          </ul>
-          <FormularioTarefaCaso caseId={id} onCriada={recarregarTarefas} />
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Atualizações recentes</p>
-          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
-            {((q.data?.timeline ?? []) as any[]).slice(0, 3).map((e) => (
-              <li key={e.id}>
-                {e.title ?? "Evento"}{" "}
-                <span className="text-xs text-navy/50">
-                  — {new Date(String(e.occurred_at ?? e.created_at)).toLocaleDateString("pt-BR")}
-                </span>
-              </li>
-            ))}
-            {!((q.data?.timeline ?? []) as any[]).length ? <li className="text-navy/50">Nenhuma atualização registrada.</li> : null}
-          </ul>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Documentos prioritários</p>
-          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
-            {((qDocumentos.data ?? []) as any[])
-              .filter((d) => d.status !== "liberado")
-              .slice(0, 3)
-              .map((d) => (
-                <li key={d.id}>
-                  {d.titulo} <span className="text-xs text-navy/50">— {d.status}</span>
-                </li>
-              ))}
-            {!((qDocumentos.data ?? []) as any[]).length ? <li className="text-navy/50">Nenhum documento registrado.</li> : null}
-          </ul>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Microentregas recentes</p>
-          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
-            {((qc2.data?.entregas ?? []) as any[]).slice(0, 3).map((m) => (
-              <li key={m.id}>{m.title_client ?? "Microentrega"}</li>
-            ))}
-            {!((qc2.data?.entregas ?? []) as any[]).length ? <li className="text-navy/50">Nenhuma microentrega registrada.</li> : null}
-          </ul>
-        </div>
-        <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4 lg:col-span-2">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Alertas críticos</p>
-          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
-            {((qc2.data?.alertas ?? []) as any[])
-              .filter((a) => a.criticidade === "critica" && a.status !== "completed")
-              .slice(0, 3)
-              .map((a) => (
-                <li key={a.id}>{a.titulo}</li>
-              ))}
-            {!((qc2.data?.alertas ?? []) as any[]).some((a) => a.criticidade === "critica" && a.status !== "completed") ? (
-              <li className="text-navy/50">Nenhum alerta crítico.</li>
-            ) : null}
-          </ul>
-        </div>
-      </div>
-        </div>
-      </details>
+          <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+            <summary className="cursor-pointer text-sm font-medium text-navy">
+              Abrir trabalho, documentos e alertas do caso
+            </summary>
+            <div className="mt-4 border-t border-navy/10 pt-4">
+              {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
+              {rascunhoPagamento ? (
+                <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
+                  <p className="w-full text-xs text-navy/60">Registrar pagamento</p>
+                  <label className="text-xs text-navy/60">
+                    Valor pago
+                    <input
+                      type="number"
+                      className={inputCls + " mt-1 w-28"}
+                      value={rascunhoPagamento.valor}
+                      onChange={(e) =>
+                        setRascunhoPagamento({ ...rascunhoPagamento, valor: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-navy/60">
+                    Data do pagamento
+                    <input
+                      type="date"
+                      className={inputCls + " mt-1"}
+                      value={rascunhoPagamento.pagoEm}
+                      onChange={(e) =>
+                        setRascunhoPagamento({ ...rascunhoPagamento, pagoEm: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-navy/60">
+                    Referência externa
+                    <input
+                      className={inputCls + " mt-1"}
+                      value={rascunhoPagamento.referencia}
+                      onChange={(e) =>
+                        setRascunhoPagamento({ ...rascunhoPagamento, referencia: e.target.value })
+                      }
+                    />
+                  </label>
+                  <AcaoOperacional
+                    rotulo="Confirmar pagamento"
+                    className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+                    acaoExterna="registrar_pagamento_caso"
+                    validacaoFormulario={
+                      !rascunhoPagamento.valor ||
+                      !rascunhoPagamento.pagoEm ||
+                      !rascunhoPagamento.referencia
+                        ? "Preencha valor, data e referência antes de confirmar."
+                        : null
+                    }
+                    efeito="Registra o pagamento como confirmado e propaga para o campo que libera o acesso do caso ao Portal do Cliente."
+                    onConfirmar={(motivo) => {
+                      const parcela = qFinanceiro.data?.proximaParcela;
+                      if (!parcela || mRegistrarPagamento.isPending) return;
+                      mRegistrarPagamento.mutate({
+                        invoiceId: parcela.faturaId,
+                        valor: Number(rascunhoPagamento.valor),
+                        pagoEm: rascunhoPagamento.pagoEm,
+                        referenciaExterna: rascunhoPagamento.referencia,
+                        motivo,
+                      });
+                      setRascunhoPagamento(null);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setRascunhoPagamento(null)}
+                    className="rounded-lg px-3 py-2 text-sm text-navy/60 hover:bg-navy/5"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : null}
+              {rascunhoCobranca ? (
+                <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
+                  <p className="w-full text-xs text-navy/60">Preparar cobrança</p>
+                  <label className="text-xs text-navy/60">
+                    Valor da cobrança
+                    <input
+                      type="number"
+                      className={inputCls + " mt-1 w-28"}
+                      value={rascunhoCobranca.valor}
+                      onChange={(e) =>
+                        setRascunhoCobranca({ ...rascunhoCobranca, valor: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-navy/60">
+                    Vencimento
+                    <input
+                      type="date"
+                      className={inputCls + " mt-1"}
+                      value={rascunhoCobranca.vencimento}
+                      onChange={(e) =>
+                        setRascunhoCobranca({ ...rascunhoCobranca, vencimento: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-navy/60">
+                    Descrição interna
+                    <input
+                      className={inputCls + " mt-1"}
+                      value={rascunhoCobranca.descricao}
+                      onChange={(e) =>
+                        setRascunhoCobranca({ ...rascunhoCobranca, descricao: e.target.value })
+                      }
+                    />
+                  </label>
+                  <AcaoOperacional
+                    rotulo="Confirmar preparação"
+                    className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+                    acaoExterna="preparar_cobranca_caso"
+                    validacaoFormulario={
+                      !rascunhoCobranca.valor || !rascunhoCobranca.vencimento
+                        ? "Preencha valor e vencimento antes de confirmar."
+                        : null
+                    }
+                    efeito="Só prepara internamente. Nenhum link, mensagem ou cobrança é enviado ao cliente."
+                    onConfirmar={() => {
+                      if (mPrepararCobranca.isPending) return;
+                      mPrepararCobranca.mutate({
+                        valor: Number(rascunhoCobranca.valor),
+                        vencimento: rascunhoCobranca.vencimento,
+                        descricao: rascunhoCobranca.descricao,
+                      });
+                      setRascunhoCobranca(null);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setRascunhoCobranca(null)}
+                    className="rounded-lg px-3 py-2 text-sm text-navy/60 hover:bg-navy/5"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : null}
+              <div className="mb-6 grid gap-3 lg:grid-cols-2">
+                <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>
+                  <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+                    {(qTarefas.data?.tarefas ?? []).slice(0, 3).map((t: any) => (
+                      <li key={t.id}>
+                        {t.titulo} <span className="text-xs text-navy/50">— {t.status}</span>
+                      </li>
+                    ))}
+                    {!(qTarefas.data?.tarefas ?? []).length ? (
+                      <li className="text-navy/50">Nenhuma tarefa aberta.</li>
+                    ) : null}
+                  </ul>
+                  <FormularioTarefaCaso caseId={id} onCriada={recarregarTarefas} />
+                </div>
+                <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                    Atualizações recentes
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+                    {((q.data?.timeline ?? []) as any[]).slice(0, 3).map((e) => (
+                      <li key={e.id}>
+                        {e.title ?? "Evento"}{" "}
+                        <span className="text-xs text-navy/50">
+                          —{" "}
+                          {new Date(String(e.occurred_at ?? e.created_at)).toLocaleDateString(
+                            "pt-BR",
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                    {!((q.data?.timeline ?? []) as any[]).length ? (
+                      <li className="text-navy/50">Nenhuma atualização registrada.</li>
+                    ) : null}
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                    Documentos prioritários
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+                    {((qDocumentos.data ?? []) as any[])
+                      .filter((d) => d.status !== "liberado")
+                      .slice(0, 3)
+                      .map((d) => (
+                        <li key={d.id}>
+                          {d.titulo} <span className="text-xs text-navy/50">— {d.status}</span>
+                        </li>
+                      ))}
+                    {!((qDocumentos.data ?? []) as any[]).length ? (
+                      <li className="text-navy/50">Nenhum documento registrado.</li>
+                    ) : null}
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                    Microentregas recentes
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+                    {((qc2.data?.entregas ?? []) as any[]).slice(0, 3).map((m) => (
+                      <li key={m.id}>{m.title_client ?? "Microentrega"}</li>
+                    ))}
+                    {!((qc2.data?.entregas ?? []) as any[]).length ? (
+                      <li className="text-navy/50">Nenhuma microentrega registrada.</li>
+                    ) : null}
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4 lg:col-span-2">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                    Alertas críticos
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+                    {((qc2.data?.alertas ?? []) as any[])
+                      .filter((a) => a.criticidade === "critica" && a.status !== "completed")
+                      .slice(0, 3)
+                      .map((a) => (
+                        <li key={a.id}>{a.titulo}</li>
+                      ))}
+                    {!((qc2.data?.alertas ?? []) as any[]).some(
+                      (a) => a.criticidade === "critica" && a.status !== "completed",
+                    ) ? (
+                      <li className="text-navy/50">Nenhum alerta crítico.</li>
+                    ) : null}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </details>
 
-      {/* 12/10/2026 — 5 etapas de leitura, derivadas das verificações existentes. */}
-      <div className="mb-5">
-        <BarraEtapasCaso
-          caseId={id}
-          aoAbrirSecao={(s) => {
-            const alvo = SECOES.find((x) => x.id === s);
-            if (alvo) setSecaoFoco(alvo.id);
-          }}
-        />
-      </div>
-
-      {/* Casca V4 (18/10/2026): o índice das 8 SECOES subiu para o cabeçalho (abas-pílula). */}
-
-      <details
-        open={(secaoFoco !== null && secaoFoco !== "visao") || pilulaVisaoConcretaAtiva}
-        className="rounded-lg border border-navy/15 bg-card p-4"
-      >
-        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
-      <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
-        <SecaoAncora id="visao" titulo="Indicadores" hidden={secaoFoco !== null && secaoFoco !== "visao"}>
-          {/* Corte U3 (28/09/2026): decisões que só a equipe toma, lidas do dado real. */}
-          <div className="mb-4">
-            <PendenciasHumanasCaso caseId={id} />
+          {/* 12/10/2026 — 5 etapas de leitura, derivadas das verificações existentes. */}
+          <div className="mb-5">
+            <BarraEtapasCaso
+              caseId={id}
+              aoAbrirSecao={(s) => {
+                const alvo = SECOES.find((x) => x.id === s);
+                if (alvo) setSecaoFoco(alvo.id);
+              }}
+            />
           </div>
 
-          {/*
+          {/* Casca V4 (18/10/2026): o índice das 8 SECOES subiu para o cabeçalho (abas-pílula). */}
+
+          <details
+            open={(secaoFoco !== null && secaoFoco !== "visao") || pilulaVisaoConcretaAtiva}
+            className="rounded-lg border border-navy/15 bg-card p-4"
+          >
+            <summary className="cursor-pointer text-sm font-medium text-navy">
+              Abrir ficha operacional completa
+            </summary>
+            <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
+              <SecaoAncora
+                id="visao"
+                titulo="Indicadores"
+                hidden={secaoFoco !== null && secaoFoco !== "visao"}
+              >
+                {/* Corte U3 (28/09/2026): decisões que só a equipe toma, lidas do dado real. */}
+                <div className="mb-4">
+                  <PendenciasHumanasCaso caseId={id} />
+                </div>
+
+                {/*
             Frente 1 (19/10/2026) — "Visão Concreta": sub-aba DENTRO da seção
             "Visão" (uma das 8 SECOES fixas), não uma 9ª seção. Consolida o
             que /golive/painel-caso.tsx já mostrava (linha do tempo,
@@ -2540,350 +3094,401 @@ function FichaCaso() {
             condição comercial/faturas e publicações) a partir dos leitores
             já parametrizados por caseId desta própria ficha.
           */}
-          <div role="tablist" aria-label="Indicadores ou Visão Concreta" className="mb-4 flex gap-2">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={abaVisao === "indicadores"}
-              onClick={() => {
-                setAbaVisao("indicadores");
-                setPilulaVisaoConcretaAtiva(false);
-              }}
-              className={
-                "rounded-full border px-3 py-1 text-[12px] transition-colors " +
-                (abaVisao === "indicadores"
-                  ? "border-navy bg-navy text-cream"
-                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-              }
-            >
-              Indicadores
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={abaVisao === "concreta"}
-              onClick={() => setAbaVisao("concreta")}
-              className={
-                "rounded-full border px-3 py-1 text-[12px] transition-colors " +
-                (abaVisao === "concreta"
-                  ? "border-navy bg-navy text-cream"
-                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-              }
-            >
-              Visão Concreta
-            </button>
-          </div>
+                <div
+                  role="tablist"
+                  aria-label="Indicadores ou Visão Concreta"
+                  className="mb-4 flex gap-2"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={abaVisao === "indicadores"}
+                    onClick={() => {
+                      setAbaVisao("indicadores");
+                      setPilulaVisaoConcretaAtiva(false);
+                    }}
+                    className={
+                      "rounded-full border px-3 py-1 text-[12px] transition-colors " +
+                      (abaVisao === "indicadores"
+                        ? "border-navy bg-navy text-cream"
+                        : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+                    }
+                  >
+                    Indicadores
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={abaVisao === "concreta"}
+                    onClick={() => setAbaVisao("concreta")}
+                    className={
+                      "rounded-full border px-3 py-1 text-[12px] transition-colors " +
+                      (abaVisao === "concreta"
+                        ? "border-navy bg-navy text-cream"
+                        : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+                    }
+                  >
+                    Visão Concreta
+                  </button>
+                </div>
 
-          {abaVisao === "concreta" ? (
-            <div className="mb-6 space-y-6">
-              <VisaoConcretaCaso
-                caseId={id}
-                timeline={(q.data?.timeline ?? []) as Record<string, unknown>[]}
-                membros={(q.data?.membros ?? []) as Record<string, unknown>[]}
-                documentos={(qDocumentos.data ?? []) as Record<string, unknown>[]}
-                pesquisa={
-                  qPesquisa.data
-                    ? {
-                        fontes: qPesquisa.data.fontes,
-                        evidencias: qPesquisa.data.evidencias,
-                        achados: qPesquisa.data.achados,
-                        pessoas: qPesquisa.data.pessoas,
-                        relacoes: qPesquisa.data.relacoes,
+                {abaVisao === "concreta" ? (
+                  <div className="mb-6 space-y-6">
+                    <VisaoConcretaCaso
+                      caseId={id}
+                      timeline={(q.data?.timeline ?? []) as Record<string, unknown>[]}
+                      membros={(q.data?.membros ?? []) as Record<string, unknown>[]}
+                      documentos={(qDocumentos.data ?? []) as Record<string, unknown>[]}
+                      pesquisa={
+                        qPesquisa.data
+                          ? {
+                              fontes: qPesquisa.data.fontes,
+                              evidencias: qPesquisa.data.evidencias,
+                              achados: qPesquisa.data.achados,
+                              pessoas: qPesquisa.data.pessoas,
+                              relacoes: qPesquisa.data.relacoes,
+                            }
+                          : null
                       }
-                    : null
-                }
-                financeiro={qFinanceiro.data ?? null}
-                entregas={(qc2.data?.entregas ?? []) as Record<string, unknown>[]}
-              />
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
-                  Resgate dos 4 lotes (golive-ficha.ts) — fonte, estado, responsável e visibilidade por campo
-                </p>
-                <FichaQuatroLotesGoLive casoId={String(caso["id"] ?? "")} />
-              </div>
-            </div>
-          ) : null}
+                      financeiro={qFinanceiro.data ?? null}
+                      entregas={(qc2.data?.entregas ?? []) as Record<string, unknown>[]}
+                    />
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
+                        Resgate dos 4 lotes (golive-ficha.ts) — fonte, estado, responsável e
+                        visibilidade por campo
+                      </p>
+                      <FichaQuatroLotesGoLive casoId={String(caso["id"] ?? "")} />
+                    </div>
+                  </div>
+                ) : null}
 
-          <div className={abaVisao === "indicadores" ? "" : "hidden"}>
-          <EstadoDados
-            carregando={q.isLoading}
-            erro={q.error}
-            dados={comoPayload(q.data)}
-            aoTentarNovamente={() => void q.refetch()}
-            recurso="os indicadores do caso"
-          >
-            {([d]) => (
-              <>
-                <AbaVisaoGeral
-                  caso={caso}
-                  timeline={d.timeline}
-                  blueprint={d.blueprint}
-                  filaDrive={d.filaDrive}
-                  financeiro={qFinanceiro.data ?? null}
-                />
-                {/*
+                <div className={abaVisao === "indicadores" ? "" : "hidden"}>
+                  <EstadoDados
+                    carregando={q.isLoading}
+                    erro={q.error}
+                    dados={comoPayload(q.data)}
+                    aoTentarNovamente={() => void q.refetch()}
+                    recurso="os indicadores do caso"
+                  >
+                    {([d]) => (
+                      <>
+                        <AbaVisaoGeral
+                          caso={caso}
+                          timeline={d.timeline}
+                          blueprint={d.blueprint}
+                          filaDrive={d.filaDrive}
+                          financeiro={qFinanceiro.data ?? null}
+                        />
+                        {/*
                   07/09/2026 — "Radar Individual" (micro) do mockup do Desk:
                   o "Radar Interno" só tinha a Matriz de Prioridade (macro,
                   todos os casos, em /casos). O toggle para o caso individual
                   nunca tinha sido construído. Mesma taxonomia do Radar do
                   cliente (radar-eixos.ts), conteúdo interno.
                 */}
-                <div className="mt-5">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
-                    Radar Individual deste caso
-                  </p>
-                  {(() => {
-                    const posicaoRadar = posicionar({
-                      tipo: "caso",
-                      id,
-                      rotulo: String(caso?.["codigo"] ?? caso?.["titulo"] ?? id),
-                      elegibilidade: (caso?.["hipotese_elegibilidade"] as string) ?? null,
-                      prazo: (caso?.["prazo_proxima_acao"] as string) ?? null,
-                      diasSemTouchpoint: (caso?.["dias_sem_touchpoint"] as number) ?? null,
-                      esperaExternaAtiva: Boolean(caso?.["aguardando_instituicao_externa"]),
-                      bloqueios: d.bloqueiosReais.map((b) => b.motivo),
-                      responsavel: (caso?.["proxima_acao_responsavel"] as string) ?? null,
-                      origem: papelDoRegistro(caso).valor === "demo" ? "demo" : "real",
-                    });
-                    const prazo = String(caso?.["prazo_proxima_acao"] ?? "").slice(0, 10);
-                    const [ano, mes, dia] = prazo.split("-");
-                    return (
-                      <RadarInternoCaso
-                        contexto={{
-                          caseId: id,
-                          status: String(caso?.["status"] ?? "Não informado"),
-                          prioridade: ROTULO_SINAL[posicaoRadar.sinal],
-                          urgencia: posicaoRadar.urgencia,
-                          elegibilidade: posicaoRadar.elegibilidade,
-                          responsavel: String(caso?.["proxima_acao_responsavel"] ?? "Não informado"),
-                          prazo: ano && mes && dia ? `${dia}/${mes}/${ano}` : "Sem prazo definido",
-                          proximaAcao: String(caso?.["proxima_acao"] ?? caso?.["proxima_acao_codigo"] ?? "Não informada"),
-                          bloqueios: d.bloqueiosReais.length
-                            ? d.bloqueiosReais.map((b) => b.motivo).join(" · ")
-                            : "Nenhum bloqueio registrado",
-                        }}
-                        eixos={radarInternoDoCaso({
-                          caso,
-                          nucleoCompletude: d.nucleoOk,
-                          nucleoCriterios: d.nucleoCriterios,
-                          checksAtivacao: d.checksAtivacao,
-                          bloqueiosReais: d.bloqueiosReais,
-                        })}
-                      />
-                    );
-                  })()}
-                </div>
-                <FasesMotorCidadania caseId={id} />
-                <CadeiaCaso360 caseId={id} />
-              </>
-            )}
-          </EstadoDados>
-          <div className="mt-5">
-            <EstadoDados
-              carregando={qc2.isLoading}
-              erro={qc2.error}
-              dados={comoPayload(qc2.data)}
-              aoTentarNovamente={() => void qc2.refetch()}
-              recurso="os alertas e a comunicação do caso"
-            >
-              {([c]) => (
-                <AbaProximaAcao
-                  caseId={id}
-                  caso={caso}
-                  alertas={c.alertas}
-                  comunicacoes={c.comunicacoes}
-                  bloqueado={bloqueado}
-                  onMudou={recarregar}
-                  v={v}
-                  set={set}
-                />
-              )}
-            </EstadoDados>
-          </div>
+                        <div className="mt-5">
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
+                            Radar Individual deste caso
+                          </p>
+                          {(() => {
+                            const posicaoRadar = posicionar({
+                              tipo: "caso",
+                              id,
+                              rotulo: String(caso?.["codigo"] ?? caso?.["titulo"] ?? id),
+                              elegibilidade: (caso?.["hipotese_elegibilidade"] as string) ?? null,
+                              prazo: (caso?.["prazo_proxima_acao"] as string) ?? null,
+                              diasSemTouchpoint: (caso?.["dias_sem_touchpoint"] as number) ?? null,
+                              esperaExternaAtiva: Boolean(caso?.["aguardando_instituicao_externa"]),
+                              bloqueios: d.bloqueiosReais.map((b) => b.motivo),
+                              responsavel: (caso?.["proxima_acao_responsavel"] as string) ?? null,
+                              origem: papelDoRegistro(caso).valor === "demo" ? "demo" : "real",
+                            });
+                            const prazo = String(caso?.["prazo_proxima_acao"] ?? "").slice(0, 10);
+                            const [ano, mes, dia] = prazo.split("-");
+                            return (
+                              <RadarInternoCaso
+                                contexto={{
+                                  caseId: id,
+                                  status: String(caso?.["status"] ?? "Não informado"),
+                                  prioridade: ROTULO_SINAL[posicaoRadar.sinal],
+                                  urgencia: posicaoRadar.urgencia,
+                                  elegibilidade: posicaoRadar.elegibilidade,
+                                  responsavel: String(
+                                    caso?.["proxima_acao_responsavel"] ?? "Não informado",
+                                  ),
+                                  prazo:
+                                    ano && mes && dia
+                                      ? `${dia}/${mes}/${ano}`
+                                      : "Sem prazo definido",
+                                  proximaAcao: String(
+                                    caso?.["proxima_acao"] ??
+                                      caso?.["proxima_acao_codigo"] ??
+                                      "Não informada",
+                                  ),
+                                  bloqueios: d.bloqueiosReais.length
+                                    ? d.bloqueiosReais.map((b) => b.motivo).join(" · ")
+                                    : "Nenhum bloqueio registrado",
+                                }}
+                                eixos={radarInternoDoCaso({
+                                  caso,
+                                  nucleoCompletude: d.nucleoOk,
+                                  nucleoCriterios: d.nucleoCriterios,
+                                  checksAtivacao: d.checksAtivacao,
+                                  bloqueiosReais: d.bloqueiosReais,
+                                })}
+                              />
+                            );
+                          })()}
+                        </div>
+                        <FasesMotorCidadania caseId={id} />
+                        <CadeiaCaso360 caseId={id} />
+                      </>
+                    )}
+                  </EstadoDados>
+                  <div className="mt-5">
+                    <EstadoDados
+                      carregando={qc2.isLoading}
+                      erro={qc2.error}
+                      dados={comoPayload(qc2.data)}
+                      aoTentarNovamente={() => void qc2.refetch()}
+                      recurso="os alertas e a comunicação do caso"
+                    >
+                      {([c]) => (
+                        <AbaProximaAcao
+                          caseId={id}
+                          caso={caso}
+                          alertas={c.alertas}
+                          comunicacoes={c.comunicacoes}
+                          bloqueado={bloqueado}
+                          onMudou={recarregar}
+                          v={v}
+                          set={set}
+                        />
+                      )}
+                    </EstadoDados>
+                  </div>
 
-          {/*
+                  {/*
             27/08/2026 — decisão da Proprietária: "Caso" (identidade, aliases,
             responsabilidade, brief interno) é a mesma leitura de Indicadores
             — o que este caso É — não uma seção à parte.
           */}
-          <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            <Secao
-              titulo="Identificação"
-              descricao="Registro de caso — distinto de família e de pessoa."
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Texto
-                  label="Título do caso"
-                  valor={v("titulo")}
-                  onChange={(x) => set("titulo", x)}
-                />
-                <div>
-                  <Rotulo>Identificador canônico</Rotulo>
-                  <p className="flex flex-wrap items-center gap-2 overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
-                    <span className="whitespace-nowrap">{String(caso?.["codigo"] ?? "—")}</span>
-                    {ehFixture(caso?.["codigo"] as string | null) && (
-                      <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 font-sans text-[10px] uppercase tracking-wide text-terracotta">
-                        {ROTULO_FIXTURE}
+                  <div className="mt-5 grid gap-5 lg:grid-cols-2">
+                    <Secao
+                      titulo="Identificação"
+                      descricao="Registro de caso — distinto de família e de pessoa."
+                    >
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Texto
+                          label="Título do caso"
+                          valor={v("titulo")}
+                          onChange={(x) => set("titulo", x)}
+                        />
+                        <div>
+                          <Rotulo>Identificador canônico</Rotulo>
+                          <p className="flex flex-wrap items-center gap-2 overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
+                            <span className="whitespace-nowrap">
+                              {String(caso?.["codigo"] ?? "—")}
+                            </span>
+                            {ehFixture(caso?.["codigo"] as string | null) && (
+                              <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 font-sans text-[10px] uppercase tracking-wide text-terracotta">
+                                {ROTULO_FIXTURE}
+                              </span>
+                            )}
+                          </p>
+                          <p className="mt-1 text-xs text-navy/50">
+                            Gerado pelo servidor e imutável. Modelo:{" "}
+                            {String(caso?.["modelo"] ?? "—")}. País, via, produto e preço ficam em
+                            campos estruturados e nunca compõem o identificador.
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Rotulo>Identificadores históricos (aliases)</Rotulo>
+                          <EstadoDados
+                            carregando={qc2.isLoading}
+                            erro={qc2.error}
+                            dados={qc2.data?.aliases}
+                            aoTentarNovamente={() => void qc2.refetch()}
+                            recurso="os identificadores históricos"
+                            vazio="Nenhum identificador histórico registrado."
+                          >
+                            {(aliases) => (
+                              <ul className="space-y-1">
+                                {aliases.map((a) => (
+                                  <li
+                                    key={String(a["id"])}
+                                    className="overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
+                                  >
+                                    <span className="whitespace-nowrap font-mono text-navy">
+                                      {String(a["alias"])}
+                                    </span>
+                                    <span className="ml-2 text-xs text-navy/50">
+                                      {String(a["alias_type"] ?? "historico")} · origem{" "}
+                                      {String(a["source"] ?? "—")}
+                                      {a["superseded_by"]
+                                        ? ` · substituído por ${String(a["superseded_by"])}`
+                                        : ""}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </EstadoDados>
+                          <p className="mt-1 text-xs text-navy/50">
+                            Somente consulta interna. Alias nunca vira chave do caso e nunca é
+                            apagado.
+                          </p>
+                        </div>
+                        <Texto
+                          label="Data de entrada do caso"
+                          tipo="date"
+                          valor={v("data_entrada_caso")}
+                          onChange={(x) => set("data_entrada_caso", x)}
+                        />
+                        <Texto
+                          label="Case service / trilha (ID)"
+                          valor={v("citizenship_track_id")}
+                          onChange={(x) => set("citizenship_track_id", x)}
+                        />
+                        <div>
+                          <Rotulo>Cliente vinculado</Rotulo>
+                          <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70">
+                            {q.data?.cliente?.nome ?? "Sem cliente vinculado"}
+                          </p>
+                        </div>
+                      </div>
+                    </Secao>
+
+                    <Secao
+                      titulo="Responsabilidade"
+                      descricao="Toda entrega tem responsável nomeado."
+                    >
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Texto
+                          label="Responsável principal"
+                          valor={v("responsavel_principal")}
+                          onChange={(x) => set("responsavel_principal", x)}
+                        />
+                        <Texto
+                          label="Cargo do responsável"
+                          valor={v("cargo_responsavel_principal")}
+                          onChange={(x) => set("cargo_responsavel_principal", x)}
+                        />
+                        <Texto
+                          label="Supervisora do caso"
+                          valor={v("supervisora_do_caso")}
+                          onChange={(x) => set("supervisora_do_caso", x)}
+                        />
+                        <Texto
+                          label="Colaboradores (separados por vírgula)"
+                          valor={arr("colaboradores_do_caso").join(", ")}
+                          onChange={(x) =>
+                            set(
+                              "colaboradores_do_caso",
+                              x
+                                .split(",")
+                                .map((s) => s.trim())
+                                .filter(Boolean),
+                            )
+                          }
+                        />
+                      </div>
+                    </Secao>
+
+                    <Secao
+                      titulo="Próxima ação"
+                      descricao="Lista controlada; 'Outro' exige justificativa."
+                    >
+                      <div className="grid gap-4">
+                        <Selecao
+                          label="Próxima ação"
+                          valor={v("proxima_acao_codigo")}
+                          opcoes={PROXIMAS_ACOES}
+                          onChange={(x) => set("proxima_acao_codigo", x)}
+                        />
+                        <Texto
+                          label="Justificativa / detalhe"
+                          valor={v("proxima_acao_justificativa")}
+                          onChange={(x) => set("proxima_acao_justificativa", x)}
+                          area
+                          ajuda={
+                            v("proxima_acao_codigo") === "outro_justificar"
+                              ? "Obrigatório quando a ação é 'Outro'."
+                              : undefined
+                          }
+                        />
+                      </div>
+                    </Secao>
+
+                    <Secao
+                      titulo="Brief interno"
+                      descricao="Uso interno — nunca exibido ao cliente."
+                    >
+                      <div className="grid gap-4">
+                        <Selecao
+                          label="Origem do brief"
+                          valor={v("origem_brief")}
+                          opcoes={ORIGEM_BRIEF}
+                          onChange={(x) => set("origem_brief", x)}
+                        />
+                        <Texto
+                          label="Link de origem interna"
+                          valor={v("link_origem_interna")}
+                          onChange={(x) => set("link_origem_interna", x)}
+                        />
+                        <Texto
+                          label="Resumo interno"
+                          valor={v("resumo_interno")}
+                          onChange={(x) => set("resumo_interno", x)}
+                          area
+                        />
+                        <Texto
+                          label="Brief interno"
+                          valor={v("brief_interno")}
+                          onChange={(x) => set("brief_interno", x)}
+                          area
+                        />
+                      </div>
+                    </Secao>
+                  </div>
+                </div>
+              </SecaoAncora>
+
+              <SecaoAncora
+                id="comercial"
+                titulo="Formalização"
+                hidden={secaoFoco !== null && secaoFoco !== "comercial"}
+              >
+                <section
+                  className="mb-6 border-y border-border py-4 text-sm text-navy"
+                  aria-label="Contexto da formalização"
+                >
+                  <h2 className="font-serif text-xl">Formalização deste caso</h2>
+                  <p className="mt-2">
+                    {caso["contrato_assinado"]
+                      ? "Assinatura indicada no caso — conferir no instrumento."
+                      : "Assinatura não registrada no caso."}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-3 text-xs">
+                    {qProposta.data?.proposta ? (
+                      <span>
+                        Proposta registrada · versão{" "}
+                        {String(qProposta.data.proposta.versao ?? "Não registrado")} ·{" "}
+                        {String(qProposta.data.proposta.status ?? "Não registrado")}
                       </span>
+                    ) : (
+                      <span>Proposta não registrada nesta leitura</span>
                     )}
-                  </p>
-                  <p className="mt-1 text-xs text-navy/50">
-                    Gerado pelo servidor e imutável. Modelo: {String(caso?.["modelo"] ?? "—")}.
-                    País, via, produto e preço ficam em campos estruturados e nunca compõem o
-                    identificador.
-                  </p>
-                </div>
-                <div className="sm:col-span-2">
-                  <Rotulo>Identificadores históricos (aliases)</Rotulo>
-                  <EstadoDados
-                    carregando={qc2.isLoading}
-                    erro={qc2.error}
-                    dados={qc2.data?.aliases}
-                    aoTentarNovamente={() => void qc2.refetch()}
-                    recurso="os identificadores históricos"
-                    vazio="Nenhum identificador histórico registrado."
-                  >
-                    {(aliases) => (
-                    <ul className="space-y-1">
-                      {aliases.map((a) => (
-                        <li
-                          key={String(a["id"])}
-                          className="overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
-                        >
-                          <span className="whitespace-nowrap font-mono text-navy">{String(a["alias"])}</span>
-                          <span className="ml-2 text-xs text-navy/50">
-                            {String(a["alias_type"] ?? "historico")} · origem{" "}
-                            {String(a["source"] ?? "—")}
-                            {a["superseded_by"]
-                              ? ` · substituído por ${String(a["superseded_by"])}`
-                              : ""}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    )}
-                  </EstadoDados>
-                  <p className="mt-1 text-xs text-navy/50">
-                    Somente consulta interna. Alias nunca vira chave do caso e nunca é apagado.
-                  </p>
-                </div>
-                <Texto
-                  label="Data de entrada do caso"
-                  tipo="date"
-                  valor={v("data_entrada_caso")}
-                  onChange={(x) => set("data_entrada_caso", x)}
-                />
-                <Texto
-                  label="Case service / trilha (ID)"
-                  valor={v("citizenship_track_id")}
-                  onChange={(x) => set("citizenship_track_id", x)}
-                />
-                <div>
-                  <Rotulo>Cliente vinculado</Rotulo>
-                  <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70">
-                    {q.data?.cliente?.nome ?? "Sem cliente vinculado"}
-                  </p>
-                </div>
-              </div>
-            </Secao>
-
-            <Secao titulo="Responsabilidade" descricao="Toda entrega tem responsável nomeado.">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Texto
-                  label="Responsável principal"
-                  valor={v("responsavel_principal")}
-                  onChange={(x) => set("responsavel_principal", x)}
-                />
-                <Texto
-                  label="Cargo do responsável"
-                  valor={v("cargo_responsavel_principal")}
-                  onChange={(x) => set("cargo_responsavel_principal", x)}
-                />
-                <Texto
-                  label="Supervisora do caso"
-                  valor={v("supervisora_do_caso")}
-                  onChange={(x) => set("supervisora_do_caso", x)}
-                />
-                <Texto
-                  label="Colaboradores (separados por vírgula)"
-                  valor={arr("colaboradores_do_caso").join(", ")}
-                  onChange={(x) =>
-                    set(
-                      "colaboradores_do_caso",
-                      x
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    )
-                  }
-                />
-              </div>
-            </Secao>
-
-            <Secao titulo="Próxima ação" descricao="Lista controlada; 'Outro' exige justificativa.">
-              <div className="grid gap-4">
-                <Selecao
-                  label="Próxima ação"
-                  valor={v("proxima_acao_codigo")}
-                  opcoes={PROXIMAS_ACOES}
-                  onChange={(x) => set("proxima_acao_codigo", x)}
-                />
-                <Texto
-                  label="Justificativa / detalhe"
-                  valor={v("proxima_acao_justificativa")}
-                  onChange={(x) => set("proxima_acao_justificativa", x)}
-                  area
-                  ajuda={
-                    v("proxima_acao_codigo") === "outro_justificar"
-                      ? "Obrigatório quando a ação é 'Outro'."
-                      : undefined
-                  }
-                />
-              </div>
-            </Secao>
-
-            <Secao titulo="Brief interno" descricao="Uso interno — nunca exibido ao cliente.">
-              <div className="grid gap-4">
-                <Selecao
-                  label="Origem do brief"
-                  valor={v("origem_brief")}
-                  opcoes={ORIGEM_BRIEF}
-                  onChange={(x) => set("origem_brief", x)}
-                />
-                <Texto
-                  label="Link de origem interna"
-                  valor={v("link_origem_interna")}
-                  onChange={(x) => set("link_origem_interna", x)}
-                />
-                <Texto
-                  label="Resumo interno"
-                  valor={v("resumo_interno")}
-                  onChange={(x) => set("resumo_interno", x)}
-                  area
-                />
-                <Texto
-                  label="Brief interno"
-                  valor={v("brief_interno")}
-                  onChange={(x) => set("brief_interno", x)}
-                  area
-                />
-              </div>
-            </Secao>
-          </div>
-          </div>
-        </SecaoAncora>
-
-        <SecaoAncora id="comercial" titulo="Formalização" hidden={secaoFoco !== null && secaoFoco !== "comercial"}>
-          <section className="mb-6 border-y border-border py-4 text-sm text-navy" aria-label="Contexto da formalização">
-            <h2 className="font-serif text-xl">Formalização deste caso</h2>
-            <p className="mt-2">{caso["contrato_assinado"] ? "Assinatura indicada no caso — conferir no instrumento." : "Assinatura não registrada no caso."}</p>
-            <div className="mt-3 flex flex-wrap gap-3 text-xs">
-              {qProposta.data?.proposta ? <span>Proposta registrada · versão {String(qProposta.data.proposta.versao ?? "Não registrado")} · {String(qProposta.data.proposta.status ?? "Não registrado")}</span> : <span>Proposta não registrada nesta leitura</span>}
-              <a href="#formalizacao-juridico" className="underline">Validação jurídica deste caso</a>
-              <a href="#formalizacao-instrumento" className="underline">Instrumento e versões</a>
-            </div>
-          </section>
-          {/*
+                    <a href="#formalizacao-juridico" className="underline">
+                      Validação jurídica deste caso
+                    </a>
+                    <a href="#formalizacao-instrumento" className="underline">
+                      Instrumento e versões
+                    </a>
+                  </div>
+                </section>
+                {/*
             27/08/2026 — decisão da Proprietária, com cautela deliberada: o
             motor e a matriz de contrato já moram em /contratos e
             /matriz-juridica (grupo Contratos dos 8 grupos). Aqui dentro do
@@ -2892,234 +3497,264 @@ function FichaCaso() {
             mudaram para "Pessoa e família", porque compõem a pessoa, não o
             contrato.
           */}
-          {/* Corte 3a (01/10/2026): o plano que o cliente vê na Conta do App. */}
-          <PublicarPlanoApp caseId={id} />
+                {/* Corte 3a (01/10/2026): o plano que o cliente vê na Conta do App. */}
+                <PublicarPlanoApp caseId={id} />
 
-          {/*
+                {/*
             04/10/2026 — a tabela de preços vigente por país passou a existir
             como decisão da Proprietária (v3.0). Este painel é a execução dela:
             produto-pai rege, país é trilha, os quatro componentes ficam
             separados e a condição particular substitui a referência.
           */}
-          {/*
+                {/*
             04/10/2026 — a condição comercial versionada passou a existir
             (`case_commercial_condition`, semeada das 7 páginas do Canva já
             extraídas). A proposta e o contrato leem daqui; o catálogo e o SKU
             não entram. O painel também nomeia os quatro anexos que a
             composição exige e as lacunas.
           */}
-          <CondicaoComercialVersionada caseId={id} />
-          {/* Corte L08 (19/10/2026): 6 marcos do contrato em cards, leitura pura. */}
-          <CardsContratoCaso caseId={id} />
-          <OrcamentoPorProdutoPai caseId={id} />
-          <CalculadoraOrcamento caseId={id} />
+                <CondicaoComercialVersionada caseId={id} />
+                {/* Corte L08 (19/10/2026): 6 marcos do contrato em cards, leitura pura. */}
+                <CardsContratoCaso caseId={id} />
+                <OrcamentoPorProdutoPai caseId={id} />
+                <CalculadoraOrcamento caseId={id} />
 
-          <PublicarAssinaturaApp caseId={id} />
+                <PublicarAssinaturaApp caseId={id} />
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            <Secao titulo="Eixo comercial">
-              <div className="grid gap-4">
-                <Selecao
-                  label="Etapa comercial"
-                  valor={v("eixo_comercial")}
-                  opcoes={EIXO_COMERCIAL}
-                  onChange={(x) => set("eixo_comercial", x)}
-                />
-                <Texto
-                  label="Data da confirmação formal da proposta"
-                  tipo="date"
-                  valor={v("data_confirmacao_formal_proposta")}
-                  onChange={(x) => set("data_confirmacao_formal_proposta", x)}
-                />
-              </div>
-            </Secao>
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <Secao titulo="Eixo comercial">
+                    <div className="grid gap-4">
+                      <Selecao
+                        label="Etapa comercial"
+                        valor={v("eixo_comercial")}
+                        opcoes={EIXO_COMERCIAL}
+                        onChange={(x) => set("eixo_comercial", x)}
+                      />
+                      <Texto
+                        label="Data da confirmação formal da proposta"
+                        tipo="date"
+                        valor={v("data_confirmacao_formal_proposta")}
+                        onChange={(x) => set("data_confirmacao_formal_proposta", x)}
+                      />
+                    </div>
+                  </Secao>
 
-            <Secao
-              titulo="Eixo de formalização e operação"
-              descricao="'Cliente ativo' só é derivado com contrato, pagamento, responsável, núcleo e plano."
-            >
-              <div className="grid gap-4">
-                <Selecao
-                  label="Etapa de formalização"
-                  valor={v("eixo_formalizacao")}
-                  opcoes={EIXO_FORMALIZACAO}
-                  onChange={(x) => set("eixo_formalizacao", x)}
-                />
-                <ul className="space-y-1 text-xs text-navy/60">
-                  <li>Contrato assinado: {caso["contrato_assinado"] ? "sim" : "não"}</li>
-                  <li>Pagamento confirmado: {caso["pagamento_confirmado"] ? "sim" : "não"}</li>
-                  <li>
-                    Plano inicial (tarefas): {q.data?.planoInicialOk ? "registrado" : "pendente"}
-                  </li>
-                </ul>
-                <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                  <p className="text-xs font-semibold text-navy">
-                    Completude do núcleo familiar (critérios persistidos)
-                  </p>
-                  <div className="mt-2 text-xs">
-                    <EstadoDados
-                      carregando={q.isLoading}
-                      erro={q.error}
-                      dados={q.data?.nucleoCriterios}
-                      aoTentarNovamente={() => void q.refetch()}
-                      recurso="os critérios de completude do núcleo"
-                      vazio="Sem critérios avaliados. A consulta foi concluída com sucesso."
+                  <Secao
+                    titulo="Eixo de formalização e operação"
+                    descricao="'Cliente ativo' só é derivado com contrato, pagamento, responsável, núcleo e plano."
+                  >
+                    <div className="grid gap-4">
+                      <Selecao
+                        label="Etapa de formalização"
+                        valor={v("eixo_formalizacao")}
+                        opcoes={EIXO_FORMALIZACAO}
+                        onChange={(x) => set("eixo_formalizacao", x)}
+                      />
+                      <ul className="space-y-1 text-xs text-navy/60">
+                        <li>Contrato assinado: {caso["contrato_assinado"] ? "sim" : "não"}</li>
+                        <li>
+                          Pagamento confirmado: {caso["pagamento_confirmado"] ? "sim" : "não"}
+                        </li>
+                        <li>
+                          Plano inicial (tarefas):{" "}
+                          {q.data?.planoInicialOk ? "registrado" : "pendente"}
+                        </li>
+                      </ul>
+                      <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+                        <p className="text-xs font-semibold text-navy">
+                          Completude do núcleo familiar (critérios persistidos)
+                        </p>
+                        <div className="mt-2 text-xs">
+                          <EstadoDados
+                            carregando={q.isLoading}
+                            erro={q.error}
+                            dados={q.data?.nucleoCriterios}
+                            aoTentarNovamente={() => void q.refetch()}
+                            recurso="os critérios de completude do núcleo"
+                            vazio="Sem critérios avaliados. A consulta foi concluída com sucesso."
+                          >
+                            {(criterios) => (
+                              <ul className="space-y-1">
+                                {criterios.map((c) => (
+                                  <li
+                                    key={c.chave}
+                                    className={c.ok ? "text-navy/60" : "text-terracotta"}
+                                  >
+                                    {c.ok ? "✓" : "•"} {c.rotulo}
+                                    {c.ok ? "" : ` — ${c.motivo ?? "pendente"}`}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </EstadoDados>
+                        </div>
+                      </div>
+
+                      <Link
+                        to="/onboarding/$id"
+                        params={{ id }}
+                        className="text-xs font-medium text-navy underline"
+                      >
+                        Abrir painel de onboarding e ativação
+                      </Link>
+                    </div>
+                  </Secao>
+
+                  <div id="formalizacao-juridico" className="scroll-mt-24">
+                    <Secao
+                      titulo="Validação jurídica deste caso"
+                      descricao="Decisão de ato formal, não bloqueio universal — leads, Discovery, pesquisa, tarefas, rascunhos e OS internas seguem sem depender disto."
                     >
-                      {(criterios) => (
-                        <ul className="space-y-1">
-                          {criterios.map((c) => (
+                      {qJuridico.isLoading ? (
+                        <CarregandoDesk linhas={2} rotulo="Carregando a validação jurídica" />
+                      ) : qJuridico.isError ? (
+                        <p className="text-xs text-terracotta">
+                          Não foi possível carregar a validação jurídica.
+                        </p>
+                      ) : qJuridico.data?.semRotaAplicavel && !qJuridico.data.rota ? (
+                        <p className="text-xs text-navy/60">
+                          Sem rota de cidadania vinculada a este caso ainda — nenhum marco/regra
+                          para avaliar.
+                          {qJuridico.data.pendencias.length
+                            ? " Ainda há pendência de tema contratual ou representação abaixo."
+                            : ""}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-navy/70">
+                          Rota:{" "}
+                          {qJuridico.data?.rota?.trackName ?? qJuridico.data?.rota?.pais ?? "—"} ·{" "}
+                          {qJuridico.data?.rota?.viaPreliminar ?? "via não registrada"} · estado:{" "}
+                          {qJuridico.data?.rota?.lifecycleStatus}
+                        </p>
+                      )}
+                      {(qJuridico.data?.pendencias.length ?? 0) === 0 ? (
+                        <p className="mt-2 text-xs text-navy/60">
+                          Nenhuma pendência jurídica para este caso.
+                        </p>
+                      ) : (
+                        <ul className="mt-2 space-y-2 text-xs">
+                          {qJuridico.data!.pendencias.map((p, i) => (
                             <li
-                              key={c.chave}
-                              className={c.ok ? "text-navy/60" : "text-terracotta"}
+                              key={i}
+                              className="rounded-lg border border-navy/10 bg-cream/40 p-2"
                             >
-                              {c.ok ? "✓" : "•"} {c.rotulo}
-                              {c.ok ? "" : ` — ${c.motivo ?? "pendente"}`}
+                              <p className="font-medium text-navy">{p.rotulo}</p>
+                              <p className="text-navy/60">Estado: {p.estado}</p>
+                              <p className="text-navy/60">
+                                Decisão necessária: {p.decisaoHumanaNecessaria}
+                              </p>
+                              {p.documentoOuEvidencia ? (
+                                <p className="text-navy/60">Evidência: {p.documentoOuEvidencia}</p>
+                              ) : null}
+                              <p className="mt-1 text-terracotta">
+                                Afeta: {ROTULO_ATO_FORMAL[p.atoAfetado]}
+                              </p>
                             </li>
                           ))}
                         </ul>
                       )}
-                    </EstadoDados>
+
+                      {qJuridico.data?.raciocinioFase ? (
+                        <div className="mt-4 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs">
+                          <p className="font-medium text-navy">
+                            Contexto jurídico × jornada — fase atual:{" "}
+                            {qJuridico.data.raciocinioFase.faseRotulo}
+                          </p>
+                          {qJuridico.data.raciocinioFase.focoJuridico ? (
+                            <>
+                              <p className="mt-1 text-navy/70">
+                                {qJuridico.data.raciocinioFase.focoJuridico.foco}
+                              </p>
+                              <p className="mt-0.5 text-navy/40">
+                                Fonte: {qJuridico.data.raciocinioFase.focoJuridico.fonte}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="mt-1 text-navy/60">
+                              Sem fase da jornada registrada no Planejador — o foco jurídico por
+                              fase aparece assim que a jornada for preenchida.
+                            </p>
+                          )}
+                          {qJuridico.data.raciocinioFase.alertaInternoPais ? (
+                            <p className="mt-2 text-navy/70">
+                              <span className="font-medium text-navy">Alerta interno do país:</span>{" "}
+                              {qJuridico.data.raciocinioFase.alertaInternoPais}
+                            </p>
+                          ) : null}
+                          {qJuridico.data.raciocinioFase.pendenciasDaFase.length ? (
+                            <p className="mt-2 text-terracotta">
+                              {qJuridico.data.raciocinioFase.pendenciasDaFase.length} pendência(s)
+                              jurídica(s) ligada(s) ao ato formal típico desta fase (destacadas
+                              acima).
+                            </p>
+                          ) : (
+                            <p className="mt-2 text-navy/60">
+                              Nenhuma pendência ligada ao ato formal típico desta fase no momento.
+                            </p>
+                          )}
+                          {qJuridico.data.raciocinioFase.pendenciasDeOutrasFases.length ? (
+                            <p className="mt-1 text-navy/40">
+                              {qJuridico.data.raciocinioFase.pendenciasDeOutrasFases.length}{" "}
+                              pendência(s) ligada(s) a atos formais de outras fases da jornada — não
+                              bloqueiam esta fase, mas seguem em aberto.
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </Secao>
+                  </div>
+                  <div id="formalizacao-instrumento" className="scroll-mt-24">
+                    <Secao
+                      titulo="Motor e matriz de contrato"
+                      descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
+                    >
+                      <div className="flex flex-wrap gap-3 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => mAbrirContrato.mutate()}
+                          disabled={mAbrirContrato.isPending}
+                          className="rounded-md border border-gold/50 bg-gold/10 px-3 py-1.5 text-navy hover:bg-gold/20 disabled:opacity-50"
+                        >
+                          {mAbrirContrato.isPending ? "Abrindo…" : "Abrir contrato (rascunho)"}
+                        </button>
+                        <Link
+                          to="/casos/$caseId/contrato/preparar"
+                          params={{ caseId: id }}
+                          className="rounded-md border border-gold/50 px-3 py-1.5 text-navy hover:bg-gold/10"
+                        >
+                          Preparar contrato
+                        </Link>
+                        <Link
+                          to="/contratos"
+                          className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                        >
+                          Contratos, versões e anexos
+                        </Link>
+                        <Link
+                          to="/matriz-juridica"
+                          className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                        >
+                          Validação jurídica — temas contratuais
+                        </Link>
+                        <Link
+                          to="/ordens-servico"
+                          search={{ caseId: id }}
+                          className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                        >
+                          Ordens de serviço
+                        </Link>
+                      </div>
+                    </Secao>
                   </div>
                 </div>
+              </SecaoAncora>
 
-                <Link
-                  to="/onboarding/$id"
-                  params={{ id }}
-                  className="text-xs font-medium text-navy underline"
-                >
-                  Abrir painel de onboarding e ativação
-                </Link>
-              </div>
-            </Secao>
-
-            <div id="formalizacao-juridico" className="scroll-mt-24">
-            <Secao
-              titulo="Validação jurídica deste caso"
-              descricao="Decisão de ato formal, não bloqueio universal — leads, Discovery, pesquisa, tarefas, rascunhos e OS internas seguem sem depender disto."
-            >
-              {qJuridico.isLoading ? (
-                <CarregandoDesk linhas={2} rotulo="Carregando a validação jurídica" />
-              ) : qJuridico.isError ? (
-                <p className="text-xs text-terracotta">Não foi possível carregar a validação jurídica.</p>
-              ) : qJuridico.data?.semRotaAplicavel && !qJuridico.data.rota ? (
-                <p className="text-xs text-navy/60">
-                  Sem rota de cidadania vinculada a este caso ainda — nenhum marco/regra para avaliar.
-                  {qJuridico.data.pendencias.length ? " Ainda há pendência de tema contratual ou representação abaixo." : ""}
-                </p>
-              ) : (
-                <p className="text-xs text-navy/70">
-                  Rota: {qJuridico.data?.rota?.trackName ?? qJuridico.data?.rota?.pais ?? "—"} ·{" "}
-                  {qJuridico.data?.rota?.viaPreliminar ?? "via não registrada"} · estado:{" "}
-                  {qJuridico.data?.rota?.lifecycleStatus}
-                </p>
-              )}
-              {(qJuridico.data?.pendencias.length ?? 0) === 0 ? (
-                <p className="mt-2 text-xs text-navy/60">Nenhuma pendência jurídica para este caso.</p>
-              ) : (
-                <ul className="mt-2 space-y-2 text-xs">
-                  {qJuridico.data!.pendencias.map((p, i) => (
-                    <li key={i} className="rounded-lg border border-navy/10 bg-cream/40 p-2">
-                      <p className="font-medium text-navy">{p.rotulo}</p>
-                      <p className="text-navy/60">Estado: {p.estado}</p>
-                      <p className="text-navy/60">Decisão necessária: {p.decisaoHumanaNecessaria}</p>
-                      {p.documentoOuEvidencia ? <p className="text-navy/60">Evidência: {p.documentoOuEvidencia}</p> : null}
-                      <p className="mt-1 text-terracotta">Afeta: {ROTULO_ATO_FORMAL[p.atoAfetado]}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {qJuridico.data?.raciocinioFase ? (
-                <div className="mt-4 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs">
-                  <p className="font-medium text-navy">
-                    Contexto jurídico × jornada — fase atual: {qJuridico.data.raciocinioFase.faseRotulo}
-                  </p>
-                  {qJuridico.data.raciocinioFase.focoJuridico ? (
-                    <>
-                      <p className="mt-1 text-navy/70">{qJuridico.data.raciocinioFase.focoJuridico.foco}</p>
-                      <p className="mt-0.5 text-navy/40">Fonte: {qJuridico.data.raciocinioFase.focoJuridico.fonte}</p>
-                    </>
-                  ) : (
-                    <p className="mt-1 text-navy/60">
-                      Sem fase da jornada registrada no Planejador — o foco jurídico por fase aparece assim que a
-                      jornada for preenchida.
-                    </p>
-                  )}
-                  {qJuridico.data.raciocinioFase.alertaInternoPais ? (
-                    <p className="mt-2 text-navy/70">
-                      <span className="font-medium text-navy">Alerta interno do país:</span>{" "}
-                      {qJuridico.data.raciocinioFase.alertaInternoPais}
-                    </p>
-                  ) : null}
-                  {qJuridico.data.raciocinioFase.pendenciasDaFase.length ? (
-                    <p className="mt-2 text-terracotta">
-                      {qJuridico.data.raciocinioFase.pendenciasDaFase.length} pendência(s) jurídica(s) ligada(s) ao ato
-                      formal típico desta fase (destacadas acima).
-                    </p>
-                  ) : (
-                    <p className="mt-2 text-navy/60">
-                      Nenhuma pendência ligada ao ato formal típico desta fase no momento.
-                    </p>
-                  )}
-                  {qJuridico.data.raciocinioFase.pendenciasDeOutrasFases.length ? (
-                    <p className="mt-1 text-navy/40">
-                      {qJuridico.data.raciocinioFase.pendenciasDeOutrasFases.length} pendência(s) ligada(s) a atos
-                      formais de outras fases da jornada — não bloqueiam esta fase, mas seguem em aberto.
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-            </Secao>
-
-            </div>
-            <div id="formalizacao-instrumento" className="scroll-mt-24">
-            <Secao
-              titulo="Motor e matriz de contrato"
-              descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
-            >
-              <div className="flex flex-wrap gap-3 text-xs">
-                <button
-                  type="button"
-                  onClick={() => mAbrirContrato.mutate()}
-                  disabled={mAbrirContrato.isPending}
-                  className="rounded-md border border-gold/50 bg-gold/10 px-3 py-1.5 text-navy hover:bg-gold/20 disabled:opacity-50"
-                >
-                  {mAbrirContrato.isPending ? "Abrindo…" : "Abrir contrato (rascunho)"}
-                </button>
-                <Link
-                  to="/casos/$caseId/contrato/preparar"
-                  params={{ caseId: id }}
-                  className="rounded-md border border-gold/50 px-3 py-1.5 text-navy hover:bg-gold/10"
-                >
-                  Preparar contrato
-                </Link>
-                <Link
-                  to="/contratos"
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Contratos, versões e anexos
-                </Link>
-                <Link
-                  to="/matriz-juridica"
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Validação jurídica — temas contratuais
-                </Link>
-                <Link
-                  to="/ordens-servico"
-                  search={{ caseId: id }}
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Ordens de serviço
-                </Link>
-              </div>
-            </Secao>
-            </div>
-          </div>
-        </SecaoAncora>
-
-        <SecaoAncora id="tecnico" titulo="Pesquisa" hidden={secaoFoco !== null && secaoFoco !== "tecnico"}>
-          {/*
+              <SecaoAncora
+                id="tecnico"
+                titulo="Pesquisa"
+                hidden={secaoFoco !== null && secaoFoco !== "tecnico"}
+              >
+                {/*
             03/10/2026 — a Proprietária não conseguia achar a ficha: "está tão
             escondido e sobreposto que eu não tenho acesso". Ela estava no FIM
             desta aba, depois de três blocos, e com nome novo — a unificação
@@ -3127,209 +3762,228 @@ function FichaCaso() {
             deixarem de existir como rótulo. Sobe para o topo da aba e passa a
             citar os dois nomes antigos, para quem procura por eles achar.
           */}
-          <PainelFichaUnica
-            caseId={id}
-            clienteId={clienteId ?? null}
-            pessoas360={(q.data?.pessoas360 ?? []) as Record<string, any>[]}
-            membros={(q.data?.membros ?? []) as Record<string, any>[]}
-          />
-          {/*
+                <PainelFichaUnica
+                  caseId={id}
+                  clienteId={clienteId ?? null}
+                  pessoas360={(q.data?.pessoas360 ?? []) as Record<string, any>[]}
+                  membros={(q.data?.membros ?? []) as Record<string, any>[]}
+                />
+                {/*
             04/10/2026 — "leia e execute o dossiê da Ana e junto do histórico
             completo da Ana... anexei também o skill que foi criado para trazer
             e montar o dossiê de cada cliente". O dossiê deixa de ser documento
             à parte e passa a ser dado: checklist §58c com estado por item,
             cadeia registrada, histórico e o de-para dos oito campos.
           */}
-          <div className="mt-5">
-            <DossieConsolidado caseId={id} />
-          </div>
-          <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            <Secao
-              titulo="País e via"
-              descricao="Sugestões são preliminares e sempre editáveis; nunca conclusão jurídica."
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Selecao
-                  label="País da linha prioritária"
-                  valor={v("pais_linha_prioritaria")}
-                  opcoes={PAISES_LINHA}
-                  onChange={(x) => set("pais_linha_prioritaria", x)}
-                />
-                <Selecao
-                  label="Via jurídica preliminar"
-                  valor={v("via_juridica_preliminar")}
-                  opcoes={VIAS_JURIDICAS}
-                  onChange={(x) => set("via_juridica_preliminar", x)}
-                />
-                <Selecao
-                  label="Status da via"
-                  valor={v("status_via")}
-                  opcoes={STATUS_VIA}
-                  onChange={(x) => set("status_via", x)}
-                />
-                <Selecao
-                  label="Revisão humana jurídica"
-                  valor={v("revisao_humana_juridica")}
-                  opcoes={REVISAO_JURIDICA}
-                  onChange={(x) => set("revisao_humana_juridica", x)}
-                />
-              </div>
-              {viaSugerida && viaSugerida !== v("via_juridica_preliminar") ? (
-                <p className="mt-3 text-xs text-navy/60">
-                  Sugestão do sistema: {rotulo(VIAS_JURIDICAS, viaSugerida)}.{" "}
-                  <button
-                    className="underline"
-                    onClick={() => {
-                      set("via_juridica_preliminar", viaSugerida);
-                      set("status_via", "sugerida");
-                    }}
-                  >
-                    aplicar como sugestão
-                  </button>
-                </p>
-              ) : null}
-            </Secao>
-
-            <Secao
-              titulo="Hipótese e radar"
-              descricao="Hipótese de trabalho interna, sempre provisória."
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Selecao
-                  label="Status do radar"
-                  valor={v("status_radar")}
-                  opcoes={STATUS_RADAR}
-                  onChange={(x) => set("status_radar", x)}
-                />
-                <Texto
-                  label="Aderência (%)"
-                  tipo="number"
-                  valor={v("radar_aderencia_percentual")}
-                  onChange={(x) => set("radar_aderencia_percentual", x)}
-                  ajuda="Só preencher com cálculo revisado internamente."
-                />
-              </div>
-              <div className="mt-4">
-                <Texto
-                  label="Hipótese de trabalho interna"
-                  valor={v("hipotese_trabalho_interna")}
-                  onChange={(x) => set("hipotese_trabalho_interna", x)}
-                  area
-                />
-              </div>
-            </Secao>
-
-            <Secao
-              titulo="Riscos identificados"
-              descricao="Lista controlada e acumulável. 'Outro' exige detalhamento no brief."
-            >
-              <Multi
-                label="Riscos"
-                valores={arr("riscos_identificados")}
-                opcoes={RISCOS}
-                onChange={(x) => set("riscos_identificados", x)}
-              />
-            </Secao>
-
-          </div>
-        </SecaoAncora>
-
-        <SecaoAncora id="pessoas" titulo="Pessoa e família" hidden={secaoFoco !== null && secaoFoco !== "pessoas"}>
-          <div className="space-y-5">
-            <EstadoDados
-              carregando={q.isLoading}
-              erro={q.error}
-              dados={comoPayload(q.data)}
-              aoTentarNovamente={() => void q.refetch()}
-              recurso="as pessoas do caso"
-            >
-              {([d]) => (
-                <>
-                  <AbaPessoas
-                    casoId={id}
-                    membros={d.membros}
-                    onMudou={recarregar}
-                    atualizar={atualizar}
-                    criar={criar}
-                    bloqueado={bloqueado}
-                  />
+                <div className="mt-5">
+                  <DossieConsolidado caseId={id} />
+                </div>
+                <div className="mt-5 grid gap-5 lg:grid-cols-2">
                   <Secao
-                    titulo="Cadeia genealógica"
-                    descricao="Pessoa a pessoa, elo a elo — lida de genealogical_relationships/research_people deste caso; sem relação gravada, o elo não aparece."
+                    titulo="País e via"
+                    descricao="Sugestões são preliminares e sempre editáveis; nunca conclusão jurídica."
                   >
-                    <CadeiaGenealogicaCaso caseId={id} membros={d.membros} />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Selecao
+                        label="País da linha prioritária"
+                        valor={v("pais_linha_prioritaria")}
+                        opcoes={PAISES_LINHA}
+                        onChange={(x) => set("pais_linha_prioritaria", x)}
+                      />
+                      <Selecao
+                        label="Via jurídica preliminar"
+                        valor={v("via_juridica_preliminar")}
+                        opcoes={VIAS_JURIDICAS}
+                        onChange={(x) => set("via_juridica_preliminar", x)}
+                      />
+                      <Selecao
+                        label="Status da via"
+                        valor={v("status_via")}
+                        opcoes={STATUS_VIA}
+                        onChange={(x) => set("status_via", x)}
+                      />
+                      <Selecao
+                        label="Revisão humana jurídica"
+                        valor={v("revisao_humana_juridica")}
+                        opcoes={REVISAO_JURIDICA}
+                        onChange={(x) => set("revisao_humana_juridica", x)}
+                      />
+                    </div>
+                    {viaSugerida && viaSugerida !== v("via_juridica_preliminar") ? (
+                      <p className="mt-3 text-xs text-navy/60">
+                        Sugestão do sistema: {rotulo(VIAS_JURIDICAS, viaSugerida)}.{" "}
+                        <button
+                          className="underline"
+                          onClick={() => {
+                            set("via_juridica_preliminar", viaSugerida);
+                            set("status_via", "sugerida");
+                          }}
+                        >
+                          aplicar como sugestão
+                        </button>
+                      </p>
+                    ) : null}
                   </Secao>
-                </>
-              )}
-            </EstadoDados>
-            <AbaCadastro caseId={id} bloqueado={bloqueado} />
 
-            {/*
+                  <Secao
+                    titulo="Hipótese e radar"
+                    descricao="Hipótese de trabalho interna, sempre provisória."
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Selecao
+                        label="Status do radar"
+                        valor={v("status_radar")}
+                        opcoes={STATUS_RADAR}
+                        onChange={(x) => set("status_radar", x)}
+                      />
+                      <Texto
+                        label="Aderência (%)"
+                        tipo="number"
+                        valor={v("radar_aderencia_percentual")}
+                        onChange={(x) => set("radar_aderencia_percentual", x)}
+                        ajuda="Só preencher com cálculo revisado internamente."
+                      />
+                    </div>
+                    <div className="mt-4">
+                      <Texto
+                        label="Hipótese de trabalho interna"
+                        valor={v("hipotese_trabalho_interna")}
+                        onChange={(x) => set("hipotese_trabalho_interna", x)}
+                        area
+                      />
+                    </div>
+                  </Secao>
+
+                  <Secao
+                    titulo="Riscos identificados"
+                    descricao="Lista controlada e acumulável. 'Outro' exige detalhamento no brief."
+                  >
+                    <Multi
+                      label="Riscos"
+                      valores={arr("riscos_identificados")}
+                      opcoes={RISCOS}
+                      onChange={(x) => set("riscos_identificados", x)}
+                    />
+                  </Secao>
+                </div>
+              </SecaoAncora>
+
+              <SecaoAncora
+                id="pessoas"
+                titulo="Pessoa e família"
+                hidden={secaoFoco !== null && secaoFoco !== "pessoas"}
+              >
+                <div className="space-y-5">
+                  <EstadoDados
+                    carregando={q.isLoading}
+                    erro={q.error}
+                    dados={comoPayload(q.data)}
+                    aoTentarNovamente={() => void q.refetch()}
+                    recurso="as pessoas do caso"
+                  >
+                    {([d]) => (
+                      <>
+                        <AbaPessoas
+                          casoId={id}
+                          membros={d.membros}
+                          onMudou={recarregar}
+                          atualizar={atualizar}
+                          criar={criar}
+                          bloqueado={bloqueado}
+                        />
+                        <Secao
+                          titulo="Cadeia genealógica"
+                          descricao="Pessoa a pessoa, elo a elo — lida de genealogical_relationships/research_people deste caso; sem relação gravada, o elo não aparece."
+                        >
+                          <CadeiaGenealogicaCaso caseId={id} membros={d.membros} />
+                        </Secao>
+                      </>
+                    )}
+                  </EstadoDados>
+                  <AbaCadastro caseId={id} bloqueado={bloqueado} />
+
+                  {/*
               01/09/2026 — decisão da Proprietária: aposentado o campo livre de
               proposta (era texto digitado à mão, nunca ligado à proposta real).
               Só aparece agora quando a pessoa já tem uma proposta Canva real
               vinculada (`proposals` + `proposal_canva_pages`) — leitura, não
               formulário. Sem proposta real, a seção inteira não é exibida.
             */}
-            {qProposta.data?.proposta ? (
-              <Secao
-                titulo="Proposta"
-                descricao="Somente leitura — vem da proposta Canva real vinculada ao cliente."
+                  {qProposta.data?.proposta ? (
+                    <Secao
+                      titulo="Proposta"
+                      descricao="Somente leitura — vem da proposta Canva real vinculada ao cliente."
+                    >
+                      <div className="grid gap-3 sm:grid-cols-2 text-sm">
+                        <div>
+                          <span className="text-navy/50 text-xs uppercase tracking-wide">
+                            Status
+                          </span>
+                          <p className="text-navy">
+                            {String(qProposta.data.proposta.status ?? "—")}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-navy/50 text-xs uppercase tracking-wide">
+                            Versão
+                          </span>
+                          <p className="text-navy">
+                            {String(qProposta.data.proposta.versao ?? "—")}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-navy/50 text-xs uppercase tracking-wide">
+                            Completude Canva
+                          </span>
+                          <p className="text-navy">
+                            {qProposta.data.paginasExtraidas}/7 páginas extraídas
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                        <Link
+                          to="/propostas"
+                          className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                        >
+                          Ver proposta
+                        </Link>
+                        <Link
+                          to="/nucleos"
+                          className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                        >
+                          Núcleos familiares e dossiê-mãe
+                        </Link>
+                      </div>
+                    </Secao>
+                  ) : null}
+
+                  {/* Etiquetas é metadado leve do caso — junto de quem está nele, não seção própria. */}
+                  <EstadoDados
+                    carregando={qc2.isLoading}
+                    erro={qc2.error}
+                    dados={comoPayload(qc2.data)}
+                    aoTentarNovamente={() => void qc2.refetch()}
+                    recurso="as etiquetas do caso"
+                  >
+                    {([c]) => (
+                      <AbaEtiquetas
+                        caseId={id}
+                        taxonomia={c.taxonomia}
+                        aplicadas={c.etiquetas}
+                        bloqueado={bloqueado}
+                        onMudou={recarregar}
+                      />
+                    )}
+                  </EstadoDados>
+                </div>
+              </SecaoAncora>
+
+              <SecaoAncora
+                id="jornada"
+                titulo="Jornada"
+                hidden={secaoFoco !== null && secaoFoco !== "jornada"}
               >
-                <div className="grid gap-3 sm:grid-cols-2 text-sm">
-                  <div>
-                    <span className="text-navy/50 text-xs uppercase tracking-wide">Status</span>
-                    <p className="text-navy">{String(qProposta.data.proposta.status ?? "—")}</p>
-                  </div>
-                  <div>
-                    <span className="text-navy/50 text-xs uppercase tracking-wide">Versão</span>
-                    <p className="text-navy">{String(qProposta.data.proposta.versao ?? "—")}</p>
-                  </div>
-                  <div>
-                    <span className="text-navy/50 text-xs uppercase tracking-wide">Completude Canva</span>
-                    <p className="text-navy">{qProposta.data.paginasExtraidas}/7 páginas extraídas</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-3 text-xs">
-                  <Link
-                    to="/propostas"
-                    className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                  >
-                    Ver proposta
-                  </Link>
-                  <Link
-                    to="/nucleos"
-                    className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                  >
-                    Núcleos familiares e dossiê-mãe
-                  </Link>
-                </div>
-              </Secao>
-            ) : null}
-
-            {/* Etiquetas é metadado leve do caso — junto de quem está nele, não seção própria. */}
-            <EstadoDados
-              carregando={qc2.isLoading}
-              erro={qc2.error}
-              dados={comoPayload(qc2.data)}
-              aoTentarNovamente={() => void qc2.refetch()}
-              recurso="as etiquetas do caso"
-            >
-              {([c]) => (
-                <AbaEtiquetas
-                  caseId={id}
-                  taxonomia={c.taxonomia}
-                  aplicadas={c.etiquetas}
-                  bloqueado={bloqueado}
-                  onMudou={recarregar}
-                />
-              )}
-            </EstadoDados>
-          </div>
-        </SecaoAncora>
-
-        <SecaoAncora id="jornada" titulo="Jornada" hidden={secaoFoco !== null && secaoFoco !== "jornada"}>
-          {/*
+                {/*
             27/08/2026 — decisão da Proprietária: o ciclo de vida e o produto
             fazem parte da jornada do cliente, não são algo à parte. Um fio
             só, do que foi contratado até onde o percurso está hoje: produto
@@ -3337,73 +3991,73 @@ function FichaCaso() {
             em curso) → fechamento (o estado final) → a jornada do cliente
             propriamente dita, como moldura de tudo isso.
           */}
-          <div className="space-y-8">
-            {/*
+                <div className="space-y-8">
+                  {/*
               Corte 3c (03/10/2026) — a União de Ramos deixa de existir só na
               demo: o Desk liga aqui as duas publicações que se encontram na
               aba Jornada do App, por id, com legenda própria.
             */}
-            {/* 13/10/2026 — curadoria dos marcos históricos que a Jornada do App exibe. */}
-            <MarcosJornadaDesk caseId={id} />
-            <PublicarUniaoRamos caseId={id} />
+                  {/* 13/10/2026 — curadoria dos marcos históricos que a Jornada do App exibe. */}
+                  <MarcosJornadaDesk caseId={id} />
+                  <PublicarUniaoRamos caseId={id} />
 
-            {/*
+                  {/*
               P4 (25/09/2026) — a jornada persistida do plano (Produto-Pai,
               país/via, etapa, marco, responsável, bloqueio, próxima ação,
               micro-entrega) mora aqui, ANTES do formulário grande: mostra o
               que já está gravado e deixa editar campo a campo, sem entrar
               na versão/hash do formulário abaixo.
             */}
-            <PainelJornadaPlanejador caseId={id} />
-            <PlanejadorOperacional caseId={id} podeEscrever={!bloqueado} inicialAberto />
-            <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
+                  <PainelJornadaPlanejador caseId={id} />
+                  <PlanejadorOperacional caseId={id} podeEscrever={!bloqueado} inicialAberto />
+                  <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
 
-            <div className="space-y-5">
-              <EstadoDados
-                carregando={qc2.isLoading}
-                erro={qc2.error}
-                dados={comoPayload(qc2.data)}
-                aoTentarNovamente={() => void qc2.refetch()}
-                recurso="o produto e a trilha do caso"
-              >
-                {([c]) => (
-                  <AbaProdutoTrilha
-                    caseId={id}
-                    produtos={c.produtos}
-                    trilhas={c.trilhas}
-                    servicos={c.servicos}
-                    bloqueado={bloqueado}
-                    onMudou={recarregar}
-                  />
-                )}
-              </EstadoDados>
-              <ConsolidacaoCaseService caseId={id} />
-            </div>
+                  <div className="space-y-5">
+                    <EstadoDados
+                      carregando={qc2.isLoading}
+                      erro={qc2.error}
+                      dados={comoPayload(qc2.data)}
+                      aoTentarNovamente={() => void qc2.refetch()}
+                      recurso="o produto e a trilha do caso"
+                    >
+                      {([c]) => (
+                        <AbaProdutoTrilha
+                          caseId={id}
+                          produtos={c.produtos}
+                          trilhas={c.trilhas}
+                          servicos={c.servicos}
+                          bloqueado={bloqueado}
+                          onMudou={recarregar}
+                        />
+                      )}
+                    </EstadoDados>
+                    <ConsolidacaoCaseService caseId={id} />
+                  </div>
 
-            <EstadoDados
-              carregando={qc2.isLoading}
-              erro={qc2.error}
-              dados={comoPayload(qc2.data)}
-              aoTentarNovamente={() => void qc2.refetch()}
-              recurso="o onboarding do caso"
-            >
-              {([c]) => (
-                <AbaOnboarding
-                  caso={caso}
-                  nucleos={c.nucleos}
-                  membrosNucleo={c.membrosNucleo}
-                  planoInicialOk={Boolean(q.data?.planoInicialOk)}
-                  bloqueado={bloqueado}
-                  onMudou={recarregar}
-                />
-              )}
-            </EstadoDados>
+                  <EstadoDados
+                    carregando={qc2.isLoading}
+                    erro={qc2.error}
+                    dados={comoPayload(qc2.data)}
+                    aoTentarNovamente={() => void qc2.refetch()}
+                    recurso="o onboarding do caso"
+                  >
+                    {([c]) => (
+                      <AbaOnboarding
+                        caso={caso}
+                        nucleos={c.nucleos}
+                        membrosNucleo={c.membrosNucleo}
+                        planoInicialOk={Boolean(q.data?.planoInicialOk)}
+                        bloqueado={bloqueado}
+                        onMudou={recarregar}
+                      />
+                    )}
+                  </EstadoDados>
 
-            <AbaFechamento casoId={id} bloqueado={bloqueado} />
-          </div>
-        </SecaoAncora>
+                  <AbaFechamento casoId={id} bloqueado={bloqueado} />
+                </div>
+              </SecaoAncora>
 
-        {/*
+              {/*
           P24 (26/09/2026) — Documentos e Financeiro adicionados como seções
           próprias e endereçáveis do Caso 360, a pedido explícito da
           Proprietária. Leitura pura do mesmo dado já carregado nesta mesma
@@ -3413,208 +4067,271 @@ function FichaCaso() {
           topo da página ("Abrir ficha operacional completa"), para não
           criar uma segunda CTA para a mesma função.
         */}
-        <SecaoAncora id="documentos" titulo="Documentos" hidden={secaoFoco !== null && secaoFoco !== "documentos"}>
-          <Secao
-            titulo="Documentos do caso"
-            descricao="Gestão completa (upload, categoria, visibilidade, liberação ao cliente) fica em Pesquisa e documentos — aqui é o resumo endereçável do caso."
-          >
-            <EstadoDados
-              carregando={qDocumentos.isLoading}
-              erro={qDocumentos.error}
-              dados={qDocumentos.data as Record<string, unknown>[] | undefined}
-              aoTentarNovamente={() => void qDocumentos.refetch()}
-              recurso="os documentos do caso"
-              vazio="Nenhum documento registrado ainda."
-            >
-              {(docs) => (
-                <ul className="space-y-2 text-sm">
-                  {docs.map((d) => (
-                    <li key={String(d["id"])} className="rounded-lg border border-navy/10 p-3">
-                      <p className="font-medium text-navy">{String(d["titulo"] ?? "Documento sem título")}</p>
-                      <p className="mt-0.5 text-xs text-navy/60">
-                        {String(d["categoria"] ?? "categoria não informada")} · status: {String(d["status"] ?? "—")}
-                        {d["created_at"] ? ` · ${new Date(String(d["created_at"])).toLocaleDateString("pt-BR")}` : ""}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </EstadoDados>
-            <Link
-              to="/pesquisa-evidencias/$caseId"
-              params={{ caseId: id }}
-              className="mt-3 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-            >
-              Abrir fontes e documentos (upload, categoria, liberação ao cliente) →
-            </Link>
-          </Secao>
-        </SecaoAncora>
+              <SecaoAncora
+                id="documentos"
+                titulo="Documentos"
+                hidden={secaoFoco !== null && secaoFoco !== "documentos"}
+              >
+                <Secao
+                  titulo="Documentos do caso"
+                  descricao="Gestão completa (upload, categoria, visibilidade, liberação ao cliente) fica em Pesquisa e documentos — aqui é o resumo endereçável do caso."
+                >
+                  <EstadoDados
+                    carregando={qDocumentos.isLoading}
+                    erro={qDocumentos.error}
+                    dados={qDocumentos.data as Record<string, unknown>[] | undefined}
+                    aoTentarNovamente={() => void qDocumentos.refetch()}
+                    recurso="os documentos do caso"
+                    vazio="Nenhum documento registrado ainda."
+                  >
+                    {(docs) => (
+                      <ul className="space-y-2 text-sm">
+                        {docs.map((d) => (
+                          <li
+                            key={String(d["id"])}
+                            className="rounded-lg border border-navy/10 p-3"
+                          >
+                            <p className="font-medium text-navy">
+                              {String(d["titulo"] ?? "Documento sem título")}
+                            </p>
+                            <p className="mt-0.5 text-xs text-navy/60">
+                              {String(d["categoria"] ?? "categoria não informada")} · status:{" "}
+                              {String(d["status"] ?? "—")}
+                              {d["created_at"]
+                                ? ` · ${new Date(String(d["created_at"])).toLocaleDateString("pt-BR")}`
+                                : ""}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </EstadoDados>
+                  <Link
+                    to="/pesquisa-evidencias/$caseId"
+                    params={{ caseId: id }}
+                    className="mt-3 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+                  >
+                    Abrir fontes e documentos (upload, categoria, liberação ao cliente) →
+                  </Link>
+                </Secao>
+              </SecaoAncora>
 
-        <SecaoAncora id="financeiro" titulo="Financeiro" hidden={secaoFoco !== null && secaoFoco !== "financeiro"}>
-          {/* Onda 5 dos órfãos: a exceção da Proprietária só existia por SQL. */}
-          <div className="mb-4">
-            <OverrideComercial caseId={id} />
-          </div>
+              <SecaoAncora
+                id="financeiro"
+                titulo="Financeiro"
+                hidden={secaoFoco !== null && secaoFoco !== "financeiro"}
+              >
+                {/* Onda 5 dos órfãos: a exceção da Proprietária só existia por SQL. */}
+                <div className="mb-4">
+                  <OverrideComercial caseId={id} />
+                </div>
 
-          {/* Grade operacional (homologação Desk V4, 11/10/2026): mesma leitura
+                {/* Grade operacional (homologação Desk V4, 11/10/2026): mesma leitura
               do resumo financeiro (qFinanceiro); ausência = "Não registrado", nunca zero. */}
-          {qFinanceiro.data ? (() => {
-            const f = qFinanceiro.data;
-            const fmt = (v: number) =>
-              v.toLocaleString("pt-BR", { style: "currency", currency: f.moeda || "BRL" });
-            const temCobranca = f.status !== "sem_dados_suficientes" && f.status !== "sem_cobranca_emitida";
-            const liquidado = temCobranca ? f.valorRecebido : null;
-            // Despesas de terceiros só trazem contagem nesta leitura: sem valor somado.
-            const custos: number | null = null;
-            const cartoes: { rotulo: string; valor: string; apoio: string }[] = [
-              { rotulo: "Total Contratado", valor: f.valorContratado == null ? "Não registrado" : fmt(f.valorContratado), apoio: "Proposta de referência do caso" },
-              { rotulo: "Liquidado", valor: liquidado == null ? "Não registrado" : fmt(liquidado), apoio: "Pagamentos em faturas ativas" },
-              { rotulo: "Saldo Aberto", valor: f.saldoAberto == null || !temCobranca ? "Não registrado" : fmt(f.saldoAberto), apoio: "Contratado − liquidado" },
-              {
-                rotulo: "Custos de Busca",
-                valor: "Não registrado",
-                apoio: f.despesasTerceiros ? `${f.despesasTerceiros.total} despesa(s) sem valor somado` : "Nenhuma despesa de terceiros",
-              },
-              {
-                rotulo: "Margem Bruta",
-                valor: liquidado != null && custos != null ? fmt(liquidado - custos) : "Não registrado",
-                apoio: "Liquidado − custos, só com ambos",
-              },
-            ];
-            return (
-              <dl className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5" data-grade-financeira-5>
-                {cartoes.map((c) => (
-                  <div key={c.rotulo} className="rounded-xl border border-navy/10 bg-card p-4 shadow-sm">
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-navy/55">{c.rotulo}</dt>
-                    <dd className="mt-1 font-serif text-xl text-navy">{c.valor}</dd>
-                    <dd className="mt-1 text-[11px] text-navy/55">{c.apoio}</dd>
-                  </div>
-                ))}
-              </dl>
-            );
-          })() : null}
+                {qFinanceiro.data
+                  ? (() => {
+                      const f = qFinanceiro.data;
+                      const fmt = (v: number) =>
+                        v.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: f.moeda || "BRL",
+                        });
+                      const temCobranca =
+                        f.status !== "sem_dados_suficientes" && f.status !== "sem_cobranca_emitida";
+                      const liquidado = temCobranca ? f.valorRecebido : null;
+                      // Despesas de terceiros só trazem contagem nesta leitura: sem valor somado.
+                      const custos: number | null = null;
+                      const cartoes: { rotulo: string; valor: string; apoio: string }[] = [
+                        {
+                          rotulo: "Total Contratado",
+                          valor:
+                            f.valorContratado == null ? "Não registrado" : fmt(f.valorContratado),
+                          apoio: "Proposta de referência do caso",
+                        },
+                        {
+                          rotulo: "Liquidado",
+                          valor: liquidado == null ? "Não registrado" : fmt(liquidado),
+                          apoio: "Pagamentos em faturas ativas",
+                        },
+                        {
+                          rotulo: "Saldo Aberto",
+                          valor:
+                            f.saldoAberto == null || !temCobranca
+                              ? "Não registrado"
+                              : fmt(f.saldoAberto),
+                          apoio: "Contratado − liquidado",
+                        },
+                        {
+                          rotulo: "Custos de Busca",
+                          valor: "Não registrado",
+                          apoio: f.despesasTerceiros
+                            ? `${f.despesasTerceiros.total} despesa(s) sem valor somado`
+                            : "Nenhuma despesa de terceiros",
+                        },
+                        {
+                          rotulo: "Margem Bruta",
+                          valor:
+                            liquidado != null && custos != null
+                              ? fmt(liquidado - custos)
+                              : "Não registrado",
+                          apoio: "Liquidado − custos, só com ambos",
+                        },
+                      ];
+                      return (
+                        <dl
+                          className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
+                          data-grade-financeira-5
+                        >
+                          {cartoes.map((c) => (
+                            <div
+                              key={c.rotulo}
+                              className="rounded-xl border border-navy/10 bg-card p-4 shadow-sm"
+                            >
+                              <dt className="text-[11px] font-semibold uppercase tracking-wide text-navy/55">
+                                {c.rotulo}
+                              </dt>
+                              <dd className="mt-1 font-serif text-xl text-navy">{c.valor}</dd>
+                              <dd className="mt-1 text-[11px] text-navy/55">{c.apoio}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      );
+                    })()
+                  : null}
 
+                <Secao
+                  titulo="Resumo financeiro do caso"
+                  descricao="Registrar pagamento e preparar cobrança ficam no resumo executivo, no topo da página — aqui é só o estado, para consulta rápida."
+                >
+                  {qFinanceiro.isLoading ? (
+                    <CarregandoDesk linhas={2} rotulo="Carregando o financeiro deste caso" />
+                  ) : qFinanceiro.isError ? (
+                    <p className="text-xs text-terracotta">
+                      Não foi possível carregar o financeiro deste caso.
+                    </p>
+                  ) : (
+                    <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                      <div>
+                        <dt className="text-navy/50">Valor contratado</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.valorContratado == null
+                            ? "Sem dados suficientes"
+                            : `${qFinanceiro.data.moeda} ${qFinanceiro.data.valorContratado.toFixed(2)}`}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Valor recebido</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.moeda} {qFinanceiro.data?.valorRecebido.toFixed(2)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Saldo aberto</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.saldoAberto == null
+                            ? "Sem dados suficientes"
+                            : `${qFinanceiro.data.moeda} ${qFinanceiro.data.saldoAberto.toFixed(2)}`}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Próxima parcela</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.proximaParcela
+                            ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.proximaParcela.valor.toFixed(2)} — ${qFinanceiro.data.proximaParcela.vencimento}`
+                            : "Sem dados suficientes"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Status</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data
+                            ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status]
+                            : "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Condição comercial</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-navy/50">Próxima ação financeira</dt>
+                        <dd className="mt-0.5 text-sm text-navy">
+                          {qFinanceiro.data?.proximaAcaoFinanceira}
+                        </dd>
+                      </div>
+                    </dl>
+                  )}
+                </Secao>
+              </SecaoAncora>
 
-          <Secao
-            titulo="Resumo financeiro do caso"
-            descricao="Registrar pagamento e preparar cobrança ficam no resumo executivo, no topo da página — aqui é só o estado, para consulta rápida."
-          >
-            {qFinanceiro.isLoading ? (
-              <CarregandoDesk linhas={2} rotulo="Carregando o financeiro deste caso" />
-            ) : qFinanceiro.isError ? (
-              <p className="text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
-             ) : (
-               <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <dt className="text-navy/50">Valor contratado</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.valorContratado == null
-                      ? "Sem dados suficientes"
-                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.valorContratado.toFixed(2)}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Valor recebido</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.moeda} {qFinanceiro.data?.valorRecebido.toFixed(2)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Saldo aberto</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.saldoAberto == null
-                      ? "Sem dados suficientes"
-                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.saldoAberto.toFixed(2)}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Próxima parcela</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.proximaParcela
-                      ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.proximaParcela.valor.toFixed(2)} — ${qFinanceiro.data.proximaParcela.vencimento}`
-                      : "Sem dados suficientes"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Status</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status] : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Condição comercial</dt>
-                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}</dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Próxima ação financeira</dt>
-                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira}</dd>
-                </div>
-               </dl>
-            )}
-          </Secao>
-        </SecaoAncora>
-
-        {/*
+              {/*
           CA04-CASO360-SIMPLES (09/09/2026): gates, auditoria, logs, versões e
           diagnósticos (histórico de fases, registro de alterações e o mapa
           de persistência campo→tabela) recolhidos por padrão — nada foi
           apagado, "secao-log" continua sendo o alvo do índice fixo.
         */}
-        <details id="secao-log" hidden={secaoFoco !== null && secaoFoco !== "log"} className="scroll-mt-16 rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
-          <summary className="cursor-pointer font-serif text-lg text-navy">
-            Histórico
-          </summary>
-          <div className="mt-4 space-y-5">
-          {/*
+              <details
+                id="secao-log"
+                hidden={secaoFoco !== null && secaoFoco !== "log"}
+                className="scroll-mt-16 rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]"
+              >
+                <summary className="cursor-pointer font-serif text-lg text-navy">Histórico</summary>
+                <div className="mt-4 space-y-5">
+                  {/*
             07/09/2026 — case_phase_history grava sozinha desde 06/09 (trigger
             em crm_casos.fase), mas nenhuma tela mostrava esse histórico —
             achado da proprietária. Escrita automática, leitura nunca ligada.
           */}
-          <Secao
-            titulo="Histórico de fases do caso"
-            descricao="Cada mudança de fase, registrada automaticamente — nunca depende de quem lembrou de anotar."
-          >
-            <EstadoDados
-              carregando={q.isLoading}
-              erro={q.error}
-              dados={q.data?.historicoFase as Record<string, unknown>[] | undefined}
-              aoTentarNovamente={() => void q.refetch()}
-              recurso="o histórico de fases"
-              vazio="Nenhuma mudança de fase registrada ainda."
-            >
-              {(linhasFase) => (
-                <ul className="space-y-2 text-sm">
-                  {linhasFase.map((f: Record<string, unknown>) => (
-                    <li key={String(f["id"])} className="rounded-lg border border-navy/10 p-3">
-                      <p className="text-navy">
-                        {f["fase_anterior"] ? String(f["fase_anterior"]) : "(sem fase)"} →{" "}
-                        <span className="font-medium">{String(f["fase_nova"])}</span>
-                      </p>
-                      <p className="mt-1 text-xs text-navy/50">
-                        {new Date(String(f["changed_at"])).toLocaleString("pt-BR")}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </EstadoDados>
-          </Secao>
+                  <Secao
+                    titulo="Histórico de fases do caso"
+                    descricao="Cada mudança de fase, registrada automaticamente — nunca depende de quem lembrou de anotar."
+                  >
+                    <EstadoDados
+                      carregando={q.isLoading}
+                      erro={q.error}
+                      dados={q.data?.historicoFase as Record<string, unknown>[] | undefined}
+                      aoTentarNovamente={() => void q.refetch()}
+                      recurso="o histórico de fases"
+                      vazio="Nenhuma mudança de fase registrada ainda."
+                    >
+                      {(linhasFase) => (
+                        <ul className="space-y-2 text-sm">
+                          {linhasFase.map((f: Record<string, unknown>) => (
+                            <li
+                              key={String(f["id"])}
+                              className="rounded-lg border border-navy/10 p-3"
+                            >
+                              <p className="text-navy">
+                                {f["fase_anterior"] ? String(f["fase_anterior"]) : "(sem fase)"} →{" "}
+                                <span className="font-medium">{String(f["fase_nova"])}</span>
+                              </p>
+                              <p className="mt-1 text-xs text-navy/50">
+                                {new Date(String(f["changed_at"])).toLocaleString("pt-BR")}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </EstadoDados>
+                  </Secao>
 
-          {/*
+                  {/*
             Histórico por fase (item E, 07/10/2026): registro manual,
             um de cada vez — nunca importação em bloco —, com data, fonte
             e conteúdo colado/descrito, por fase (Lead/Discovery/Proposta/
             Contrato/Pesquisa/Árvore). Reusa case_timeline_events (acima),
             nunca uma tabela paralela.
           */}
-          <Secao
-            titulo="Histórico por fase"
-            descricao="Registro manual da equipe, por fase, com fonte e conteúdo — auditado, um por vez."
-          >
-            <HistoricoPorFase caseId={id} />
-          </Secao>
+                  <Secao
+                    titulo="Histórico por fase"
+                    descricao="Registro manual da equipe, por fase, com fonte e conteúdo — auditado, um por vez."
+                  >
+                    <HistoricoPorFase caseId={id} />
+                  </Secao>
 
-          {/*
+                  {/*
             REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026) — Ficha Piloto da
             Giovanna, campos #47-49 ("Conta > Histórico", 3 marcos). A
             `case_timeline_events` já vinha lida em `q.data.timeline`
@@ -3624,141 +4341,175 @@ function FichaCaso() {
             policy `cte_select_portal` já vigente). Reaproveita a mesma
             leitura, sem consulta nova.
           */}
-          <Secao
-            titulo="Marcos aprovados para o App Cliente"
-            descricao="Aprovar exige escrever o texto que a família vai ler — o título interno do evento nunca atravessa para o App."
-          >
-            <EstadoDados
-              carregando={q.isLoading}
-              erro={q.error}
-              dados={q.data?.timeline as Record<string, unknown>[] | undefined}
-              aoTentarNovamente={() => void q.refetch()}
-              recurso="os eventos da linha do tempo"
-              vazio="Nenhum evento registrado ainda."
-            >
-              {(eventos) => (
-                <ul className="space-y-2 text-sm">
-                  {eventos.slice(0, 20).map((evento) => {
-                    const eventoId = String(evento["id"]);
-                    const aprovado = evento["visibility"] === "cliente_aprovado";
-                    const resumoAprovado = String(evento["summary_client_approved"] ?? "").trim();
-                    return (
-                      <li key={eventoId} className="rounded-lg border border-navy/10 p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-navy">
-                            <span className="font-medium">{String(evento["title"] ?? "Evento registrado")}</span>{" "}
-                            <span className="text-xs text-navy/50">
-                              ({evento["occurred_at"] ? new Date(String(evento["occurred_at"])).toLocaleDateString("pt-BR") : "sem data"})
-                            </span>
-                          </p>
-                          {aprovado ? (
-                            <div className="flex items-center gap-2">
-                              <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[11px] text-navy/70">
-                                Visível no App
-                              </span>
-                              {podeEscrever ? (
-                                <button
-                                  type="button"
-                                  className="text-xs text-navy/60 underline hover:text-navy disabled:opacity-50"
-                                  disabled={mRevogarEvento.isPending}
-                                  onClick={() => mRevogarEvento.mutate({ eventoId })}
-                                >
-                                  Revogar
-                                </button>
-                              ) : null}
-                            </div>
-                          ) : (
-                            <span className="rounded-full border border-navy/15 px-2 py-0.5 text-[11px] text-navy/50">Só interno</span>
-                          )}
-                        </div>
-                        {aprovado ? (
-                          <p className="mt-1 text-xs text-navy/60">Texto para a família: “{resumoAprovado}”</p>
-                        ) : podeEscrever ? (
-                          <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <input
-                              type="text"
-                              placeholder="Texto que a família vai ler…"
-                              value={resumoClientePorEvento[eventoId] ?? ""}
-                              onChange={(e) =>
-                                setResumoClientePorEvento((s) => ({ ...s, [eventoId]: e.target.value }))
-                              }
-                              className="min-w-[16rem] flex-1 rounded-lg border border-navy/15 px-2 py-1 text-xs text-navy"
-                            />
-                            <button
-                              type="button"
-                              className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-                              disabled={mAprovarEvento.isPending || !(resumoClientePorEvento[eventoId] ?? "").trim()}
-                              onClick={() =>
-                                mAprovarEvento.mutate({
-                                  eventoId,
-                                  resumoCliente: resumoClientePorEvento[eventoId] ?? "",
-                                })
-                              }
-                            >
-                              Aprovar para o cliente
-                            </button>
-                          </div>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </EstadoDados>
-          </Secao>
+                  <Secao
+                    titulo="Marcos aprovados para o App Cliente"
+                    descricao="Aprovar exige escrever o texto que a família vai ler — o título interno do evento nunca atravessa para o App."
+                  >
+                    <EstadoDados
+                      carregando={q.isLoading}
+                      erro={q.error}
+                      dados={q.data?.timeline as Record<string, unknown>[] | undefined}
+                      aoTentarNovamente={() => void q.refetch()}
+                      recurso="os eventos da linha do tempo"
+                      vazio="Nenhum evento registrado ainda."
+                    >
+                      {(eventos) => (
+                        <ul className="space-y-2 text-sm">
+                          {eventos.slice(0, 20).map((evento) => {
+                            const eventoId = String(evento["id"]);
+                            const aprovado = evento["visibility"] === "cliente_aprovado";
+                            const resumoAprovado = String(
+                              evento["summary_client_approved"] ?? "",
+                            ).trim();
+                            return (
+                              <li key={eventoId} className="rounded-lg border border-navy/10 p-3">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <p className="text-navy">
+                                    <span className="font-medium">
+                                      {String(evento["title"] ?? "Evento registrado")}
+                                    </span>{" "}
+                                    <span className="text-xs text-navy/50">
+                                      (
+                                      {evento["occurred_at"]
+                                        ? new Date(
+                                            String(evento["occurred_at"]),
+                                          ).toLocaleDateString("pt-BR")
+                                        : "sem data"}
+                                      )
+                                    </span>
+                                  </p>
+                                  {aprovado ? (
+                                    <div className="flex items-center gap-2">
+                                      <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[11px] text-navy/70">
+                                        Visível no App
+                                      </span>
+                                      {/*
+                                26/10/2026 (auditoria): antes gated por
+                                `podeEscrever` (flag de vínculo de equipe) — com
+                                a flag errada, a proprietária perdia o botão
+                                sem explicação nem caminho de confirmação.
+                                `AcaoOperacional` com `acaoExterna` sempre pede
+                                confirmação explícita, nunca esconde sem dizer
+                                por quê (regra: nada sai para o App sem aceite).
+                              */}
+                                      <AcaoOperacional
+                                        rotulo="Revogar"
+                                        acaoExterna="publicar_no_app_cliente"
+                                        efeito="A família deixa de ver este marco na Jornada. Nada é apagado — o evento volta a ficar só interno."
+                                        className="text-xs text-navy/60 underline hover:text-navy disabled:opacity-50"
+                                        onConfirmar={async () => {
+                                          await mRevogarEvento.mutateAsync({ eventoId });
+                                        }}
+                                      />
+                                    </div>
+                                  ) : (
+                                    <span className="rounded-full border border-navy/15 px-2 py-0.5 text-[11px] text-navy/50">
+                                      Só interno
+                                    </span>
+                                  )}
+                                </div>
+                                {aprovado ? (
+                                  <p className="mt-1 text-xs text-navy/60">
+                                    Texto para a família: “{resumoAprovado}”
+                                  </p>
+                                ) : (
+                                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder="Texto que a família vai ler…"
+                                      value={resumoClientePorEvento[eventoId] ?? ""}
+                                      onChange={(e) =>
+                                        setResumoClientePorEvento((s) => ({
+                                          ...s,
+                                          [eventoId]: e.target.value,
+                                        }))
+                                      }
+                                      className="min-w-[16rem] flex-1 rounded-lg border border-navy/15 px-2 py-1 text-xs text-navy"
+                                    />
+                                    <AcaoOperacional
+                                      rotulo="Aprovar para o cliente"
+                                      acaoExterna="publicar_no_app_cliente"
+                                      validacaoFormulario={
+                                        !(resumoClientePorEvento[eventoId] ?? "").trim()
+                                          ? "Escreva o texto que a família vai ler antes de aprovar."
+                                          : null
+                                      }
+                                      efeito="A família passa a ver este marco, com o texto acima, na Jornada do App. O título interno do evento não atravessa."
+                                      className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
+                                      onConfirmar={async () => {
+                                        await mAprovarEvento.mutateAsync({
+                                          eventoId,
+                                          resumoCliente: resumoClientePorEvento[eventoId] ?? "",
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </EstadoDados>
+                  </Secao>
 
-          <Secao
-            titulo="Registro de alterações"
-            descricao="Quem alterou, quando e o quê. Nada é apagado."
-          >
-            <EstadoDados
-              carregando={q.isLoading}
-              erro={q.error}
-              dados={q.data?.log as Record<string, unknown>[] | undefined}
-              aoTentarNovamente={() => void q.refetch()}
-              recurso="o registro de alterações"
-              vazio="Nenhuma alteração registrada ainda."
-            >
-              {(linhasLog) => (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="text-[11px] uppercase tracking-wide text-navy/50">
-                    <tr>
-                      <th className="py-2 pr-4">Quando</th>
-                      <th className="py-2 pr-4">Registro</th>
-                      <th className="py-2 pr-4">Campo</th>
-                      <th className="py-2 pr-4">Anterior</th>
-                      <th className="py-2">Novo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {linhasLog.map((l: Record<string, unknown>) => (
-                      <tr key={String(l["id"])} className="border-t border-navy/10 align-top">
-                        <td className="py-2 pr-4 whitespace-nowrap text-navy/70">
-                          {new Date(String(l["created_at"])).toLocaleString("pt-BR")}
-                        </td>
-                        <td className="py-2 pr-4 text-navy/70">{String(l["entidade"])}</td>
-                        <td className="py-2 pr-4 font-medium">{String(l["campo"])}</td>
-                        <td className="py-2 pr-4 text-navy/60">
-                          {l["valor_anterior"] ? String(l["valor_anterior"]) : "—"}
-                        </td>
-                        <td className="py-2 text-navy/80">
-                          {l["valor_novo"] ? String(l["valor_novo"]) : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              )}
-            </EstadoDados>
-          </Secao>
-          <MapaPersistenciaCaso />
-          </div>
-        </details>
-      </div>
-      </details>
-      </>
+                  <Secao
+                    titulo="Registro de alterações"
+                    descricao="Quem alterou, quando e o quê. Nada é apagado."
+                  >
+                    <EstadoDados
+                      carregando={q.isLoading}
+                      erro={q.error}
+                      dados={q.data?.log as Record<string, unknown>[] | undefined}
+                      aoTentarNovamente={() => void q.refetch()}
+                      recurso="o registro de alterações"
+                      vazio="Nenhuma alteração registrada ainda."
+                    >
+                      {(linhasLog) => (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-sm">
+                            <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                              <tr>
+                                <th className="py-2 pr-4">Quando</th>
+                                <th className="py-2 pr-4">Registro</th>
+                                <th className="py-2 pr-4">Campo</th>
+                                <th className="py-2 pr-4">Anterior</th>
+                                <th className="py-2">Novo</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {linhasLog.map((l: Record<string, unknown>) => (
+                                <tr
+                                  key={String(l["id"])}
+                                  className="border-t border-navy/10 align-top"
+                                >
+                                  <td className="py-2 pr-4 whitespace-nowrap text-navy/70">
+                                    {new Date(String(l["created_at"])).toLocaleString("pt-BR")}
+                                  </td>
+                                  <td className="py-2 pr-4 text-navy/70">
+                                    {String(l["entidade"])}
+                                  </td>
+                                  <td className="py-2 pr-4 font-medium">{String(l["campo"])}</td>
+                                  <td className="py-2 pr-4 text-navy/60">
+                                    {l["valor_anterior"] ? String(l["valor_anterior"]) : "—"}
+                                  </td>
+                                  <td className="py-2 text-navy/80">
+                                    {l["valor_novo"] ? String(l["valor_novo"]) : "—"}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </EstadoDados>
+                  </Secao>
+                  <MapaPersistenciaCaso />
+                </div>
+              </details>
+            </div>
+          </details>
+        </>
       )}
 
       <AlertDialog open={bloqueio.status === "blocked"}>
@@ -3862,7 +4613,9 @@ function AbaPessoas({
           : { caseId: casoId, nome: novo.trim() },
       }),
     onSuccess: (r: { pessoaCriada: boolean }) => {
-      toast.success(r.pessoaCriada ? "Pessoa criada na Pessoa 360 e ligada ao caso." : "Pessoa ligada ao caso.");
+      toast.success(
+        r.pessoaCriada ? "Pessoa criada na Pessoa 360 e ligada ao caso." : "Pessoa ligada ao caso.",
+      );
       setNovo("");
       setPessoaEscolhida("");
       setErro(null);
@@ -3873,9 +4626,12 @@ function AbaPessoas({
   });
 
   const reconciliarCpfMembros = useServerFn(conferirDivergenciaCpfMembrosCaso);
-  const [planoReconciliacaoCpfMembros, setPlanoReconciliacaoCpfMembros] = useState<any[] | null>(null);
+  const [planoReconciliacaoCpfMembros, setPlanoReconciliacaoCpfMembros] = useState<any[] | null>(
+    null,
+  );
   const mReconciliarCpfMembros = useMutation({
-    mutationFn: (confirmar: boolean) => reconciliarCpfMembros({ data: { caseId: casoId, confirmar } }),
+    mutationFn: (confirmar: boolean) =>
+      reconciliarCpfMembros({ data: { caseId: casoId, confirmar } }),
     onSuccess: (r: any) => {
       setPlanoReconciliacaoCpfMembros(Array.isArray(r.plano) ? r.plano : []);
       // Fase C (27/09/2026): preenchimento de campo vazio é automático —
@@ -3902,7 +4658,9 @@ function AbaPessoas({
   // relê o plano no servidor para mostrar o estado gravado, não o otimista.
   const mResolverConflitoCpf = useMutation({
     mutationFn: (v: { membroId: string; motivo: string }) =>
-      reconciliarCpfMembros({ data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo } }),
+      reconciliarCpfMembros({
+        data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo },
+      }),
     onSuccess: () => {
       toast.success("CPF alinhado ao cadastro canônico e registrado no histórico.");
       mReconciliarCpfMembros.mutate(false);
@@ -3912,9 +4670,12 @@ function AbaPessoas({
   });
 
   const reconciliarTelefoneMembros = useServerFn(conferirDivergenciaTelefoneMembrosCaso);
-  const [planoReconciliacaoTelefoneMembros, setPlanoReconciliacaoTelefoneMembros] = useState<any[] | null>(null);
+  const [planoReconciliacaoTelefoneMembros, setPlanoReconciliacaoTelefoneMembros] = useState<
+    any[] | null
+  >(null);
   const mReconciliarTelefoneMembros = useMutation({
-    mutationFn: (confirmar: boolean) => reconciliarTelefoneMembros({ data: { caseId: casoId, confirmar } }),
+    mutationFn: (confirmar: boolean) =>
+      reconciliarTelefoneMembros({ data: { caseId: casoId, confirmar } }),
     onSuccess: (r: any) => {
       setPlanoReconciliacaoTelefoneMembros(Array.isArray(r.plano) ? r.plano : []);
       // Fase C (27/09/2026): preenchimento automático, sem segundo clique.
@@ -3939,7 +4700,9 @@ function AbaPessoas({
   // P28: mesmo padrão do CPF — conflito só se resolve membro a membro, com motivo.
   const mResolverConflitoTelefone = useMutation({
     mutationFn: (v: { membroId: string; motivo: string }) =>
-      reconciliarTelefoneMembros({ data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo } }),
+      reconciliarTelefoneMembros({
+        data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo },
+      }),
     onSuccess: () => {
       toast.success("Telefone alinhado ao cadastro canônico e registrado no histórico.");
       mReconciliarTelefoneMembros.mutate(false);
@@ -3951,9 +4714,12 @@ function AbaPessoas({
   // P31: mesmo padrão do CPF/telefone, para CEP (pedido direto da
   // Proprietária: unificar em vez de conferir 3 vezes o mesmo dado).
   const reconciliarCepMembros = useServerFn(conferirDivergenciaCepMembrosCaso);
-  const [planoReconciliacaoCepMembros, setPlanoReconciliacaoCepMembros] = useState<any[] | null>(null);
+  const [planoReconciliacaoCepMembros, setPlanoReconciliacaoCepMembros] = useState<any[] | null>(
+    null,
+  );
   const mReconciliarCepMembros = useMutation({
-    mutationFn: (confirmar: boolean) => reconciliarCepMembros({ data: { caseId: casoId, confirmar } }),
+    mutationFn: (confirmar: boolean) =>
+      reconciliarCepMembros({ data: { caseId: casoId, confirmar } }),
     onSuccess: (r: any) => {
       setPlanoReconciliacaoCepMembros(Array.isArray(r.plano) ? r.plano : []);
       // Fase C (27/09/2026): preenchimento automático, sem segundo clique.
@@ -3977,7 +4743,9 @@ function AbaPessoas({
 
   const mResolverConflitoCep = useMutation({
     mutationFn: (v: { membroId: string; motivo: string }) =>
-      reconciliarCepMembros({ data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo } }),
+      reconciliarCepMembros({
+        data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo },
+      }),
     onSuccess: () => {
       toast.success("CEP alinhado ao cadastro canônico e registrado no histórico.");
       mReconciliarCepMembros.mutate(false);
@@ -3996,21 +4764,27 @@ function AbaPessoas({
           ocupado={mReconciliarCpfMembros.isPending}
           onVerificar={() => mReconciliarCpfMembros.mutate(false)}
           onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
-          onResolverConflito={(membroId, motivo) => mResolverConflitoCpf.mutate({ membroId, motivo })}
+          onResolverConflito={(membroId, motivo) =>
+            mResolverConflitoCpf.mutate({ membroId, motivo })
+          }
         />
         <ReconciliarTelefoneMembrosCaso
           plano={planoReconciliacaoTelefoneMembros}
           ocupado={mReconciliarTelefoneMembros.isPending}
           onVerificar={() => mReconciliarTelefoneMembros.mutate(false)}
           onSincronizar={() => mReconciliarTelefoneMembros.mutate(true)}
-          onResolverConflito={(membroId, motivo) => mResolverConflitoTelefone.mutate({ membroId, motivo })}
+          onResolverConflito={(membroId, motivo) =>
+            mResolverConflitoTelefone.mutate({ membroId, motivo })
+          }
         />
         <ReconciliarCepMembrosCaso
           plano={planoReconciliacaoCepMembros}
           ocupado={mReconciliarCepMembros.isPending}
           onVerificar={() => mReconciliarCepMembros.mutate(false)}
           onSincronizar={() => mReconciliarCepMembros.mutate(true)}
-          onResolverConflito={(membroId, motivo) => mResolverConflitoCep.mutate({ membroId, motivo })}
+          onResolverConflito={(membroId, motivo) =>
+            mResolverConflitoCep.mutate({ membroId, motivo })
+          }
         />
         <PainelDadosCivisMembrosCaso caseId={casoId} onMudou={onMudou} />
         <GrupoComunicacaoCaso caseId={casoId} />
@@ -4023,8 +4797,13 @@ function AbaPessoas({
   // supor "caso sem núcleo".
   if (qNucleos.isError || (!qNucleos.isLoading && nucleosCarregados === null)) {
     return (
-      <div role="alert" className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
-        <p className="font-medium text-destructive">Não foi possível carregar os núcleos do caso.</p>
+      <div
+        role="alert"
+        className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm"
+      >
+        <p className="font-medium text-destructive">
+          Não foi possível carregar os núcleos do caso.
+        </p>
         <p className="text-navy/80">
           {qNucleos.error instanceof Error
             ? qNucleos.error.message
@@ -4049,7 +4828,9 @@ function AbaPessoas({
         ocupado={mReconciliarTelefoneMembros.isPending}
         onVerificar={() => mReconciliarTelefoneMembros.mutate(false)}
         onSincronizar={() => mReconciliarTelefoneMembros.mutate(true)}
-        onResolverConflito={(membroId, motivo) => mResolverConflitoTelefone.mutate({ membroId, motivo })}
+        onResolverConflito={(membroId, motivo) =>
+          mResolverConflitoTelefone.mutate({ membroId, motivo })
+        }
       />
       <ReconciliarCepMembrosCaso
         plano={planoReconciliacaoCepMembros}
@@ -4099,8 +4880,9 @@ function AbaPessoas({
           </button>
         </div>
         <p className="mt-2 text-xs text-navy/60">
-          Toda pessoa do caso é também uma Pessoa 360: escolha quem já está cadastrado para não repetir os dados, ou
-          crie a pessoa nova — o que for preenchido na Pessoa 360 chega a este caso e ao contrato.
+          Toda pessoa do caso é também uma Pessoa 360: escolha quem já está cadastrado para não
+          repetir os dados, ou crie a pessoa nova — o que for preenchido na Pessoa 360 chega a este
+          caso e ao contrato.
         </p>
       </Secao>
 
@@ -4223,11 +5005,7 @@ function CartaoPessoa({
           opcoes={STATUS_CADASTRAL}
           onChange={(x) => set("status_cadastral", x)}
         />
-        <Texto
-          label="Parentesco"
-          valor={v("parentesco")}
-          onChange={(x) => set("parentesco", x)}
-        />
+        <Texto label="Parentesco" valor={v("parentesco")} onChange={(x) => set("parentesco", x)} />
         <Texto
           label="Data de nascimento"
           tipo="date"
@@ -4239,7 +5017,11 @@ function CartaoPessoa({
             (mais permissivo que o de pessoa viva), porque membro do caso
             pode ser pessoa já falecida; o que nunca passa é data no futuro.
           */
-          erro={motivoCampoInvalido("Data de nascimento", "data_historica", String(v("data_nascimento") ?? ""))}
+          erro={motivoCampoInvalido(
+            "Data de nascimento",
+            "data_historica",
+            String(v("data_nascimento") ?? ""),
+          )}
         />
         <Texto
           label="Local de nascimento"
@@ -4273,11 +5055,7 @@ function CartaoPessoa({
           opcoes={ESTADO_CIVIL}
           onChange={(x) => set("estado_civil", x)}
         />
-        <Texto
-          label="Profissão"
-          valor={v("profissao")}
-          onChange={(x) => set("profissao", x)}
-        />
+        <Texto label="Profissão" valor={v("profissao")} onChange={(x) => set("profissao", x)} />
         <Texto
           label="Telefone"
           valor={v("telefone")}
@@ -4287,12 +5065,20 @@ function CartaoPessoa({
         />
         <Selecao
           label="É WhatsApp?"
-          valor={v("telefone_whatsapp") === "true" ? "true" : v("telefone_whatsapp") === "false" ? "false" : ""}
+          valor={
+            v("telefone_whatsapp") === "true"
+              ? "true"
+              : v("telefone_whatsapp") === "false"
+                ? "false"
+                : ""
+          }
           opcoes={[
             { valor: "true", rotulo: "Sim" },
             { valor: "false", rotulo: "Não" },
           ]}
-          onChange={(x) => set("telefone_whatsapp", x === "true" ? true : x === "false" ? false : null)}
+          onChange={(x) =>
+            set("telefone_whatsapp", x === "true" ? true : x === "false" ? false : null)
+          }
         />
         <Texto
           label="E-mail"
@@ -4301,11 +5087,7 @@ function CartaoPessoa({
           onChange={(x) => set("email", x)}
           erro={motivoCampoInvalido("E-mail", "email", String(v("email") ?? ""))}
         />
-        <Texto
-          label="Endereço"
-          valor={v("endereco")}
-          onChange={(x) => set("endereco", x)}
-        />
+        <Texto label="Endereço" valor={v("endereco")} onChange={(x) => set("endereco", x)} />
         <Texto
           label="CEP"
           valor={v("cep")}
@@ -4343,4 +5125,25 @@ function CartaoPessoa({
       </div>
     </Secao>
   );
+}
+
+/** Lê o retorno de atualizarRegistro: o que ficou gravado e o que o banco não guardou como enviado. */
+function resumoGravacao(r: unknown): { alterados: string[]; naoGuardados: string[] } {
+  const o = (r ?? {}) as { alterados?: unknown; naoGuardados?: unknown };
+  return {
+    alterados: Array.isArray(o.alterados) ? (o.alterados as string[]) : [],
+    naoGuardados: Array.isArray(o.naoGuardados) ? (o.naoGuardados as string[]) : [],
+  };
+}
+
+function manterSo(f: Record<string, unknown>, campos: string[]): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(f).filter(([k]) => campos.includes(k)));
+}
+
+function avisoSalvo(alterados: string[]): string {
+  return `Salvo e conferido no banco${alterados.length ? ` — ${alterados.length} campo(s)` : ""}.`;
+}
+
+function avisoNaoGuardados(alterados: string[], naoGuardados: string[]): string {
+  return `${alterados.length} campo(s) salvo(s). ${naoGuardados.length} não ficou(aram) como enviado(s): ${naoGuardados.join(", ")}.`;
 }

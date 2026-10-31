@@ -11,6 +11,7 @@ import { ComercialV4Topo } from "@/components/crm/comercial-v4-topo";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { registrarInteracao } from "@/lib/crm-fluxo.functions";
 import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
+import { AVISO_PRIVACIDADE } from "@/lib/decisoes-da-proprietaria";
 import { estadoCall, ROTULO_ESTADO_CALL, type EstadoCall } from "@/lib/painel-calls";
 import {
   ETAPAS_SPIN,
@@ -241,6 +242,8 @@ function CallsPage() {
             consentimento_status: "concedido",
             consentimento_canal: "verbal_em_call",
             consentimento_em: new Date().toISOString(),
+            // 26/10/2026: sem a versão do aviso o servidor recusava sempre.
+            consentimento_versao_aviso: AVISO_PRIVACIDADE.versao,
           },
         },
       }),
@@ -648,7 +651,7 @@ function CallsPage() {
                       <dl className="mt-3 space-y-2.5">
                         {campos.map((campo) => (
                           <ControleCampoSpin
-                            key={campo}
+                            key={`${selecionado.id}-${campo}`}
                             lead={selecionado}
                             campo={campo}
                             onSalvar={(c, v) => void gravarCampoSpin(selecionado.id!, c, v)}
@@ -667,6 +670,7 @@ function CallsPage() {
                 <label className="block text-xs text-navy/50">
                   Anotações da call (resumo_call — detalhe narrativo além dos 29 campos estruturados)
                   <textarea
+                    key={`resumo-${selecionado.id}`}
                     className="mt-1 w-full rounded-lg border border-navy/15 bg-card px-2 py-1.5 text-xs text-navy"
                     rows={4}
                     defaultValue={selecionado.resumo_call ?? ""}
@@ -687,14 +691,19 @@ function CallsPage() {
             ) : null}
           </CaCard>
 
+          {/*
+            26/10/2026 (auditoria): isto é só navegação até #calls-handoff —
+            a ação real de handoff, lá dentro de PainelCalls, já passa
+            `gateHandoff.motivo` como `pendenciaGate` para AcaoOperacional
+            (que libera a proprietária com aviso, nunca bloqueia). Travar o
+            link com `pointer-events-none` trancava a própria proprietária
+            fora da tela onde ela poderia assumir a pendência.
+          */}
           <a
             href="#calls-handoff"
             onClick={() => setMomento("revisao")}
-            aria-disabled={!gateHandoff.ok}
             className={`block rounded-2xl px-5 py-4 text-center text-sm font-semibold transition-colors ${
-              gateHandoff.ok
-                ? "bg-navy text-cream hover:bg-navy/90"
-                : "pointer-events-none cursor-not-allowed bg-navy/10 text-navy/40"
+              gateHandoff.ok ? "bg-navy text-cream hover:bg-navy/90" : "bg-navy/10 text-navy hover:bg-navy/20"
             }`}
           >
             Concluir Discovery e Gerar Proposta
