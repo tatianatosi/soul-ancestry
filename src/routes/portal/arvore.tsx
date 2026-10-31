@@ -16,7 +16,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 import { GenogramaFamiliar } from "@/components/portal/genograma-familiar";
-import { raizAutorizada } from "@/components/portal/genograma-layout";
+import { geracoesCoerentes, raizAutorizada } from "@/components/portal/genograma-layout";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
