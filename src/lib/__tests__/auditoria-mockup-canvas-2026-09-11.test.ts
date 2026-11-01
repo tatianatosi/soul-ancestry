@@ -28,7 +28,7 @@ describe("Auditoria 2026-09-11 — Casos cards, Propostas Canva, Go-live fora", 
 
   it("Go-live não é produto: módulo vira Fechamento e fixture avisa legado", () => {
     expect(modulos).toContain('nome: "Fechamento e ativação"');
-    // 31/10/2026: a fixture saiu; o componente lê o caso real escolhido.
-    expect(goLive).toContain("lidos do caso REAL");
+    expect(goLive).toContain("Arquivo histórico — fora da operação");
+    expect(goLive).toContain("saiu do vocabulário de produto");
   });
 });

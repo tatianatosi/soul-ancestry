@@ -1570,17 +1570,102 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
   });
 
 /** Nesta fase envio e assinatura são desabilitados: a tentativa é bloqueada e auditada. */
+/**
+ * 30/10/2026 — "envio" deixa de ser um stub sempre recusado. Segue o mesmo
+ * padrão já usado em todo o resto do app para qualquer efeito externo
+ * (`communication_queue`, ver `caso-canonico.functions.ts#sincronizarProximaAcao`):
+ * cria um RASCUNHO aguardando aprovação humana, nunca envia nada sozinho.
+ * Nenhuma peça de e-mail/WhatsApp real existe em lugar nenhum do código —
+ * é assim de propósito, não um buraco a preencher. "Assinatura", "cobrança"
+ * e "pesquisa_externa" continuam sem integração: seguem recusadas.
+ */
 export const tentarEtapaExterna = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contract_id: string; etapa: "envio" | "assinatura" | "cobranca" | "pesquisa_externa" }) => data)
   .handler(async ({ context, data }) => {
     const supabase = context.supabase as unknown as Sb;
-    const { organizationId } = await contexto(supabase, context.userId as string);
-    await evento(supabase, organizationId, data.contract_id, "send_blocked", { etapa: data.etapa, motivo: "fase_sem_integracao" });
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+
+    if (data.etapa !== "envio") {
+      await evento(supabase, organizationId, data.contract_id, "send_blocked", { etapa: data.etapa, motivo: "fase_sem_integracao" });
+      return {
+        ok: false,
+        mensagem: "Etapa desabilitada nesta fase. Assinatura, cobrança e pesquisa externa exigem configuração de integração específica.",
+      };
+    }
+    exigir(papel, PREPARA, "Seu papel não permite preparar o envio do contrato.");
+
+    const { data: contrato } = await supabase
+      .from("contracts")
+      .select("id,title,case_id,client_id,status")
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id)
+      .maybeSingle();
+    if (!contrato) throw new Error("Instrumento não encontrado nesta organização.");
+    if (contrato.status === "signed") throw new Error("Contrato assinado é imutável.");
+    if (!contrato.case_id) throw new Error("Contrato sem caso vinculado: não é possível preparar o envio.");
+
+    const { data: versoes } = await supabase
+      .from("contract_versions")
+      .select("version_number,status,review_decision,created_at,generated_content")
+      .eq("organization_id", organizationId)
+      .eq("contract_id", data.contract_id)
+      .is("archived_at", null);
+    const { versaoMaisRecente, diagnosticarVersaoContratual } = await import("@/lib/versao-contratual-vazia");
+    const atual = versaoMaisRecente((versoes ?? []) as never[]);
+    const diagnostico = diagnosticarVersaoContratual(atual);
+    if (diagnostico.vazia) {
+      await evento(supabase, organizationId, data.contract_id, "send_blocked", { etapa: "envio", motivo: "versao_vazia" });
+      return {
+        ok: false,
+        mensagem: `A versão mais recente não tem texto contratual (${diagnostico.motivos.join("; ") || "ver diagnóstico"}). Gere um rascunho completo antes de preparar o envio.`,
+      };
+    }
+
+    const cliente = contrato.client_id
+      ? (await supabase.from("clientes").select("id,nome,email").eq("id", contrato.client_id).maybeSingle()).data
+      : null;
+
+    const nomeCliente = (cliente?.nome as string | undefined) ?? "cliente";
+    const { criarRascunhoSeNaoHouver } = await import("@/lib/rascunho-comunicacao");
+    const fila = await criarRascunhoSeNaoHouver(supabase, {
+      organization_id: organizationId,
+      case_id: contrato.case_id,
+      acao_codigo: "envio_contrato",
+      target_audience: "cliente",
+      visibility: "cliente",
+      suggested_channel: "email",
+      assunto: `${contrato.title ?? "Contrato"} — pronto para envio`,
+      corpo_rascunho: `Olá, ${nomeCliente}. Segue o contrato "${contrato.title ?? ""}" (v${atual?.version_number ?? "?"}) para sua análise. Qualquer dúvida, estamos à disposição.`,
+      status: "awaiting_approval",
+      requires_human_approval: true,
+      created_by: context.userId,
+      observacao_interna: cliente?.email
+        ? `Rascunho criado em /contratos/${data.contract_id}. E-mail do cliente: ${cliente.email}. Envio externo depende de aprovação e ação humana — nenhum e-mail é disparado automaticamente.`
+        : `Rascunho criado em /contratos/${data.contract_id}. Cliente sem e-mail cadastrado — confirme o contato antes de aprovar. Envio externo depende de aprovação e ação humana.`,
+    });
+    if (!fila.criado) {
+      return {
+        ok: true,
+        mensagem: "Já existe um rascunho de envio aguardando aprovação na fila de comunicações deste caso — nada duplicado.",
+      };
+    }
+
+    await evento(supabase, organizationId, data.contract_id, "send_drafted", { etapa: "envio", communication_queue_id: fila.id });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: contrato.case_id,
+      eventType: "caso",
+      title: "Rascunho de envio do contrato criado",
+      summaryInternal: `Aguardando aprovação em communication_queue (${fila.id})`,
+      sourceEntityType: "contracts",
+      sourceEntityId: data.contract_id,
+      userId: context.userId as string,
+    });
+
     return {
-      ok: false,
-      mensagem:
-        "Etapa desabilitada nesta fase. Envio, assinatura, cobrança e pesquisa externa exigem configuração de integração e aprovação humana específica.",
+      ok: true,
+      mensagem: "Rascunho de envio criado — revise e aprove na fila de comunicações deste caso. Nenhum e-mail foi enviado ainda.",
     };
   });
 
@@ -1990,28 +2075,4 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
     });
 
     return { papel, instrumentos };
-  });
-
-/** Histórico do banco antigo guardado em `contract_history_imports` (somente leitura; a RLS libera admin/operações). */
-export const historicoImportadoDoContrato = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { contract_id: string }) => data)
-  .handler(async ({ context, data }) => {
-    semCache();
-    const supabase = context.supabase as unknown as Sb;
-    const { organizationId } = await contexto(supabase, context.userId as string);
-    const { data: linhas, error } = await supabase
-      .from("contract_history_imports")
-      .select("id,source_table,source_created_at,payload,import_note")
-      .eq("organization_id", organizationId)
-      .eq("contract_id", data.contract_id)
-      .order("source_created_at", { ascending: true });
-    if (error) throw new Error(error.message);
-    return (linhas ?? []) as {
-      id: string;
-      source_table: string;
-      source_created_at: string | null;
-      payload: Record<string, string | number | boolean | null | object> | null;
-      import_note: string | null;
-    }[];
   });

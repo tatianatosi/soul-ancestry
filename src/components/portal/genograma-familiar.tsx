@@ -3,7 +3,7 @@ import { Minus, Plus, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PessoaNaArvore } from "@/lib/arvore-publicacao";
 import type { VinculoArvoreCliente } from "@/lib/portal-dados-vivos.functions";
-import { CARTAO_LARGURA, enquadramentoGenograma, layoutGenograma } from "./genograma-layout";
+import { CARTAO_LARGURA, caminhoFiliacaoDaUniao, enquadramentoGenograma, layoutGenograma } from "./genograma-layout";
 
 /** Only published people and explicit relationships are drawn. */
 export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas: PessoaNaArvore[]; vinculos: readonly VinculoArvoreCliente[]; raizId?: string; anos?: Readonly<Record<string, string>> }) {
@@ -66,11 +66,11 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas
               : `M${esq.x + m} ${esq.y + esq.altura / 2} L${dir.x - m} ${dir.y + dir.altura / 2}`;
             const intermediario = layout.nos.some((n) => n.y > sup.y && n.y < inf.y);
             const corredor = layout.largura - 20 - (i % 4) * 6;
-            const filiacao = a.y === b.y
+            const filiacao = caminhoFiliacaoDaUniao(v, layout.nos, vinculos) ?? (a.y === b.y
               ? `M${a.x} ${a.y} V${a.y - 4} H${b.x} V${b.y}`
               : intermediario
                 ? `M${sup.x} ${saida} V${saida + 18} H${corredor} V${chegada - 18} H${inf.x} V${chegada}`
-                : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`;
+                : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`);
             return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : filiacao}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
           {layout.rotulos.map((r) => <text key={`g${r.geracao}`} data-genograma-rotulo x={12} y={r.y} className="app-genograma-rotulo">G{r.geracao}{r.geracao === 1 ? " · Você" : ""}</text>)}

@@ -48,7 +48,7 @@ describe("D6 Radar & Matrizes — legenda de ordem por sinal na Matriz", () => {
   });
 
   it("mostra chip Dados insuficientes quando a carteira canônica está vazia", () => {
-    // 31/10/2026 — o editor trocou "Sem dados reais" por "Dados insuficientes" (mesmo estado, vazio honesto).
+    // 31/10/2026: texto canônico de ausência ("Dados insuficientes"), aplicado pela Proprietária.
     expect(matriz).toContain("data-radar-chip-sem-dados");
     expect(matriz).toMatch(/Dados insuficientes/);
   });

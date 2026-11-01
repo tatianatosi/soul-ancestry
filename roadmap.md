@@ -6,12 +6,13 @@
 - [ ] Capturar produto principal e rascunho autenticados em 375/1440, abas/subabas seguras; contrato autorizado, demais escritas não.
 - [ ] Comparar com prancha aprovada por página/elemento e entregar PDF com QA integral, arquivos/SHA/pendências. Sem publicar, aceitar, merge ou deploy.
 ## 31/10 — Prontidão para o lançamento do fim de semana
-- [ ] Suíte completa de testes: corrigir falhas reais; atualizar só testes que conferem textos já substituídos por decisão aprovada.
-- [ ] Desk diário: abrir cada setor da lateral (`SETORES_DESK`) e Caso 360 da Ana em 1280/375; corrigir telas quebradas, erros de página e HTTP >=400.
-- [ ] App Cliente da Ana: sete abas com dados reais (núcleo Ana, Adair, Alice + Felipe dependente; árvore 8 pessoas/8 relações; contrato v5 3×R$ 3.200); 375/1280 sem overflow.
-- [ ] Árvore: linha G4→G3 de Lotte/Otto não pode passar sobre Cleusa (sugere filiação não registrada).
-- [ ] Verificação de segurança profunda (iniciada 31/10): ler resultado e corrigir o que for código.
-- [ ] Publicar após tudo verificado e conferir no link público.
+- [x] Suíte completa: 625 arquivos / 5.869 testes passam. Teste de inventário ganhou limite de 30 s (lento sob carga); dois testes atualizados para textos aplicados pela Proprietária em 31/10 ("Dados insuficientes", título do Desk menor no celular).
+- [x] Desk diário: 41 telas da lateral + Caso 360 e contrato da Ana + 18 telas GoLive no caso da Ana abrem em 1280/375 sem erro, HTTP >=400 ou rolagem lateral; telas alteradas pela versão aplicada em 31/10 reconferidas.
+- [x] App Cliente da Ana: sete abas 375/1280 sem erro/overflow; Conta 3×R$ 320/10 meses, R$ 3.200/adulto, R$ 9.600; Árvore 8 pessoas/8 ligações.
+- [x] Árvore: filiação publicada Ana Maria → Cleusa (confirmada 13/10) estava desenhada na mesma geração; layout agora põe pai/mãe acima do filho (G7→G1), cada linha cai direto, sem passar sobre outra pessoa. Banco não alterado; números de geração publicados (Ana Maria G3, acima dela G4–G6) seguem divergentes da relação e devem ser corrigidos no Desk pela equipe.
+- [x] Segurança profunda 31/10: 4 achados. Corrigido no código: histórico de acesso ao portal só para gestão e da própria organização. Três abertos aguardam definição de papéis pela Proprietária.
+- [x] Publicado em 01/11; link público conferido: sete abas 375/1280 sem erro (Árvore G7→G1, 8 pessoas/8 ligações) e nove telas principais do Desk abrindo.
+- [ ] Lançamento — ações da Proprietária (efeito externo, não executadas): liberar o caso da Ana no App (hoje bloqueado, informação ao cliente não liberada) e enviar o convite ao e-mail já aprovado analuizabox@gmail.com em Acessos ao App; Adair e Alice sem e-mail autorizado/convite.
 - Bloqueios conhecidos: três achados de permissão (aprovar preço, pendências de contrato de outra organização, preparar contrato para assinatura) aguardam a Proprietária definir papéis; anos de Heinrich, Lotte, Ana Maria, Cleusa e Adair sem fonte; pedidos documentais e relatórios não registrados.
 
 ## 27/10 — Correção focal da Árvore (sem publicação)

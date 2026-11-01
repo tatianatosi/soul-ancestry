@@ -44,7 +44,10 @@ export function geracoesCoerentes<T extends PessoaNaArvore>(pessoas: readonly T[
     }
     if (!mudou) break;
   }
-  return pessoas.map((p) => (g.get(p.chave) === (p.geracao ?? 1) ? p : { ...p, geracao: g.get(p.chave)! }));
+  return pessoas.map((p) => {
+    const geracao = g.get(p.chave) ?? p.geracao ?? 1;
+    return geracao === (p.geracao ?? 1) ? p : { ...p, geracao };
+  });
 }
 
 /** Rectangular cards (mockup p.6): y is the card top; altura is the card height. */
@@ -79,6 +82,32 @@ export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPesso
     });
   });
   return { nos, rotulos, largura, altura: Math.max(240, y - 44) };
+}
+
+/** A shared child descends from the union only when both filiations are published. */
+export function caminhoFiliacaoDaUniao(
+  vinculo: VinculoLayout,
+  nos: ReturnType<typeof layoutGenograma>["nos"],
+  vinculos: readonly VinculoLayout[],
+) {
+  if (vinculo.tipo !== "pai_mae") return null;
+  const pai = nos.find((n) => n.pessoa.chave === vinculo.de);
+  const filho = nos.find((n) => n.pessoa.chave === vinculo.para);
+  if (!pai || !filho) return null;
+  for (const uniao of vinculos.filter((v) => v.tipo === "conjuge")) {
+    const outroId = uniao.de === vinculo.de ? uniao.para : uniao.para === vinculo.de ? uniao.de : null;
+    const outro = nos.find((n) => n.pessoa.chave === outroId);
+    if (!outro || outro.y !== pai.y || filho.y <= pai.y + pai.altura) continue;
+    if (!vinculos.some((v) => v.tipo === "pai_mae" && v.de === outroId && v.para === vinculo.para)) continue;
+    const esquerda = Math.min(pai.x, outro.x), direita = Math.max(pai.x, outro.x);
+    if (nos.some((n) => n.y === pai.y && n.x > esquerda && n.x < direita)) continue;
+    if (nos.some((n) => n.y > pai.y && n.y < filho.y)) continue;
+    const x = (pai.x + outro.x) / 2;
+    const y = pai.y + pai.altura / 2;
+    const meio = (pai.y + pai.altura + filho.y) / 2;
+    return `M${x} ${y} V${meio} H${filho.x} V${filho.y}`;
+  }
+  return null;
 }
 
 /** Opens showing every generation (oldest to "Você") when the viewport height is known. */

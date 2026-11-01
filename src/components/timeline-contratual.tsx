@@ -37,15 +37,8 @@ function Ponto({ status }: { status: EtapaContratual["status"] }) {
   );
 }
 
-export function TimelineContratualDesk({
-  caso,
-  etapas: etapasReais,
-}: {
-  caso?: CaseData;
-  /** Etapas reais (ex.: dos passos da prontidão). Quando dadas, `caso` não é lido. */
-  etapas?: EtapaContratual[];
-}) {
-  const etapas = etapasReais ?? (caso ? timelineInterna(caso) : []);
+export function TimelineContratualDesk({ caso }: { caso: CaseData }) {
+  const etapas = timelineInterna(caso);
   if (etapas.length === 0) return null;
 
   return (
