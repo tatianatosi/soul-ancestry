@@ -61,3 +61,4 @@ tmp/
 
 # Cartographer skill scratch state (local audit working directory)
 .cartographer/
+docs/grafo/grafo-codigo.json
