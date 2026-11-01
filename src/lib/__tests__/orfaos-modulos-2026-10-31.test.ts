@@ -120,8 +120,10 @@ describe("Módulos órfãos: inventário classificado, nada apagado em silêncio
     }
   });
 
-  it("8. o `painel-dia.tsx` segue aguardando a decisão do AGENTS.md e não foi tocado de classificação", () => {
+  it("8. o `painel-dia.tsx` foi aposentado por decisão de 01/11/2026 (/painel é a fonte viva) e segue no repositório", () => {
     const e = MODULOS_ORFAOS.find((o) => o.modulo === "components/painel/painel-dia.tsx");
-    expect(e?.veredicto).toBe("AGUARDA_DECISAO");
+    expect(e?.veredicto).toBe("APOSENTADA_CLASSIFICADA");
+    expect(e?.destino).toContain("routes/_authenticated/painel.tsx");
+    expect(existsSync(join("src", "components/painel/painel-dia.tsx"))).toBe(true);
   });
 });

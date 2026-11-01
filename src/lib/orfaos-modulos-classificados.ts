@@ -149,10 +149,11 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
   },
   {
     modulo: "components/painel/painel-dia.tsx",
-    veredicto: "AGUARDA_DECISAO",
+    veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "O AGENTS.md mantém painel-dia.tsx aguardando decisão e proíbe tocá-lo; /painel já é a grade da Prancha V4, mas a Proprietária ainda não declarou qual é a fonte viva do Hoje.",
-    destino: "Decisão: painel-dia.tsx × /painel: qual é a fonte viva do Painel Hoje",
+      "Decidido pela Proprietária em 01/11/2026 (N7): o Painel Hoje segue o mockup Desk V4 aprovado e já aplicado em /painel; painel-dia.tsx é o desenho anterior, superado, e não é religado. Não foi apagado e seus testes ficam como registro de requisito.",
+    destino:
+      "src/routes/_authenticated/painel.tsx (Painel Hoje da Prancha V4, fonte viva)",
   },
   {
     modulo: "components/painel/painel-hoje.tsx",

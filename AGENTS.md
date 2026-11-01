@@ -11,6 +11,8 @@
 
 # Clube Ancestral — regras para agentes
 
+- Sincronia com o Lovable (01/11/2026): com o editor ativo, trabalhe só em branch `claude/*` e não empurre na `main`; antes de PR, `git merge origin/main` — por quê: o merge do editor sobre base antiga já derrubou 101 arquivos (`00ab0cc5`). Protocolo: `docs/politicas/PROTOCOLO-SINCRONIA-LOVABLE-GIT-2026-11-01.md`.
+
 Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, adendos): `docs/politicas/AGENTS-MEMORIA-COMPLETA-2026-10-11.md`. Ler antes de mudar fluxo, schema, nav ou App.
 
 - Um produto só: Desk + App Cliente sobre `crm_casos`; planejador é fonte do trabalho ativo; caso ativo sempre com próxima ação (`proxima_acao_prioritaria`) — por quê: motor unificado.
@@ -25,7 +27,8 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - Preservar a RPC `portal_sou_contratante_financeiro` e suas chamadas; não-contratante recebe só estado neutro quando `restritoAoContratante` — por quê: fatura pertence ao contratante.
 - Autorização sempre em RLS/servidor; sem exclusão física; auditoria em mudanças — por quê: segurança real.
 - Preservar `confirmarDocumentosMinimos` → `documentos_minimos_ok` (PR #85) — por quê: gate do portal.
-- `painel-dia.tsx` continua aguardando decisão; não tocar. GoLive = VIDA COMPLETA de CADA cliente; Caso 360 = visão MACRO (cards-resumo da vida do cliente) que aponta para o GoLive; o GoLive tem lugar próprio em Casos → "GoLive · Vida do cliente", abre dentro do Desk V4 (`GoLiveShell` sobre `SaasShell`), recebe o caso por `?casoId=` nas 19 telas e grava SEMPRE no caso escolhido (`contexto(…, casoEscolhido(data))`; sem caso, o piloto) — decidido pela Proprietária em 23/10/2026, substitui a regra de 19/10 ("golive-* intocados") e a Fase 6 do plano de 07/10 (absorver o GoLive) — por quê: o GoLive só servia ao piloto e gravava tudo no caso da Ana. Decisão: `00_governanca/DECISAO-CASO360-MACRO-GOLIVE-VIDA-COMPLETA-2026-10-23.md`.
+- Painel Hoje: a fonte viva é `/painel` (Prancha V4, mockup aprovado e já aplicado); `painel-dia.tsx` é desenho anterior superado — decidido pela Proprietária em 01/11/2026 (N7), não será religado; não apagar nem mexer nos seus testes sem pedido — por quê: um só Hoje.
+- GoLive = VIDA COMPLETA de CADA cliente; Caso 360 = visão MACRO (cards-resumo da vida do cliente) que aponta para o GoLive; o GoLive tem lugar próprio em Casos → "GoLive · Vida do cliente", abre dentro do Desk V4 (`GoLiveShell` sobre `SaasShell`), recebe o caso por `?casoId=` nas 19 telas e grava SEMPRE no caso escolhido (`contexto(…, casoEscolhido(data))`; sem caso, o piloto) — decidido pela Proprietária em 23/10/2026, substitui a regra de 19/10 ("golive-* intocados") e a Fase 6 do plano de 07/10 (absorver o GoLive) — por quê: o GoLive só servia ao piloto e gravava tudo no caso da Ana. Decisão: `00_governanca/DECISAO-CASO360-MACRO-GOLIVE-VIDA-COMPLETA-2026-10-23.md`.
 - Nada arquiva sem `COMPROVADO_EM_USO` com prints autenticados da Proprietária; build/teste não é prova — por quê: adendo 2026-09-10.
 - Sem migration, RLS, convite, publicação, merge ou deploy sem autorização explícita — por quê: efeitos externos.
 - As 5 etapas do caso (Diagnóstico→App Cliente) vêm só de `src/lib/etapas-caso.ts`, agrupando `case_activation_checks` existentes; nunca gate/tabela nova — por quê: uma regra para Caso 360, lista, Radar e Painel.

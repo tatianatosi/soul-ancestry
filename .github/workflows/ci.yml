@@ -7,7 +7,9 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # S2 (01/11/2026): só PR cancela o run anterior. Na main cada commit mantém o seu CI,
+  # senão o editor do Lovable (um commit por minuto) nunca deixa um "último SHA verde".
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   typecheck-test-build:
