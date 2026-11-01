@@ -29,12 +29,14 @@ com teste; onde diz "aberto", não foi feito.
 
 ## Aberto (não executado)
 
-1. **Onda 1**: `portal-experiencia-integral`, `portal-fallback-canonico`, `rascunhos-comunicacao-governados`,
-   `debug-cliente-access`, `decisao-ana-canonica`, `demo-cliente-helper`, `corte-vertical`. Os dois primeiros têm
-   árvore, documentos, radar e datas **inventados** (Otto Reimer 1895, "Dr. Klaus Becker"…), o que contraria
-   "nada inferido / vazio honesto". Não devem ser religados como estão: precisam ler o caso e mostrar vazio
-   honesto. `app-visibilidade-registro` também: lê o caso de `src/data/case-registry` (demo), enquanto o App real
-   usa `escopoAPartirDePublicacoes`.
+1. **Onda 1, parcial.** Reescritos por caso e sem dado de família no código: `portal-experiencia-integral`,
+   `portal-fallback-canonico` (antes tinham árvore, documentos, radar e datas inventados, como "Otto Reimer 1895" e
+   "Dr. Klaus Becker"), `debug-cliente-access` (agora aponta para `/app-cliente-como-pessoa?casoId=`) e
+   `botao-testar-cliente` (recebe o `casoId`; o `TODO:` que travava o `pipeline.py` saiu). Ficaram de fora:
+   `rascunhos-comunicacao-governados` (é lógica pura sem dado de família; ligá-lo mexe no envio de comunicação ao
+   cliente), `decisao-ana-canonica` e `corte-vertical` (registros de decisão e retrato do caso da Ana) e
+   `demo-cliente-helper` (descreve a rota demo mantida). `app-visibilidade-registro` também: lê o caso de
+   `src/data/case-registry` (demo), enquanto o App real usa `escopoAPartirDePublicacoes`.
 2. 97 arquivos de produção com dado de pessoa escrito no código (57 real, 24 fictício, 16 em `src/data`).
 3. Ondas 2 a 4 (Painel Hoje sem o `painel-dia`, Governança, aposentadas).
 4. **Menu descrito de 3 jeitos**: README (8 grupos com outros nomes), *knowledge* do Lovable (6 grupos), `AGENTS.md`

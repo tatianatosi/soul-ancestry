@@ -105,10 +105,9 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     modulo: "components/painel/botao-testar-cliente.tsx",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "A regra do AGENTS.md é ver o App só por /app-cliente-como-pessoa?casoId=; este botão aponta para um id fixo de cliente real e para uma rota fora das 7 abas.",
+      "Reescrito por caso em 01/11/2026: recebe o casoId e abre /app-cliente-como-pessoa?casoId=, sem id fixo e sem TODO (o pipeline.py deixa de abortar nele). Segue sem chamador porque Caso 360 e Pessoa 360 já têm o link oficial; um botão a mais seria CTA duplicado.",
     destino:
-      "src/routes/_authenticated/app-cliente-como-pessoa.tsx (preview administrativo por casoId), já ligado em casos.$caseId.index.tsx",
-    riscoVazamento: true,
+      "src/routes/_authenticated/app-cliente-como-pessoa.tsx (mecanismo oficial, ligado no Caso 360 e na Pessoa 360)",
   },
   {
     modulo: "components/painel/cards-alertas-centrais.tsx",
@@ -286,10 +285,9 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     modulo: "lib/debug-cliente-access.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "O mecanismo oficial para o admin ver o App do cliente é app-cliente-como-pessoa (por casoId, com preview isolado); este link aponta para /portal/casos/$id, rota fora das 7 abas, e só é citado num TODO de botao-testar-cliente.tsx.",
+      "Reescrito por caso em 01/11/2026: o link aponta para /app-cliente-como-pessoa?casoId= e a lista de clientes de teste com id fixo saiu do código. Segue sem chamador porque o link oficial já está ligado no Caso 360 e na Pessoa 360.",
     destino:
-      "lib/app-cliente-como-pessoa.functions.ts#dadosVivosDoPortalComoAdmin; não religar (expõe dado real de cliente fora do preview)",
-    riscoVazamento: true,
+      "src/lib/app-cliente-como-pessoa.functions.ts (mecanismo oficial por casoId)",
   },
   {
     modulo: "lib/decisao-ana-canonica.ts",
@@ -379,22 +377,21 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: manter a matriz como guarda do mapeamento mockup→grupos (navegacao-desk.test.ts) ou trocar a guarda por GRUPOS_DESK direto e aposentar a matriz",
   },
   {
-    modulo: "lib/portal-experiencia-integral.ts",
+    modulo: "lib/saneamento-desk-app-v4.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "Fixture de família real (inclui Felipe, menor, e valores do contrato) contrária à regra do vazio honesto: o App lê dado vivo e sanitizado por portal-dados-vivos via usePortalVivo. Só rateio-igualitario-ana-2026-10-23.test.ts lê o arquivo, como texto.",
+      "Retrato fixo do caso da Ana (nomes, valores, fase, prazo) que só era importado por portal-experiencia-integral e portal-fallback-canonico, reescritos por caso em 01/11/2026. Fica no repositório porque o teste de rateio ainda lê o texto; nenhuma tela deve voltar a importá-lo.",
     destino:
-      "Manter no repositório sem religar: o App usa src/lib/portal-dados-vivos.ts (usePortalVivo em routes/portal/index.tsx)",
+      "src/lib/portal-dados-vivos.ts (o caso real chega por dadosVivosDoPortal, via usePortalVivo)",
     riscoVazamento: true,
   },
   {
     modulo: "lib/portal-fallback-canonico.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "Régua de 10 etapas com 'Linhagem Friedmann-Reimer mapeada' fixa; o AGENTS.md manda as 5 etapas do caso virem só de etapas-caso.ts, e o App mostra vazio honesto em vez de fallback inventado.",
+      "Reescrito em 01/11/2026: o fallback agora é o vazio honesto (tudo 'Não registrado'), sem régua nem contrato fixos. Segue sem chamador porque a falha de rede é tratada por portal-resiliencia e as abas já mostram vazio honesto.",
     destino:
       "Manter sem religar: as etapas vêm de src/lib/etapas-caso.ts e a Home lê portal-dados-vivos (ROTULOS_ETAPA_CLIENTE)",
-    riscoVazamento: true,
   },
   {
     modulo: "lib/rascunhos-comunicacao-governados.ts",
