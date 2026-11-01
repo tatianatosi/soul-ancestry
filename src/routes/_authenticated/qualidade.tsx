@@ -15,6 +15,7 @@ import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos
 import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Radar & Matrizes — Clube Ancestral" },

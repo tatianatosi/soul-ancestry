@@ -16,6 +16,7 @@ import { Etiqueta } from "@/components/prancha-v4/kit";
 import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 
 export const Route = createFileRoute("/_authenticated/evidencias")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Evidências — Clube Ancestral" },

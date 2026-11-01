@@ -27,6 +27,7 @@ import {
 } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/formalizacao")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/portal/portal-shell";
 import { PortalCasoDetalhe } from "@/components/portal/caso-detalhe";
 
 export const Route = createFileRoute("/portal/casos/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Meu caso — Portal Clube Ancestral" },

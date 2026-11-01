@@ -45,6 +45,7 @@ import { formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 export const Route = createFileRoute("/_authenticated/clientes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Clientes — Clube Ancestral" },

@@ -8,6 +8,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { portalProposta } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/portal/proposta")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Proposta — Portal Clube Ancestral" },

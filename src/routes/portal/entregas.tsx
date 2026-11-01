@@ -19,6 +19,7 @@ function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
 }
 
 export const Route = createFileRoute("/portal/entregas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Materiais liberados — Portal Clube Ancestral" },

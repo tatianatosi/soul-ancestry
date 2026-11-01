@@ -19,6 +19,7 @@ function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
 }
 
 export const Route = createFileRoute("/portal/fase-01")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Relatório preparado — Portal Clube Ancestral" },

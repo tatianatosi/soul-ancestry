@@ -10,6 +10,7 @@ import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/
 import { meuTicket, responderTicketCliente } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/mensagens/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Atendimento — Portal Clube Ancestral" },

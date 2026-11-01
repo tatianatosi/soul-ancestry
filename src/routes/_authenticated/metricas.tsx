@@ -9,6 +9,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 
 export const Route = createFileRoute("/_authenticated/metricas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Métricas comerciais e operacionais — Clube Ancestral" },

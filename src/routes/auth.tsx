@@ -6,6 +6,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  * links antigos guardados no navegador.
  */
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   beforeLoad: () => {
     throw redirect({ to: "/equipe/entrar", replace: true });
   },

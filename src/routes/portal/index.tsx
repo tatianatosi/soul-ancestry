@@ -39,6 +39,7 @@ function destinoPorTipo(tipo: string): "/portal/jornada" | "/portal/arvore" | "/
 }
 
 export const Route = createFileRoute("/portal/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Home — Portal Clube Ancestral" },

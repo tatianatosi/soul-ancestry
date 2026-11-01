@@ -24,6 +24,7 @@ import {
 } from "@/lib/onboarding-regras";
 
 export const Route = createFileRoute("/_authenticated/onboarding/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Onboarding do caso — Clube Ancestral" },

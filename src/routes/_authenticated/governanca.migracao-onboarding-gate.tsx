@@ -10,6 +10,7 @@ import { backfillGateOnboardingEmCasePlans } from "@/lib/onboarding-gate-backfil
 import { pontearFontesDePesquisa, type ItemPonte } from "@/lib/pontes-pesquisa.functions";
 
 export const Route = createFileRoute("/_authenticated/governanca/migracao-onboarding-gate")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Migração — gate de onboarding em case_plans — Clube Ancestral" },

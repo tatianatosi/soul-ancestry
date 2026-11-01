@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://soul-ancestry.lovable.app/sitemap.xml

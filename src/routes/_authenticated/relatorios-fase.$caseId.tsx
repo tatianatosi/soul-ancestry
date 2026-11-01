@@ -33,6 +33,7 @@ import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export const Route = createFileRoute("/_authenticated/relatorios-fase/$caseId")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Relatórios de fase — Clube Ancestral" },

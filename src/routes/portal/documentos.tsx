@@ -17,6 +17,7 @@ import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 
 export const Route = createFileRoute("/portal/documentos")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Documentos — Portal Clube Ancestral" },

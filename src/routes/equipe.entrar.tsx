@@ -18,6 +18,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/equipe/entrar")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Entrar — Equipe Clube Ancestral" },

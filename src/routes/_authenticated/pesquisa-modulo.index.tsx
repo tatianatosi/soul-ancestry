@@ -68,6 +68,7 @@ function tomStatusHipotese(status: string): Tom {
 }
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Módulo de pesquisa e evidências — Clube Ancestral" },

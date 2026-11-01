@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/golive/app")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

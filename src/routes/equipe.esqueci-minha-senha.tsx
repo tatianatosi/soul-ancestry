@@ -8,6 +8,7 @@ import { recuperarSenhaEquipe } from "@/lib/equipe.functions";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/equipe/esqueci-minha-senha")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Recuperar senha — Equipe Clube Ancestral" },

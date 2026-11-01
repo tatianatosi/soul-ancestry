@@ -10,6 +10,7 @@ import { PRONTIDAO_INTEGRACOES, type EstadoIntegracao } from "@/lib/prontidao-in
 const contarEstado = (estado: EstadoIntegracao) => PRONTIDAO_INTEGRACOES.filter((i) => i.estado === estado).length;
 
 export const Route = createFileRoute("/_authenticated/integracoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Centro de Integrações — Clube Ancestral" },

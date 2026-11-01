@@ -23,6 +23,7 @@ import { AuditoriaVisibilidadeApp } from "@/components/desk/auditoria-visibilida
  * abrem pela jornada quando a visibilidade da pessoa libera.
  */
 export const Route = createFileRoute("/_authenticated/app-cliente-como-pessoa")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "App Cliente como pessoa — Clube Ancestral" },

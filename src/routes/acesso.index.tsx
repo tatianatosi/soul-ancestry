@@ -7,6 +7,7 @@ import { solicitarLinkAcesso } from "@/lib/portal.functions";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/acesso/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Acesso do cliente — Clube Ancestral" },

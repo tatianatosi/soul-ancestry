@@ -38,6 +38,7 @@ import { AcaoCall, AcaoDiscovery } from "@/components/golive/acoes-registro";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

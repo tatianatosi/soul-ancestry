@@ -58,6 +58,7 @@ import { listarEquipe } from "@/lib/equipe.functions";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Instrumento contratual — Clube Ancestral" },

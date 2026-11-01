@@ -24,6 +24,7 @@ import {
 } from "@/lib/ca06-catalogo-operacional";
 
 export const Route = createFileRoute("/_authenticated/governanca/catalogo-operacional-30")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Catálogo Operacional 30 (CA-06) — Clube Ancestral" },

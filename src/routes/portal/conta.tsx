@@ -26,6 +26,7 @@ import { minhasFaturas } from "@/lib/portal-cliente.functions";
 import { comTimeout } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/conta")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Conta — Portal Clube Ancestral" },
