@@ -73,9 +73,9 @@ export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPesso
       .sort((a, b) => (a.peso === b.peso ? a.i - b.i : a.peso - b.peso))
       .map(({ p }) => p);
     const linhaY = y;
-    const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome, compacto ? 120 : 150), ano: anosPorPessoa?.[pessoa.chave] ?? null }));
+    const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome, compacto ? 90 : 150), ano: anosPorPessoa?.[pessoa.chave] ?? null }));
     const temAno = preparados.some((p) => p.ano);
-    const altura = 22 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * passoLinha + (temAno ? 20 : 0) + 8;
+    const altura = 22 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * passoLinha + (temAno ? (compacto ? 20 : 16) : 0) + 8;
     rotulos.push({ geracao: g, y: linhaY - 10 });
     y += altura + 64;
     return preparados.map((p, indice) => {

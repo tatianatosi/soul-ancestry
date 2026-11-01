@@ -89,7 +89,7 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas
               <rect x={-layout.cartaoLargura / 2} y={0} width={layout.cartaoLargura} height={altura} rx={8} className="app-genograma-cartao" />
               <text textAnchor="middle" y={26} className="app-genograma-nome">{linhas.map((linha, i) => <tspan key={i} x={0} dy={i === 0 ? 0 : layout.passoLinha}>{linha}</tspan>)}</text>
               {/* Ano só quando a equipe liberou a data do perfil (29/10/2026). */}
-              {ano ? <text data-genograma-ano textAnchor="middle" y={26 + (linhas.length - 1) * layout.passoLinha + 20} className="app-genograma-ano">{ano}</text> : null}
+              {ano ? <text data-genograma-ano textAnchor="middle" y={26 + (linhas.length - 1) * layout.passoLinha + (compacto ? 20 : 18)} className="app-genograma-ano">{ano}</text> : null}
             </g>
           ))}
         </svg>
