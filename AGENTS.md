@@ -11,6 +11,7 @@
 
 # Clube Ancestral — regras para agentes
 
+- Conclusão (01/11/2026): tarefa pedida é tarefa entregue de ponta a ponta (código, teste, commit, PR, CI verde); não encerrar com lista de pendências que o agente mesmo pode executar. Perguntar só o que é irreversível, externo ou decisão nova da Proprietária, e uma pergunta por vez, com o motivo. Nunca escrever "feito" sem evidência (teste, CI, grep do código); ao final, dizer o que ficou feito e provado e o que falta, com a causa concreta — por quê: planos marcaram como feito o que não estava (ex.: P1) e PRs foram arquivados sem executar.
 - Sincronia com o Lovable (01/11/2026): com o editor ativo, trabalhe só em branch `claude/*` e não empurre na `main`; antes de PR, `git merge origin/main` — por quê: o merge do editor sobre base antiga já derrubou 101 arquivos (`00ab0cc5`). Protocolo: `docs/politicas/PROTOCOLO-SINCRONIA-LOVABLE-GIT-2026-11-01.md`.
 
 Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, adendos): `docs/politicas/AGENTS-MEMORIA-COMPLETA-2026-10-11.md`. Ler antes de mudar fluxo, schema, nav ou App.

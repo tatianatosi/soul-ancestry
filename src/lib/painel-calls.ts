@@ -48,6 +48,31 @@ export function estadoCall(l: LeadDesk): EstadoCall {
 export type Pendencia = { campo: string; motivo: string };
 
 /**
+ * Regra Journey / CRM vivo: lead ativo sem área, responsável nominal e
+ * próxima ação datada. Só informa na UI — a proprietária não é travada
+ * (autoridade operacional); o restante da equipe continua sob `validarLead`.
+ */
+export function avisosOperacionaisLeadAtivo(l: LeadDesk): Pendencia[] {
+  if (l.archived_at || ["perdido", "encerrado_sem_aderencia"].includes(String(l.eixo_comercial ?? ""))) {
+    return [];
+  }
+  const p: Pendencia[] = [];
+  if (vazio(l.area_responsavel)) {
+    p.push({ campo: "area_responsavel", motivo: "Lead ativo sem área responsável." });
+  }
+  if (vazio(l.responsavel_nome)) {
+    p.push({ campo: "responsavel_nome", motivo: "Lead ativo sem responsável nominal." });
+  }
+  if (vazio(l.proxima_acao)) {
+    p.push({ campo: "proxima_acao", motivo: "Lead ativo sem próxima ação." });
+  }
+  if (vazio(l.proxima_acao_em)) {
+    p.push({ campo: "proxima_acao_em", motivo: "Lead ativo sem data da próxima ação." });
+  }
+  return p;
+}
+
+/**
  * Bloqueios do registro da call: só é possível dar a chamada por registrada
  * quando data, resumo, resultado e próxima ação datada existem.
  */
