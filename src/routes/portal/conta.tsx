@@ -20,7 +20,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
-import { condicaoFamiliarPrevista } from "@/components/portal/condicao-familiar";
+import { rotuloSeloCaso } from "@/lib/selo-caso-cliente";
 import { formatarValor } from "@/lib/assinatura-app";
 import { minhasFaturas } from "@/lib/portal-cliente.functions";
 import { comTimeout } from "@/lib/portal-resiliencia";
@@ -63,10 +63,10 @@ export function PortalConta() {
   // institucional; prévia real mostra só o nome vindo do cadastro do caso.
   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
   const titularExibido = titular ?? titularPrevia;
-  const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
-  const condicaoFamiliar = previaDemo
-    ? null
-    : condicaoFamiliarPrevista(codigoCaso ?? vivo.data?.casoAtivoId);
+  // 30/10/2026 — vem de `case_commercial_condition` (vivo.data.condicaoComercial),
+  // nunca mais hardcoded por caso. Sem versão aprovada no banco, fica null:
+  // a seção cai no mesmo caminho da assinatura publicada (A7) ou do vazio.
+  const condicaoFamiliar = previaDemo ? null : (vivo.data?.condicaoComercial ?? null);
   const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento =
     previa || data?.autorizado
@@ -111,6 +111,8 @@ export function PortalConta() {
   );
 
   const resumo = vivo.data?.resumoCaso ?? null;
+  // L3 (25/10/2026): a família vê o estado no vocabulário dela, nunca o estado do Desk nem "Não registrado".
+  const situacaoAcompanhamento = rotuloSeloCaso(resumo?.statusCaso ?? null, resumo?.ativo);
   const perfil = resumo?.perfil ?? null;
   const membroDesde = dataCurta(resumo?.membroDesde);
   /*
@@ -293,8 +295,11 @@ export function PortalConta() {
                     Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}
                   </a>
                 </Button>
-                <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">
-                  Situação do acompanhamento: {resumo?.statusRotulo ?? "Não registrado"}.
+                <p
+                  data-conta-situacao
+                  className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70"
+                >
+                  Situação do acompanhamento: {situacaoAcompanhamento ?? "ainda não informada pela equipe"}.
                 </p>
               </details>
               <details className="mt-4">

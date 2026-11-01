@@ -562,3 +562,64 @@ export function historicoSanitizado(
     .sort((a, b) => String(b.data ?? "").localeCompare(String(a.data ?? "")))
     .slice(0, limite);
 }
+
+/* ------------------------------------------------------- condição comercial */
+
+/** Linha bruta de `case_commercial_condition`, só os campos estruturados (nunca texto livre). */
+export type CondicaoComercialBruta = {
+  approval_status?: string | null;
+  fees?: number | string | null;
+  parcelas?: number | null;
+  valor_parcela?: number | string | null;
+  moeda?: string | null;
+  responsaveis_financeiros?: unknown;
+};
+
+export type CondicaoComercialCliente = {
+  /** Quantas pessoas respondem financeiramente (uma assinatura cada). */
+  assinaturas: number;
+  mensalCentavos: number;
+  meses: number;
+  /** Total pago por cada responsável ao longo do período (mensalCentavos × meses). */
+  adultoCentavos: number;
+  /** Total da família (assinaturas × mensalCentavos × meses, ou `fees` quando presente). */
+  totalCentavos: number;
+  moeda: string;
+};
+
+/**
+ * Condição comercial do caso, só com os campos NUMÉRICOS estruturados de
+ * `case_commercial_condition` (nunca `payment_terms`/`third_party_costs`/
+ * `official_fees`/`observacao_interna`, que são texto livre interno — regra
+ * A7 de 03/10/2026, mesmo motivo que mantém upsell fora do App).
+ *
+ * 30/10/2026 — substitui o bloco hardcoded por caso que existia aqui
+ * (`condicaoFamiliarPrevista`, só respondia pelo ID da Ana e nunca lia o
+ * banco). Agora lê a versão vigente (`approval_status = "aprovada"`,
+ * `archived_at is null`) de QUALQUER caso; sem versão aprovada, `null` —
+ * nunca estimado nem herdado de outro caso.
+ */
+export function condicaoComercialCliente(
+  linha: CondicaoComercialBruta | null | undefined,
+): CondicaoComercialCliente | null {
+  if (!linha || linha.approval_status !== "aprovada") return null;
+  const parcelas = Number(linha.parcelas ?? 0);
+  const valorParcela = Number(linha.valor_parcela ?? 0);
+  const assinaturas = Array.isArray(linha.responsaveis_financeiros)
+    ? linha.responsaveis_financeiros.length
+    : 0;
+  if (parcelas <= 0 || valorParcela <= 0 || assinaturas <= 0) return null;
+  const mensalCentavos = Math.round(valorParcela * 100);
+  const adultoCentavos = mensalCentavos * parcelas;
+  const feesInformado = linha.fees != null ? Math.round(Number(linha.fees) * 100) : null;
+  const totalCentavos =
+    feesInformado && feesInformado > 0 ? feesInformado : adultoCentavos * assinaturas;
+  return {
+    assinaturas,
+    mensalCentavos,
+    meses: parcelas,
+    adultoCentavos,
+    totalCentavos,
+    moeda: linha.moeda || "BRL",
+  };
+}

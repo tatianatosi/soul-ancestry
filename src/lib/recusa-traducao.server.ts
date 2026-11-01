@@ -29,19 +29,19 @@ const TRADUCOES: readonly EntradaTraducao[] = [
   {
     // fn_piloto_caso_guard (migration 20260816232935, cedendo a
     // fn_proprietaria_operando() desde supabase/pendentes/20261024170000).
-    padrao: /^Ativação operacional NO_GO\. Bloqueios críticos abertos: /,
+    padrao: /Ativação operacional NO_GO\. Bloqueios críticos abertos: /,
     orientacao:
       "Decisão da Proprietária sobre dado de família real (contrato assinado com registro externo, consentimento, revisão jurídica, representação legal do menor) — não é bug. Veja a lista completa na Lista de Casos ou no Caso 360, seção de identidade.",
   },
   {
     // fn_guard_ativacao (migration 20260816191148, mesma condição de override).
-    padrao: /^Ativação bloqueada\. Requisitos pendentes: /,
+    padrao: /Ativação bloqueada\. Requisitos pendentes: /,
     orientacao:
       "Os requisitos listados vêm de case_activation_checks. Quem está logado como Proprietária (admin ativo) pode confirmar a ativação mesmo assim; qualquer outro papel precisa fechar os requisitos antes.",
   },
   {
     // fn_guard_ativacao, mesma migration — papel sem permissão de ativar.
-    padrao: /^Somente admin ou operações podem ativar um caso\.$/,
+    padrao: /Somente admin ou operações podem ativar um caso\./,
     orientacao: "Peça para alguém com papel admin ou operações ativar este caso.",
   },
 ];

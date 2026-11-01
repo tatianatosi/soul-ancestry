@@ -48,4 +48,10 @@ describe("L3 — selo do caso no vocabulário do cliente", () => {
     expect(corpo).not.toContain("statusRotulo");
     expect(corpo).not.toContain("Não registrado");
   });
+
+  it("a Conta diz a situação do acompanhamento com o mesmo rótulo do selo", () => {
+    const conta = readFileSync(resolve(__dirname, "../../routes/portal/conta.tsx"), "utf8");
+    expect(conta).toContain("rotuloSeloCaso(resumo?.statusCaso ?? null, resumo?.ativo)");
+    expect(conta).not.toContain("resumo?.statusRotulo");
+  });
 });

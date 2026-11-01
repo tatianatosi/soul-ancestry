@@ -196,3 +196,15 @@ Dos 4, só um ficou de fora do inventário da Peça A: `fn_caso_ativo_guard`
 nenhum caso tem esse valor, e nenhum código escreve). Travado por teste
 dedicado; os outros 3 liam tabelas já cobertas, então o inventário já
 estava certo para eles, mesmo sem eu saber que existiam.
+
+---
+
+## 8. Achado relacionado (31/10/2026) — Conta com valor hardcoded por caso
+
+A Conta do App Cliente mostrava um valor de condição comercial **hardcoded por ID de
+caso** (só a Ana), com prioridade sobre a assinatura real já publicada desde 05/10, e
+mascarando-a. Não é um portão de banco, mas é a mesma classe de sintoma ("eu publico
+algo e o cliente nunca vê"), por um atalho sem fonte viva. Corrigido no #201:
+`src/lib/portal-dados-vivos.functions.ts` lê `case_commercial_condition` pelo caso
+ativo, para qualquer família, e só entrega ao contratante financeiro
+(`portal_sou_contratante_financeiro`).

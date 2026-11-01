@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
 import { comTimeout } from "@/lib/portal-resiliencia";
 import type {
+  CondicaoComercialCliente,
   DocumentoPortal,
   EtapaCliente,
   MarcoHistoricoCliente,
@@ -69,6 +70,8 @@ export type DadosPortal = {
   pessoasMapeadas?: number;
   /** Régua das 5 etapas, estado do caso e perfil da titular. */
   resumoCaso?: ResumoCasoCliente | null;
+  /** Mesmo recorte de `dadosVivosDoPortal` (30/10/2026): só campos numéricos de `case_commercial_condition`. */
+  condicaoComercial?: CondicaoComercialCliente | null;
 };
 
 /**

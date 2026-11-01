@@ -8,7 +8,11 @@ import { ehProprietariaAdministradora } from "@/lib/modo-proprietaria";
 import { linhas as linhasDe, linha as linhaDe } from "@/lib/linhas";
 import { escopoAPartirDePublicacoes, type EscopoCliente } from "@/lib/app-visibilidade";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
-import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
+import {
+  condicaoComercialCliente,
+  type CondicaoComercialCliente,
+  type DocumentoPortal,
+} from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 import { rotuloAnoArvore } from "@/lib/arvore-publicacao";
@@ -30,6 +34,8 @@ export type DadosPortalComoAdmin = {
   anosArvore: { pessoa_id: string; rotulo: string }[];
   /** Régua das 5 etapas, estado do caso e perfil da titular (13/10/2026). */
   resumoCaso: ResumoCasoCliente | null;
+  /** Mesmo recorte de `dadosVivosDoPortal` (30/10/2026): só campos numéricos de `case_commercial_condition`. */
+  condicaoComercial: CondicaoComercialCliente | null;
 };
 
 /**
@@ -187,8 +193,22 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
 
     const resumoCaso = await lerResumoCaso(supabase, data.casoId).catch(() => null);
 
+    // Staff é `is_org_member`: lê `case_commercial_condition` com o próprio
+    // client (RLS `ccc_select_org`), sem precisar do bridge admin.
+    const cond = await supabase
+      .from("case_commercial_condition")
+      .select("approval_status, fees, parcelas, valor_parcela, moeda, responsaveis_financeiros")
+      .eq("case_id", data.casoId)
+      .eq("approval_status", "aprovada")
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const condicaoComercial = condicaoComercialCliente(cond.data ?? null);
+
     return {
       resumoCaso,
+      condicaoComercial,
       titularNome,
       vinculosArvore,
       anosArvore,
