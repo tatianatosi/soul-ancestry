@@ -55,31 +55,25 @@ function ArvoreInstitucional() {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Clube Ancestral — Cidadania europeia com pesquisa genealógica" },
+      { title: "Clube Ancestral — Genealogia e história familiar" },
       {
         name: "description",
         content:
-          "O Clube Ancestral conduz processos de cidadania europeia com pesquisa genealógica documentada, acompanhamento jurídico e transparência em cada etapa.",
+          "Conheça suas origens com pesquisa genealógica profissional, fontes documentadas e acompanhamento da história familiar, ancestralidade e legado no Clube Ancestral.",
       },
-      { property: "og:title", content: "Clube Ancestral — Cidadania europeia com pesquisa genealógica" },
+      { property: "og:title", content: "Clube Ancestral — Genealogia e história familiar" },
       {
         property: "og:description",
-        content: "Pesquisa genealógica documentada e acompanhamento jurídico para o reconhecimento da cidadania europeia.",
+        content: "Pesquisa genealógica profissional para conhecer suas origens, documentar a história familiar e preservar seu legado.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      // Esta vitrine repete o conteúdo de clubeancestral.com.br, que é o site
-      // canônico e o único que deve ranquear. Duas cópias do mesmo texto em
-      // domínios diferentes competem entre si e diluem o resultado. O noindex
-      // protege o SEO do domínio principal em vez de disputá-lo.
-      //
-      // Deliberadamente NÃO existe robots.txt com Disallow: bloquear a
-      // varredura impediria o Google de ler este noindex, e a URL poderia
-      // acabar indexada mesmo assim, sem conteúdo. Para tirar do índice de
-      // verdade é preciso deixar rastrear e declarar noindex — é o que se faz
-      // aqui. Com isso, todas as 81 rotas deste host passam a ter noindex.
-      { name: "robots", content: "noindex" },
+      // A página inicial pública é elegível para busca por solicitação da Proprietária.
+      // Esta decisão não altera autorização nem indexabilidade das áreas privadas.
+      { name: "robots", content: "index, follow" },
+      { property: "og:url", content: "https://soul-ancestry.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://soul-ancestry.lovable.app/" }],
   }),
   component: Home,
 });
