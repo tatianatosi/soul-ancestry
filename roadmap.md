@@ -1,5 +1,11 @@
 # Roadmap
 
+## 01/11 — Histórico contratual e anos dos familiares
+- [ ] Reutilizar Versões e histórico do contrato, com botão de abertura, data de geração e autoria registrada.
+- [ ] Reutilizar o editor existente de perfil para registro de anos reais/estimados com fonte.
+- [ ] Registrar os cinco anos: bloqueado enquanto anos e fontes não forem fornecidos ou localizados.
+- [ ] Publicar a Árvore após a conferência autorizada; não publicar datas inventadas.
+
 ## 20/10 — Desk V4 c4d3bef9, corte aprovado neste rascunho
 - [ ] Reconciliar apresentação do corte anterior sem App, rotas novas, golive-* ou painel-dia; matriz vazia = Dados insuficientes.
 - [x] Executar testes relevantes e classificar sete falhas: todas preexistentes em origin/HEAD 03ecf78c, por comparação das fontes/assertivas com a610de15; testes do App/Pesquisa preservados. Compilação automática OK em 20/10 às 13:26 UTC.
