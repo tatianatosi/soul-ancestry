@@ -1,7 +1,7 @@
 arquivo,dominio,classe,importadores_prod,importadores_teste
 src/components/biblioteca/conteudo-editorial-conectado.tsx,components/biblioteca,producao_viva_banco,1,0
 src/components/biblioteca/fila-publicacao-real.tsx,components/biblioteca,producao_viva_banco,3,0
-src/components/biblioteca/motores-primordiais.tsx,components/biblioteca,producao_logica_ou_ui,0,0
+src/components/biblioteca/motores-primordiais.tsx,components/biblioteca,producao_logica_ou_ui,1,0
 src/components/brand.tsx,components/(raiz),producao_logica_ou_ui,14,0
 src/components/campos/aviso-campo.tsx,components/campos,producao_logica_ou_ui,12,0
 src/components/campos/cpf-mascarado.tsx,components/campos,producao_logica_ou_ui,1,1
@@ -73,7 +73,7 @@ src/components/clube-ancestral-kit/primitivos.tsx,components/clube-ancestral-kit
 src/components/clube-ancestral-kit/radar-operacional.tsx,components/clube-ancestral-kit,producao_logica_ou_ui,2,0
 src/components/clube-ancestral-kit/superficies-desk.tsx,components/clube-ancestral-kit,producao_logica_ou_ui,2,0
 src/components/clube-ancestral-kit/visualizacao.tsx,components/clube-ancestral-kit,producao_logica_ou_ui,7,0
-src/components/comercial/base.tsx,components/comercial,producao_viva_banco,36,1
+src/components/comercial/base.tsx,components/comercial,producao_viva_banco,37,1
 src/components/contrato/abrir-documento-contrato.tsx,components/contrato,producao_logica_ou_ui,1,0
 src/components/contrato/anexo-documento.tsx,components/contrato,producao_logica_ou_ui,1,0
 src/components/contrato/anexos-i-v.tsx,components/contrato,producao_logica_ou_ui,2,0
@@ -186,6 +186,7 @@ src/components/golive/identidade.tsx,components/golive,producao_viva_banco,15,0
 src/components/golive/rascunhos-app.tsx,components/golive,producao_viva_banco,2,0
 src/components/golive/shell.tsx,components/golive,producao_logica_ou_ui,20,0
 src/components/governanca/anexos-tres-camadas.tsx,components/governanca,producao_logica_ou_ui,1,1
+src/components/governanca/inventarios-governanca.tsx,components/governanca,producao_logica_ou_ui,1,1
 src/components/governanca/manifesto.tsx,components/governanca,producao_viva_banco,1,0
 src/components/integracoes/centro.tsx,components/integracoes,producao_viva_banco,1,0
 src/components/integracoes/prontidao.tsx,components/integracoes,producao_logica_ou_ui,1,0
@@ -285,7 +286,7 @@ src/components/ui/badge.tsx,components/ui,biblioteca_ui,4,0
 src/components/ui/breadcrumb.tsx,components/ui,biblioteca_ui,0,0
 src/components/ui/button.tsx,components/ui,biblioteca_ui,60,0
 src/components/ui/ca-badge.tsx,components/ui,biblioteca_ui,0,0
-src/components/ui/ca-card.tsx,components/ui,biblioteca_ui,92,15
+src/components/ui/ca-card.tsx,components/ui,biblioteca_ui,93,15
 src/components/ui/ca-empty-state.tsx,components/ui,biblioteca_ui,0,0
 src/components/ui/ca-progress.tsx,components/ui,biblioteca_ui,0,0
 src/components/ui/ca-table.tsx,components/ui,biblioteca_ui,0,0
@@ -724,6 +725,7 @@ src/lib/__tests__/inventario-campos-abas-2026-10-04.test.ts,lib,teste,0,0
 src/lib/__tests__/inventario-csv.test.ts,lib,teste,0,0
 src/lib/__tests__/inventario-patrimonial.test.ts,lib,teste,0,0
 src/lib/__tests__/inventario-portoes-peca-a-2026-10-27.test.ts,lib,teste,0,0
+src/lib/__tests__/inventarios-governanca-2026-11-01.test.tsx,lib,teste,0,0
 src/lib/__tests__/jornada-ana-origem-e-fases-2026-10-04.test.ts,lib,teste,0,0
 src/lib/__tests__/jornada-cliente.test.ts,lib,teste,0,0
 src/lib/__tests__/jornada-de-para.test.ts,lib,teste,0,0
@@ -993,7 +995,7 @@ src/lib/__tests__/versao-vazia-regra-corrigida-2026-10-09.test.ts,lib,teste,0,0
 src/lib/__tests__/visibilidade-arvore-desbloqueio-2026-10-04.test.ts,lib,teste,0,0
 src/lib/abrir-caso-operacional.functions.ts,lib,producao_viva_banco,1,0
 src/lib/abrir-caso-operacional.ts,lib,producao_logica_ou_ui,4,1
-src/lib/aceite-e2e-passos.ts,lib,producao_com_dado_real_fixo,0,1
+src/lib/aceite-e2e-passos.ts,lib,producao_com_dado_real_fixo,1,2
 src/lib/achados-genealogicos.functions.ts,lib,producao_viva_banco,1,1
 src/lib/achados-genealogicos.ts,lib,producao_logica_ou_ui,2,2
 src/lib/agenda-assistida.ts,lib,producao_logica_ou_ui,0,1
@@ -1060,7 +1062,7 @@ src/lib/cadencia-limiares.ts,lib,producao_logica_ou_ui,10,1
 src/lib/cadencia-onboarding.ts,lib,producao_com_dado_real_fixo,5,2
 src/lib/campos-obrigatorios.server.ts,lib,producao_viva_banco,0,0
 src/lib/canva-para-parametros.ts,lib,producao_logica_ou_ui,2,2
-src/lib/canvas-audit.ts,lib,producao_viva_banco,0,0
+src/lib/canvas-audit.ts,lib,producao_viva_banco,1,0
 src/lib/canvas-sanitize.ts,lib,producao_logica_ou_ui,1,0
 src/lib/case-service-consolidacao.functions.ts,lib,producao_viva_banco,1,0
 src/lib/case-service-consolidacao.ts,lib,producao_com_dado_real_fixo,2,1
@@ -1136,7 +1138,7 @@ src/lib/conversao.functions.ts,lib,producao_viva_banco,4,0
 src/lib/conversao.ts,lib,producao_logica_ou_ui,4,2
 src/lib/corpo-contratual.ts,lib,producao_logica_ou_ui,1,1
 src/lib/corte-vertical.ts,lib,producao_com_dado_real_fixo,0,0
-src/lib/criterios-aceite.ts,lib,producao_logica_ou_ui,0,0
+src/lib/criterios-aceite.ts,lib,producao_logica_ou_ui,1,1
 src/lib/crm-desk.functions.ts,lib,producao_viva_banco,20,2
 src/lib/crm-desk.ts,lib,producao_logica_ou_ui,37,23
 src/lib/crm-fluxo.functions.ts,lib,producao_viva_banco,2,0
@@ -1281,13 +1283,13 @@ src/lib/homologacao-revisao.functions.ts,lib,producao_viva_banco,1,0
 src/lib/homologacao-revisao.ts,lib,producao_viva_banco,2,1
 src/lib/idade-registro.ts,lib,producao_logica_ou_ui,2,0
 src/lib/identificadores-norma.ts,lib,producao_logica_ou_ui,2,0
-src/lib/indicadores-governanca.ts,lib,producao_logica_ou_ui,0,3
+src/lib/indicadores-governanca.ts,lib,producao_logica_ou_ui,1,4
 src/lib/indicadores-marketing.ts,lib,producao_logica_ou_ui,3,1
 src/lib/instrumentos-preparacao.functions.ts,lib,producao_viva_banco,1,0
 src/lib/instrumentos-preparacao.ts,lib,producao_logica_ou_ui,2,1
 src/lib/integracoes.functions.ts,lib,producao_viva_banco,1,0
 src/lib/integracoes.server.ts,lib,producao_logica_ou_ui,8,0
-src/lib/inventario-campos-abas.ts,lib,producao_com_dado_real_fixo,0,1
+src/lib/inventario-campos-abas.ts,lib,producao_com_dado_real_fixo,1,2
 src/lib/inventario-csv.ts,lib,producao_logica_ou_ui,1,1
 src/lib/inventario-patrimonial.ts,lib,producao_com_dado_real_fixo,2,3
 src/lib/inventario-portoes.server.ts,lib,producao_viva_banco,2,1
@@ -1317,10 +1319,10 @@ src/lib/marcos-juridicos.functions.ts,lib,producao_viva_banco,1,0
 src/lib/marketing-aquisicao.ts,lib,producao_logica_ou_ui,3,4
 src/lib/marketing-filtros-csv.ts,lib,producao_logica_ou_ui,1,1
 src/lib/matriz-aceite.ts,lib,producao_logica_ou_ui,5,2
-src/lib/matriz-capacidades-jornada.ts,lib,producao_logica_ou_ui,0,1
+src/lib/matriz-capacidades-jornada.ts,lib,producao_logica_ou_ui,1,1
 src/lib/matriz-clausulas.ts,lib,producao_logica_ou_ui,5,3
-src/lib/matriz-conformidade.ts,lib,producao_com_dado_real_fixo,0,0
-src/lib/matriz-equivalencia.ts,lib,producao_logica_ou_ui,0,1
+src/lib/matriz-conformidade.ts,lib,producao_com_dado_real_fixo,1,1
+src/lib/matriz-equivalencia.ts,lib,producao_logica_ou_ui,1,1
 src/lib/matriz-juridica.ts,lib,producao_logica_ou_ui,6,3
 src/lib/matriz-modelos-contratuais.ts,lib,producao_logica_ou_ui,2,2
 src/lib/matriz-posicionamento.ts,lib,producao_logica_ou_ui,8,1

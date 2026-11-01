@@ -1,15 +1,5 @@
 [
  {
-  "arquivo": "src/components/biblioteca/motores-primordiais.tsx",
-  "dominio": "components/biblioteca",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 107,
-  "importadores_teste": 0,
-  "classe": "producao_logica_ou_ui"
- },
- {
   "arquivo": "src/components/caso/descobertas-alertas.tsx",
   "dominio": "components/caso",
   "veredicto": "CASCA_DUPLICADA",
@@ -210,16 +200,6 @@
   "classe": "ficticio_demo_modelo_seed"
  },
  {
-  "arquivo": "src/lib/aceite-e2e-passos.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 107,
-  "importadores_teste": 1,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
   "arquivo": "src/lib/agenda-assistida.ts",
   "dominio": "lib",
   "veredicto": "AGUARDA_DECISAO",
@@ -240,16 +220,6 @@
   "classe": "producao_logica_ou_ui"
  },
  {
-  "arquivo": "src/lib/canvas-audit.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 161,
-  "importadores_teste": 0,
-  "classe": "producao_viva_banco"
- },
- {
   "arquivo": "src/lib/corte-vertical.ts",
   "dominio": "lib",
   "veredicto": "APOSENTADA_CLASSIFICADA",
@@ -258,16 +228,6 @@
   "linhas": 280,
   "importadores_teste": 0,
   "classe": "producao_com_dado_real_fixo"
- },
- {
-  "arquivo": "src/lib/criterios-aceite.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 142,
-  "importadores_teste": 0,
-  "classe": "producao_logica_ou_ui"
  },
  {
   "arquivo": "src/lib/debug-cliente-access.ts",
@@ -330,26 +290,6 @@
   "classe": "producao_logica_ou_ui"
  },
  {
-  "arquivo": "src/lib/indicadores-governanca.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 553,
-  "importadores_teste": 3,
-  "classe": "producao_logica_ou_ui"
- },
- {
-  "arquivo": "src/lib/inventario-campos-abas.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 3960,
-  "importadores_teste": 1,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
   "arquivo": "src/lib/inventario-recuperacao.ts",
   "dominio": "lib",
   "veredicto": "AGUARDA_DECISAO",
@@ -360,42 +300,12 @@
   "classe": "producao_com_dado_real_fixo"
  },
  {
-  "arquivo": "src/lib/matriz-capacidades-jornada.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 185,
-  "importadores_teste": 1,
-  "classe": "producao_logica_ou_ui"
- },
- {
-  "arquivo": "src/lib/matriz-conformidade.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 290,
-  "importadores_teste": 0,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
-  "arquivo": "src/lib/matriz-equivalencia.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": false,
-  "aguarda_decisao": true,
-  "linhas": 203,
-  "importadores_teste": 1,
-  "classe": "producao_logica_ou_ui"
- },
- {
   "arquivo": "src/lib/orfaos-modulos-classificados.ts",
   "dominio": "lib",
   "veredicto": "SEM_VEREDITO",
   "risco_vazamento": false,
   "aguarda_decisao": false,
-  "linhas": 415,
+  "linhas": 343,
   "importadores_teste": 1,
   "classe": "producao_com_dado_real_fixo"
  },
