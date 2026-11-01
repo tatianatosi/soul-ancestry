@@ -8,6 +8,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { CardsVidaDoCliente } from "@/components/caso/cards-vida-do-cliente";
+import { ConferenciaPilotoCaso } from "@/components/caso/conferencia-piloto-caso";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -75,6 +76,7 @@ import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
 import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
 import { CadeiaGenealogicaCaso } from "@/components/caso/cadeia-genealogica-caso";
 import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
+import { rotuloTarefaDoCaso, separarTarefasDoCaso } from "@/lib/tarefas-do-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
 import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
@@ -2960,15 +2962,30 @@ function FichaCaso() {
                 <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
                   <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>
                   <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
-                    {(qTarefas.data?.tarefas ?? []).slice(0, 3).map((t: any) => (
-                      <li key={t.id}>
-                        {t.titulo} <span className="text-xs text-navy/50">— {t.status}</span>
-                      </li>
-                    ))}
-                    {!(qTarefas.data?.tarefas ?? []).length ? (
+                    {separarTarefasDoCaso(qTarefas.data?.tarefas)
+                      .abertas.slice(0, 3)
+                      .map((t: any) => (
+                        <li key={t.id}>
+                          {t.titulo}{" "}
+                          <span className="text-xs text-navy/50">— {rotuloTarefaDoCaso(t)}</span>
+                        </li>
+                      ))}
+                    {!separarTarefasDoCaso(qTarefas.data?.tarefas).abertas.length ? (
                       <li className="text-navy/50">Nenhuma tarefa aberta.</li>
                     ) : null}
                   </ul>
+                  {separarTarefasDoCaso(qTarefas.data?.tarefas).abertas.length > 3 ? (
+                    <p className="mt-1 text-xs text-navy/50">
+                      +{separarTarefasDoCaso(qTarefas.data?.tarefas).abertas.length - 3} aberta(s) na
+                      fila de Ops deste caso.
+                    </p>
+                  ) : null}
+                  {separarTarefasDoCaso(qTarefas.data?.tarefas).encerradas.length ? (
+                    <p className="mt-1 text-xs text-navy/50">
+                      {separarTarefasDoCaso(qTarefas.data?.tarefas).encerradas.length} tarefa(s)
+                      concluída(s) ou cancelada(s) neste caso.
+                    </p>
+                  ) : null}
                   <FormularioTarefaCaso caseId={id} onCriada={recarregarTarefas} />
                 </div>
                 <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
@@ -3074,6 +3091,9 @@ function FichaCaso() {
                 {/* Corte U3 (28/09/2026): decisões que só a equipe toma, lidas do dado real. */}
                 <div className="mb-4">
                   <PendenciasHumanasCaso caseId={id} />
+                </div>
+                <div className="mb-4">
+                  <ConferenciaPilotoCaso caseId={id} />
                 </div>
 
                 {/*

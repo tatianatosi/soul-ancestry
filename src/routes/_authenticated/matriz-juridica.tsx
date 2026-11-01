@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { MarcosJuridicosCartoes } from "@/components/juridico/marcos-cartoes";
+import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { CaCard } from "@/components/ui/ca-card";
@@ -124,6 +125,9 @@ function MatrizPage() {
         <Indicador rotulo="Bloqueantes sem decisão" valor={kpi(pendentes.length)} />
         <Indicador rotulo="Aprovados" valor={kpi(linhas?.filter((l) => l.status === "aprovado").length ?? 0)} />
       </div>
+
+      {/* 31/10/2026 — fontes por país fazem parte da Validação Jurídica: país sem base aceita sugestão de fonte. */}
+      <FontesPorPaisPainel className="mb-4" />
 
       <MarcosJuridicosCartoes />
 

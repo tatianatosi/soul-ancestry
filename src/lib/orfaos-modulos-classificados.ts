@@ -31,6 +31,14 @@ export type OrfaModulo = {
 
 export const MODULOS_ORFAOS: OrfaModulo[] = [
   {
+    modulo: "lib/useActiveCase.ts",
+    veredicto: "APOSENTADA_CLASSIFICADA",
+    motivo:
+      "O hook resolve o caso pelo diretório estático de src/data; seu último consumidor era o Kit Contratual, que passou a receber o caso real por caseId, e nenhuma tela do Desk deve voltar a ler caso fixo.",
+    destino:
+      "lib/kit-contratual-do-caso.ts e lib/kit-contratual.functions.ts (caso lido do banco pelo caseId da rota)",
+  },
+  {
     modulo: "components/biblioteca/motores-primordiais.tsx",
     veredicto: "AGUARDA_DECISAO",
     motivo:
@@ -63,38 +71,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: criar uma página de prévia do kit que use esta fixture ou aposentá-la, já que o kit é exercitado por telas reais",
   },
   {
-    modulo: "components/contrato/painel-instrumentos.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "A diretriz de 04/10/2026 trocou o excesso de auditorias por uma leitura rápida: TrilhoProntidaoContrato (lib/contrato-prontidao) é montado na preparar:727 e os cartões de proposta, família, condição, critérios e matriz jurídica cobrem os requisitos.",
-    destino:
-      "components/contrato/trilho-prontidao.tsx na tela casos.$caseId.contrato.preparar; lerPreparacaoInstrumentos fica sem consumidor real",
-  },
-  {
-    modulo: "components/contrato/painel-preparacao.tsx",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "É a única interface de painelPreparacaoContratual, conferirEscopoProposta, registrarRevalidacaoProposta e registrarOverrideGateInterno; o motor de gates segue vivo em cards-fluxo-contrato e coerencia-caso, mas a decisão de validade e o override interno não têm tela.",
-    destino:
-      "Decisão: montar o painel de conferência (validade comercial e override de gate interno) na tela de preparar do contrato ou aposentá-lo em favor de cards-fluxo-contrato e OverrideComercial",
-  },
-  {
-    modulo: "components/contratos/painel-estado-contratual.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "JuridicoContratoV4, montado em contratos.index.tsx:157, lê o mesmo painelContratual e mostra as mesmas contagens (bloqueios, pendências, revisão, anexos ausentes, OS impedidas, exceções) na casca V4.",
-    destino: "components/contratos/juridico-contrato-v4.tsx em /contratos",
-  },
-  {
-    modulo: "components/desk-go-live.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "Versão estática alimentada por dado fixo foi substituída pelo GoLive vivo por caso (golive.index.tsx, golive.caso.tsx), que lê o banco; religar exporia nomes de clientes do registro.",
-    destino:
-      "src/routes/_authenticated/golive.index.tsx e golive.caso.tsx, com dados de src/lib/golive.functions.ts#carregarGoLive",
-    riscoVazamento: true,
-  },
-  {
     modulo: "components/desk/kanban-tarefas.tsx",
     veredicto: "CASCA_DUPLICADA",
     motivo:
@@ -123,23 +99,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     motivo:
       "O modelo de entrega por fase vive hoje em relatorios-fase.$caseId.tsx sobre dado real; este componente só renderiza o caso modelo Sophia de src/data/caso-sophia, sem leitura de banco.",
     destino: "routes/_authenticated/relatorios-fase.$caseId.tsx; caso-sophia fica como modelo",
-    riscoVazamento: true,
-  },
-  {
-    modulo: "components/governanca/anexos-tres-camadas.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "AnexosIaV e InstanciaDocumental, montados na preparar (linha ~934), mostram os anexos reais do caso a partir de anexos-instancia; este painel é um retrato estático datado em lib/anexos-tres-camadas, que só ele consome.",
-    destino:
-      "components/contrato/anexos-i-v.tsx e instancia-documental.tsx na tela de preparar do contrato",
-    riscoVazamento: true,
-  },
-  {
-    modulo: "components/kit-contratual.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "A preparação do contrato opera hoje sobre dados reais em casos.$caseId.contrato.preparar e contratos.$id; este kit lê CaseData de src/data via useActiveCase, que só alimenta o mockup.",
-    destino: "casos.$caseId.contrato.preparar.tsx e contratos.$id.tsx",
     riscoVazamento: true,
   },
   {
@@ -220,14 +179,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     riscoVazamento: true,
   },
   {
-    modulo: "components/portal/bloco-exemplo-visual.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "A regra do App é vazio honesto e nada inferido: sem dado publicado a aba mostra PortalVazio/EstadoDados, nunca exemplo; os blocos exibem estados como Validado e Recebido que, religados, poderiam passar por dado real.",
-    destino:
-      "PortalVazio em components/portal/portal-shell.tsx e os estados de EstadoDados nas 7 abas",
-  },
-  {
     modulo: "components/relatorio-fase02.tsx",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
@@ -242,13 +193,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "O relatório visual por fase é gerado hoje do banco em relatorios-fase.$caseId.tsx; este componente depende de src/data/relatorio-visual e src/data/casos, ambos classificados como demo.",
     destino: "routes/_authenticated/relatorios-fase.$caseId.tsx",
     riscoVazamento: true,
-  },
-  {
-    modulo: "components/timeline-contratual.tsx",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "A linha do tempo do caso vive em historico-por-fase.tsx e visao-geral.tsx no Caso 360, e o cliente a vê na Conta por case_timeline_events aprovados (conta.tsx:541); este componente depende de CaseData de src/data.",
-    destino: "components/caso/historico-por-fase.tsx (Desk) e routes/portal/conta.tsx (cliente)",
   },
   {
     modulo: "components/ui/ca-badge.tsx",
@@ -296,14 +240,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: a agenda assistida (sugestão de reunião com confirmação da Proprietária) ganha tela ou fica só como especificação testada",
   },
   {
-    modulo: "lib/app-cliente-gate.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "Já classificado em 27/10 por app-cliente-gate-casca-duplicada-2026-10-27.test.ts: a decisão de visibilidade viva é de portal-visibilidade.tsx; religar o gate paralelo trocaria o mecanismo que decide o que a família vê.",
-    destino:
-      "components/portal/portal-visibilidade.tsx#useVisibilidade (mecanismo vivo em 8 rotas); não religar",
-  },
-  {
     modulo: "lib/app-visibilidade-registro.ts",
     veredicto: "CASCA_DUPLICADA",
     motivo:
@@ -311,14 +247,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino:
       "lib/portal-jornada.functions.ts#escopoDoPortal, consumido por useEscopoPortal; não religar (fixture estática)",
     riscoVazamento: true,
-  },
-  {
-    modulo: "lib/arvore-cliente-projecao.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "A árvore do App lê pessoasDaArvore (arvore-publicacao) e já cumpre a regra do genograma único; projetarArvoreCliente só é chamada por arvore-cliente-projecao.test.ts. CAMPOS_INTERNOS_BLOQUEADOS aparece em pesquisa-cadeia.ts e achados-genealogicos.ts por definição própria, não por import.",
-    destino:
-      "lib/arvore-publicacao.ts#pessoasDaArvore (usado por ficha-master.server.ts e pelo portal); não religar",
   },
   {
     modulo: "lib/campos-obrigatorios.server.ts",
@@ -401,28 +329,12 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino: "src/lib/navegacao-desk.ts (GRUPOS_DESK → SETORES_DESK, lista única do menu)",
   },
   {
-    modulo: "lib/estados-edicao.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Só estados-edicao.test importa o módulo. O motor real trata apenas rascunho_editavel/congelado (previa-vigente.ts) e a coerência por exigirCoerencia; adotar decidirEdicao como regra única mudaria o gate do contrato.",
-    destino:
-      "Decisão: o motor do contrato adota decidirEdicao/pendenciasPorGate como regra única de edição × avanço, ou o módulo fica só como especificação testada",
-  },
-  {
     modulo: "lib/fontes-documentos-rls.ts",
     veredicto: "AGUARDA_DECISAO",
     motivo:
       "É um espelho de teste por desenho: só fontes-documentos-rls.test o usa e a autorização real vive nas policies do banco. Manter o espelho exige mantê-lo igual ao SQL à mão; trocar por teste contra o banco muda a estratégia de prova.",
     destino:
       "Decisão: manter o espelho TypeScript como especificação testada da RLS ou substituí-lo por teste contra as policies reais do banco",
-  },
-  {
-    modulo: "lib/gates-piloto.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Nenhum arquivo, nem teste, importa o módulo. Pertence à superfície do piloto 5A.1, que já aguarda decisão em piloto.functions.ts, e os bloqueios abertos do piloto caíram para zero em 30/10, então os gates não têm onde aparecer.",
-    destino:
-      "Decisão: o piloto 5A.1 vira tela própria ou é absorvido pelo Caso 360; os gates A–H só voltam se a tela existir",
   },
   {
     modulo: "lib/indicadores-governanca.ts",
@@ -441,14 +353,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: a tabela de campos ganha tela (ex.: Governança → Inventário de campos) ou fica como inventário verificado só por teste",
   },
   {
-    modulo: "lib/inventario-csv.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "A fonte INVENTARIO está viva em contratos.index.tsx, mas nenhuma tela chama baixarCsvInventario ou previaCsvInventario; só inventario-csv.test usa o exportador. Religar adiciona um botão de exportação que ninguém pediu.",
-    destino:
-      "Decisão: o inventário patrimonial em /contratos ganha botão de exportar CSV ou o exportador fica só como utilitário testado",
-  },
-  {
     modulo: "lib/inventario-recuperacao.ts",
     veredicto: "AGUARDA_DECISAO",
     motivo:
@@ -456,14 +360,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino:
       "Decisão: criar a rota /governanca/inventario-recuperacao que desk-modulos.ts já anuncia, ou aposentar o snapshot de 16/08 em favor do inventário de 22/08",
     riscoVazamento: true,
-  },
-  {
-    modulo: "lib/legado-visibilidade.ts",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "A aba Legado já sanitiza por legadoSanitizado (portal-dados-vivos.ts:223, usado em portal/legado.tsx:11) com contemConteudoInterno e só publicações autorizadas; legado-visibilidade só tem teste próprio e duplicaria a regra.",
-    destino:
-      "src/lib/portal-dados-vivos.ts#legadoSanitizado, montado em src/routes/portal/legado.tsx",
   },
   {
     modulo: "lib/matriz-capacidades-jornada.ts",

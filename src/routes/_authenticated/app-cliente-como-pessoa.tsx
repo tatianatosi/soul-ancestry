@@ -15,7 +15,7 @@ import { dadosVivosDoPortalComoAdmin } from "@/lib/app-cliente-como-pessoa.funct
 import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
 import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
 import { NucleosAcessoCaso } from "@/components/desk/nucleos-acesso-caso";
-
+import { AuditoriaVisibilidadeApp } from "@/components/desk/auditoria-visibilidade-app";
 
 /**
  * Acesso master ao App Cliente com dado real de um caso.
@@ -28,10 +28,14 @@ export const Route = createFileRoute("/_authenticated/app-cliente-como-pessoa")(
       { title: "App Cliente como pessoa — Clube Ancestral" },
       {
         name: "description",
-        content: "Acesso master somente leitura: o App Cliente real de um caso escolhido, com a mesma projeção sanitizada que o cliente vê.",
+        content:
+          "Acesso master somente leitura: o App Cliente real de um caso escolhido, com a mesma projeção sanitizada que o cliente vê.",
       },
       { property: "og:title", content: "App Cliente como pessoa — Clube Ancestral" },
-      { property: "og:description", content: "Prévia administrativa das sete abas com conteúdo autorizado do caso escolhido." },
+      {
+        property: "og:description",
+        content: "Prévia administrativa das sete abas com conteúdo autorizado do caso escolhido.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -68,16 +72,38 @@ function AppClienteComoPessoa() {
   return (
     <div className="min-h-screen bg-cream" data-previa-app-cliente-real>
       {casoId ? (
-        <div className="border-b-2 border-gold bg-navy px-4 py-2 text-center" role="note" data-banner-visao-master>
-          <p className="font-serif text-base text-cream sm:text-lg">Visualização Master Administrativa — Sessão de Auditoria</p>
-          <p className="text-[11px] tracking-wide text-gold">Somente leitura · você vê o aplicativo como a família, sem virar cliente</p>
+        <div
+          className="border-b-2 border-gold bg-navy px-4 py-2 text-center"
+          role="note"
+          data-banner-visao-master
+        >
+          <p className="font-serif text-base text-cream sm:text-lg">
+            Visualização Master Administrativa — Sessão de Auditoria
+          </p>
+          <p className="text-[11px] tracking-wide text-gold">
+            Somente leitura · você vê o aplicativo como a família, sem virar cliente
+          </p>
         </div>
       ) : null}
       {casoId ? (
-        <section className="mx-auto grid max-w-5xl gap-4 px-4 py-4" aria-label="Painel interno da equipe" data-painel-interno-visao-master>
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-navy/55">Painel interno da equipe — não aparece para a família</p>
+        <section
+          className="mx-auto grid max-w-5xl gap-4 px-4 py-4"
+          aria-label="Painel interno da equipe"
+          data-painel-interno-visao-master
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-navy/55">
+            Painel interno da equipe — não aparece para a família
+          </p>
           <FilaPublicacaoReal caseId={casoId} />
           <NucleosAcessoCaso caseId={casoId} />
+          {dados.data ? (
+            <AuditoriaVisibilidadeApp
+              projecoes={dados.data.projecoes as Record<string, unknown>[]}
+              documentos={dados.data.documentos as unknown[]}
+              entregasLiberadas={dados.data.escopo?.entregasLiberadas ?? 0}
+              temAcesso={dados.data.escopo?.temAcesso ?? false}
+            />
+          ) : null}
         </section>
       ) : null}
       {!casoId ? (
@@ -87,7 +113,9 @@ function AppClienteComoPessoa() {
           </p>
         </div>
       ) : casos.isLoading || dados.isLoading ? (
-        <p className="p-6 text-center text-sm text-navy/60" role="status">Preparando o aplicativo da família…</p>
+        <p className="p-6 text-center text-sm text-navy/60" role="status">
+          Preparando o aplicativo da família…
+        </p>
       ) : (
         <FontePortalProvider
           fonte={{

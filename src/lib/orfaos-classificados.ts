@@ -43,56 +43,20 @@ export type OrfaClassificada = {
 };
 
 export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
-  /* ---------- casca duplicada: a lógica já chega à tela ---------- */
-  ...(
-    [
-      "listarEvidenciasDoCaso",
-      "salvarEvidenciaCanonica",
-      "mudarSituacaoEvidencia",
-      "arquivarEvidenciaCanonica",
-    ] as const
-  ).map((fn) => ({
-    modulo: "evidencia-canonica.functions.ts",
-    fn,
-    veredicto: "CASCA_DUPLICADA" as const,
-    motivo:
-      "As 4 rotas de evidência chamam o núcleo por `evidencia-canonica.server.ts`; esta camada HTTP ficou sem uso depois do Corte 0.",
-    destino: "src/lib/evidencia-canonica.server.ts (núcleo já em uso pelas 4 rotas)",
-  })),
+  /*
+   * 31/10/2026 — religadas a telas e retiradas daqui (a regra do teste manda
+   * tirar o que voltou a ter chamador): evidência canônica (4), perfil
+   * institucional (2), `ativarCaso`, GoLive (5), piloto 5A.1 (5), piloto da
+   * Ana (3) e `radarMarcosJuridicosDoPainel`. Ficaram só as duas leituras do
+   * portal, aposentadas, e uma casca nova.
+   */
   {
-    modulo: "golive-escritores.functions.ts",
-    fn: "publicarNoAppGoLive",
+    modulo: "pesquisa-cadeia.functions.ts",
+    fn: "mudarEstadoEvidencia",
     veredicto: "CASCA_DUPLICADA",
     motivo:
-      "Virou caminho secundário depois que o rascunho editável passou a ser o fluxo de publicação.",
-    destino: "Rascunho editável + publicação na Biblioteca de Evidências",
-  },
-
-  /* ---------- aposentada com classificação ---------- */
-  {
-    modulo: "contrato-preparar.functions.ts",
-    fn: "auditoriaPreparacao",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      'Saiu da tela de contrato em 04/10/2026 ("retire as auditorias repetidas"): era a terceira cópia do mesmo registro.',
-    destino: "listarAuditoria em /configuracoes — trilha única da organização",
-  },
-  ...(["registrarPerfilInstitucional", "registrarSnapshotInstitucional"] as const).map((fn) => ({
-    modulo: "perfil-institucional-persistido.functions.ts",
-    fn,
-    veredicto: "CASCA_DUPLICADA" as const,
-    motivo:
-      "Corte F: eu havia classificado como RELIGAR sem medir. O perfil institucional JÁ chega à tela por `garantirPerfilInstitucionalDaSessao` (montada em casos.$caseId.contrato.preparar) e o snapshot JÁ é gravado por `gravarSnapshotInstitucional`, chamado em três pontos de contratos.functions.ts. Estas duas são a versão crua: a primeira pede `organizationId` ao cliente — o mesmo dado que o wrapper deriva no servidor.",
-    destino:
-      "src/lib/perfil-institucional-persistido.server.ts#garantirPerfilInstitucional e #gravarSnapshotInstitucional (ambos em uso)",
-  })),
-  {
-    modulo: "saas.functions.ts",
-    fn: "ativarCaso",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "Corte F: eu havia classificado como RELIGAR sem medir. `ativarCasoComChecks` (onboarding.functions.ts) já está montada em /onboarding/$id e é mais forte — gate de papel, RPC case_ativacao_bloqueios_reais, override da proprietária auditado em owner_override_events e caminho da máquina de estados. Esta aqui só confere três booleanos, sem gate de papel nem máquina de estados: religá-la criaria um segundo caminho de ativação com guarda mais fraca.",
-    destino: "src/lib/onboarding.functions.ts#ativarCasoComChecks, montada em /onboarding/$id",
+      "Ficou sem chamador quando a tela de evidências passou a usar `mudarSituacaoEvidencia`, que tem o gate de papel no servidor.",
+    destino: "src/lib/evidencia-canonica.functions.ts#mudarSituacaoEvidencia",
   },
   {
     modulo: "portal.functions.ts",
@@ -108,84 +72,6 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
     motivo: "Mesma dívida declarada: a aba Documentos do App lê por `minhasEntregas`.",
     destino: "src/lib/portal-cliente.server.ts#minhasEntregas",
   },
-
-  /* ---------- aguarda decisão da Proprietária ---------- */
-  /*
-   * 31/10/2026 — o motivo antigo dizia que a canonicidade do GoLive não estava
-   * decidida. Está: a decisão de 23/10 (AGENTS.md) o fez a vida completa de cada
-   * cliente, dentro do Desk. Discovery e call separados viraram casca duplicada
-   * de `registrarAtendimentoGoLive`; Pessoa e Pagamento seguem aguardando uma
-   * decisão MENOR e nomeada.
-   */
-  ...(["registrarDiscoveryGoLive", "registrarCallGoLive"] as const).map((fn) => ({
-    modulo: "golive-escritores.functions.ts",
-    fn,
-    veredicto: "CASCA_DUPLICADA" as const,
-    motivo:
-      "Discovery e call separados ficaram sem tela: `registrarAtendimentoGoLive` grava os dois no mesmo lead (status_call, resumo_call, discovery_resultado) e em crm_interactions, e é o escritor de /golive/leads e /golive/comercial.",
-    destino:
-      "src/lib/golive-escritores.functions.ts#registrarAtendimentoGoLive (montado em golive.leads e golive.comercial)",
-  })),
-  {
-    modulo: "golive-escritores.functions.ts",
-    fn: "resolverPessoaGoLive",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Reutiliza ou cria cliente por e-mail/telefone no GoLive, mas a ficha Pessoa 360 já cria e edita pessoa por conta própria; religar abriria um segundo caminho de cadastro de pessoa.",
-    destino:
-      "Decisão: o GoLive cria/reutiliza pessoa por e-mail e telefone, ou isso fica só na ficha Pessoa 360",
-  },
-  {
-    modulo: "golive-escritores.functions.ts",
-    fn: "registrarPagamentoGoLive",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Grava pagamento como confirmado e marca a fatura como paga à mão; fatura e pagamento pertencem ao contratante e a confirmação manual tem efeito financeiro.",
-    destino:
-      "Decisão: o Desk pode confirmar pagamento manualmente, ou só entra por integração e conciliação",
-  },
-  ...(
-    [
-      "painelPiloto",
-      "salvarDadoPiloto",
-      "verificarDadoPiloto",
-      // 24/10/2026: `resolverBloqueioPiloto` foi REMOVIDA, não montada. Decisão da
-      // Proprietária: bloqueios do piloto deixaram de ser camada de ativação
-      // (o gatilho cede a ela; ver supabase/pendentes/20261024170000_*).
-      "criarPesquisaPiloto",
-      "liberarPortalPiloto",
-    ] as const
-  ).map((fn) => ({
-    modulo: "piloto.functions.ts",
-    fn,
-    veredicto: "AGUARDA_DECISAO" as const,
-    motivo:
-      "Superfície do piloto 5A.1, escrita e nunca montada em tela. Precisa da decisão de manter o piloto como superfície própria ou absorvê-lo no Caso 360.",
-    destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
-  })),
-  ...(["carregarPilotoAna", "definirIdCanonicoPiloto", "materializarPilotoAna"] as const).map(
-    (fn) => ({
-      modulo: "piloto-ana.functions.ts",
-      fn,
-      veredicto: "AGUARDA_DECISAO" as const,
-      motivo:
-        "Leitor, escritor e materializador do piloto específico da Ana; mesma decisão pendente do piloto 5A.1.",
-      destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
-    }),
-  ),
-
-  /* ---------- aguarda decisão (17/10/2026) ---------- */
-  {
-    modulo: "radar-marcos-juridicos.functions.ts",
-    fn: "radarMarcosJuridicosDoPainel",
-    veredicto: "AGUARDA_DECISAO" as const,
-    motivo:
-      "Ficou órfã pelo corte radical de 17/10/2026 em /painel (Hoje vira só a grade da Prancha V4, desk-01-hoje): o bloco 'Radar de marcos jurídicos' não tem equivalente nessa grade e parou de ser chamado. A função e a consulta continuam corretas, só sem tela dona.",
-    destino:
-      "Decisão: ganha tela/aba própria (ex. dentro de Jurídico & Contrato) ou fica fora do Desk por ora",
-  },
-
-  /* ---------- religar: lacuna real de operação ---------- */
 ];
 
 export function orfasPor(veredicto: VeredictoOrfa): OrfaClassificada[] {

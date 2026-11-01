@@ -29,7 +29,7 @@ obrigatória para marcar motor como comprovado.
 | R3  | #201: resolver o conflito, depois de conferir se o tradutor de recusa já está na `main`; se estiver, fechar com motivo                                                                                                                                                                      | C                           | conflito resolvido ou PR fechada com motivo    |
 | R4  | 14 PRs antigas (#32, #97 a #125, #142): fechar uma a uma depois de conferir que a casca V4 as superou; apagar as 5 `lovable-sync` redundantes                                                                                                                                               | P decide, C prepara a lista | PRs fechadas com motivo                        |
 | R5  | Publicar com a skill `/lancar` e conferir que o painel (#208) registra o commit verificado (hoje registra `8574598`, não verificado)                                                                                                                                                        | P avisa, C executa          | "Último Publish" no painel = commit verificado |
-| R6  | PR #32 (aberta, limpa): a releitura estrita (via #199) e a decisão pós-salvamento já estão na `main`. Só estão na #32: `TarefasDoCaso` no Caso 360, `safe-area` do assistente do Desk e os cartões mobile de Partes em `contratos.$id.tsx`. Portar essas 3 peças ou fechar a #32 com motivo | P decide, C porta           | #32 fechada com motivo                         |
+| R6  | **PR #32 incluída por decisão da Proprietária (31/10), tratada como bloco de persistência (P1 a P3 abaixo).** A releitura estrita de `salvarRegistroG02` e o painel de decisão pós-salvar já estão na `main` (#199); o que só está na #32 é `TarefasDoCaso` no Caso 360, a margem de segurança do assistente e os cartões mobile de Partes | C | #32 fechada com motivo depois do P1 |
 
 ## 2. J — Jornada da Ana
 
@@ -85,6 +85,37 @@ Os primitivos `ui/*` do shadcn ficam de fora (biblioteca).
 | O7  | `painel/botao-testar-cliente.tsx` tem um `TODO:` e o `pipeline.py` aborta nele; o veredicto dele já está no registro (aposentada, risco de vazamento: navega para `/portal/casos/ana-luiza`). Falta tirar o `TODO:` ou aposentar o arquivo                                                                                                                                                                                             | C, com seu ok         | `pipeline.py` passa o passo 1            |
 | O8  | `painel-preparacao.tsx` é a única interface de 4 server functions (`painelPreparacaoContratual`, `conferirEscopoProposta`, `registrarRevalidacaoProposta`, `registrarOverrideGateInterno`), e o teste de `createServerFn` as conta como religadas por causa dele, embora ninguém monte o componente. Validade comercial e override de gate interno ficaram sem tela. Decidir: voltam à tela de preparar do contrato ou são aposentadas | P decide              | 4 funções com chamador real ou veredicto |
 | O9  | `tema-clausula-texto.ts` (`clausulasDoTema`) é a única peça marcada RELIGAR: exibir o texto da cláusula por tema, só leitura, em `matriz-juridica.tsx`. Toca a Validação Jurídica, então só com a sua confirmação. `fontes-por-pais.ts` foi religado em 31/10 (seção "Cobertura de fontes por país" em Fontes genealógicas)                                                                                                            | P confirma, C liga    | texto da cláusula visível em cada tema   |
+| O10 | **Varredura ampliada (31/10):** a primeira só olhou `src/components` e `src/lib`. Fora delas há 4 módulos sem importador, todos em `src/data`: `activeCase.ts`, `caseTemplate.ts`, `propostas.ts`, `saneamento.ts` (veredictos antigos em `classificacao-dados.ts`: demo, modelo, modelo, seed). Religar: o fallback do caso ativo passa a ser o modelo vazio (hoje cai nos dados de Giovanna para qualquer ?caso= desconhecido), `propostas` vira bloco "portfólio mestre × catálogo do banco" e `saneamento` vira "origem dos dados e saúde de SKU" em Governança | C (frente W5 em execução) | 4 módulos com importador e teste |
+| O11 | Estender `orfaos-modulos-2026-10-31.test.ts` para varrer todo o `src` (hoje só `components` e `lib`), para módulo novo em `src/data` ou `src/hooks` sem importador também falhar | C | teste cobre todo o `src` |
+| O12 | 31 primitivos shadcn de `components/ui` seguem sem importador. São a biblioteca padrão do projeto: não se monta `Accordion` ou `Carousel` numa tela só para ter importador. Religam-se quando uma tela precisar. Registrado aqui para não ficar em silêncio | sem ação | — |
+
+## 4b. Religação em ondas (decisão de 31/10)
+
+A Proprietária decidiu: religar **todas** as órfãs, inclusive as classificadas como casca duplicada ou aposentadas, as três peças do portal do cliente (`portal-navegacao`, `portal-mapa-kit`, `app-cliente-gate`) e o `painel-dia`; o GoLive entra no Caso 360; a privacidade está atendida e o dado fixo de pessoa vira dado de cada caso. Frentes em execução, cada uma em worktree próprio, com teste, integradas por mim no fim:
+
+| Onda | Escopo                                                                                                                                | Estado       |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| W1   | GoLive dentro do Caso 360: Discovery, Call, Pessoa, Pagamento, publicar no App, `desk-go-live`                                          | em execução  |
+| W2   | `fontes-por-pais` editável e presente em Fontes genealógicas, Validação Jurídica e Roteiro Discovery / Painel de Calls                  | em execução  |
+| W3   | Painéis de contrato (`painel-preparacao` e 4 server functions, instrumentos, estado contratual, timeline, kit, anexos), `estados-edicao`, CSV do inventário, `auditoriaPreparacao` | em execução  |
+| W4a  | Família do Painel Hoje (`components/painel/*`, kanban, módulos contextuais, descobertas) e `botao-testar-cliente` por caso             | em execução  |
+| W4b  | Governança, inventários e design system (`ca-*`, matrizes, critérios, indicadores, canvas-audit…)                                      | em execução  |
+| W4c  | Peças do portal do cliente (gate, visibilidade, navegação, relatórios, entrega, `debug-cliente-access`)                                 | em execução  |
+| W4d  | Server functions órfãs registradas (evidência, perfil institucional, `ativarCaso`, `portalCaso`/`portalDocumentos`, piloto, radar)      | em execução  |
+| W5   | `src/data` (4 módulos)                                                                                                                 | em execução  |
+| C    | Teto de despesas do produto-pai no plano de ação (Corte C)                                                                             | em execução  |
+
+Feitos antes das ondas, em 31/10: `tema-clausula-texto` religado em Validação Jurídica; `fontes-por-pais` como seção de leitura (agora vira editável na W2); `ancestral_referencia` confirmado por você e gravado como `validado`.
+
+## 4c. P — Persistência: salvar, desfazer (arquivar/despublicar) e publicar (PR #32 e laudo #189)
+
+A #32 trata de "salvar com releitura real"; a Proprietária pediu que ela entre no plano junto com desfazer e publicar. Estado medido: `gravarComVerificacao` e `inserirComVerificacao` só avisam no console quando a releitura diverge (56 arquivos); só `salvarRegistroG02` é estrito.
+
+| #  | Tarefa                                                                                                                                                                                                                        | Dono                        | Pronto quando                                                |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------ |
+| P1 | Portar o que sobrou da #32 sobre a `main` atual (sem merge da branch antiga): `TarefasDoCaso` no Caso 360, margem de segurança do assistente, cartões mobile de Partes em `contratos.$id.tsx`                                   | C (frente em execução)      | 3 peças na `main`, com teste; #32 fechada com motivo         |
+| P2 | Auditoria de toda escrita: estrita, só aviso, crua, arquivar/despublicar com ou sem releitura e motivo, publicar com ou sem gate antes e releitura depois. Entrega os 15 caminhos de maior risco                                | C (auditoria em execução)   | lista classificada e ordem de execução                       |
+| P3 | Endurecer por módulo (divergência vira erro), começando pelos caminhos de publicar, despublicar e arquivar; decidir o caminho tolerante de `gravarComVerificacao` que grava fora da organização da sessão                       | C executa, P decide o tolerante | testes por módulo; "salvo" só depois da releitura         |
 
 ## 5. E — Esteira e produção
 
