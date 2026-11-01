@@ -52,9 +52,14 @@ export type GrupoDesk = {
     | "casos"
     | "pesquisa"
     | "contratos"
-    | "governanca";
+    | "governanca"
+    | "pessoas"
+    | "marketing"
+    | "financeiro";
 
   agrupador?: boolean;
+  /** Prefixos de rota que acendem o grupo (subrotas e telas contextuais). */
+  prefixos?: readonly string[];
   sub: readonly ItemNav[];
 };
 
@@ -92,7 +97,6 @@ export const ROTAS_FORA_DO_MENU = [
   "/governanca/dicionario-calls-crm",
   "/crm-mestre",
   "/etiquetas",
-  "/matriz-juridica",
   "/contrato-parametros",
   "/governanca/contrato-base",
   "/governanca/modelo-individual",
@@ -111,11 +115,12 @@ export const ROTAS_FORA_DO_MENU = [
  * Classificação do saneamento V4 (03/10/2026). Nenhuma rota foi apagada:
  * o que sai do menu continua aberto por endereço direto.
  */
-export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<Record<string, "ALIMENTO_CONTEXTUAL" | "LEGADO_SEM_MENU">> = {
+export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<
+  Record<string, "ALIMENTO_CONTEXTUAL" | "LEGADO_SEM_MENU">
+> = {
   "/governanca/dicionario-calls-crm": "ALIMENTO_CONTEXTUAL",
   "/crm-mestre": "ALIMENTO_CONTEXTUAL",
   "/etiquetas": "ALIMENTO_CONTEXTUAL",
-  "/matriz-juridica": "ALIMENTO_CONTEXTUAL",
   "/contrato-parametros": "ALIMENTO_CONTEXTUAL",
   "/governanca/contrato-base": "ALIMENTO_CONTEXTUAL",
   "/governanca/modelo-individual": "ALIMENTO_CONTEXTUAL",
@@ -127,6 +132,16 @@ export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<Record<string, "ALIMENTO_CONT
   "/escopo-origem": "LEGADO_SEM_MENU",
   "/pesquisa": "LEGADO_SEM_MENU",
   "/ops-excecoes": "LEGADO_SEM_MENU",
+  // 18/10/2026: estas rotas estão no prefixo dos seus setores em
+  // SETORES_DESK_V5 (a lateral real) mas perderam a aba própria que tinham
+  // no modelo anterior de 7 grupos — seguem abertas por endereço direto.
+  // Alinhamento de testes autorizado pela Proprietária.
+  "/relatorios": "ALIMENTO_CONTEXTUAL",
+  "/privacidade": "ALIMENTO_CONTEXTUAL",
+  "/governanca/modelos-contratuais": "ALIMENTO_CONTEXTUAL",
+  "/biblioteca": "ALIMENTO_CONTEXTUAL",
+  "/importacoes": "ALIMENTO_CONTEXTUAL",
+  "/atendimento": "ALIMENTO_CONTEXTUAL",
 };
 
 /**
@@ -153,49 +168,24 @@ export const GRUPOS_OPERACIONAIS_DESK = [
   "Pessoas & Famílias",
   "Pesquisa",
   "Marketing",
+  "Financeiro",
   "Configuração",
 ] as const;
 
 /**
- * MENU V4 — aplicado em 03/10/2026, por diretriz explícita da Proprietária
- * ("SANEAMENTO REVERSÍVEL DO DESK V4 — EXECUTAR, NÃO PLANEJAR").
- *
- * `NAVEGACAO_V4_DESK` e `ROTAS_FORA_DO_MENU` existiam desde 02/10 e nunca
- * tinham sido aplicados ao menu que de fato renderiza — o mesmo padrão de
- * decidir e não executar. Agora `GRUPOS_DESK` É o V4.
- *
- * Primeiro nível, literal da diretriz: Hoje · Comercial · Casos ·
- * Pessoas & Famílias · Pesquisa · Marketing · Configuração.
- *
- * O que saiu do menu NÃO foi apagado: a rota continua aberta por endereço
- * direto e está listada em `ROTAS_FORA_DO_MENU` com a classificação
- * (ALIMENTO_CONTEXTUAL ou LEGADO_SEM_MENU). A matriz completa está em
- * docs/arquitetura/2026-10-03-SANEAMENTO-DESK-V4.md.
- */
-/**
- * MENU V4 — aplicado em 03/10/2026 por diretriz explícita da Proprietária
- * ("SANEAMENTO REVERSÍVEL DO DESK V4 — EXECUTAR, NÃO PLANEJAR") e confirmado
- * por ela em seguida: "Confirmo que o v4 substitui".
- *
- * A autoridade é a prancha V4, enviada pela Proprietária: sete itens de
- * primeiro nível e, dentro de cada um, as abas que a prancha desenha. Os seis
- * grupos anteriores (02/10) ficam registrados em
- * `GRUPOS_OPERACIONAIS_DESK_ATE_02_10` — decisão superada com data, não
- * apagada.
- *
- * `NAVEGACAO_V4_DESK` e `ROTAS_FORA_DO_MENU` já existiam desde 02/10 e nunca
- * tinham sido aplicados ao menu que de fato renderiza. Agora `GRUPOS_DESK` é
- * o V4.
- *
- * Nada foi apagado: o que ficou fora do menu continua aberto por endereço
- * direto, classificado em `CLASSIFICACAO_SANEAMENTO_V4`.
+ * 18/10/2026 — decisão da Proprietária: primeiro nível = 7 grupos da V4 +
+ * Financeiro como grupo próprio (8). O setor "Formalização & Financeiro" foi
+ * desfeito: Contratos → Comercial; Ordens de serviço → Casos; Validação
+ * jurídica → Configuração (Radar e matrizes), com atalho na Mesa de Discovery;
+ * Exceções operacionais saem do menu e viram alerta no Hoje. Nenhuma rota
+ * nova, nenhuma removida.
  */
 export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "hoje",
     to: "/painel",
     label: "Hoje",
-    descricao: "Decisões do dia, cadências vencidas, casos sem próxima ação, microentregas, tarefas, funil e alertas com origem.",
+    descricao: "Decisões do dia, alertas com origem, próximas ações, tarefas e exceções abertas.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Visão Geral" },
@@ -204,45 +194,66 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/proximas-acoes", label: "Próximas ações" },
       { to: "/tarefas", label: "Tarefas" },
     ],
+    prefixos: ["/painel", "/alertas", "/proximas-acoes", "/tarefas"],
   },
   {
     id: "comercial",
     to: "/leads",
     label: "Comercial",
-    descricao: "Leads e oportunidades, Discovery, propostas, condições comerciais, financeiro do caso e origem.",
+    descricao:
+      "Leads e oportunidades, Discovery, propostas, contratos e condições comerciais e origem.",
     icone: "comercial",
     agrupador: true,
     sub: [
       { to: "/leads", label: "Leads e oportunidades" },
       { to: "/calls", label: "Discovery" },
       { to: "/propostas", label: "Propostas" },
-      { to: "/contratos", label: "Condições comerciais" },
-      { to: "/financeiro", label: "Financeiro de casos" },
+      { to: "/contratos", label: "Contratos e condições" },
       { to: "/conversao", label: "Conversão e origem" },
+    ],
+    prefixos: [
+      "/leads",
+      "/calls",
+      "/propostas",
+      "/contratos",
+      "/contrato-parametros",
+      "/conversao",
+      "/crm-mestre",
     ],
   },
   {
     id: "casos",
     to: "/casos",
     label: "Casos",
-    descricao: "Todos os casos, Caso 360, onboarding, ordens de serviço e entregas com validação.",
+    descricao:
+      "Todos os casos, Caso 360, GoLive (vida do cliente), onboarding, ordens de serviço, entregas com validação e operação.",
     icone: "casos",
     agrupador: true,
     sub: [
       { to: "/casos", label: "Todos os casos" },
       { to: "/casos", hash: "visao", label: "Caso 360" },
+      // 27/10/2026 (auditoria de espectro completo, achado 2.2): esta entrada
+      // morava no grupo Pesquisa, enquanto as outras 3 variantes de `/casos`
+      // ficavam aqui — mesma rota-base, dividida por âncora, em dois grupos
+      // sem critério visível. Movida para junto das outras.
+      { to: "/casos", hash: "tecnico", label: "Ficha Única do caso" },
+      // 23/10/2026 — decisão da Proprietária: o GoLive é a vida COMPLETA de cada
+      // cliente e tem lugar próprio dentro de Casos (o Caso 360 é o resumo macro).
+      { to: "/golive", label: "GoLive · Vida do cliente" },
       { to: "/casos", hash: "jornada", label: "Onboarding e jornada" },
       { to: "/ordens-servico", label: "Ordens de serviço" },
       { to: "/microentregas", label: "Entregas e validações" },
       { to: "/ops", label: "Operação" },
     ],
+    prefixos: ["/casos", "/ordens-servico", "/microentregas", "/ops", "/onboarding", "/golive"],
   },
   {
     id: "pessoas",
     to: "/clientes",
     label: "Pessoas & Famílias",
-    descricao: "Pessoa 360, núcleos familiares, participantes, relações e linhagens e dossiês familiares.",
-    icone: "casos",
+    descricao:
+      "Pessoa 360, núcleos familiares, participantes, acessos ao App Cliente e visão administrativa do App.",
+    icone: "pessoas",
     agrupador: true,
     sub: [
       { to: "/clientes", label: "Pessoa 360" },
@@ -251,17 +262,26 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/acessos-portal", label: "Acessos ao App Cliente" },
       { to: "/app-cliente-como-pessoa", label: "Visão administrativa do App" },
     ],
+    prefixos: [
+      "/clientes",
+      "/pessoas",
+      "/nucleos",
+      "/nucleos-duplicidades",
+      "/pessoas-linhagens",
+      "/acessos-portal",
+      "/app-cliente-como-pessoa",
+    ],
   },
   {
     id: "pesquisa",
     to: "/pesquisa-modulo",
     label: "Pesquisa",
-    descricao: "Painel de pesquisa, achados, hipóteses, evidências, solicitações documentais, bibliotecas, fontes e relatórios.",
+    descricao:
+      "Painel de pesquisa, achados, hipóteses, evidências, solicitações documentais, bibliotecas, fontes e relatórios.",
     icone: "pesquisa",
     agrupador: true,
     sub: [
       { to: "/pesquisa-modulo", label: "Painel de pesquisa" },
-      { to: "/casos", hash: "tecnico", label: "Ficha Única do caso" },
       { to: "/evidencias", label: "Evidências" },
       { to: "/atendimento", label: "Solicitações documentais" },
       { to: "/biblioteca", label: "Biblioteca de documentos" },
@@ -269,25 +289,50 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/relatorios", label: "Relatórios" },
       { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente de pesquisa" },
     ],
+    prefixos: [
+      "/pesquisa",
+      "/evidencias",
+      "/atendimento",
+      "/biblioteca",
+      "/biblioteca-evidencias",
+      "/fontes-genealogicas",
+      "/relatorios",
+      "/relatorios-fase",
+      "/studio-devolutivas",
+      "/achados",
+      "/plano-acao",
+    ],
   },
   {
     id: "marketing",
     to: "/marketing",
     label: "Marketing",
-    descricao: "Dashboard, campanhas, origem de leads, conversão do funil, biblioteca de mensagens e métricas.",
-    icone: "comercial",
+    descricao:
+      "Dashboard, campanhas, origem de leads, biblioteca de mensagens e métricas de campanha.",
+    icone: "marketing",
     agrupador: true,
     sub: [
       { to: "/marketing", label: "Dashboard" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de mensagens" },
       { to: "/metricas", label: "Métricas de campanha" },
     ],
+    prefixos: ["/marketing", "/biblioteca-mensagens", "/metricas"],
+  },
+  {
+    id: "financeiro",
+    to: "/financeiro",
+    label: "Financeiro",
+    descricao: "Faturas e condições do caso: previsão separada de saldo e pagamento confirmado.",
+    icone: "financeiro",
+    sub: [{ to: "/financeiro", label: "Financeiro de casos" }],
+    prefixos: ["/financeiro"],
   },
   {
     id: "governanca",
     to: "/configuracoes",
     label: "Configuração",
-    descricao: "Perfil institucional, catálogo e preços, equipe e acessos, integrações, modelos e templates, dados históricos e radar.",
+    descricao:
+      "Perfil institucional, catálogo e preços, equipe, integrações, modelos, decisões, radar e matrizes jurídicas.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -298,45 +343,32 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelos-contratuais", label: "Modelos e templates" },
       { to: "/governanca/decisoes", label: "Decisões" },
       { to: "/importacoes", label: "Dados históricos" },
-      /*
-       * 04/10/2026 — "Retire todas as auditorias repetidas do menu": o rótulo
-       * "Qualidade e auditoria" vendia auditoria como item de menu. A rota é a
-       * leitura operacional (matriz de elegibilidade × urgência e Radar
-       * Individual); a parte de qualidade/checklists segue recolhida dentro
-       * dela. A rota não mudou, só o nome no menu.
-       */
       { to: "/qualidade", label: "Radar e matrizes" },
+      { to: "/matriz-juridica", label: "Validação jurídica" },
       { to: "/privacidade", label: "Privacidade e consentimento" },
+    ],
+    prefixos: [
+      "/configuracoes",
+      "/catalogo",
+      "/equipe",
+      "/integracoes",
+      "/governanca",
+      "/importacoes",
+      "/qualidade",
+      "/matriz-juridica",
+      "/privacidade",
+      "/etiquetas",
+      "/homologacao-skus",
+      "/conciliacao-catalogo",
+      "/divergencias-catalogo",
+      "/escopo-origem",
+      "/historico",
+      "/ops-excecoes",
     ],
   },
 ] as const;
 
-/**
- * SETORES V5 — a lateral de seis setores que o Desk renderiza hoje.
- *
- * Procedência: commit do Lovable "Construiu layout e 6 grupos do desk"
- * (06/10/2026), que trazia esta lista escrita DENTRO de
- * `src/components/saas/shell.tsx`, com o comentário "decisão da Proprietária,
- * 06/10/2026: seis setores na lateral, sem Áreas de trabalho".
- *
- * O conteúdo dele fica — é a decisão mais recente relatada, e navegação é
- * decisão da Proprietária, não minha. O que muda é só o LUGAR: navegação do
- * Desk tem fonte única em `src/lib`, nunca uma segunda lista dentro do
- * componente que renderiza. Com duas listas, a próxima pessoa corrige uma e
- * a outra continua valendo — foi exatamente o que aconteceu aqui.
- *
- * DIVERGÊNCIA DECLARADA, não resolvida por mim: `GRUPOS_DESK` acima é o V4,
- * de SETE itens (Hoje · Comercial · Casos · Pessoas & Famílias · Pesquisa ·
- * Marketing · Configuração), aprovado em 03/10/2026 ("Confirmo que o v4
- * substitui"). Esta lista tem SEIS setores e os rótulos de 02/10. As duas
- * ficam registradas; nenhuma foi apagada. Qual vale no primeiro nível é
- * decisão da Proprietária — está no relato desta rodada como pendência.
- *
- * Enquanto não houver essa decisão: a lateral renderiza V5 (o que ela viu
- * hoje) e `GRUPOS_DESK` segue sendo a fonte de `grupoDonoDaRota`, dos testes
- * de sobreposição e do de-para do saneamento.
- */
-export type AbaSetor = { label: string; to: string; adminOnly?: boolean };
+export type AbaSetor = { label: string; to: string; hash?: string; adminOnly?: boolean };
 export type SetorDesk = {
   id: string;
   label: string;
@@ -346,137 +378,69 @@ export type SetorDesk = {
   prefixos: readonly string[];
 };
 
-export const SETORES_DESK_V5: readonly SetorDesk[] = [
-  {
-    id: "hoje",
-    label: "Hoje",
-    to: "/painel",
-    icone: "hoje",
-    abas: [
-      { label: "Visão do dia", to: "/painel" },
-      { label: "Kanban", to: "/ops" },
-      { label: "Microentregas", to: "/microentregas" },
-      { label: "Alertas", to: "/alertas" },
-      { label: "SLA e exceções", to: "/ops-excecoes" },
-    ],
-    prefixos: ["/painel", "/ops", "/microentregas", "/alertas", "/tarefas", "/proximas-acoes"],
-  },
-  {
-    id: "comercial",
-    label: "Marketing & Comercial",
-    to: "/leads",
-    icone: "comercial",
-    abas: [
-      { label: "Aquisição", to: "/marketing" },
-      { label: "CRM Vivo", to: "/leads" },
-      { label: "Discovery", to: "/calls" },
-      { label: "Propostas", to: "/propostas" },
-      { label: "Conversão", to: "/conversao" },
-    ],
-    prefixos: ["/leads", "/calls", "/propostas", "/conversao", "/marketing", "/crm-mestre", "/metricas", "/biblioteca-mensagens"],
-  },
-  {
-    id: "casos",
-    label: "Pessoas & Casos",
-    to: "/casos",
-    icone: "casos",
-    abas: [
-      { label: "Casos", to: "/casos" },
-      { label: "Pessoas", to: "/clientes" },
-      { label: "Famílias", to: "/nucleos" },
-    ],
-    prefixos: [
-      "/casos",
-      "/clientes",
-      "/pessoas",
-      "/nucleos",
-      "/onboarding",
-      "/pessoas-linhagens",
-      "/atendimento",
-      "/app-cliente-como-pessoa",
-      "/ordens-servico",
-      "/matriz-juridica",
-    ],
-  },
-  {
-    id: "pesquisa",
-    label: "Inteligência & Pesquisa",
-    to: "/pesquisa-modulo",
-    icone: "pesquisa",
-    abas: [
-      { label: "Pesquisas", to: "/pesquisa-modulo" },
-      { label: "Radar", to: "/qualidade" },
-      { label: "Fontes", to: "/fontes-genealogicas" },
-      { label: "Evidências", to: "/evidencias" },
-      { label: "Devolutivas", to: "/studio-devolutivas" },
-    ],
-    prefixos: [
-      "/pesquisa",
-      "/qualidade",
-      "/fontes-genealogicas",
-      "/evidencias",
-      "/studio-devolutivas",
-      "/achados",
-      "/biblioteca",
-      "/plano-acao",
-      "/relatorios",
-    ],
-  },
-  {
-    id: "contratos",
-    label: "Formalização & Financeiro",
-    to: "/contratos",
-    icone: "contratos",
-    abas: [
-      { label: "Contratos", to: "/contratos" },
-      { label: "Validação jurídica", to: "/matriz-juridica" },
-      { label: "Ordens de serviço", to: "/ordens-servico" },
-      { label: "Financeiro", to: "/financeiro" },
-    ],
-    prefixos: ["/contratos", "/contrato-parametros", "/matriz-juridica", "/ordens-servico", "/financeiro"],
-  },
-  {
-    id: "governanca",
-    label: "Governança & Administração",
-    to: "/configuracoes",
-    icone: "governanca",
-    abas: [
-      { label: "Configuração", to: "/configuracoes" },
-      { label: "Portal", to: "/acessos-portal" },
-      { label: "Equipe e acesso", to: "/equipe", adminOnly: true },
-      { label: "Catálogos e dicionários", to: "/catalogo" },
-      { label: "Integrações", to: "/integracoes" },
-    ],
-    prefixos: [
-      "/configuracoes",
-      "/acessos-portal",
-      "/equipe",
-      "/catalogo",
-      "/integracoes",
-      "/governanca",
-      "/etiquetas",
-      "/privacidade",
-      "/importacoes",
-      "/homologacao-skus",
-      "/conciliacao-catalogo",
-      "/divergencias-catalogo",
-      "/escopo-origem",
-      "/historico",
-      "/golive",
-    ],
-  },
+/**
+ * Setores que a lateral renderiza — derivados de `GRUPOS_DESK` (fonte única).
+ * O nome `SETORES_DESK_V5` fica como alias para quem ainda importa.
+ *
+ * 19/10/2026 — decisão da Proprietária (reconciliação com o Lovable): a
+ * casca visual/taxonômica do menu é esta (derivada de `GRUPOS_DESK`, 8
+ * grupos), não mais a versão de 6 grupos hand-authored que existia antes
+ * nesta branch. As 13 superfícies que viviam em `SUPERFICIES_PRANCHA_V4`
+ * continuam existindo como metadados/rotas internas (ver abaixo), nunca
+ * como um segundo menu.
+ */
+export const SETORES_DESK: readonly SetorDesk[] = GRUPOS_DESK.map((g) => ({
+  id: g.id,
+  label: g.label,
+  to: g.to,
+  icone: g.icone,
+  abas: g.sub.filter((s): s is Extract<ItemNav, { to: string }> => "to" in s),
+  prefixos: g.prefixos ?? [g.to],
+}));
+export const SETORES_DESK_V5 = SETORES_DESK;
+
+/** Rotas do menu de lado que precisam de caso: com caseId na URL, vão ao caso certo. */
+export function destinoDaAba(
+  aba: AbaSetor,
+  rotaAtual: string,
+): { to: string; hash?: string; caseId?: string } {
+  const m = /^\/casos\/([^/#?]+)/.exec(rotaAtual);
+  if (aba.to === "/casos" && aba.hash && m)
+    return { to: "/casos/$caseId", hash: aba.hash, caseId: m[1] };
+  return { to: aba.to, hash: aba.hash };
+}
+
+/**
+ * As 13 superfícies da prancha, na ordem das pílulas do topo de toda tela
+ * do Desk. Cada uma aponta para a rota real que a implementa.
+ */
+export const SUPERFICIES_PRANCHA_V4: readonly { label: string; to: string }[] = [
+  { label: "Hoje", to: "/painel" },
+  { label: "Comercial / CRM Vivo", to: "/leads" },
+  { label: "Checklist / Kanban operacional", to: "/tarefas" },
+  { label: "Caso 360", to: "/casos" },
+  { label: "Pessoa 360", to: "/clientes" },
+  { label: "Radar & Matrizes", to: "/qualidade" },
+  { label: "Pesquisa", to: "/pesquisa-modulo" },
+  { label: "Biblioteca Mestre", to: "/biblioteca" },
+  { label: "Financeiro", to: "/financeiro" },
+  { label: "Jurídico & Contrato", to: "/contratos" },
+  { label: "Pessoas & Famílias", to: "/nucleos" },
+  { label: "Portal do cliente (visão interna)", to: "/acessos-portal" },
+  { label: "Configuração & Acesso", to: "/configuracoes" },
 ];
+
+export const MENU_LEGADO_DESK: {
+  label: string;
+  itens: readonly { to: string; label: string }[];
+} = {
+  label: "Governança / Legado",
+  itens: [],
+} as const;
 
 const casaPrefixoSetor = (rota: string, p: string) =>
   rota === p || rota.startsWith(`${p}/`) || (p === "/pesquisa" && rota.startsWith(`${p}-`));
 
-/**
- * Setor aceso para uma rota, inclusive rota contextual fora do menu (Caso
- * 360, dossiê, plano de ação, espelho do App). O prefixo mais específico
- * ganha, para `/contratos` não roubar `/contrato-parametros` nem o contrário.
- * Sem setor, devolve undefined: a tela abre sem linha de abas, o que é
- * melhor que inventar aba.
- */
 export function setorDaRota(rota: string): SetorDesk | undefined {
   const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
   let melhor: { setor: SetorDesk; tamanho: number } | null = null;
@@ -489,10 +453,6 @@ export function setorDaRota(rota: string): SetorDesk | undefined {
   return melhor?.setor;
 }
 
-/**
- * Legado no menu de Governança. Decisão de 10/09/2026: fica aqui agora.
- * No pente fino, sai do Desk e vai para arquivo GitHub — não apagar nesta rodada.
- */
 export const ROTAS_LEGADO_MENU_GOVERNANCA = [
   "/governanca/catalogo-operacional-30",
   "/homologacao-skus",
@@ -501,10 +461,6 @@ export const ROTAS_LEGADO_MENU_GOVERNANCA = [
   "/escopo-origem",
 ] as const;
 
-/**
- * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
- * em Governança & Administração. Não é nona aba.
- */
 export const MENU_CONTA: {
   id: "conta";
   label: string;
@@ -513,49 +469,10 @@ export const MENU_CONTA: {
 } = {
   id: "conta",
   label: "Conta e administração",
-  descricao: "Sessão DEMO do App Cliente — dado fictício, fora da operação.",
-  itens: [{ to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" }],
+  descricao: "Sem atalhos na lateral; sessão DEMO só por link direto.",
+  itens: [],
 } as const;
 
-/**
- * Rotas que existiam no menu anterior (7 grupos) e continuam com link direto.
- * Serve de trava de regressão: nenhuma delas pode sumir da navegação.
- *
- * 03/09/2026 — /piloto e /piloto-ana removidas desta lista por decisão
- * explícita da proprietária: o mecanismo de "piloto" da Ana convergiu para
- * o fluxo padrão de qualquer caso real (aba Jornada → Fechamento, 9 gates
- * de src/lib/fechamento-caso.ts).
- *
- * Correção de 09/10/2026: este comentário dizia que "as rotas continuam
- * existindo no repositório, só saíram do menu". Medido: os arquivos de rota
- * NÃO existem mais em src/routes/_authenticated/ — saíram junto. O que
- * permanece é a camada de dados do piloto (src/lib/piloto-ana.ts,
- * piloto-ana.functions.ts, gates-piloto.ts, ficha-piloto-genealogica*),
- * usada pela Ficha Piloto dentro do Caso 360. Consequência prática: a PR #29,
- * que arrumava piloto-ana.tsx, ficou sem objeto — não é regressão, é
- * substituição pela decisão de 03/09.
- *
- * 06/09/2026 — /governanca/criterios-aceite, /governanca/matriz-conformidade,
- * /governanca/corte-vertical, /governanca/indicadores,
- * /governanca/inventario-recuperacao, /governanca/inventario-patrimonial,
- * /governanca/modulos-contextuais, /governanca/matriz-equivalencia,
- * /governanca/identificadores, /governanca/varredura-completude e /auditoria
- * removidas desta lista por decisão explícita da proprietária: "remova
- * todos os gates cerimoniais, não preciso de mais de 700 linhas de
- * auditoria pra um sistema que é meu". Eram telas de auditoria/diagnóstico
- * estático, não superfície de trabalho — nenhuma grava ou decide nada sobre
- * o caso real.
- *
- * 06/09/2026 (execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS, por
- * ordem direta e explícita da proprietária, independente do rótulo
- * "rejeitado" que um agente anterior deu a ele sem manifestação literal
- * dela) — as 11 rotas acima e /auditoria deixaram de "só sair do menu" e
- * tiveram o arquivo de rota fisicamente apagado do repositório: eram
- * exatamente o que o prompt pede pra remover ("não esconder só por CSS ou
- * navegação — remover renderização"). /governanca/decisoes foi mantida
- * porque é um link real usado por `referencias-normativas.tsx` (log de
- * decisões citado em pesquisa), não um card de auditoria isolado.
- */
 export const ROTAS_PRESERVADAS: readonly string[] = [
   "/painel",
   "/metricas",
@@ -603,38 +520,37 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/equipe",
 ] as const;
 
-/** Todas as rotas com link direto no menu principal ou no menu da conta. */
 export function rotasDoMenu(): string[] {
   const set = new Set<string>();
-  for (const g of GRUPOS_DESK) {
-    set.add(g.to);
-    for (const s of g.sub) if ("to" in s) set.add(s.to);
+  for (const s of SETORES_DESK_V5) {
+    set.add(s.to);
+    for (const a of s.abas) set.add(a.to);
   }
-  for (const s of MENU_CONTA.itens) if ("to" in s) set.add(s.to);
   return [...set];
 }
 
-/** Rotas presentes apenas no menu da conta (fora dos 6 grupos principais). */
 export function rotasDoMenuConta(): string[] {
-  return MENU_CONTA.itens.flatMap((s) => ("to" in s ? [s.to] : []));
+  return [];
 }
 
-/** Rotas preservadas que perderam link de menu (devem ser zero). */
-/**
- * Rota preservada que perdeu o link de menu E não foi classificada no
- * saneamento V4. Tem de ser sempre vazio: uma rota ou está no menu, ou está
- * declarada como ALIMENTO_CONTEXTUAL / LEGADO_SEM_MENU. Nenhuma some em
- * silêncio.
- */
 export function rotasSemLink(): string[] {
   const menu = new Set(rotasDoMenu());
   return ROTAS_PRESERVADAS.filter((r) => !menu.has(r) && !(r in CLASSIFICACAO_SANEAMENTO_V4));
 }
 
-/**
+/*
+ * Achado 13 (pendências da auditoria, 27/10/2026): esta função tinha lógica
+ * real contando duplicatas dentro de cada grupo de GRUPOS_DESK; na
+ * migração para SETORES_DESK_V5 (commit 68da7b21) o corpo foi substituído
+ * por `return []` e nunca reescrito contra a nova fonte — ficou um guarda
+ * inerte, sempre "limpo" mesmo que uma duplicata real apareça. RELIGADA:
+ * GRUPOS_DESK continua sendo a fonte real (SETORES_DESK_V5 é só um apelido
+ * derivado dela, linha 400), então a lógica original continua válida sem
+ * nenhuma reescrita de dados.
+ *
  * Um mesmo destino (rota + hash) não pode se repetir DENTRO de um grupo.
  * Entre grupos, a repetição é link contextual declarado (ex.: Validação
- * Jurídica em Governança com atalho em Comercial e Casos) — não é fila nova.
+ * Jurídica em Governança com atalho em Comercial e Casos) — não é falha nova.
  */
 export function destinosDuplicados(): string[] {
   const dup: string[] = [];
@@ -650,29 +566,24 @@ export function destinosDuplicados(): string[] {
   return dup;
 }
 
-/**
- * Grupo dono da rota: o trabalho completo mora aqui. Nos demais lugares,
- * só resumo e link. Sem dono = rota fora do menu (não inventar aba).
- */
 export function grupoDonoDaRota(rota: string): string | null {
   const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
-  for (const g of GRUPOS_DESK) {
-    for (const s of g.sub) {
-      if ("to" in s && s.to === path) return g.label;
-    }
-  }
-  for (const g of GRUPOS_DESK) {
-    for (const s of g.sub) {
-      if (!("to" in s)) continue;
-      if (rotaAtendeDestino(path, s.to)) return g.label;
+  for (const s of SETORES_DESK_V5) {
+    for (const a of s.abas) {
+      if (a.to === path) return s.label;
     }
   }
   return null;
 }
 
-/**
- * Mesmo destino (rota + hash) citado em mais de um grupo. Com os 6 grupos
- * sem sobreposição, a lista deve ficar vazia.
+/*
+ * Achado 13: mesmo caso de destinosDuplicados — ficou `return []` fixo
+ * desde a migração para SETORES_DESK_V5. RELIGADA contra GRUPOS_DESK (a
+ * mesma fonte real).
+ *
+ * Mesmo destino (rota + hash) citado em mais de um grupo. Com os grupos
+ * sem sobreposição, a lista deve ficar vazia — mas agora é calculada, não
+ * assumida.
  */
 export function destinosSobrepostos(): string[] {
   const visto = new Map<string, string[]>();
@@ -688,10 +599,16 @@ export function destinosSobrepostos(): string[] {
   return [...visto.entries()].filter(([, grupos]) => grupos.length > 1).map(([chave]) => chave);
 }
 
-/** Sem atalhos cruzados: cada rota mora em um único grupo. */
-export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [];
+/** Sem atalhos cruzados declarados hoje: cada rota mora em um único grupo. */
+export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] =
+  [];
 
-/**
+/*
+ * Achado 13: o corpo também virou `return null` fixo na mesma migração.
+ * Como LINKS_CONTEXTUAIS já é `[]`, o resultado observável não mudou — mas
+ * a função parou de checar o registro, e um link contextual futuro
+ * declarado em LINKS_CONTEXTUAIS seria ignorado em silêncio. RELIGADA.
+ *
  * O grupo onde a rota mora, quando ela está sendo citada de fora dele.
  *
  * 26/08/2026 — a Proprietária leu o menu como tendo "muitas sobreposições".
@@ -710,20 +627,6 @@ export function origemDoAtalho(grupoLabel: string, rota: string): string | null 
   return registro.tambemEm.includes(grupoLabel) ? registro.origem : null;
 }
 
-/**
- * Natureza de cada biblioteca do Desk.
- *
- * 26/08/2026 — princípio da Proprietária: "temos muitas bibliotecas que são e
- * podem ser chamadas por motores, outras são descritivas… muita info significa
- * nenhuma info".
- *
- * `motor`      — algo no sistema chama esta biblioteca e ela muda o que sai
- *                (template versionado, evidência vinculada a caso).
- * `descritiva` — referência para leitura humana; nada a consome para agir.
- *
- * A distinção é medida, não opinada: `motor` só vale para biblioteca com
- * função de servidor própria ou consumida por caminho que produz saída.
- */
 export const NATUREZA_BIBLIOTECA: readonly {
   rota: string;
   natureza: "motor" | "descritiva";
@@ -745,23 +648,24 @@ export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)
   return NATUREZA_BIBLIOTECA.find((b) => b.rota === rota) ?? null;
 }
 
-/** Hash da URL sem `#`, para comparar destino de menu com a rota atual. */
-export function hashDaRota(hash: string | undefined | null): string {
-  return (hash ?? "").replace(/^#/, "");
-}
-
-/**
- * Destino de menu sem colisão de prefixo.
- * `/pesquisa` não marca `/pesquisa-modulo`; `/casos` marca `/casos/$id`.
- */
-export function rotaAtendeDestino(atual: string, destino: string): boolean {
-  if (!atual || !destino) return false;
-  if (atual === destino) return true;
-  if (destino === "/") return false;
-  return atual.startsWith(`${destino}/`);
+export function rotaAtendeDestino(rotaAtual: string, destino: string): boolean {
+  const normal = (p: string) => (p.split("#")[0] ?? "").replace(/\/$/, "") || "/";
+  const atual = normal(rotaAtual);
+  const alvo = normal(destino);
+  if (!atual || !alvo) return false;
+  if (atual === alvo) return true;
+  if (alvo === "/") return false;
+  // Subrota só conta com barra: /casos/xyz ∈ /casos, mas /pesquisa-modulo ∉ /pesquisa.
+  return atual.startsWith(`${alvo}/`);
 }
 
 export type DestinoNav = { to: string; hash?: string };
+
+function hashDaRota(valor: string): string {
+  // Aceita tanto "/rota#ancora" quanto a âncora pura ("canais-campanhas").
+  const partes = valor.split("#");
+  return (partes.length > 1 ? partes[1] : (partes[0] ?? "")).trim();
+}
 
 /** Item de menu ativo: hash, quando existe, precisa bater; senão a rota (ou subrota). */
 export function itemNavAtivo(atual: string, hashAtual: string, item: DestinoNav): boolean {

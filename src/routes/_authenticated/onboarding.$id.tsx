@@ -6,11 +6,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   atualizarCheckAtivacao,
-  atualizarItemChecklistOnboarding,
   ativarCasoComChecks,
   obterOnboarding,
   suspenderCaso,
@@ -64,7 +65,6 @@ function OnboardingPage() {
   const qc = useQueryClient();
   const carregar = useServerFn(obterOnboarding);
   const atualizar = useServerFn(atualizarCheckAtivacao);
-  const atualizarItemOnboarding = useServerFn(atualizarItemChecklistOnboarding);
   const ativar = useServerFn(ativarCasoComChecks);
   const suspender = useServerFn(suspenderCaso);
 
@@ -78,13 +78,6 @@ function OnboardingPage() {
   useAvisoEdicaoNaoSalva(
     motivo.trim() !== "" || expira.trim() !== "" || motivoSuspensao.trim() !== "",
   );
-  const [itemOnboardingDe, setItemOnboardingDe] = useState<{
-    id: string;
-    label: string;
-    status: "concluido" | "nao_aplicavel";
-  } | null>(null);
-  const [evidenciaOnboarding, setEvidenciaOnboarding] = useState("");
-
   const q = useQuery({
     queryKey: ["onboarding", id],
     queryFn: () => carregar({ data: { casoId: id } }),
@@ -98,6 +91,10 @@ function OnboardingPage() {
       setAviso(r.ok ? "Requisito atualizado e registrado em auditoria." : `Bloqueado: ${r.erro}`);
       recarregar();
     },
+    // 24/10/2026 (EXEC-06): mesma classe de bug corrigida em mAtivar
+    // neste arquivo — sem onError, uma exceção do servidor deixava a tela muda.
+    onError: (e) =>
+      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
   });
   const mAtivar = useMutation({
     mutationFn: (motivo?: string) =>
@@ -112,16 +109,13 @@ function OnboardingPage() {
       );
       recarregar();
     },
-  });
-  const mAtualizarOnboarding = useMutation({
-    mutationFn: (v: Parameters<typeof atualizarItemChecklistOnboarding>[0]["data"]) =>
-      atualizarItemOnboarding({ data: v }),
-    onSuccess: (r) => {
+    // 24/10/2026: sem este onError, uma exceção do servidor (guard do banco,
+    // RLS, rede) deixava a tela absolutamente muda — o clique não produzia
+    // aviso nenhum. "Clico em ativar e não acontece nada" era isto.
+    onError: (e) =>
       setAviso(
-        r.ok ? "Item de onboarding atualizado e registrado em auditoria." : `Bloqueado: ${r.erro}`,
-      );
-      recarregar();
-    },
+        `Ativação falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`,
+      ),
   });
   const mSuspender = useMutation({
     mutationFn: () => suspender({ data: { casoId: id, motivo: motivoSuspensao } }),
@@ -137,6 +131,9 @@ function OnboardingPage() {
       }
       recarregar();
     },
+    // 24/10/2026 (EXEC-06): mesma classe de bug corrigida em mAtivar.
+    onError: (e) =>
+      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
   });
 
   const autoridade = useAutoridade();
@@ -158,7 +155,6 @@ function OnboardingPage() {
   // 20260905120000_case_ativacao_bloqueios_reais.sql); só quando ela vem
   // vazia é que a tela pode dizer "completo".
   const bloqueiosReais = dados?.bloqueiosReais ?? [];
-  const checklistOnboarding = dados?.checklistOnboarding ?? [];
   const pronto = bloqueiosReais.length === 0;
   const ativo = Boolean(caso["ativo"]);
 
@@ -213,10 +209,30 @@ function OnboardingPage() {
       ) : null}
 
       {dados ? (
+        // Casca V4: KPIs só com contagem real do que `obterOnboarding` devolveu.
+        <div
+          className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4"
+          data-onboarding-kpis
+        >
+          <Indicador
+            rotulo="Requisitos validados"
+            valor={String(checks.filter((c) => c.status === "validado").length)}
+            apoio={`de ${checks.length} requisito(s)`}
+          />
+          <Indicador
+            rotulo="Pendências reais"
+            valor={String(bloqueiosReais.length)}
+            apoio="Mesma projeção usada pelo banco"
+          />
+          <Indicador rotulo="Situação do caso" valor={ativo ? "Ativo" : "Não ativo"} apoio={String(caso["status"] ?? "—")} />
+        </div>
+      ) : null}
+
+      {dados ? (
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <CaCard>
             <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-navy">Requisitos de ativação</h2>
+              <h2 className="font-serif text-lg text-navy">Requisitos de ativação</h2>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   ativo
@@ -366,7 +382,8 @@ function OnboardingPage() {
               ) : null}
               {!ativo && !pronto && dados.podeAtivar ? (
                 <p className="text-xs text-navy/55">
-                  Pendências informam — para a proprietária não impedem. O botão acima registra a decisão.
+                  Pendências do checklist informam — para a proprietária não impedem. O botão acima
+                  registra a decisão.
                 </p>
               ) : null}
               {dados.podeAtivar && ativo ? (
@@ -383,110 +400,10 @@ function OnboardingPage() {
                 </p>
               ) : null}
             </div>
-          </section>
+          </CaCard>
 
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-            <h2 className="text-base font-semibold text-navy">Checklist de onboarding</h2>
-            <p className="mb-3 mt-1 text-xs text-navy/50">
-              Esta tabela existe há semanas e é lida pelo banco (trg_caso_ativo_guard) e pela lista
-              de bloqueios acima, mas nenhuma tela permitia completá-la — os itens abaixo ficaram
-              "pendente" desde a criação do caso, mesmo quando o dado real já existia. Concluir ou
-              marcar não aplicável exige registrar a evidência real; não é um clique vazio.
-            </p>
-            <ul className="divide-y divide-navy/10">
-              {checklistOnboarding.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex flex-wrap items-start justify-between gap-3 py-2.5"
-                >
-                  <div className="min-w-[200px]">
-                    <p className="text-sm font-medium text-navy">{item.label}</p>
-                    {item.item_code === ITEM_CODE_D7 ? (
-                      <p className="mt-0.5 text-xs text-navy/60" data-d7-derivado>
-                        Segue a micro-entrega real do caso (Ops). Para criar ou reconciliar, use o
-                        Caso 360, aba Onboarding — “Criar ou reconciliar micro-entrega D7”.
-                      </p>
-                    ) : null}
-                    {item.observacao ? (
-                      <p className="mt-0.5 whitespace-pre-line text-xs text-navy/55">
-                        {item.observacao}
-                      </p>
-                    ) : null}
-                    {item.concluido_em ? (
-                      <p className="text-xs text-navy/50">
-                        {new Date(item.concluido_em).toLocaleString("pt-BR")}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs ${
-                        item.status === "concluido"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : item.status === "nao_aplicavel"
-                            ? "bg-navy/10 text-navy/60"
-                            : "bg-terracotta/10 text-terracotta"
-                      }`}
-                    >
-                      {item.status === "concluido"
-                        ? "Concluído"
-                        : item.status === "nao_aplicavel"
-                          ? "Não aplicável"
-                          : "Pendente"}
-                    </span>
-                    {item.status !== "concluido" && item.item_code !== ITEM_CODE_D7 ? (
-                      <button
-                        onClick={() => {
-                          setItemOnboardingDe({
-                            id: item.id,
-                            label: item.label,
-                            status: "concluido",
-                          });
-                          setEvidenciaOnboarding("");
-                        }}
-                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
-                      >
-                        Concluir
-                      </button>
-                    ) : null}
-                    {item.status !== "nao_aplicavel" ? (
-                      <button
-                        onClick={() => {
-                          setItemOnboardingDe({
-                            id: item.id,
-                            label: item.label,
-                            status: "nao_aplicavel",
-                          });
-                          setEvidenciaOnboarding("");
-                        }}
-                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/60 hover:bg-navy/5"
-                      >
-                        Não aplicável
-                      </button>
-                    ) : null}
-                    {item.status !== "pendente" && item.item_code !== ITEM_CODE_D7 ? (
-                      <button
-                        onClick={() =>
-                          mAtualizarOnboarding.mutate({ itemId: item.id, status: "pendente" })
-                        }
-                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/60 hover:bg-navy/5"
-                      >
-                        Reverter
-                      </button>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-              {!checklistOnboarding.length ? (
-                <li className="py-2.5 text-sm text-navy/55">
-                  Nenhum item de onboarding para este caso.
-                </li>
-              ) : null}
-            </ul>
-          </section>
-
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-            <h2 className="mb-3 text-base font-semibold text-navy">Linha do tempo do onboarding</h2>
+          <CaCard>
+            <h2 className="mb-3 font-serif text-lg text-navy">Linha do tempo do onboarding</h2>
             <ol className="space-y-3">
               <li className="border-l-2 border-gold/60 pl-3">
                 <p className="text-xs text-navy/55">
@@ -507,7 +424,7 @@ function OnboardingPage() {
                 </li>
               ))}
             </ol>
-          </section>
+          </CaCard>
         </div>
       ) : null}
 
@@ -555,50 +472,6 @@ function OnboardingPage() {
                 className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
               >
                 Autorizar
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {itemOnboardingDe ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-cream/40 p-4">
-            <h3 className="text-sm font-semibold text-navy">
-              {itemOnboardingDe.status === "concluido" ? "Concluir" : "Marcar não aplicável"} —{" "}
-              {itemOnboardingDe.label}
-            </h3>
-            <p className="mt-1 text-xs text-navy/60">
-              Registre a evidência real que sustenta isto — o que foi verificado, onde e quando. Não
-              é permitido marcar sem essa evidência.
-            </p>
-            <textarea
-              value={evidenciaOnboarding}
-              onChange={(e) => setEvidenciaOnboarding(e.target.value)}
-              className="mt-3 w-full rounded-md border border-navy/15 px-2 py-1 text-sm"
-              rows={3}
-              placeholder="Ex.: contrato assinado em 05/09 (2026-CB-0001); responsável já definido em crm_casos.responsavel_id"
-            />
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setItemOnboardingDe(null)}
-                className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
-              >
-                Cancelar
-              </button>
-              <button
-                disabled={mAtualizarOnboarding.isPending || !evidenciaOnboarding.trim()}
-                onClick={() => {
-                  mAtualizarOnboarding.mutate({
-                    itemId: itemOnboardingDe.id,
-                    status: itemOnboardingDe.status,
-                    observacao: evidenciaOnboarding,
-                  });
-                  setItemOnboardingDe(null);
-                }}
-                className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
-              >
-                Confirmar
               </button>
             </div>
           </div>

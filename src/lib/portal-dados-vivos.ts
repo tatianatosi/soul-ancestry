@@ -135,6 +135,9 @@ export type DocumentoPortal = {
   liberado_cliente?: boolean | null;
   origem?: string | null;
   is_demo?: boolean | null;
+  /** Título e data de liberação: só usados para listar documentos liberados. */
+  titulo?: string | null;
+  liberado_em?: string | null;
 };
 
 export type EixoVivo = {
@@ -220,7 +223,8 @@ export function arvoreSanitizada(projecoes: ProjecaoBruta[]): PublicacaoCliente[
 export function legadoSanitizado(projecoes: ProjecaoBruta[]): PublicacaoCliente[] {
   return publicacoesParaCliente(projecoes)
     .filter((p) => p.tipo === "legado")
-    .filter((p) => !contemConteudoInterno(p.conteudo));
+    // The approved collection heading is editorial; keep all body-content guards.
+    .filter((p) => !contemConteudoInterno(p.conteudo.replace(/^Dossiê do projeto familiar(?:\s+|$)/i, "")));
 }
 
 /** Entregas da jornada: publicações do repositório, sem Árvore e sem Legado (abas próprias). */
@@ -437,6 +441,76 @@ export function solicitacoesAbertasCliente(
       motivoRecusa: l.status === "recusado" ? textoParaCliente(l.motivo_recusa ?? "").trim() || null : null,
     }))
     .filter((s) => s.titulo.length > 0);
+}
+
+/* ------------------------------------------------ checklist documental */
+
+export type TomChecklistCliente = "ok" | "analise" | "pendente";
+
+export type ItemChecklistCliente = {
+  id: string;
+  titulo: string;
+  tom: TomChecklistCliente;
+  /** Rótulo na linguagem da família (nunca o status cru do banco). */
+  rotulo: string;
+  prazo: string | null;
+  obrigatorio: boolean;
+};
+
+export type ChecklistDocumentalCliente = {
+  itens: ItemChecklistCliente[];
+  total: number;
+  /** Itens já aceitos pela equipe: o numerador de "X de Y concluídos". */
+  concluidos: number;
+};
+
+export type SolicitacaoChecklistBruta = SolicitacaoDocumentoBruta & { obrigatorio?: boolean | null };
+
+/**
+ * P0 do App (24/10/2026) — "Checklist consolidado" com contador, no login real
+ * da família. Fonte ÚNICA: `portal_document_requests`, os mesmos pedidos que a
+ * família já lê (policy `pdr_sel_portal`, e a rota `/portal/casos/$id`). Nada é
+ * copiado do mockup nem inventado: cada linha é um pedido que a equipe criou
+ * para esta família. Sem pedidos, a lista é vazia e a tela continua mostrando
+ * "Em preparação". Pedidos cancelados não entram na conta.
+ *
+ *   aceito                 → ok       "Recebido"
+ *   recebido | em_revisao  → analise  "Em análise"
+ *   aguardando             → pendente "Pendente de envio"
+ *   recusado               → pendente "Precisa reenviar"
+ */
+export function checklistDocumentalCliente(linhas: SolicitacaoChecklistBruta[]): ChecklistDocumentalCliente {
+  const itens: ItemChecklistCliente[] = [];
+  for (const l of linhas) {
+    const status = String(l.status ?? "");
+    if (status === "cancelado") continue;
+    const titulo = textoParaCliente(l.titulo ?? "").trim();
+    if (!titulo) continue;
+    let tom: TomChecklistCliente;
+    let rotulo: string;
+    if (status === "aceito") {
+      tom = "ok";
+      rotulo = "Recebido";
+    } else if (status === "recebido" || status === "em_revisao") {
+      tom = "analise";
+      rotulo = "Em análise";
+    } else if (status === "recusado") {
+      tom = "pendente";
+      rotulo = "Precisa reenviar";
+    } else {
+      tom = "pendente";
+      rotulo = "Pendente de envio";
+    }
+    itens.push({
+      id: String(l.id),
+      titulo,
+      tom,
+      rotulo,
+      prazo: tom === "pendente" && l.prazo ? String(l.prazo).slice(0, 10) : null,
+      obrigatorio: l.obrigatorio !== false,
+    });
+  }
+  return { itens, total: itens.length, concluidos: itens.filter((i) => i.tom === "ok").length };
 }
 
 /* ---------------------------------------------------------------- histórico */

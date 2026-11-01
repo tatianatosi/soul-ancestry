@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { TetoDespesasProdutoPai } from "@/components/caso/teto-despesas-produto-pai";
 import { dossieConsolidadoDoCaso, semearChecklist58cNoCaso } from "@/lib/dossie-58c.functions";
 
 function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
@@ -172,6 +173,8 @@ export function DossieConsolidado({ caseId }: { caseId: string }) {
                 ))}
               </ul>
             </details>
+
+            <TetoDespesasProdutoPai teto={d.tetoDespesas} />
 
             <div data-acoes-checklist>
               <p className="text-[11px] font-semibold text-navy">

@@ -112,9 +112,9 @@ describe("os três atos de governança da formalização ganharam tela", () => {
 });
 
 describe("o estado contratual da organização passou a ser visível", () => {
-  it("painelContratual é chamado e montado em /contratos", () => {
+  it("painelContratual é chamado e montado em /contratos (21/10/2026: via JuridicoContratoV4, com no máximo 4 indicadores)", () => {
     expect(PAINEL_CONTRATUAL).toContain("useServerFn(painelContratual)");
-    expect(CONTRATOS).toContain("<PainelEstadoContratual />");
+    expect(CONTRATOS).toContain("<JuridicoContratoV4 />");
   });
 
   it("mostra as seis contagens que o leitor já agregava", () => {
@@ -257,18 +257,12 @@ describe("as três reclassificadas não foram religadas, e o registro diz por qu
     expect(orfasPor("RELIGAR")).toEqual([]);
   });
 
-  const esperado: Record<string, string> = {
-    registrarPerfilInstitucional: "CASCA_DUPLICADA",
-    registrarSnapshotInstitucional: "CASCA_DUPLICADA",
-    ativarCaso: "APOSENTADA_CLASSIFICADA",
-  };
-  for (const [fn, veredicto] of Object.entries(esperado)) {
-    it(`${fn} ficou como ${veredicto}, nomeando quem faz o trabalho hoje`, () => {
-      const o = ORFAS_CLASSIFICADAS.find((x) => x.fn === fn);
-      expect(o, fn).toBeTruthy();
-      expect(o!.veredicto).toBe(veredicto);
-      expect(o!.motivo).toContain("Corte F");
-      expect(o!.destino.length).toBeGreaterThan(30);
+  // 31/10/2026: a Proprietária mandou religar também as aposentadas e as cascas.
+  // Elas saíram do registro porque ganharam chamador; o que este teste protegia
+  // (nenhum segundo caminho mais fraco) segue nos testes abaixo.
+  for (const fn of ["registrarPerfilInstitucional", "registrarSnapshotInstitucional", "ativarCaso"]) {
+    it(`${fn} deixou o registro por ter ganhado chamador de tela`, () => {
+      expect(ORFAS_CLASSIFICADAS.find((x) => x.fn === fn)).toBeUndefined();
     });
   }
 

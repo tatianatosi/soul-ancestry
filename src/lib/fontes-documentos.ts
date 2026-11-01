@@ -202,11 +202,14 @@ export type LinhaLista = {
   arquivado: boolean;
 };
 
-export function mascararCpf(valor?: string | null): string {
-  const d = (valor ?? "").replace(/\D/g, "");
-  if (d.length !== 11) return "";
-  return `***.${d.slice(3, 6)}.***-**`;
-}
+/*
+ * 26/10/2026 — removida a terceira máscara de CPF do repositório
+ * (`***.123.***-**`), que escondia dígitos diferentes das outras duas e não
+ * tinha um único importador (os consumidores de `@/lib/fontes-documentos`
+ * puxam apenas as constantes de documento). A máscara canônica é
+ * `mascararCpf` de `@/lib/validacao-pessoa` — decisão da Proprietária de
+ * 22/10/2026.
+ */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function linhaDaLista(

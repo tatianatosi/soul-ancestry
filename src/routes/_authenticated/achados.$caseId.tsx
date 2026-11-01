@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -20,7 +21,9 @@ import {
 } from "@/lib/achados-genealogicos";
 import { arquivarRegistroG06, painelAchados, salvarAchado, salvarEncontro } from "@/lib/achados-genealogicos.functions";
 import { criarMicroentregaCliente } from "@/lib/jornada-cliente.functions";
-import { SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador, type Tom } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/achados/$caseId")({
   component: Pagina,
@@ -65,6 +68,21 @@ function Campo({ label, children, ajuda }: { label: string; children: React.Reac
     </div>
   );
 }
+
+// V4-04: tom do chip de estado — só leitura do vocabulário real (validação/aprovação).
+const TOM_VALIDACAO: Record<string, Tom> = {
+  rascunho: "neutro",
+  em_revisao: "atencao",
+  validado_internamente: "sucesso",
+  divergente: "critico",
+  arquivado: "neutro",
+};
+const TOM_APROVACAO: Record<string, Tom> = {
+  nao_submetido: "neutro",
+  em_aprovacao: "atencao",
+  aprovado: "sucesso",
+  recusado: "critico",
+};
 
 const inputCls = "w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold";
 
@@ -301,6 +319,27 @@ function Pagina() {
       ? "O servidor marcou este caso como somente leitura para o seu vínculo — o registro segue disponível por decisão sua."
       : null;
 
+  // V4-04: KPIs só com contagem real do painel já carregado (sem percentual).
+  // "Validado internamente" é estado interno — não é conclusão jurídica nem publicação.
+  const achadosAtivos = (q.data?.achados ?? []).filter((a) => !a["archived_at"]);
+  const encontrosAtivos = (q.data?.encontros ?? []).filter((e) => !e["archived_at"]);
+  const kpis = q.data
+    ? [
+        { rotulo: "Achados ativos", valor: achadosAtivos.length, apoio: "Não arquivados" },
+        {
+          rotulo: "Validados internamente",
+          valor: achadosAtivos.filter((a) => a["validation_status"] === "validado_internamente").length,
+          apoio: "Revisão interna — não é conclusão jurídica",
+        },
+        {
+          rotulo: "Com micro-entrega vinculada",
+          valor: achadosAtivos.filter((a) => a["client_deliverable_id"]).length,
+          apoio: "Vínculo registrado — publicação é passo separado",
+        },
+        { rotulo: "Encontros de linhagem", valor: encontrosAtivos.length, apoio: "Não arquivados" },
+      ]
+    : null;
+
   const setA = (k: string, v: unknown) => setAchado((p) => ({ ...p, [k]: v }));
   const setE = (k: string, v: unknown) => setEncontro((p) => ({ ...p, [k]: v }));
 
@@ -314,7 +353,6 @@ function Pagina() {
         <Link to="/casos/$caseId" params={{ caseId }} className="text-xs text-navy/50 hover:text-navy">
           ← Ficha do caso
         </Link>
-        <h1 className="font-serif text-2xl text-navy">Achados genealógicos e encontros de linhagem</h1>
         <p className="text-sm text-navy/60">
           Caso {String(q.data?.caso?.["codigo"] ?? caseId)} · Fonte → evidência → validação interna → achado → árvore/linha do
           tempo → micro-entrega ou relatório, se aprovado.
@@ -330,7 +368,14 @@ function Pagina() {
           Pendência registrada: {pendenciaAchados}
         </p>
       ) : null}
-      {q.isLoading ? <p className="text-sm text-navy/50">Carregando…</p> : null}
+      {kpis ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-achados-kpis>
+          {kpis.map((k) => (
+            <Indicador key={k.rotulo} rotulo={k.rotulo} valor={String(k.valor)} apoio={k.apoio} />
+          ))}
+        </div>
+      ) : null}
+      {q.isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando os achados" /> : null}
       {q.isError ? (
         <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-sm text-terracotta">
           Não foi possível carregar achados e encontros deste caso.
@@ -358,8 +403,8 @@ function Pagina() {
 
       {aba === "achados" ? (
         <div className="grid gap-5 lg:grid-cols-2">
-          <section className="space-y-4 rounded-xl border border-navy/10 bg-cream/60 p-4">
-            <h2 className="font-serif text-lg text-navy">Novo achado</h2>
+          <CaCard titulo="Novo achado" eyebrow="Achados · registro interno">
+          <section className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Campo label="Título">
                 <input className={inputCls} value={String(achado["title"] ?? "")} onChange={(e) => setA("title", e.target.value)} />
@@ -502,19 +547,21 @@ function Pagina() {
               Registrar achado
             </button>
           </section>
+          </CaCard>
 
+          <CaCard titulo="Achados do caso" eyebrow="Achados · lista">
           <section className="space-y-3">
-            <h2 className="font-serif text-lg text-navy">Achados do caso</h2>
             {!q.isLoading && !q.isError && (q.data?.achados ?? []).length === 0 ? (
-              <p className="rounded-lg border border-navy/10 bg-navy/5 p-3 text-sm text-navy/60">Nenhum achado registrado.</p>
+              <EstadoVazio mensagem="Nenhum achado registrado." />
             ) : (
               (q.data?.achados ?? []).map((a) => (
                 <article key={String(a["id"])} className="space-y-1 rounded-xl border border-navy/10 bg-cream/60 p-3">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-medium text-navy">{String(a["title"])}</h3>
-                    <span className="rounded-full bg-navy/10 px-2 py-0.5 text-xs text-navy/70">
-                      {rotulo(STATUS_VALIDACAO, a["validation_status"])}
-                    </span>
+                    <Etiqueta
+                      texto={rotulo(STATUS_VALIDACAO, a["validation_status"])}
+                      tom={TOM_VALIDACAO[String(a["validation_status"])] ?? "neutro"}
+                    />
                   </div>
                   <p className="text-xs text-navy/60">
                     {rotulo(TIPOS_ACHADO, a["finding_type"])} · relevância {rotulo(RELEVANCIAS, a["relevance"])} ·{" "}
@@ -545,11 +592,12 @@ function Pagina() {
               ))
             )}
           </section>
+          </CaCard>
         </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
-          <section className="space-y-4 rounded-xl border border-navy/10 bg-cream/60 p-4">
-            <h2 className="font-serif text-lg text-navy">Novo encontro de linhagem</h2>
+          <CaCard titulo="Novo encontro de linhagem" eyebrow="Encontros · registro interno">
+          <section className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Campo label="Tipo" ajuda={TIPOS_ENCONTRO.find((t) => t.id === encontro["encounter_type"])?.nota}>
                 <select className={inputCls} value={String(encontro["encounter_type"])} onChange={(e) => setE("encounter_type", e.target.value)}>
@@ -685,11 +733,12 @@ function Pagina() {
               Registrar encontro
             </button>
           </section>
+          </CaCard>
 
+          <CaCard titulo="Encontros do caso" eyebrow="Encontros · lista">
           <section className="space-y-3">
-            <h2 className="font-serif text-lg text-navy">Encontros do caso</h2>
             {!q.isLoading && !q.isError && (q.data?.encontros ?? []).length === 0 ? (
-              <p className="rounded-lg border border-navy/10 bg-navy/5 p-3 text-sm text-navy/60">Nenhum encontro registrado.</p>
+              <EstadoVazio mensagem="Nenhum encontro registrado." />
             ) : (
               (q.data?.encontros ?? []).map((e) => {
                 const proj = projetarEncontroParaCliente(e);
@@ -697,9 +746,10 @@ function Pagina() {
                   <article key={String(e["id"])} className="space-y-1 rounded-xl border border-navy/10 bg-cream/60 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-medium text-navy">{String(e["title_internal"])}</h3>
-                      <span className="rounded-full bg-navy/10 px-2 py-0.5 text-xs text-navy/70">
-                        {rotulo(APROVACOES, e["approval_status"])}
-                      </span>
+                      <Etiqueta
+                        texto={rotulo(APROVACOES, e["approval_status"])}
+                        tom={TOM_APROVACAO[String(e["approval_status"])] ?? "neutro"}
+                      />
                     </div>
                     <p className="text-xs text-navy/60">
                       {rotulo(TIPOS_ENCONTRO, e["encounter_type"])} · confiança {rotulo(CONFIANCAS, e["confidence_internal"])} ·{" "}
@@ -731,6 +781,7 @@ function Pagina() {
               })
             )}
           </section>
+          </CaCard>
         </div>
       )}
     </div>

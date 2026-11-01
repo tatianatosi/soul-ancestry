@@ -127,8 +127,12 @@ describe("os KPIs do kanban derivam dos cards mostrados", () => {
     expect(bloco).not.toContain('p["');
   });
 
-  it("concluída e cancelada não contam como pendência em aberto", () => {
-    expect(kanban).toContain('!["concluida", "cancelada"].includes(String(t["status"]))');
+  it("sétima rodada (14/10/2026, HOMOLOGAÇÃO FINAL): KPIs renomeados mapeiam direto para status/concluida_em reais, sem agregado paralelo", () => {
+    expect(kanban).toContain('rotulo: "Microentregas no ciclo"');
+    expect(kanban).toContain('tarefas.filter((t) => t["status"] === "em_andamento").length');
+    expect(kanban).toContain('rotulo: "Travadas / Bloqueadas"');
+    expect(kanban).toContain('rotulo: "Concluídas no mês"');
+    expect(kanban).toContain('t["status"] === "concluida" && mesAtual(t["concluida_em"])');
   });
 
   it("nenhum estado fora do CHECK foi inventado para caber na prancha", () => {

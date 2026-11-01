@@ -23,7 +23,9 @@ const codigo = readFileSync(ROTA, "utf8");
 describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
   it("TimelineVertical recebe eventos já filtrados por linha, não a lista mista", () => {
     // Assinatura ganhou `variante` (gold = Linha Ancestral, navy = Processo) no contrato visual v4.
-    expect(codigo).toMatch(/function TimelineVertical\(\{\s*eventos,\s*eyebrow,[\s\S]*?\}: \{\s*eventos: NoEvento\[\];\s*eyebrow: string;/);
+    expect(codigo).toMatch(
+      /function TimelineVertical\(\{\s*eventos,\s*eyebrow,[\s\S]*?\}: \{\s*eventos: NoEvento\[\];\s*eyebrow: string;/,
+    );
   });
 
   it("separa linhaAncestral (categoria !== navy) de linhaProcesso (categoria === navy) a partir do mesmo array `nos`", () => {
@@ -44,16 +46,28 @@ describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
     expect(codigo).toMatch(/<MomentosDeUniao pontes=\{pontes\}\s*\/>/);
   });
 
-  it("as duas linhas seguem o mesmo eixo dourado em mobile e desktop", () => {
-    expect(codigo).toMatch(/data-jornada-duas-linhas/);
-    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6"/);
-    expect(codigo).toMatch(/sm:order-2 sm:col-span-2/);
-    expect(codigo).toMatch(/bottom-5 left-2 top-5 w-0\.5 bg-gold\/70/);
+  /*
+   * 13/10/2026 — paridade com o mockup p.4, pedido da Proprietária: "não
+   * empilhe em 1 coluna só". As duas linhas ficam lado a lado em qualquer
+   * largura (antes `sm:grid-cols-2` empilhava no celular), e Momentos de União
+   * é o cartão abaixo das duas, ocupando a largura toda.
+   */
+  // 19/10/2026 — reconciliação com o Lovable: decisão de 13/10 (duas
+  // colunas lado a lado mesmo no celular) foi substituída pela composição
+  // real de hoje — empilha no celular (`grid-cols-1`), duas colunas a
+  // partir de `md:` (ver mockup4-presentation.test.ts, "stacks Jornada on
+  // mobile and restores two lines at desktop", já verde contra este mesmo
+  // arquivo). Mantém Momentos de União como conector abaixo das duas.
+  it("empilha no celular e restaura as duas colunas lado a lado a partir de md:", () => {
+    // Prettier pode quebrar os atributos do <div> em várias linhas; checar seletor e classe separadamente.
+    expect(codigo).toMatch(
+      /data-jornada-duas-linhas[\s\S]{0,40}className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2/,
+    );
   });
 
   it("marca cada coluna com estado vazio honesto, sem inventar item", () => {
     expect(codigo).toMatch(/gerações anteriores aparecerão aqui/);
-    expect(codigo).toMatch(/passoAtualIndice !== null \? \(\s*<div className="mt-3"><TrilhaCompacta/);
+    expect(codigo).toMatch(/passoAtualIndice !== null \? \([\s\S]{0,400}<TrilhaCompacta/);
   });
 
   it("Próxima ação (nó sintético __agora__) cai na Linha do Processo, nunca na Ancestral", () => {

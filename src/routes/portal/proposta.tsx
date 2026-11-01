@@ -84,7 +84,7 @@ function PropostaPage() {
                     <div>
                       <p className="font-medium">{f.numero ? `Fatura ${f.numero}` : "Fatura"}</p>
                       <p className="text-sm text-navy/60">
-                        {f.status}
+                        {f.statusRotulo}
                         {f.vencimento ? ` · vence em ${new Date(f.vencimento).toLocaleDateString("pt-BR")}` : ""}
                       </p>
                     </div>

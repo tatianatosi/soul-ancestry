@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 
 import { destinoLinkAuth } from "../lib/link-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportarErroCliente } from "../lib/producao-erros-navegador";
 import { configPublicaDoServidor, scriptDeConfigPublica } from "@/lib/config-publica";
 import { supabase } from "../integrations/supabase/client";
 import { ehTransicaoDeIdentidade } from "../lib/guarda-sessao";
@@ -66,16 +67,17 @@ function ErrorComponent({ error: erroBruto, reset }: { error: unknown; reset: ()
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportarErroCliente(error, { mechanism: "tanstack_root_error_component" });
   }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Esta página não carregou
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Algo deu errado do nosso lado. Tente de novo ou volte ao início.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -85,13 +87,13 @@ function ErrorComponent({ error: erroBruto, reset }: { error: unknown; reset: ()
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            Tentar de novo
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Voltar ao início
           </a>
         </div>
       </div>
@@ -111,6 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Consultoria em genealogia e cidadania europeia. Reconecte-se à sua história familiar.",
       },
       { name: "author", content: "Clube Ancestral" },
+      { name: "theme-color", content: "#13294B" },
       { property: "og:title", content: "Clube Ancestral" },
       { property: "og:description", content: "Consultoria em genealogia e cidadania europeia." },
       { property: "og:type", content: "website" },
@@ -128,6 +131,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Mesmo arquivo do logo de marca (src/lib/brand-asset.ts): um único
       // SVG serve de ícone de aba e de logo, sem cópia duplicada.
       { rel: "icon", href: "/clube-ancestral-logo.svg", type: "image/svg+xml" },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -155,7 +160,7 @@ function RootShell({ children }: { children: ReactNode }) {
   const config = scriptDeConfigPublica(configPublicaDoServidor());
 
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
         {config ? <script dangerouslySetInnerHTML={{ __html: config }} /> : null}

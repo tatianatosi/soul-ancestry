@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQueries } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador, Linha } from "@/components/prancha-v4/kit";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
@@ -51,10 +53,22 @@ function RelatoriosPage() {
   const linhasDe = (i: number) => consultas[i]?.data as Record<string, unknown>[] | undefined;
 
   const blocos = [
-    { titulo: "Casos por status", fonte: 0, chave: "status" },
-    { titulo: "Casos por via", fonte: 0, chave: "via" },
-    { titulo: "Evidências por status", fonte: 1, chave: "status" },
-    { titulo: "Tarefas por prioridade", fonte: 2, chave: "prioridade" },
+    { titulo: "Casos por status", eyebrow: "Casos · status", fonte: 0, chave: "status" },
+    { titulo: "Casos por via", eyebrow: "Casos · via", fonte: 0, chave: "via" },
+    { titulo: "Evidências por status", eyebrow: "Evidências · status", fonte: 1, chave: "status" },
+    { titulo: "Tarefas por prioridade", eyebrow: "Tarefas · prioridade", fonte: 2, chave: "prioridade" },
+  ];
+
+  // V4-04: faixa de KPIs só com contagem real das leituras já carregadas.
+  // Origem sem leitura concluída (carregando ou falha) mostra "—", nunca zero.
+  const totalDe = (i: number) => {
+    const linhas = linhasDe(i);
+    return consultas[i]?.isSuccess && Array.isArray(linhas) ? String(linhas.length) : "—";
+  };
+  const kpis = [
+    { rotulo: "Casos", fonte: 0, apoio: "Registros não arquivados" },
+    { rotulo: "Evidências", fonte: 1, apoio: "Registros não arquivados" },
+    { rotulo: "Tarefas", fonte: 2, apoio: "Registros não arquivados" },
   ];
 
   return (
@@ -78,10 +92,14 @@ function RelatoriosPage() {
           </button>
         </div>
       ) : null}
+      <div className="mb-4 grid gap-3 sm:grid-cols-3" data-relatorios-kpis>
+        {kpis.map((k) => (
+          <Indicador key={k.rotulo} rotulo={k.rotulo} valor={totalDe(k.fonte)} apoio={k.apoio} />
+        ))}
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         {blocos.map((b) => (
-          <div key={b.titulo} className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-            <h2 className="font-serif text-lg text-navy">{b.titulo}</h2>
+          <CaCard key={b.titulo} titulo={b.titulo} eyebrow={b.eyebrow}>
             <EstadoDados
               carregando={consultas[b.fonte]?.isLoading ?? false}
               erro={consultas[b.fonte]?.error}
@@ -93,20 +111,19 @@ function RelatoriosPage() {
               {(linhas) => {
                 const dados = agrupar(linhas as Record<string, unknown>[], b.chave);
                 return dados.length === 0 ? (
-                  <p className="mt-3 text-sm text-navy/50">Sem dados suficientes ainda.</p>
+                  <EstadoVazio mensagem="Sem dados suficientes ainda." />
                 ) : (
-                  <ul className="mt-3 space-y-2 text-sm">
+                  <ul className="mt-1">
                     {dados.map(([rotulo, total]) => (
-                      <li key={rotulo} className="flex items-center justify-between gap-3">
-                        <span className="text-navy/70">{rotulo}</span>
-                        <span className="font-medium text-navy">{total}</span>
+                      <li key={rotulo}>
+                        <Linha rotulo={rotulo} valor={String(total)} />
                       </li>
                     ))}
                   </ul>
                 );
               }}
             </EstadoDados>
-          </div>
+          </CaCard>
         ))}
       </div>
     </SaasShell>

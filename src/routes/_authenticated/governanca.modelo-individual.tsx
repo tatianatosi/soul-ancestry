@@ -8,7 +8,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   lerRegistroModeloIndividual,
   registrarModeloIndividual,
@@ -77,19 +77,17 @@ function RegistroVersionado() {
       toast.success("Modelo individual registrado.");
       queryClient.invalidateQueries({ queryKey: ["modelo-individual-registro"] });
     },
+    // Laudo #189, primeiro corte (27/10/2026): sem onError, uma recusa do
+    // banco ficava indistinguível de "nada salva".
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const modelo = data?.modelo as
-    | { versao: string; status: string; autor: string | null; criado_em: string }
-    | null
-    | undefined;
+    { versao: string; status: string; autor: string | null; criado_em: string } | null | undefined;
 
   return (
-    <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-base">Registro versionado (organização)</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+    <CaCard titulo="Registro versionado (organização)">
+      <div className="space-y-3 text-sm">
         {modelo ? (
           <div className="flex flex-wrap gap-2 text-xs">
             <Badge variant="outline">{modelo.versao}</Badge>
@@ -101,8 +99,8 @@ function RegistroVersionado() {
           </div>
         ) : (
           <p className="text-navy/65">
-            Modelo ainda não registrado nesta organização. O registro é apenas de governança
-            interna e não libera contrato, assinatura ou cobrança.
+            Modelo ainda não registrado nesta organização. O registro é apenas de governança interna
+            e não libera contrato, assinatura ou cobrança.
           </p>
         )}
         {!modelo && (
@@ -138,8 +136,8 @@ function RegistroVersionado() {
             </ul>
           )}
         </EstadoDados>
-      </CardContent>
-    </Card>
+      </div>
+    </CaCard>
   );
 }
 
@@ -153,7 +151,6 @@ function ModeloIndividualPage() {
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const previa = previaTesteModeloIndividual();
-
 
   return (
     <SaasShell
@@ -189,25 +186,24 @@ function ModeloIndividualPage() {
         <RegistroVersionado />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Requerente único obrigatório</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-navy/65">
+          <CaCard titulo="Requerente único obrigatório">
+            <div className="space-y-2 text-sm text-navy/65">
               <p>Exatamente uma pessoa adulta como requerente principal.</p>
               <ul className="list-disc space-y-1 pl-5">
-                <li>Parte contratante e signatário por padrão, com confirmação humana obrigatória.</li>
-                <li>Campos: nome, identificação por fonte permitida, papel, estado de dados e documentos, processo individual abrangido, fonte e status de confirmação.</li>
+                <li>
+                  Parte contratante e signatário por padrão, com confirmação humana obrigatória.
+                </li>
+                <li>
+                  Campos: nome, identificação por fonte permitida, papel, estado de dados e
+                  documentos, processo individual abrangido, fonte e status de confirmação.
+                </li>
                 <li>Uma única instância de ANX-INDIVIDUAL, quando aplicável.</li>
               </ul>
-            </CardContent>
-          </Card>
+            </div>
+          </CaCard>
 
-          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Acompanhante facultativa e limitada</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-navy/65">
+          <CaCard titulo="Acompanhante facultativa e limitada">
+            <div className="space-y-2 text-sm text-navy/65">
               <ul className="space-y-1">
                 {Object.entries(TRAVAS_ACOMPANHANTE).map(([chave, valor]) => (
                   <li key={chave} className="flex items-center justify-between gap-3">
@@ -217,17 +213,15 @@ function ModeloIndividualPage() {
                 ))}
               </ul>
               <p className="pt-2 text-xs">
-                Promoção a requerente ou signatária exige: {REQUISITOS_INCLUSAO_ACOMPANHANTE.join(" · ")}.
+                Promoção a requerente ou signatária exige:{" "}
+                {REQUISITOS_INCLUSAO_ACOMPANHANTE.join(" · ")}.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </CaCard>
         </div>
 
-        <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base">Anexos do modelo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+        <CaCard titulo="Anexos do modelo">
+          <div className="space-y-3 text-sm">
             {ANEXOS_MODELO_INDIVIDUAL.map((anexo) => (
               <div key={anexo.codigo} className="rounded-md border p-3">
                 <div className="flex flex-wrap items-center gap-2">
@@ -238,15 +232,12 @@ function ModeloIndividualPage() {
                 <p className="pt-1 text-xs text-navy/65">{anexo.regra}</p>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </CaCard>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Gates bloqueantes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+          <CaCard titulo="Gates bloqueantes">
+            <div className="space-y-3 text-sm">
               {GATES_MODELO_INDIVIDUAL.map((gate) => (
                 <div key={gate.codigo} className="rounded-md border p-3">
                   <p className="font-medium text-navy">{gate.codigo}</p>
@@ -254,39 +245,31 @@ function ModeloIndividualPage() {
                   <p className="pt-1 text-xs text-terracotta">Bloqueia: {gate.bloqueia}</p>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </CaCard>
 
           <div className="space-y-6">
-            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Privacidade e acesso</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <CaCard titulo="Privacidade e acesso">
+              <div>
                 <ul className="list-disc space-y-1 pl-5 text-sm text-navy/65">
                   {REGRAS_PRIVACIDADE_MODELO.map((regra) => (
                     <li key={regra}>{regra}</li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
+              </div>
+            </CaCard>
 
-            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Prévia TESTE</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
+            <CaCard titulo="Prévia TESTE">
+              <div className="space-y-3 text-sm">
                 <Badge variant="outline">{previa.marca}</Badge>
                 {previa.blocos.map((bloco) => (
                   <div key={bloco.titulo} className="rounded-md border bg-cream/40 p-3">
-                    <p className="text-xs uppercase tracking-wide text-navy/65">
-                      {bloco.titulo}
-                    </p>
+                    <p className="text-xs uppercase tracking-wide text-navy/65">{bloco.titulo}</p>
                     <p className="font-mono text-sm text-navy">{bloco.conteudo}</p>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </CaCard>
           </div>
         </div>
       </div>

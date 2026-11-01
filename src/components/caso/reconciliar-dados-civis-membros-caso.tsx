@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { conferirDivergenciaCampoCivilMembrosCaso } from "@/lib/caso-canonico.functions";
-import { CAMPOS_CIVIS_RECONCILIAVEIS, ROTULO_CAMPO_CIVIL, type CampoCivilReconciliavel } from "@/lib/pessoa-vinculo";
+import {
+  CAMPOS_CIVIS_RECONCILIAVEIS,
+  ROTULO_CAMPO_CIVIL,
+  type CampoCivilReconciliavel,
+} from "@/lib/pessoa-vinculo";
 
 /**
  * P32 (26/09/2026) — pedido direto: "algo simples... sem forms infinitos".
@@ -23,7 +28,12 @@ import { CAMPOS_CIVIS_RECONCILIAVEIS, ROTULO_CAMPO_CIVIL, type CampoCivilReconci
 type ItemPlanoCivil = {
   membroId: string;
   nome: string;
-  acao: "preencher" | "conflito" | "ja_sincronizado" | "sem_dado_canonico" | "dependente_nao_sincronizado";
+  acao:
+    | "preencher"
+    | "conflito"
+    | "ja_sincronizado"
+    | "sem_dado_canonico"
+    | "dependente_nao_sincronizado";
   valor?: string;
   atual?: string;
   canonico?: string;
@@ -52,7 +62,15 @@ function exibir(v: unknown): string {
   return String(v);
 }
 
-function BlocoCampoCivil({ caseId, campo, onMudou }: { caseId: string; campo: CampoCivilReconciliavel; onMudou: () => void }) {
+function BlocoCampoCivil({
+  caseId,
+  campo,
+  onMudou,
+}: {
+  caseId: string;
+  campo: CampoCivilReconciliavel;
+  onMudou: () => void;
+}) {
   const conferir = useServerFn(conferirDivergenciaCampoCivilMembrosCaso);
   const [plano, setPlano] = useState<ItemPlanoCivil[] | null>(null);
   const [aberto, setAberto] = useState(false);
@@ -68,10 +86,17 @@ function BlocoCampoCivil({ caseId, campo, onMudou }: { caseId: string; campo: Ca
       // automático assim que a conferência carrega — nunca espera um
       // segundo clique manual. Conflito continua só sinal, nunca escrito
       // sozinho aqui.
-      if (r.simulado && Array.isArray(r.plano) && r.plano.some((p: any) => p.acao === "preencher")) {
+      if (
+        r.simulado &&
+        Array.isArray(r.plano) &&
+        r.plano.some((p: any) => p.acao === "preencher")
+      ) {
         mVerificar.mutate(true);
       }
     },
+    // Laudo #189, primeiro corte (27/10/2026): sem onError, uma recusa do
+    // banco ficava indistinguível de "nada salva".
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const preencher = plano ? plano.filter((p) => p.acao === "preencher").length : 0;
@@ -116,21 +141,26 @@ function BlocoCampoCivil({ caseId, campo, onMudou }: { caseId: string; campo: Ca
           {plano
             .filter((p) => p.acao === "conflito" || p.acao === "preencher")
             .map((p) => (
-              <li key={p.membroId} className={`rounded border p-1.5 text-[11px] ${ESTILO_ACAO[p.acao]}`}>
+              <li
+                key={p.membroId}
+                className={`rounded border p-1.5 text-[11px] ${ESTILO_ACAO[p.acao]}`}
+              >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-medium">{p.nome}</span>
                   <span className="uppercase tracking-wide">{ROTULO_ACAO[p.acao]}</span>
                 </div>
                 {p.acao === "conflito" ? (
                   <p className="mt-1">
-                    No caso: {exibir(p.atual)} · No cadastro canônico: {exibir(p.canonico)} — só sinal, nada é
-                    sobrescrito automaticamente.
+                    No caso: {exibir(p.atual)} · No cadastro canônico: {exibir(p.canonico)} — só
+                    sinal, nada é sobrescrito automaticamente.
                   </p>
                 ) : null}
               </li>
             ))}
           {plano.every((p) => p.acao !== "conflito" && p.acao !== "preencher") ? (
-            <li className="text-[11px] text-navy/55">Nenhuma pendência — todos sincronizados ou sem dado canônico.</li>
+            <li className="text-[11px] text-navy/55">
+              Nenhuma pendência — todos sincronizados ou sem dado canônico.
+            </li>
           ) : null}
         </ul>
       ) : null}
@@ -138,18 +168,29 @@ function BlocoCampoCivil({ caseId, campo, onMudou }: { caseId: string; campo: Ca
   );
 }
 
-export function PainelDadosCivisMembrosCaso({ caseId, onMudou }: { caseId: string; onMudou: () => void }) {
+export function PainelDadosCivisMembrosCaso({
+  caseId,
+  onMudou,
+}: {
+  caseId: string;
+  onMudou: () => void;
+}) {
   return (
     <section className="rounded-lg border border-navy/15 bg-cream/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-sm font-medium text-navy">Conferir dados civis dos membros com o cadastro canônico</h3>
-        <span className="text-[11px] text-navy/55">Pessoa Canônica · nunca funde automaticamente</span>
+        <h3 className="text-sm font-medium text-navy">
+          Conferir dados civis dos membros com o cadastro canônico
+        </h3>
+        <span className="text-[11px] text-navy/55">
+          Pessoa Canônica · nunca funde automaticamente
+        </span>
       </div>
       <p className="mt-1 text-xs text-navy/65">
-        Nome, e-mail, RG, nacionalidade, data de nascimento, profissão, estado civil, endereço, local de nascimento e WhatsApp — o mesmo dado
-        existe em `clientes` e em `case_members` sem nunca terem sido comparados. Um painel só, um bloco por
-        campo: preenche automaticamente o que está vazio a partir do cadastro canônico assim que a conferência
-        carrega; conflito (os dois já preenchidos, divergentes) é só sinal — não funde, não sobrescreve.
+        Nome, e-mail, RG, nacionalidade, data de nascimento, profissão, estado civil, endereço,
+        local de nascimento e WhatsApp — o mesmo dado existe em `clientes` e em `case_members` sem
+        nunca terem sido comparados. Um painel só, um bloco por campo: preenche automaticamente o
+        que está vazio a partir do cadastro canônico assim que a conferência carrega; conflito (os
+        dois já preenchidos, divergentes) é só sinal — não funde, não sobrescreve.
       </p>
       <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {CAMPOS_CIVIS_RECONCILIAVEIS.map((campo) => (

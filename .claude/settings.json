@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | grep -qE '(^|/)(supabase|drizzle)/migrations/' && { echo 'BLOQUEADO pela regra 3 da Decisao de Hospedagem Unica (23/10/2026): o Claude Code nunca escreve em supabase/migrations/ nem em drizzle/migrations/. Proponha a mudanca em supabase/pendentes/ e deixe o Lovable aplicar. Migrations historicas ficam intactas.' >&2; exit 2; } || exit 0"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '[.tool_input.content, .tool_input.new_string, ((.tool_input.cells // []) | map(.source // \"\") | join(\"\\n\"))] | map(select(. != null)) | join(\"\\n\")' | grep -qE 'eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}' && { echo 'BLOQUEADO: o conteudo tem uma chave no formato JWT (ex.: service_role do Supabase). AGENTS.md: sem service_role no git, no PR ou no chat. Use variavel de ambiente (.env, nunca commitado), nunca o valor literal.' >&2; exit 2; } || exit 0"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); [ -z \"$FILE\" ] && exit 0; [ -f \"$FILE\" ] || exit 0; case \"$FILE\" in *.ts|*.tsx|*.js|*.jsx|*.css|*.md|*.json) npx --no-install prettier --write \"$FILE\" >/dev/null 2>&1 || true ;; esac; case \"$FILE\" in *.ts|*.tsx) ERROS=$(npx --no-install tsc --noEmit 2>&1 | grep -F \"$FILE\" | head -5); [ -n \"$ERROS\" ] && printf '[typecheck] erro em %s:\\n%s\\n' \"$FILE\" \"$ERROS\" >&2 ;; esac; exit 0"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "security-guidance@anthropic-plugin-directory": true,
+    "typescript-lsp@anthropic-plugin-directory": true,
+    "pr-review-toolkit@anthropic-plugin-directory": true
+  }
+}

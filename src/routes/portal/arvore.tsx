@@ -11,9 +11,12 @@ import {
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
-import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, useFontePortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
+import { PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
+import { GenogramaFamiliar } from "@/components/portal/genograma-familiar";
+import { geracoesCoerentes, raizAutorizada } from "@/components/portal/genograma-layout";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
@@ -39,6 +42,7 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
+  const fonte = useFontePortal();
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -46,6 +50,13 @@ export function PortalArvore() {
     <PortalShell titulo={COPY_TELAS.arvore.titulo} descricao={COPY_TELAS.arvore.descricao}>
       {carregando ? (
         <PortalCarregando />
+      ) : isError ? (
+        // 12/10/2026: erro de leitura nunca vira "Lacuna" nem "ninguém compartilhado".
+        <AvisoFalhaConexao
+          mensagem="Erro de conexão ao carregar a árvore. Nada foi perdido."
+          rotuloBotao="Recarregar árvore"
+          aoTentar={refetch}
+        />
       ) : (
         <EstadoDados
           superficie="app"
@@ -58,7 +69,11 @@ export function PortalArvore() {
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
-            const pessoas = pessoasDaArvore(vivo.projecoes);
+            // 31/10/2026: filiação explícita publicada prevalece sobre número de geração contraditório.
+            const pessoas = geracoesCoerentes(
+              pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null),
+              "vinculosArvore" in vivo ? vivo.vinculosArvore : [],
+            );
             const idsComPessoa = new Set(vivo.projecoes.filter((p) => p.pessoa_id).map((p) => String(p.id)));
             const itens = arvoreSanitizada(vivo.projecoes).filter((p) => !idsComPessoa.has(p.id));
             const painel = painelArvoreGeracoes(itens);
@@ -68,7 +83,7 @@ export function PortalArvore() {
              // Gerações vêm do que foi publicado (sem lista fixa nem teto).
              const geracoesExibidas = pessoas.length > 0
                ? geracoesParaExibir(pessoas.map((pessoa) => pessoa.geracao))
-               : GERACOES_ARVORE_EXIBICAO;
+               : [];
              const maiorGeracao = geracoesExibidas.reduce(
                (maior, geracao) => Math.max(maior, Number(geracao.id.slice(1)) || 1),
                1,
@@ -79,7 +94,7 @@ export function PortalArvore() {
                   {/* A composição exibe G1 e as gerações com pessoas publicadas. */}
                   <section
                     aria-label={`Gerações G1 a G${maiorGeracao}`}
-                    className="min-w-0 py-2"
+                    className="app-arvore-moldura min-w-0 py-2"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
                        As gerações que compõem você
@@ -92,7 +107,12 @@ export function PortalArvore() {
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     {pessoas.length > 0 ? (
-                      <ExploradorArvore pessoas={pessoas} geracoes={geracoesExibidas} />
+                      <GenogramaFamiliar
+                        pessoas={pessoas}
+                        vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []}
+                        raizId={raizAutorizada(vivo.casoAtivoId ?? fonte?.previa.identidade?.caseId, pessoas)}
+                        anos={Object.fromEntries(("anosArvore" in vivo ? vivo.anosArvore : []).map((a) => [a.pessoa_id, a.rotulo]))}
+                      />
                     ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
@@ -106,13 +126,13 @@ export function PortalArvore() {
                             ) : null}
                             {pessoas.length > 0 && geracao.id !== "G1" && !geracoesPublicadas.has(geracao.id) ? (
                               <p className="border-l-2 border-terracotta/40 pl-4 text-sm leading-relaxed text-navy/70" data-arvore-lacuna>
-                                Lacuna: ninguém desta geração foi compartilhado ainda.
+                                Em pesquisa · geração ainda sem pessoas compartilhadas.
                               </p>
                             ) : null}
                             {pessoasDaGeracao(geracao.id).map((pessoa) => (
                               <NoPessoa key={pessoa.chave} pessoa={pessoa} />
                             ))}
-                            {pessoas.length === 0 && geracao.id !== "G1" ? <p className="text-sm text-navy/60">Nenhuma pessoa compartilhada nesta geração.</p> : null}
+                            {pessoas.length === 0 && geracao.id !== "G1" ? <p className="app-estado-editorial">Em pesquisa</p> : null}
                           </div>
                         </div>
                       ))}
@@ -130,7 +150,7 @@ export function PortalArvore() {
                         <>
                           <span className="font-serif text-base text-navy">
                             {pessoas.length}{" "}
-                            {pessoas.length === 1 ? "pessoa conectada recuperada" : "pessoas conectadas recuperadas"}
+                            {pessoas.length === 1 ? "pessoa conectada na linhagem" : "pessoas conectadas na linhagem"}
                           </span>
                           {/*
                             O rodapé "de um universo de N possíveis" do mockup de
@@ -148,7 +168,7 @@ export function PortalArvore() {
                         <span className="text-xs text-navy/60">
                            {temConteudo
                              ? "Os nomes já compartilhados ainda não têm posição disponível nesta árvore."
-                             : "Nenhum nome liberado para esta árvore até agora."}
+                             : "Em pesquisa — os nomes terão seu lugar aqui quando forem liberados."}
                         </span>
                       )}
                     </p>

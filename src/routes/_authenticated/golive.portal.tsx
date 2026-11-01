@@ -11,13 +11,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Barras, Rosca } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
 import { acessoAoPortal, coberturaDoApp, publicacaoPorEstado } from "@/lib/golive-portal";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/portal")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Portal do cliente — Go-live Clube Ancestral" },
@@ -124,7 +125,7 @@ function PortalGoLive() {
         ) : (
           <Vazio
             cta={
-              <Link to="/golive/caso">
+              <Link search={true} to="/golive/caso">
                 <Button size="sm">Abrir Caso 360</Button>
               </Link>
             }
@@ -236,6 +237,7 @@ function PortalGoLive() {
               ))}
             </ul>
             <Link
+              search={true}
               to="/golive/caso"
               className="text-sm text-navy underline decoration-gold underline-offset-4"
             >
@@ -245,7 +247,7 @@ function PortalGoLive() {
         ) : (
           <Vazio
             cta={
-              <Link to="/golive/caso">
+              <Link search={true} to="/golive/caso">
                 <Button size="sm">Criar microentrega</Button>
               </Link>
             }
@@ -259,7 +261,7 @@ function PortalGoLive() {
         <p className="text-sm text-navy/70">
           Veja exatamente o que o cliente enxerga hoje, sem entrar na conta dele.
         </p>
-        <Link to="/golive/app" className="text-sm text-navy underline decoration-gold underline-offset-4">
+        <Link search={true} to="/golive/app" className="text-sm text-navy underline decoration-gold underline-offset-4">
           Abrir espelho do App Cliente
         </Link>
       </Bloco>

@@ -34,7 +34,7 @@ function anelDeFundo(fracao: number, chave: string) {
  */
 export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
   const comProgresso = dimensoes.some(
-    (d) => d.estado === "percentual" && (d.percentual ?? 0) > 0,
+     (d) => d.rotuloNumero === "Compartilhado" || (d.estado === "percentual" && (d.percentual ?? 0) > 0),
   );
 
   return (
@@ -49,10 +49,10 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
         </p>
       ) : null}
       <svg
-        viewBox="-150 -30 520 280"
-        className="mx-auto w-full max-w-2xl pb-2"
+        viewBox="-105 -35 430 295"
+        className="app-radar-svg mx-auto w-full pb-2"
         role="img"
-        aria-label="Radar das 6 dimensões da sua jornada"
+        aria-label={`Radar das 6 dimensões da sua jornada: ${dimensoes.map((d) => `${d.titulo}: ${d.rotuloNumero}`).join("; ")}`}
       >
         {[0.25, 0.5, 0.75, 1].map((f) => anelDeFundo(f, String(f)))}
         {dimensoes.map((_, i) => {
@@ -67,6 +67,24 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
               stroke="currentColor"
               className="text-navy/30"
               strokeWidth={1}
+            />
+          );
+        })}
+        {/* Área dourada preenchida (13/10/2026): uma pétala por eixo com dado
+            real; eixo sem dado não é desenhado como zero. */}
+        {dimensoes.map((d, i) => {
+          if (d.percentual === null && d.rotuloNumero !== "Compartilhado") return null;
+          if (d.percentual !== null && d.percentual <= 0) return null;
+          const r = d.percentual === null ? RAIO : RAIO * (d.percentual / 100);
+          const pts = [{ x: CENTRO, y: CENTRO }, ponto(i - 0.5, r * 0.5), ponto(i, r), ponto(i + 0.5, r * 0.5)];
+          return (
+            <polygon
+              key={`area-${d.id}`}
+              data-radar-area
+              points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
+              className="fill-gold/35 stroke-gold"
+              strokeWidth={1.5}
+              strokeLinejoin="round"
             />
           );
         })}
@@ -97,21 +115,20 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
           const angulo = -90 + i * (360 / N);
           const textAnchor =
             angulo > -80 && angulo < 80 ? "start" : angulo > 100 && angulo < 260 ? "end" : "middle";
+          // Rótulo em até duas linhas + andamento real (ou "Em pesquisa"), para a teia ocupar mais área.
+          const palavras = d.titulo.split(" ");
+          const linhas = palavras.length > 1 ? [palavras.slice(0, -1).join(" "), palavras[palavras.length - 1]] : [d.titulo];
+          const andamento = d.rotuloNumero === "Compartilhado" ? "Compartilhado" : "Em preparação";
+          const topo = rotulo.y - ((linhas.length) * 15) / 2;
           return (
-            <text
-              key={d.id}
-              x={rotulo.x}
-              y={rotulo.y}
-              textAnchor={textAnchor}
-              dominantBaseline="middle"
-              className="fill-navy text-[14px] font-medium"
-            >
-              {d.titulo}
+            <text key={d.id} x={rotulo.x} y={topo} textAnchor={textAnchor} className="fill-navy text-[13px] font-medium">
+              {linhas.map((l, k) => <tspan key={k} x={rotulo.x} dy={k === 0 ? 0 : 15}>{l}</tspan>)}
+              <tspan x={rotulo.x} dy={16} className={d.percentual === null ? "fill-navy/60 text-[11px]" : "fill-gold text-[13px] font-semibold"}>{andamento}</tspan>
             </text>
           );
         })}
       </svg>
-      {dimensoes.some((d) => d.percentual === null) ? <p className="pb-4 text-sm leading-relaxed text-navy/70">O Ouro Nobre mostra somente dimensões com base real. As lacunas não são representadas como zero.</p> : null}
+      <p className="pb-4 text-sm leading-relaxed text-navy/70">O preenchimento indica presença de registros compartilhados, não conclusão. As dimensões em preparação permanecem sem preenchimento; não representam notas, chances ou promessa de resultado.</p>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { CpfMascarado } from "@/components/campos/cpf-mascarado";
 
 import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
@@ -47,6 +48,7 @@ import {
   sinalTelefoneDaPessoaPorCaso,
 } from "@/lib/pessoa-vinculo";
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
+import { ComposicaoPessoa360V4 } from "@/components/pessoa/composicao-pessoa360-v4";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
 import { ROTULO_DEMONSTRACAO, ehFixtureLinha } from "@/lib/fixtures";
 
@@ -543,47 +545,24 @@ function Pessoa() {
   return (
     <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela." visualKit="pantone">
       <div className="space-y-6">
-        <div
-          data-pessoa360-identidade-v4
-          className="flex flex-col gap-4 rounded-xl border border-navy/10 bg-navy p-5 text-cream sm:flex-row sm:items-center"
-        >
-          <span
-            aria-hidden
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-gold/60 font-serif text-xl text-gold"
-          >
-            {nome
-              .split(/\s+/)
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((p: string) => p[0]?.toUpperCase())
-              .join("")}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="break-words font-serif text-2xl leading-tight">{nome}</p>
-            <p className="mt-1 text-xs text-cream/70">
-              {cliente.origem ? `Entrou por ${cliente.origem}` : "Origem não registrada"}
-              {cliente.created_at ? ` · na carteira desde ${formatarDia(cliente.created_at)}` : ""}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {casos.length ? (
-              casos.slice(0, 3).map((c) =>
-                c.id ? (
-                  <Link
-                    key={String(c.id)}
-                    to="/casos/$caseId"
-                    params={{ caseId: String(c.id) }}
-                    className="inline-flex min-h-11 items-center rounded-full border border-gold/50 px-3 text-xs text-cream hover:bg-gold/15"
-                  >
-                    Caso {c.codigo ?? c.titulo ?? ""}
-                  </Link>
-                ) : null,
-              )
-            ) : (
-              <span className="text-xs text-cream/70">Nenhum caso vinculado</span>
-            )}
-          </div>
-        </div>
+        {/*
+          13/10/2026 — Prancha V4: a Pessoa 360 abre com a composição da
+          prancha (identidade, parentesco, casos, fontes, localização,
+          confiança, completude e rede), lida do que esta rota já carrega.
+          A ficha completa (edição, comercial, consentimentos, sinais,
+          núcleo, propostas, publicação) continua inteira logo abaixo.
+        */}
+        <ComposicaoPessoa360V4
+          nome={nome}
+          dados={{ cliente, casos, caseMembers, documentos }}
+          duplicidadesAbertas={candidatos.length}
+        />
+
+        <details className="rounded-xl border border-navy/10 bg-card p-4" open={editando || undefined} data-pessoa360-ficha-completa>
+          <summary className="cursor-pointer font-serif text-base text-navy">
+            Ficha completa: edição, comercial, consentimentos, sinais e históricos
+          </summary>
+          <div className="mt-4 space-y-6 border-t border-navy/10 pt-4">
         <NucleoKitPessoa clienteId={String(cliente.id)} />
 
         <CaCard
@@ -737,7 +716,10 @@ function Pessoa() {
                 <Campo rotulo="Nacionalidade" valor={cliente.nacionalidade} />
                 <Campo rotulo="Profissão" valor={cliente.profissao} />
                 <Campo rotulo="Data de nascimento" valor={formatarDia(cliente.data_nascimento)} />
-                <Campo rotulo="CPF" valor={cliente.cpf ? formatarCpf(String(cliente.cpf)) : cliente.cpf} />
+                <Campo
+                  rotulo="CPF"
+                  valor={cliente.cpf ? <CpfMascarado cpf={String(cliente.cpf)} /> : null}
+                />
                 <Campo
                   rotulo="RG"
                   valor={
@@ -1717,6 +1699,8 @@ function Pessoa() {
             </ol>
           )}
         </CaCard>
+          </div>
+        </details>
       </div>
     </SaasShell>
   );
@@ -1752,7 +1736,7 @@ function ExperienciaNoApp({ caseId }: { caseId: string }) {
   );
 }
 
-function Campo({ rotulo, valor }: { rotulo: string; valor?: string | null }) {
+function Campo({ rotulo, valor }: { rotulo: string; valor?: ReactNode }) {
   return (
     <div>
       <dt className="text-[11px] font-medium uppercase tracking-wide text-navy/50">{rotulo}</dt>

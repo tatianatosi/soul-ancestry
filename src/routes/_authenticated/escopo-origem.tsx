@@ -7,6 +7,7 @@ import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Selo, inputCls } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { origemEscopoContratual } from "@/lib/escopo-origem.functions";
 import {
   EIXOS,
@@ -101,19 +102,11 @@ function OrigemEscopoPage() {
       <div className="space-y-4">
         {resumo ? (
           <CaCard variante="compacto" titulo="Síntese da cadeia (sem DEMO/TESTE)">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-lg border border-navy/10 p-3">
-                <div className="text-2xl font-serif text-navy">{resumo.total}</div>
-                <div className="text-xs text-navy/60">itens de escopo</div>
-              </div>
-              <div className="rounded-lg border border-navy/10 p-3">
-                <div className="text-2xl font-serif text-navy">{resumo.cadeias_completas}</div>
-                <div className="text-xs text-navy/60">com os 4 vínculos persistidos</div>
-              </div>
-              <div className="rounded-lg border border-navy/10 p-3">
-                <div className="text-2xl font-serif text-terracotta">{resumo.com_lacuna}</div>
-                <div className="text-xs text-navy/60">com alguma lacuna de origem</div>
-              </div>
+            {/* V4-05: mesmos números do resumo do servidor, no Indicador do kit V4. */}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+              <Indicador rotulo="Itens de escopo" valor={String(resumo.total)} />
+              <Indicador rotulo="Cadeias completas" valor={String(resumo.cadeias_completas)} apoio="com os 4 vínculos persistidos" />
+              <Indicador rotulo="Com lacuna" valor={String(resumo.com_lacuna)} apoio="alguma lacuna de origem" />
             </div>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -174,7 +167,8 @@ function OrigemEscopoPage() {
             !linhas.length ? (
               <EstadoVazio mensagem="Nenhum item de escopo para os filtros escolhidos." />
             ) : (
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+          <CaCard titulo="Itens de escopo" className="overflow-hidden">
+          <div className="-mx-4 overflow-x-auto sm:-mx-5">
             <table className="w-full text-left text-sm">
               <thead className="bg-cream/60 text-xs uppercase tracking-wide text-navy/60">
                 <tr>
@@ -233,6 +227,7 @@ function OrigemEscopoPage() {
               </tbody>
             </table>
           </div>
+          </CaCard>
             )
           }
         </EstadoDados>

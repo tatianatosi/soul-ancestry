@@ -6,7 +6,7 @@ import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/go
 import { FaixaFluxo } from "@/components/golive/identidade";
 import { Barras, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { AcaoAgenda, AcaoAtendimento } from "@/components/golive/atendimento";
 import {
@@ -26,12 +26,19 @@ import {
   semDataDeEntrada,
   type LeadComercial,
 } from "@/lib/golive-comercial";
-import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+import {
+  registrarAtendimentoGoLive,
+  registrarCallGoLive,
+  registrarDiscoveryGoLive,
+  registrarLeadGoLive,
+} from "@/lib/golive-escritores.functions";
+import { AcaoCall, AcaoDiscovery } from "@/components/golive/acoes-registro";
 
 
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Comercial — Go-live Clube Ancestral" },
@@ -61,8 +68,10 @@ const ETAPAS = ["novo", "em_contato", "qualificado", "proposta", "encerrado"] as
 function ComercialGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  const novoLead = useServerFn(registrarLeadGoLive);
-  const atendimento = useServerFn(registrarAtendimentoGoLive);
+  const novoLead = useEscritorGoLive(registrarLeadGoLive);
+  const atendimento = useEscritorGoLive(registrarAtendimentoGoLive);
+  const discovery = useEscritorGoLive(registrarDiscoveryGoLive);
+  const call = useEscritorGoLive(registrarCallGoLive);
 
   const [periodo, setPeriodo] = useState<number | null>(90);
   const [escolhido, setEscolhido] = useState<string | null>(null);
@@ -84,7 +93,7 @@ function ComercialGoLive() {
   const leadDoCaso = leadEmFoco?.id ?? null;
 
   const ctaNovoLead = (
-    <Link to="/golive/leads">
+    <Link search={true} to="/golive/leads">
       <Button size="sm">Abrir entrada de leads</Button>
     </Link>
   );
@@ -263,6 +272,14 @@ function ComercialGoLive() {
               <AcaoAgenda
                 leadId={leadDoCaso}
                 aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+              <AcaoDiscovery
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => discovery({ data: v as Parameters<typeof discovery>[0]["data"] })}
+              />
+              <AcaoCall
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => call({ data: v as Parameters<typeof call>[0]["data"] })}
               />
             </div>
           ) : (
@@ -456,7 +473,7 @@ function MesaDeDiscovery({
         <>
           <Vazio
             cta={
-              <Link to="/golive/leads">
+              <Link search={true} to="/golive/leads">
                 <Button size="sm">Abrir entrada de leads</Button>
               </Link>
             }

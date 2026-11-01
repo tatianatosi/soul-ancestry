@@ -215,6 +215,15 @@ export function filtrarClientes(pessoas: PessoaLista[], filtros: Filtros): Pesso
   });
 }
 
+/** Busca textual por nome civil, nome social ou e-mail; termo vazio devolve a lista inteira. */
+export function filtrarPorBusca(pessoas: PessoaLista[], termo: string): PessoaLista[] {
+  const t = termo.trim().toLowerCase();
+  if (!t) return pessoas;
+  return pessoas.filter((p) =>
+    [p.nome, p.nome_social, p.email].some((v) => (v ?? "").toLowerCase().includes(t)),
+  );
+}
+
 /** Participantes de núcleo — nunca aparecem como clientes independentes. */
 export function participantesDeNucleo(pessoas: PessoaLista[], incluirDemos: boolean): PessoaLista[] {
   return pessoas.filter(

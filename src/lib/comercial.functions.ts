@@ -103,7 +103,51 @@ export const listarComercial = createServerFn({ method: "GET" })
     return saida;
   });
 
+/**
+ * Despesas de terceiro (emolumentos, certidões, apostilamentos, traduções),
+ * agregadas por toda a organização — autorizado pela Proprietária em
+ * 13/10/2026 para o KPI "Obrigações e parcelas" do Financeiro V4. Mesma
+ * tabela e colunas já lidas por `obterResumoFinanceiroCaso` (id, estado,
+ * valor_pago), só sem o filtro `case_id` de um caso único.
+ */
+export const listarDespesasTerceiros = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
+    exigirPapel(papel, [...PAPEIS_FINANCEIRO, "operacoes", "leitura"], "Sem acesso financeiro.");
+    const { data, error } = await supabase
+      .from("third_party_expenses")
+      .select("id,case_id,categoria,estado,valor_pago")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; case_id: string | null; categoria: string | null; estado: string; valor_pago: number | null }[];
+  });
 
+/**
+ * Investimento em marketing, somado por toda a organização — mesma tabela
+ * (`marketing_investments`) já lida por `carregarConversao` (conversao.
+ * functions.ts) para a tela de Marketing, aqui só o total agregado para o
+ * KPI "Investimento em Marketing" do Comercial V4 (Proprietária,
+ * 13/10/2026), sem repetir os 2000 eventos de conversão daquela leitura.
+ */
+export const totalInvestimentoMarketing = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contextoInterno(supabase, context.userId as string);
+    const { data, error } = await supabase
+      .from("marketing_investments")
+      .select("valor")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    if (error) throw new Error(error.message);
+    const linhas = (data ?? []) as { valor: number | null }[];
+    return { total: linhas.reduce((soma, l) => soma + (l.valor ?? 0), 0), lancamentos: linhas.length };
+  });
 
 /** Catálogos auxiliares (clientes, casos, contratos, faturas, equipe ativa) para vínculos e rótulos. */
 export const listarVinculos = createServerFn({ method: "GET" })
@@ -797,14 +841,16 @@ export const salvarPagamento = createServerFn({ method: "POST" })
 /** Conciliação manual: exige data, valor e referência; divergência é marcada pelo banco. */
 export const conciliarPagamento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; pago_em: string; valor: number; referencia_externa: string; motivo?: string }) => {
-    if (!data.pago_em) throw new Error("Conciliação exige data do pagamento.");
-    if (!Number.isFinite(Number(data.valor)) || Number(data.valor) <= 0) throw new Error("Conciliação exige valor do pagamento.");
-    if (!data.referencia_externa || !data.referencia_externa.trim()) {
-      throw new Error("Conciliação exige referência externa.");
-    }
-    return { ...data, motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita)." };
-  })
+  .inputValidator(
+    (data: { id: string; pago_em: string; valor: number; referencia_externa: string; metodo?: string; motivo?: string }) => {
+      if (!data.pago_em) throw new Error("Conciliação exige data do pagamento.");
+      if (!Number.isFinite(Number(data.valor)) || Number(data.valor) <= 0) throw new Error("Conciliação exige valor do pagamento.");
+      if (!data.referencia_externa || !data.referencia_externa.trim()) {
+        throw new Error("Conciliação exige referência externa.");
+      }
+      return { ...data, motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita)." };
+    },
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
@@ -819,6 +865,12 @@ export const conciliarPagamento = createServerFn({ method: "POST" })
         pago_em: data.pago_em,
         valor: Number(data.valor),
         referencia_externa: data.referencia_externa.trim(),
+        // Frente 4 (19/10/2026): `metodo` existe em `payments` desde sempre e
+        // nenhuma tela o preenchia na baixa manual — a conciliação do link
+        // de pagamento do Asaas ficava sem registrar a forma. Opcional: não
+        // sobrescreve com string vazia nem força um valor que o humano não
+        // confirmou.
+        ...(data.metodo && data.metodo.trim() ? { metodo: data.metodo.trim() } : {}),
         status: "confirmado",
         conciliacao_status: "conciliado",
       },

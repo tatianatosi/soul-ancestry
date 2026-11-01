@@ -18,27 +18,31 @@ import { describe, expect, it } from "vitest";
 const painel = readFileSync("src/routes/_authenticated/painel.tsx", "utf8");
 
 describe("toda contagem com regra abre sua origem", () => {
-  it("cadências vencidas e casos sem próxima ação abrem /golive", () => {
-    // /golive publica exatamente "Vencidas" e "Sem próxima ação" dos
-    // mesmos kpis — abrir ali reconcilia, não leva a lista parecida.
-    expect(painel).toContain('apoio: "pedem retomada", to: "/golive"');
-    expect(painel).toContain('apoio: "precisam de decisão", to: "/golive"');
+  it("cadências vencidas e casos sem próxima ação abrem Todos os casos (macro)", () => {
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
+    expect(painel).toContain('apoio: "pedem retomada", to: "/casos"');
+    expect(painel).toContain('apoio: "precisa de decisão", to: "/casos"');
   });
 
-  it("microentregas abre a fila de microentregas", () => {
-    expect(painel).toContain('to: "/golive/microentregas"');
+  it("microentregas abre a fila de microentregas do Desk V4", () => {
+    expect(painel).toContain('to: "/microentregas"');
   });
 
   it("o card vira link quando há destino", () => {
-    expect(painel).toContain("k.to ? (");
-    expect(painel).toContain("<Link key={k.rotulo} to={k.to}");
+    // 17/10/2026 — corte radical na grade V4: os quatro KPIs sempre têm
+    // `to` real agora (nenhum é decorativo), então o ramo condicional saiu;
+    // a trava passa a ser que os quatro sempre renderizam como Link.
+    expect(painel).toContain("<Link");
+    expect(painel).toContain("key={k.rotulo}");
+    expect(painel).toContain("to={k.to}");
   });
 });
 
 describe("microentregas para revisão passou a ter número real", () => {
   it("usa a função canônica, não um critério reimplementado", () => {
     expect(painel).toContain('import { concluida } from "@/lib/golive-microentregas"');
-    expect(painel).toContain("caso.microentregas.filter((m) => !concluida(m)).length");
+    expect(painel).toContain("caso.microentregas.filter((m) => !concluida(m))");
+    expect(painel).toContain("microentregasAbertas.length");
   });
 
   it("não é mais 'Não registrado'", () => {

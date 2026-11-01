@@ -43,55 +43,20 @@ export type OrfaClassificada = {
 };
 
 export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
-  /* ---------- casca duplicada: a lógica já chega à tela ---------- */
-  ...(
-    [
-      "listarEvidenciasDoCaso",
-      "salvarEvidenciaCanonica",
-      "mudarSituacaoEvidencia",
-      "arquivarEvidenciaCanonica",
-    ] as const
-  ).map((fn) => ({
-    modulo: "evidencia-canonica.functions.ts",
-    fn,
-    veredicto: "CASCA_DUPLICADA" as const,
-    motivo:
-      "As 4 rotas de evidência chamam o núcleo por `evidencia-canonica.server.ts`; esta camada HTTP ficou sem uso depois do Corte 0.",
-    destino: "src/lib/evidencia-canonica.server.ts (núcleo já em uso pelas 4 rotas)",
-  })),
+  /*
+   * 31/10/2026 — religadas a telas e retiradas daqui (a regra do teste manda
+   * tirar o que voltou a ter chamador): evidência canônica (4), perfil
+   * institucional (2), `ativarCaso`, GoLive (5), piloto 5A.1 (5), piloto da
+   * Ana (3) e `radarMarcosJuridicosDoPainel`. Ficaram só as duas leituras do
+   * portal, aposentadas, e uma casca nova.
+   */
   {
-    modulo: "golive-escritores.functions.ts",
-    fn: "publicarNoAppGoLive",
+    modulo: "pesquisa-cadeia.functions.ts",
+    fn: "mudarEstadoEvidencia",
     veredicto: "CASCA_DUPLICADA",
-    motivo: "Virou caminho secundário depois que o rascunho editável passou a ser o fluxo de publicação.",
-    destino: "Rascunho editável + publicação na Biblioteca de Evidências",
-  },
-
-  /* ---------- aposentada com classificação ---------- */
-  {
-    modulo: "contrato-preparar.functions.ts",
-    fn: "auditoriaPreparacao",
-    veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      'Saiu da tela de contrato em 04/10/2026 ("retire as auditorias repetidas"): era a terceira cópia do mesmo registro.',
-    destino: "listarAuditoria em /configuracoes — trilha única da organização",
-  },
-  ...(["registrarPerfilInstitucional", "registrarSnapshotInstitucional"] as const).map((fn) => ({
-    modulo: "perfil-institucional-persistido.functions.ts",
-    fn,
-    veredicto: "CASCA_DUPLICADA" as const,
-    motivo:
-      "Corte F: eu havia classificado como RELIGAR sem medir. O perfil institucional JÁ chega à tela por `garantirPerfilInstitucionalDaSessao` (montada em casos.$caseId.contrato.preparar) e o snapshot JÁ é gravado por `gravarSnapshotInstitucional`, chamado em três pontos de contratos.functions.ts. Estas duas são a versão crua: a primeira pede `organizationId` ao cliente — o mesmo dado que o wrapper deriva no servidor.",
-    destino:
-      "src/lib/perfil-institucional-persistido.server.ts#garantirPerfilInstitucional e #gravarSnapshotInstitucional (ambos em uso)",
-  })),
-  {
-    modulo: "saas.functions.ts",
-    fn: "ativarCaso",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "Corte F: eu havia classificado como RELIGAR sem medir. `ativarCasoComChecks` (onboarding.functions.ts) já está montada em /onboarding/$id e é mais forte — gate de papel, RPC case_ativacao_bloqueios_reais, override da proprietária auditado em owner_override_events e caminho da máquina de estados. Esta aqui só confere três booleanos, sem gate de papel nem máquina de estados: religá-la criaria um segundo caminho de ativação com guarda mais fraca.",
-    destino: "src/lib/onboarding.functions.ts#ativarCasoComChecks, montada em /onboarding/$id",
+      "Ficou sem chamador quando a tela de evidências passou a usar `mudarSituacaoEvidencia`, que tem o gate de papel no servidor.",
+    destino: "src/lib/evidencia-canonica.functions.ts#mudarSituacaoEvidencia",
   },
   {
     modulo: "portal.functions.ts",
@@ -107,45 +72,6 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
     motivo: "Mesma dívida declarada: a aba Documentos do App lê por `minhasEntregas`.",
     destino: "src/lib/portal-cliente.server.ts#minhasEntregas",
   },
-
-  /* ---------- aguarda decisão da Proprietária ---------- */
-  ...(
-    ["registrarDiscoveryGoLive", "registrarCallGoLive", "resolverPessoaGoLive", "registrarPagamentoGoLive"] as const
-  ).map((fn) => ({
-    modulo: "golive-escritores.functions.ts",
-    fn,
-    veredicto: "AGUARDA_DECISAO" as const,
-    motivo:
-      "Escritores do Desk paralelo /golive, cuja canonicidade a Proprietária ainda não decidiu (AGENTS.md). Religar antes da decisão criaria segundo caminho vivo.",
-    destino: "Decisão: /golive é canônico, é legado ou funde com o Desk do menu",
-  })),
-  ...(
-    [
-      "painelPiloto",
-      "salvarDadoPiloto",
-      "verificarDadoPiloto",
-      "resolverBloqueioPiloto",
-      "criarPesquisaPiloto",
-      "liberarPortalPiloto",
-    ] as const
-  ).map((fn) => ({
-    modulo: "piloto.functions.ts",
-    fn,
-    veredicto: "AGUARDA_DECISAO" as const,
-    motivo:
-      "Superfície do piloto 5A.1, escrita e nunca montada em tela. Precisa da decisão de manter o piloto como superfície própria ou absorvê-lo no Caso 360.",
-    destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
-  })),
-  ...(["carregarPilotoAna", "definirIdCanonicoPiloto", "materializarPilotoAna"] as const).map((fn) => ({
-    modulo: "piloto-ana.functions.ts",
-    fn,
-    veredicto: "AGUARDA_DECISAO" as const,
-    motivo:
-      "Leitor, escritor e materializador do piloto específico da Ana; mesma decisão pendente do piloto 5A.1.",
-    destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
-  })),
-
-  /* ---------- religar: lacuna real de operação ---------- */
 ];
 
 export function orfasPor(veredicto: VeredictoOrfa): OrfaClassificada[] {

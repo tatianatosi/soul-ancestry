@@ -43,7 +43,15 @@ describe("dados civis lidos da Pessoa 360", () => {
     expect(civil).toHaveLength(2);
     const ana = civil[0];
     expect(ana.campos.find((c) => c.rotulo === "Data de nascimento")?.exibicao).toBe("09/03/1985");
-    expect(ana.campos.find((c) => c.rotulo === "CPF")?.exibicao).toBe("•••.•••.•••-01");
+    /*
+     * 26/10/2026 — esta linha fixava `•••.•••.•••-01` (2 últimos dígitos),
+     * escrita em 10/10. A decisão da Proprietária de 22/10/2026 é POSTERIOR e
+     * definiu `•••.•••.123-45` (5 últimos) como a máscara única de leitura;
+     * a ficha civil do Caso 360 ficou fora dela e mostrava o CPF de um jeito
+     * diferente da Pessoa 360. Agora usa a máscara canônica de
+     * `validacao-pessoa`, coberta por `polimento-visual-2026-10-22`.
+     */
+    expect(ana.campos.find((c) => c.rotulo === "CPF")?.exibicao).toBe("•••.•••.789-01");
     expect(ana.campos.find((c) => c.rotulo === "Nacionalidade")?.exibicao).toBe("sem dados suficientes");
     expect(civil[1].clienteId).toBeNull();
   });

@@ -4,19 +4,32 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
+import { DocumentoDoInstrumento } from "@/components/contrato/documento-do-instrumento";
+import { HistoricoImportado } from "@/components/contrato/historico-importado";
+import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
+import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
   AvisoInstrumento,
   ROTULO_CATEGORIA_ESCOPO,
+  ROTULO_ESCOPO_EXCECAO,
   ROTULO_GATE_PESQUISA,
+  ROTULO_ORIGEM_ESCOPO,
   ROTULO_PAPEL_PARTE,
+  ROTULO_SEVERIDADE_VALIDACAO,
+  ROTULO_SITUACAO_VALIDACAO,
   ROTULO_STATUS_ANEXO,
   ROTULO_STATUS_CONTRATO,
+  ROTULO_STATUS_ESCOPO,
   ROTULO_STATUS_VERSAO,
   ROTULO_TIPO_ANEXO,
   ROTULO_TIPO_INSTRUMENTO,
@@ -67,6 +80,26 @@ const ABAS_AVANCADAS = ["Fontes", "Validações", "Versões", "Revisão"] as con
 const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/** Próximo passo em linguagem humana, derivado só do status persistido. */
+function proximoPassoDoStatus(status: string | null | undefined): string | null {
+  switch (status) {
+    case "draft":
+    case "pending_data":
+      return "Preparar o instrumento";
+    case "ready_for_review":
+    case "under_human_review":
+      return "Revisão humana";
+    case "approved_for_send":
+      return "Envio (ato externo, com confirmação)";
+    case "sent":
+      return "Registrar assinatura (ato externo, com confirmação)";
+    case "signed":
+      return "Liberar App (ato externo, com confirmação)";
+    default:
+      return null;
+  }
+}
 
 function ContratoDetalhe() {
   const autoridade = useAutoridade();
@@ -137,7 +170,12 @@ function ContratoDetalhe() {
     onError: (e: Error) => setAviso(e.message),
   });
 
-  if (q.isLoading) return <SaasShell titulo="Instrumento contratual">Carregando…</SaasShell>;
+  if (q.isLoading)
+    return (
+      <SaasShell titulo="Instrumento contratual">
+        <CarregandoDesk linhas={5} rotulo="Carregando o instrumento contratual" />
+      </SaasShell>
+    );
   if (q.isError || !q.data)
     return (
       <SaasShell titulo="Instrumento contratual">
@@ -165,6 +203,7 @@ function ContratoDetalhe() {
     : `${checklist.bloqueios} bloqueio(s) formal(is) no checklist jurídico.`;
 
   return (
+    <div className="[&_[data-desk-titulo]>div]:grid-cols-1 sm:[&_[data-desk-titulo]>div]:flex">
     <SaasShell
       titulo={c.title}
       descricao={`${c.contract_number} · ${ROTULO_TIPO_INSTRUMENTO[c.contract_type]} · ${ROTULO_STATUS_CONTRATO[c.status]}`}
@@ -183,6 +222,7 @@ function ContratoDetalhe() {
             <Link
               to="/casos/$caseId"
               params={{ caseId: String(c.case_id) }}
+              hash="comercial"
               className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
             >
               Abrir Caso 360
@@ -202,6 +242,60 @@ function ContratoDetalhe() {
         </p>
       ) : null}
       <AvisoInstrumento tipo={c.contract_type} status={c.status} />
+      <section className="mt-4 border-y border-border py-4 text-sm text-navy" aria-label="Contexto do instrumento">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div><p className="text-xs text-muted-foreground">Instrumento registrado</p><p>{c.contract_number}</p></div>
+          <div><p className="text-xs text-muted-foreground">Estado</p><p>{ROTULO_STATUS_CONTRATO[c.status] || "Não registrado"}</p></div>
+          <div><p className="text-xs text-muted-foreground">Versões registradas</p><p>{d.versoes.length}</p></div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">{c.signed_at ? "Assinatura registrada no instrumento." : "Assinatura não registrada no instrumento."}</p>
+        <a href="#contrato-versões" className="mt-2 inline-block text-xs underline">Consultar versões e histórico deste contrato</a>
+        {/*
+          26/10/2026 — a saída em documento (PDF/DOCX) só existia em
+          /casos/$caseId/contrato/preparar; nesta tela não havia nenhuma. Mesmo
+          precedente do bloco CadeiaFormalizacao abaixo: trazer o motor para
+          dentro do instrumento em vez de exigir navegação.
+        */}
+        {c.case_id ? (
+          <div className="mt-3">
+            <DocumentoDoInstrumento caseId={String(c.case_id)} />
+          </div>
+        ) : null}
+      </section>
+
+      {/*
+        19/10/2026 — Prancha V4 / corte L08: os 6 marcos do contrato em cards
+        e o resumo em leitura familiar entram no topo do instrumento. Leitura
+        pura sobre fatos persistidos (status + versão interna); nada grava,
+        envia, assina ou cobra. Contexto como alimento visível: a faixa
+        declara a fonte e quem consome.
+      */}
+      <div className="mt-4">
+        <FonteAlimento
+          fonte="Instrumento contratual e parâmetros do Planejador"
+          consumidor="Caso 360 (Formalização) e, após publicação autorizada, o App Cliente"
+          detalheTecnico="contracts · contract_case_parameters · obterContrato"
+        />
+        <div className="grid gap-4 xl:grid-cols-[1fr_22rem]">
+          <CardsFluxoContrato status={c.status} temVersaoInterna={Boolean(versaoAtual)} />
+          <ResumoFamiliarContrato
+            titulo={c.title}
+            statusRotulo={ROTULO_STATUS_CONTRATO[c.status] ?? c.status}
+            valorReferencia={(d as any).valorReferencia ?? null}
+            prazoReferencia={(d as any).prazoReferencia ?? null}
+            proximoPasso={proximoPassoDoStatus(c.status)}
+          />
+        </div>
+      </div>
+
+      {/*
+        Jurídico & Contrato — composição da prancha V4 (19/10/2026) no topo da
+        ficha: os mesmos seis blocos de /contratos, somente leitura. As ações
+        (aprovar, enviar, assinar) seguem nas abas abaixo, sob useAutoridade.
+      */}
+      <div className="mt-4" data-contrato-prancha-topo>
+        <PranchaJuridicoContrato contratoId={id} />
+      </div>
 
       {d.contratoBase ? (
         <p className="mt-3 rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm">
@@ -348,18 +442,37 @@ function ContratoDetalhe() {
         ))}
       </nav>
 
+      {/* V4-05: faixa de KPIs só com contagem real do que o instrumento já carrega (arquivados fora). */}
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-contrato-kpis-v4>
+        {(
+          [
+            ["Partes", d.partes],
+            ["Itens de escopo", d.escopo],
+            ["Cláusulas", d.clausulas],
+            ["Anexos", d.anexos],
+          ] as [string, unknown][]
+        ).map(([rotulo, lista]) => (
+          <Indicador
+            key={rotulo}
+            rotulo={rotulo}
+            valor={String(((lista as any[]) ?? []).filter((x: any) => !x?.archived_at).length)}
+          />
+        ))}
+      </div>
+
       <div className="mt-4 space-y-5">
-        <section id="contrato-resumo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Resumo</h2><Resumo dados={d} onSalvo={recarregar} /></section>
-        <section id="contrato-partes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Partes</h2><Partes dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-escopo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Escopo e condição comercial</h2><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-cláusulas" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Texto do contrato</h2><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-anexos" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Anexos e ordem de serviço</h2><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <details id="contrato-fontes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details>
-        <section id="contrato-validações" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Validação jurídica da trilha</h2><Validacoes dados={d} /></section>
-        <details id="contrato-versões" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details>
-        <section id="contrato-revisão" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Revisão e assinatura</h2><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></section>
+        <div id="contrato-resumo" className="scroll-mt-24"><CaCard titulo="Resumo"><Resumo dados={d} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-partes" className="scroll-mt-24"><CaCard titulo="Partes"><Partes dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-escopo" className="scroll-mt-24"><CaCard titulo="Escopo e condição comercial"><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-cláusulas" className="scroll-mt-24"><CaCard titulo="Texto do contrato"><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e ordem de serviço"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-fontes" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details></CaCard></div>
+        <div id="contrato-validações" className="scroll-mt-24"><CaCard titulo="Validação jurídica da trilha"><Validacoes dados={d} /></CaCard></div>
+        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /><HistoricoImportado contratoId={id} /></div></details></CaCard></div>
+        <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
       </div>
     </SaasShell>
+    </div>
   );
 }
 
@@ -761,8 +874,8 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
               <tr key={s.id} className={`border-t border-navy/10 ${s.archived_at ? "opacity-50" : ""}`}>
                 <td className="px-3 py-2">{s.title}</td>
                 <td className="px-3 py-2">{ROTULO_CATEGORIA_ESCOPO[s.category] ?? s.category}</td>
-                <td className="px-3 py-2">{s.status}</td>
-                <td className="px-3 py-2">{s.source_type}</td>
+                <td className="px-3 py-2">{ROTULO_STATUS_ESCOPO[s.status] ?? s.status}</td>
+                <td className="px-3 py-2">{ROTULO_ORIGEM_ESCOPO[s.source_type] ?? s.source_type}</td>
                 <td className="px-3 py-2 text-right">
                   {!s.archived_at ? (
                     <AcaoOperacional
@@ -1114,9 +1227,12 @@ function Validacoes({ dados }: { dados: any }) {
               {(itens as any[]).map((v) => (
                 <tr key={v.id} className="border-t border-navy/10">
                   <td className="px-3 py-2">{v.label}</td>
-                  <td className="px-3 py-2">{v.severity}</td>
+                  <td className="px-3 py-2">{ROTULO_SEVERIDADE_VALIDACAO[v.severity] ?? v.severity}</td>
                   <td className="px-3 py-2">
-                    <Selo texto={v.status} tom={v.status === "open" ? "alerta" : "ok"} />
+                    <Selo
+                      texto={ROTULO_SITUACAO_VALIDACAO[v.status] ?? v.status}
+                      tom={v.status === "open" ? "alerta" : "ok"}
+                    />
                   </td>
                 </tr>
               ))}
@@ -1138,6 +1254,12 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
     rascunho: boolean;
     perfil: { versao: string | null; status: string | null; capturadoEm: string | null } | null;
   } | null>(null);
+  // Defeito relatado pela Proprietária em 24/10/2026: o `window.open` daqui
+  // era chamado DEPOIS do `await` da URL assinada, então já havia perdido o
+  // gesto do usuário e o bloqueador de pop-up descartava a aba. O arquivo
+  // privado passa a virar um link visível na própria linha da versão: quem
+  // abre é um clique de verdade num <a href>, que navegador nenhum bloqueia.
+  const [arquivo, setArquivo] = useState<{ versao: number; url: string } | null>(null);
   // Achado real (08/09/2026): "Ver prévia interna" só existia na coluna
   // "Ações" da tabela — que tem 640px mínimos e exige rolar para o lado num
   // celular (~390px de tela). A proprietária aprovava decisões sem nunca ter
@@ -1199,19 +1321,31 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
                   Ver prévia interna
                 </button>
                 {v.rendered_file_path ? (
+                arquivo && arquivo.versao === v.version_number ? (
+                  <a
+                    href={arquivo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-navy underline decoration-gold underline-offset-2"
+                  >
+                    Abrir arquivo da v{v.version_number}
+                  </a>
+                ) : (
                 <button
                   onClick={async () => {
                     try {
+                      setErro(null);
                       const r = await baixar({ data: { contract_id: contratoId, version_id: v.id } });
-                      window.open(r.url, "_blank", "noopener");
+                      setArquivo({ versao: v.version_number, url: r.url });
                     } catch (e) {
                       setErro(e instanceof Error ? e.message : "Falha ao abrir arquivo.");
                     }
                   }}
                   className="text-xs underline"
                 >
-                  Baixar arquivo
+                  Preparar arquivo
                 </button>
+                )
                 ) : null}
               </div>
             </td>
@@ -1414,7 +1548,7 @@ function Revisao({
             <ul className="mt-2 space-y-1 text-xs text-navy/70">
               {(excecoes as any[]).map((e) => (
                 <li key={e.id}>
-                  {e.scope} · {e.reason} ·{" "}
+                  {ROTULO_ESCOPO_EXCECAO[e.scope] ?? e.scope} · {e.reason} ·{" "}
                   {e.expires_at ? `expira em ${new Date(e.expires_at).toLocaleDateString("pt-BR")}` : "sem expiração"}
                 </li>
               ))}

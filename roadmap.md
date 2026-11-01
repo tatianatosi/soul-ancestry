@@ -1,5 +1,163 @@
 # Roadmap
 
+## 20/10 — Desk V4 c4d3bef9, corte aprovado neste rascunho
+- [ ] Reconciliar apresentação do corte anterior sem App, rotas novas, golive-* ou painel-dia; matriz vazia = Dados insuficientes.
+- [x] Executar testes relevantes e classificar sete falhas: todas preexistentes em origin/HEAD 03ecf78c, por comparação das fontes/assertivas com a610de15; testes do App/Pesquisa preservados. Compilação automática OK em 20/10 às 13:26 UTC.
+- [ ] Capturar produto principal e rascunho autenticados em 375/1440, abas/subabas seguras; contrato autorizado, demais escritas não.
+- [ ] Comparar com prancha aprovada por página/elemento e entregar PDF com QA integral, arquivos/SHA/pendências. Sem publicar, aceitar, merge ou deploy.
+## 31/10 — Prontidão para o lançamento do fim de semana
+- [ ] Suíte completa de testes: corrigir falhas reais; atualizar só testes que conferem textos já substituídos por decisão aprovada.
+- [ ] Desk diário: abrir cada setor da lateral (`SETORES_DESK`) e Caso 360 da Ana em 1280/375; corrigir telas quebradas, erros de página e HTTP >=400.
+- [ ] App Cliente da Ana: sete abas com dados reais (núcleo Ana, Adair, Alice + Felipe dependente; árvore 8 pessoas/8 relações; contrato v5 3×R$ 3.200); 375/1280 sem overflow.
+- [ ] Árvore: linha G4→G3 de Lotte/Otto não pode passar sobre Cleusa (sugere filiação não registrada).
+- [ ] Verificação de segurança profunda (iniciada 31/10): ler resultado e corrigir o que for código.
+- [ ] Publicar após tudo verificado e conferir no link público.
+- Bloqueios conhecidos: três achados de permissão (aprovar preço, pendências de contrato de outra organização, preparar contrato para assinatura) aguardam a Proprietária definir papéis; anos de Heinrich, Lotte, Ana Maria, Cleusa e Adair sem fonte; pedidos documentais e relatórios não registrados.
+
+## 27/10 — Correção focal da Árvore (sem publicação)
+- [x] Raiz por par autorizado caso/pessoa (Otto publicado no caso Ana), corte visual G10 removido; abertura/restauração compartilham enquadramento com margem/centro.
+- [x] 18 testes passam; oito pessoas e oito relações persistidas conferidas em 375/1280; restauração repete quadro inicial e nomes reais cabem; PDF original p.6 comparado com antes/candidata. Nomes extremos testados por função, não por caso real inventado.
+- [x] Comparativo entregue; build automático OK; dados, cores e outras abas intocados. Publicação/homologação visual e acesso cliente independente não autorizados neste corte.
+
+## 26/10 — Paleta rica e densidade editorial do App
+- [x] Cores funcionais exatas nos chips, borda navy 6%, cartões brancos/sombra suave, números em ouro, teia dourada e grade compacta 3x2 desktop/2x3 mobile com barras de presença de registros (não percentuais inventados); perfil com membro desde persistido e WhatsApp direto. Árvore existente já põe cônjuges lado a lado na geração registrada; oito nós e treze relações preservados.
+- [x] Sete abas em 375/1280 sem overflow/pageerrors/HTTP >=400; 27 testes passam, build automático OK. Capturas /tmp/browser/app-integral; visual não publicado neste corte.
+- [ ] Agrupamento documental Ana/Adair/Alice/Felipe bloqueado por fonte: checklist sem pedidos, sem titular sanitizado por item; nenhum grupo ou pedido inferido. Upload existente destacado no acesso cliente; prévia administrativa não recebe permissão de envio.
+
+## 26/10 — Dossiês e Relatórios reais do Legado da Ana
+- [x] Conferidas fontes persistidas e repositório: Ana tem zero case_reports/client_deliverables/projeções de Legado ou relatório; único research_reports é rascunho DEMO de outro caso, sem aprovação. Os três documents liberados são evidências de pesquisa, sem revisão, resumo aprovado ou classificação de entrega; não convertidos em relatórios.
+- [x] Resumo sanitizado do dossiê aprovado expressamente pela Proprietária e publicado pelo escritor autenticado existente (d9d5b074-3800-4a4f-a913-894019feafc1), com aprovadora/data/auditoria. Dossiês mostra um material em 375/1280 após F5; PDF integral reservado. Relatórios permanecem em preparação, pois ainda não estão prontos.
+- [x] Após esclarecimento da Proprietária, localizado e lido o PDF original Dossie-Consolidado-Ana-Luiza-Projeto-Familiar-Austria.pdf (enviado em 13/10). Contém hipóteses jurídicas, condições técnicas proibidas no App, status históricos e automações propostas; não deve ser publicado integralmente. Relatórios ainda não estão prontos, confirmado pela Proprietária.
+
+## 26/10 — Experiência integral das sete abas
+- [x] Apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; autorização preservada. app-visibilidade já mantém as sete abas disponíveis mesmo com zero entregas, comprovado por teste.
+- [x] Quatro grupos de Documentos, genograma SVG com 8 pessoas/13 relações publicadas sem lista plana, zoom/pan/foco; Radar com seis nomes solicitados sem parecer/score inventado; Conta com condição prevista exclusiva da Ana. Home com país real, WhatsApp e estado contextual.
+- [x] Sete abas na sessão da Proprietária via prévia administrativa, 375/1280 sem overflow/pageerrors/HTTP >=400; quatro grupos, três arquivos, cinco coleções e valores conferidos; recarga mantém caso. 44 testes passaram; tsgo sem erros; compilação sem erros (typecheck automático excedeu tempo). Capturas /tmp/browser/app-integral. Nada publicado.
+- [ ] Conteúdo não registrado: fotos/novos achados, três certidões específicas, pedidos com prazos e Dossiês/Relatórios aprovados não fornecidos por leitores existentes. Três arquivos disponíveis são dossiê/registro PDF/texto-fonte, não certidões; nenhum conteúdo criado/publicado para preencher espaços.
+- [ ] Download na prévia administrativa: leitor não fornece URL liberada; nenhuma nova função privilegiada criada neste corte. Download do cliente permanece no mecanismo autorizado existente, não exercitado como Ana.
+
+## 25/10 — Fechamento v4.0 e conteúdo real da Ana (15:43 UTC)
+- [x] Base com PR #171 presente; migrations financeiro/telemetria já registradas em Drizzle 0000/0001, função/tabela/privilégios/RLS conferidos. Nenhum pull ou migration repetida.
+- [x] Checklist aparece na prévia também com arquivos; Documentação deixa de mostrar 100% por arquivos liberados e usa somente pedidos aceitos/total. Recarga seguida de reabertura confirmada.
+- [ ] Pedidos reais da equipe: BLOQUEADO_POR_DADO — zero portal_document_requests e document_requests no caso; 18 case_checklist_items são preparação interna, não pedidos à família. Pesquisa nos uploads/repositório não localizou solicitação documental comprovada; não inventar 14 itens ou contador 0/0.
+- [ ] Legado: BLOQUEADO_POR_DADO — zero case_reports/client_deliverables/research_reports e nenhuma projeção de relatório aprovada. Arquivos de trabalho existentes não possuem resumo final sanitizado aprovado; não duplicados nem publicados como relatório.
+- [x] Sete abas reais em 375/1280: sem overflow, pageerrors ou HTTP >=400; checklist após F5/reabrir, seletor universal troca e mantém Ana após F5. 35 testes passaram; build automático OK. Capturas em /tmp/browser/fechamento-v4. Inspeção administrativa, não login independente da Ana.
+- [ ] Paridade integral das onze telas Desk e PDF oficial de 16 cláusulas/8 páginas: não comprovados neste corte; dependem de validação integral e arquivo contratual final. Sem redesign ou publicação do site.
+
+## 25/10 — Resgate da experiência rica do App Cliente
+- [ ] Cruzar prompts aprovados e comparativo editorial indicado com as sete abas atuais; separar ausências visuais de falta de conteúdo publicado.
+- [ ] Executar os refinamentos faltantes nas telas existentes, preservando leitores, dados, sete abas e privacidade; sem publicação.
+- [ ] Conferir sete abas autenticadas em 375/1280, interações, testes relevantes e erros; registrar diferenças e bloqueios restantes.
+
+## 25/10 — PDF: sete abas atuais × mockup de 17 páginas
+- [x] Capturar as sete abas do App Cliente como estão agora (375 px e desktop), pela prévia administrativa oficial, com selo de origem e data.
+- [x] Localizar o mockup aprovado de 17 páginas e comparar aba a aba: o que coincide, o que falta, o que é dado atual e não estilo.
+- [x] Montar PDF com os prints e o comparativo; salvar em Arquivos.
+
+## 25/10 — Conferência e aplicação de migrations pendentes
+- [x] Comparados 234 arquivos históricos e cinco propostas com os dois históricos do banco: 231 registrados no histórico anterior, dois no Drizzle e saneamento de dados já refletido. Três hashes Drizzle conferidos; funções de ativação retornam true/true. Nenhum schema pendente identificado; nada reaplicado.
+- [x] Separadas propostas de dados: as três de 23/10 já estão refletidas no banco. Todas as 194 tabelas e seus conjuntos de colunas correspondem aos tipos gerados. Inventário atualizado em supabase/pendentes/README.md.
+- [ ] Proposta 20261024120000_documentos_reais_ana_liberados.sql: BLOQUEADO_POR_DADO — publica materiais internos, não altera schema; faltam versões sanitizadas e correspondência comprovada com os documentos pretendidos. Não executada.
+
+## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
+- [x] Publicação solicitada para soul-ancestry.lovable.app após varredura básica sem achados; conclusão do deploy não confirmada e análise profunda não realizada.
+- [ ] Liberação dos documentos: três arquivos recebidos localizados nos uploads, já vinculados à Ana em evidencias (Registro Unificado PDF/texto e Dossiê Consolidado PDF); não duplicados. PDFs conferidos (426500/432805 bytes, 5/7 páginas): contêm condições comerciais/hipóteses e são material interno, não certidões nem entregas sanitizadas. Nenhum registro em documents/case_source_documents. Leitura/assinatura dos objetos privados retornou NoSuchKey nesta sessão; bytes disponíveis nos uploads. BLOQUEADO_POR_DADO: não localizadas certidões/versões sanitizadas próprias para a família; não solicitar reenvio genérico nem liberar material interno. Os 14 itens do checklist não são arquivos.
+
+## 22/10 — Fechamento aprovado v4.0 (sem redesign/publicação)
+- [x] PR #171 já presente na base bdab2ec0; nenhum pull, merge ou alteração visual executado.
+- [x] Aplicadas as duas migrations existentes de suporte financeiro e telemetria; função, RLS, políticas e privilégios conferidos no banco.
+- [x] 80 testes passaram; compilação automática OK; seletor de caso troca entre dois casos e mantém Ana após F5.
+- [x] Sete abas conferidas em 1280/375 na prévia administrativa oficial: zero overflow, erros de página ou respostas HTTP com erro. Sessão da Proprietária, não login independente da Ana.
+- [ ] Aceite cliente real: bloqueado por vínculo do acesso da Ana à identidade da Proprietária; nenhum acesso/login alterado.
+- [ ] Três documentos: não encontrados ativos em documents para o caso canônico; prévia mostra acervo em preparação. Não liberar checklist reservado ou inventar arquivos.
+- [ ] Contrato 8 páginas: versão 2 contém 16 cláusulas e RASCUNHO, sem arquivo renderizado; PDF oficial precisa ser fornecido/verificado pelo Claude.
+- [ ] Validação integral das onze telas e homologação pessoal: não executadas nesta conferência limitada às sete abas e ao seletor. App congelado e nada publicado.
+
+## 20/10 — Sugestões completas de jornada guiada (somente documento)
+- [x] Revisar estudo v3-v2, inventário integral de 19/10 e código local 731f666c por área/subárea; separar observação histórica, código e proposta. Auditoria de todos os filhos/writers não exercitada; estado online atual do Claude não recapturado.
+- [x] PDF de 80 páginas: 29 composições, 90 entradas Desk históricas, 12 subabas de pesquisa, 11 de linhagens, 10 alimentos da Biblioteca, cinco cartões/seis atos, jornada 375, legado/sanitização e achados citados ao Claude.
+- [x] Todas as páginas renderizadas e inspecionadas em folhas de contato; corrigida sobreposição de interpretação/ação na pesquisa. PDF salvo em Arquivos para a coleção existente; nenhum src, dado, trabalho do Claude, App ou publicação alterado. Testes/build do produto não aplicáveis a este corte documental.
+
+## 19/10 — Atualização da recomposição densa do App
+- [x] Restaurar Documentos e reconciliar os ajustes exclusivos de Home, Árvore, Conta e aparência local com a versão principal.
+- [x] Preservar leitores, permissões, sete abas, grade móvel atual e botão institucional; sem edição do Desk ou dados.
+- [x] Validar 43 testes seletivos e sete abas autenticadas em 375/1280: sem overflow, zero erros de página, régua preservada após F5; compilação automática OK.
+- [ ] Aprovação da Proprietária; sem aceitar ou publicar.
+
+## Caso 360 V4 — rascunho isolado (13/10, 13:25 UTC)
+- [x] Comparar painel/kit existentes com desk-04-caso360.png; capturas autenticadas antes em 375/1280/1440.
+- [x] Ajustar somente a Visão existente em três colunas; preservar oito seções, blocos recolhidos, dados e App.
+- [x] Validar 39 testes existentes e validação automática OK; capturas depois em 375/1280/1440, navegação e releitura sem overflow.
+- [x] Entregar diff, hash e limitações nas capturas e relatório.
+- [ ] Aprovação visual da Proprietária; sem integrar, aceitar, publicar ou marcar COMPROVADO_EM_USO.
+- [ ] PEDIDO AO CLAUDE: conciliar papéis dos adultos (leitor entrega Titular), estado da formalização e evidências legadas/canônicas; decisão da Proprietária sobre textos 1941/2026. Sem alteração de dados neste corte.
+
+## 18/10 — CRM Mestre é dicionário (L00–L12, proposta v1.0)
+- [x] L00 documental: proposta v1.0 registrada no destino solicitado; mapas/cobertura v2 e PDFs com errata vigente entregues na coleção, preservando originais históricos (não reeditados internamente).
+- [x] L01: portas de entrada conferidas em leitura; diff mínimo de identificação das regras jurídicas apresentado, Referências mantém acervo compartilhado.
+- [ ] L01 implementação/índice de dez subáreas/contexto/recarga: bloqueado por aprovação específica da Proprietária e coordenação do arquivo; nenhuma UI alterada.
+- L02–L12 não autorizados; App congelado, 14 itens reservados; sem mudanças de produto ou efeitos externos.
+
+## 18/10 — pedidos para aprovação, sem publicação
+- [x] Sugestões UX/UI do Desk entregues no de-para de 18/10: organização contextual de onze superfícies e mapa de alimentos → motores → resultados; proposta não implementada, App em pausa.
+- [ ] Documentos na versão separada: área de envio existente, checklist com selos e Entregas do caso; 14 itens permanecem não compartilhados até autorização.
+- [ ] PDF da versão leve em três vias (original, App no ar, versão nova), sete abas em celular/computador; identificar data e origem de cada captura.
+- [x] De-para do Desk de 18/10: 33 telas, 66 vistas 1280/375, 319 segmentos, 68 destinos sondados, PDF de análise e caderno integral; leitura separada de ações não executadas.
+- [x] Rodada 3 do Desk vivo (18/10): PDF de 11 páginas com KPIs sem sobreposição (dono único por número), GoLive como leitura "como a família vê" no Caso 360, cards com paleta completa, resgates das pranchas v1–v6, microentregas em duas entidades e planejador como alimento; 3 pedidos de decisão à Proprietária.
+- [x] Correção de typecheck (18/10): restaurados itemNavAtivo, grupoNavAtivo e LACUNAS_CONHECIDAS em navegacao-desk.ts; 4 falhas de teste restantes são a divergência V4×V5 de menu, decisão pendente da Proprietária.
+- [ ] PEDIDO AO CLAUDE: comprovar persistência/releitura, conexões dos alimentos aos motores e resultado autorizado no App; depende de autorização de escrita e execução contextual, não realizada nesta auditoria.
+- Não executar escritas, convites, liberação, cobrança, integração ou publicação nesta auditoria.
+## Mockup 4 — rascunho isolado (13/10/2026 16:55 UTC)
+Checklist inicial: **NÃO EXECUTADO**. Sem integração, publicação, dados ou permissões; itens históricos abaixo não autorizam trabalho fora deste corte.
+
+| Página | Tela existente | Fonte preservada | Interação a conferir |
+|---|---|---|---|
+| 3 | `/portal` | projeções e próxima ação sanitizadas | expansão achado, Jornada, WhatsApp |
+| 4 | `/portal/jornada` | jornada publicada | duas linhas, destinos contextuais |
+| 5 | `/portal/radar` | seis eixos existentes | detalhes da base real |
+| 6 | `/portal/arvore` | pessoas e relações publicadas | foco, expansão, modos |
+| 7 | `/portal/documentos` | pedidos/arquivos autorizados | categorias, seletor sem envio |
+| 8 | `/portal/legado` | materiais aprovados | prateleiras/expansão |
+| 9 | `/portal/conta` | perfil e condição sanitizados | histórico, WhatsApp |
+| 11 | `/painel` | implementação atual preservada | filtros/destinos, sem mudar motor |
+| 12 | `/casos` | lista atual de casos | busca/filtros/abrir caso |
+| 13 | `/tarefas` | tarefas existentes | filtros/detalhes, sem salvar |
+| 14 | `/matriz-juridica` | regras existentes | busca/abas, sem revisão fictícia |
+| 15 | `/qualidade` | radar existente | matriz/radar individual |
+| 16 | `/alertas` | alertas com origem | filtros/abrir contexto, sem envio |
+| 17 | `/biblioteca` | acervo real | busca/abas/abrir conteúdo |
+
+- [x] Capturas ANTES 375/1440, sessão Proprietária; App só via prévia oficial.
+- [x] Cortes locais Home/Jornada/Árvore/Radar/Legado/Conta e sete superfícies Desk; Documentos preservado por falta de PDFs, kit e leitores mantidos.
+- [x] Detalhe Caso 360: quatro lotes A–D existentes, cabeçalhos sequenciais reforçados; nunca três colunas.
+- [x] Testes seletivos: 45/45; rodada anterior 45/46, teste antigo A2 exige duas colunas no celular e conflita com a ordem atual. Sem alterar teste bloqueador.
+- [x] Capturas DEPOIS 375/1440; 14 telas, foco/expansão/filtros/releitura; nenhuma operação submetida. Correção de tipagem feita; plataforma build OK 17:15:15 UTC.
+- [x] Capturas finais após expansões de Radar/Legado e revisão visual; Hoje recapturado esperando os dados.
+- [x] Relatório IMPLEMENTADO / TESTADO / PENDENTE HOMOLOGAÇÃO: `docs/relatorios/2026-10-13-mockup4-rascunho-visual.md`; PEDIDO AO CLAUDE explícito.
+- [ ] Homologação visual da Proprietária (não COMPROVADO_EM_USO).
+
+PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais aparecem como núcleo; Cleusa/Ana Maria compartilham G3 registrada), reconciliar timeline interna versus marcos publicados no resumo do Caso, expor títulos/datas/URLs autorizadas no leitor de Documentos antes de leitura física, reconciliar seis grupos solicitados versus oito entradas atuais sem mudança unilateral de navegação, adequar teste A2 à última ordem mobile de uma coluna. Não inferir/regravar dados aqui. Contrato/Gov.br/OS, narrativas/fotos/achados/FAQ ausentes continuam sem conteúdo fabricado.
+
+## Polimento de luxo 12/10 (pedido 16:38)
+- [ ] Jornada: texto editorial Graz (1895) no lugar de Lacuna (autorizado)
+- [ ] Árvore com linhas: BLOQUEADO_POR_DADO (zero vínculos publicados)
+- [ ] Certidão 1895 nos Documentos: BLOQUEADO_POR_DADO (nenhum documento liberado)
+- [ ] Família na Home: só membros publicados
+
+## Refinamento editorial — quatro abas oficiais (12/10/2026)
+- [x] Refinar Home, Jornada, Árvore e Documentos apenas na apresentação; sete abas, fontes existentes e dados preservados.
+- [x] Executar nove suítes existentes: 82 testes passaram, 2 conflitos de apresentação; build da plataforma OK 19:24:46 UTC.
+- [x] Capturar antes/depois autenticado em 375/1280, foco/perfil da Árvore e reabertura de Documentos; zero overflow/pageerrors; relatório entregue.
+- [ ] PEDIDO AO CLAUDE: a5-documentos-separacao-semantica exige copy antiga; a1-home-card-microentrega exige border-plum legado. Testes inalterados.
+- [ ] Metadados e download no espelho administrativo bloqueados por fonte: leitor entrega só id/liberação/origem; sem título, data ou emissor. Nenhum arquivo liberado no caso para prova real de download.
+- [ ] Aceite da Proprietária; rascunho não publicado nem integrado. Inspeção do agente não é prova pessoal de uso.
+
+## Publicação do site principal (12/10/2026)
+- [x] Publicação solicitada pela Proprietária: resiliência de rede, botão Reenviar, Conta nova e sete abas canônicas no site principal.
+- [x] Conferência de segurança antes de publicar: varredura executada, sem problemas nas checções básicas; análise profunda do último commit está desatualizada.
+- [ ] Nomes Painel · Descobertas · Biblioteca nunca chegaram ao site principal: a barra do App no ar ainda mostra Home · Radar · Legado (rotas e contagem corretas).
+- [ ] Aceite visual da Conta nova, prova autenticada pessoal e varredura profunda atualizada antes de compartilhar amplamente.
+
 ## Auditoria 10/10 — quatro correções visuais finais (12/10/2026)
 - [x] Inspecionar Radar Individual/heatmap da Ana em 375/1280; nenhuma sobreposição, margem/reserva/Assistente preservados.
 - [x] Conferir legenda humana da Jornada e aviso legal padrão do Legado; ajustes existentes preservados. Estado vazio de encontros NAO_LOCALIZADO pelo seletor, sem deduzir ausência na fonte.
@@ -230,3 +388,105 @@
 - [x] P3 Radar e Árvore: hexágono e seis dimensões preservados, nós expansíveis com vínculo publicado ou ausência explícita. Heatmap não exibido sem projeção autorizada.
 - [x] P4 Documentos, Legado e Conta: coleções diferenciadas por token existente; itens e plano continuam condicionais, sem ações falsas.
 - [x] Validados 68 testes direcionados, compilação registrada OK e 14 capturas a 375/1280 sem overflow ou erro de página. Heatmap de países/ramos, correção na árvore e preferências permanecem ocultos: não há projeção autorizada ou ação existente para sustentá-los. Sem publicação.
+
+## WhatsApp e publicação (13/10/2026)
+- [x] Botão WhatsApp 11 98838-4907 na Conta do App e no Caso 360 (fonte única).
+- [x] Etapa Jurídica "Em andamento" aprovada pela Proprietária.
+- [ ] P0 fixtures (árvore Otto/Elsa, 5 certidões, régua 60%, #F8F9FA): não aplicado — contradiz dados aprovados.
+
+## 13/10 — Desk V4 / caso Ana
+- [ ] Marcos 1895/1938–39/1941/2026 publicados (aguarda: Otto x Franz em 1895)
+- [ ] Vínculos (aguarda: Cristiane x Ana Maria como mãe de Ana Luiza)
+- [ ] Documentos liberados (aguarda: arquivos enviados)
+- [ ] Paleta antiga x aprovada; Franz/Ruth na Árvore (aguarda decisão)
+- [x] Marco 1895: Franz Friedmann → Otto Reimer (linha direta)
+- [ ] Régua 60% + cartões de documentos do fallback — bloqueado: dados não registrados no caso (decisão da Proprietária)
+
+- [x] Desk: novo de-para de conteúdo com prints de todas as telas atuais (topo ao rodapé); App em pausa
+- [x] Desk: localizar mockup da tela de Marketing (V4) — wireframes-desk-13
+
+- [x] Rodada 4 (varredura WhatsApp, brief Discovery, GoLive, marcos jurídicos na Validação Jurídica, paleta ampliada) — PDF entregue
+- [x] Prancha V4 com telas reais (7 grupos V4, decisão 18/10) — PDF entregue, sem mudar telas
+
+- [x] De-para Desk V4 revisado (18/10): inventário das 91 telas, Biblioteca Mestre como alimento vivo, dicionários, ordem Discovery — PDF de-para-desk-v4-revisado-2026-10-18.pdf na coleção de estudos
+- [ ] Decisões da Proprietária: GoLive no de-para, modelos contratuais no lote C, etiquetas na Biblioteca, pergunta 20 fora da call, autorização do Corte 1
+- [x] De-para completo 91 telas + jornada do cliente (18/10): de-para-completo-91-telas-e-jornada-2026-10-18.pdf em Arquivos e na coleção; GoLive marcado como painel interno
+- [ ] Drive/Perplexity: conector não envia binário — Proprietária arrasta o PDF para a pasta do Drive
+- [x] Mapa de rotas V4 + canos da jornada 8 fases (18/10): dois diagramas .mmd em Arquivos e na coleção
+
+## 18/10/2026 — Jornada viva da Ana (novo pedido)
+- [x] Corte isolado L03: filtros no início, identidade/resumo e uma seção da ficha em foco, mantendo campos montados, Scan, templates e gravadores.
+- [x] Corte isolado L04: Antes/Durante/Revisão locais com o lead persistido, SPIN e ajuda existentes; gravação por campo preservada.
+- [x] L08 parcial: contexto read-only do instrumento, versões, assinatura não registrada e retorno ao Caso360; leitura móvel corrigida sem alterar shell/menu global.
+- [x] Lead canônico da Ana conferido por vínculo de caso; Calls, validação jurídica, proposta aprovada, Caso360 e contrato em revisão abertos sem acionar escritores.
+- [x] Testes focados: 5 arquivos / 75 testes; capturas autenticadas 375/1280 antes/depois; build automático OK. Comparação com V4 distingue proposta visual de dados atuais.
+- [ ] PEDIDO AO CLAUDE — L08: leitor da cadeia busca o contrato mas não retorna seu ID; expor vínculo canônico para ponte Caso360→instrumento sem selecionar por nome.
+- [ ] PEDIDO AO CLAUDE — L08: cinco cartões exigem payload do preparador que pode inserir/atualizar ao abrir; fornecer leitura pura compatível antes de montá-los no Caso360.
+- [ ] PEDIDO AO CLAUDE — CRM: clique de saída contextual não concluiu em ficha limpa no teste; destino por URL confirmado, sem alterar bloqueador/rascunhos neste corte.
+- [ ] Prova de gravação, exportação vigente e COMPROVADO_EM_USO: dependem de autorização específica e conferência pessoal da Proprietária; não executados.
+- App congelado, documentos reservados; nada aceito, integrado, publicado ou assinado por este corte. Demais tarefas históricas abaixo permanecem fora do escopo autorizado.
+- L02 entregue. Leitura atual confirmou lead vinculado ao caso, proposta v1 aprovada e contrato vigente em revisão humana, sem assinatura. Preparador excluído da auditoria por gravar na abertura; alterações de lógica L05/L06 e demais cortes não incluídas neste corte visual.
+
+## 18/10/2026 — Mockup V4 do dia a dia (11 telas) — revisão após a jornada da Ana
+- [ ] Revisar o último mockup após concluir a jornada da Ana: rejeitado pela Proprietária às 22:04 UTC por não corresponder às sugestões anteriores nem às cascas originais do Desk V4. A entrega anterior não comprova paridade.
+- [ ] Comparar peça a peça as 11 telas com as cascas V4 originais e sugestões das rodadas 1–4; apresentar cobertura, divergências e novas capturas para aprovação, sem publicar ou integrar.
+
+## 18/10/2026 às 23:18 UTC — Todas as telas com cascas V4 reais
+- [ ] Recompor o mockup de todas as superfícies e estados contextuais do Desk, não limitado às onze principais nem à prancha aprovada: resgatar cascas/componentes/estudos V4 reais por tela. Em execução no rascunho isolado “Desk — todas as telas com cascas V4 reais” (drft_01m58n10hyefm9sz2m3rz46dxh), sem integrar/publicar.
+- [ ] Entregar inventário completo com origem da casca e comparação antes/depois em 375/1280, PDF e imagens conferidas; distinguir captura atual, referência histórica e proposta.
+- App congelado; sem produto paralelo, integração, escrita de dados, assinatura ou publicação. Telas não recuperadas devem constar como pendências explícitas, nunca cobertura presumida.
+
+- [ ] 19/10/2026 00:04 UTC — Comparar mockup (drft_01m58n10hyefm9sz2m3rz46dxh) com prancha V4 tela a tela, sem publicar; contrato autorizado a gravar rascunho interno da Ana. Aguarda o draft terminar.
+
+## 19/10 — Mockup Desk V4 completo (draft drft_01m58xcem1fgk9dyps5y780yh9) — ENTREGUE
+- [x] Contrato: 6 marcos em cards + resumo familiar (cards-fluxo-contrato.tsx)
+- [x] L08: marcos no Caso 360 Formalização (cards-contrato-caso.tsx, leitura pura)
+- [x] L03: identidade visível + área única de edição em leads.tsx
+- [x] L04: três momentos (Antes/Durante/Revisão) em calls.tsx
+- [x] Contexto como alimento: FonteAlimento em 9 superfícies
+- [x] Kanban de tarefas por status (leitura) em tarefas.tsx
+- [x] Antes/depois 375/1280 + PDF MOCKUP (30 págs) entregue; typecheck limpo; 53 testes OK; build OK; HEAD 9d4eba54
+- [ ] Falta: gavetas abertas, árvore com linhas ligadas, radar/matriz, funil, fluxo de publicação, L01 (aguarda aprovação)
+- [ ] Bug pré-existente: título do contrato quebra verticalmente a 375 px (já existia antes)
+
+## 19/10 — Mockup Desk V4 completo (draft drft_01m58xcem1fgk9dyps5y780yh9)
+- [ ] Modelos V4 próprios por tela do Desk (cascas reais: previa-desk-telas, desk-mockup, clube-ancestral-kit).
+- [ ] Capturas: gavetas abertas, árvore com linhas, radar/matriz, funil, fluxo de publicação.
+- [ ] Contrato da Ana: 6 marcos em cards + resumo com leitura familiar (pode gravar rascunho interno; nunca enviar/assinar/cobrar).
+- [ ] Cortes de ficha: L03 (leads), L04 (Calls Antes/Durante/Revisão + SPIN), L08 (cards do contrato no Caso 360).
+- [ ] Contextos como alimento visível (dicionários, gavetas, Biblioteca, planejador): origem e consumidor em cada superfície.
+- [ ] Entrega: antes/depois 375/1280/1440 autenticado, PDF com selo MOCKUP, typecheck + testes, SHA e pendências.
+- Regras: sem rotas novas, sem dados inventados, 14 itens reservados, R$ 9.600 = previsão, sem migration/RLS/publicação/merge; não tocar painel-dia.tsx nem golive-*; App /portal congelado.
+
+## 18/10/2026 23:18 UTC — Recomposição de todas as superfícies Desk
+- [x] Inventário fonte-referenciado: 90 padrões + layout, 87 padrões Desk incluídos; 213 estados listados, não todos capturados.
+- [ ] Resgatar cascas originais V4 e rodadas 1–4, com fonte por composição; preservar mockup rejeitado como histórico.
+- [ ] Produzir proposta isolada em PNG/PDF 1280/375 com antes autenticado, referência original, depois e matriz de cobertura; inspecionar cada página.
+- [ ] Organizar na coleção existente e entregar cobertura exata e bloqueios; nenhum produto, dado, App ou publicação alterado.
+- Jornada anterior: L03/L04 apresentação no draft separado f8aae013; L08 bloqueado pela abertura escritora, contrato não assinado. Não incorporado.
+- [x] Entrega parcial v2: 174 propostas PNG 1280/375 e PDF de 212 páginas; todas vistas em 14 folhas de contato. Matriz explicita faltas; não declarar recomposição integral.
+- [ ] Antes/depois público: bloqueado pela verificação de privacidade incompleta nos pixels; comparativos retidos em /tmp, não compartilhados.
+- [ ] Paridade peça a peça: faltam timeline/rosca Caso 360, funil CRM, matriz nominal/radar, árvore com arestas confirmadas, contrato contínuo e gavetas/subáreas específicas; templates de família não substituem essas cascas.
+- [ ] PEDIDO AO CLAUDE: preparador grava na carga; separar leitura somente com autorização própria. Pesquisa módulo tem erro de hooks; Pesquisa/Privacidade em carregamento. Nenhuma correção no produto neste turno.
+
+- [x] 19/10/2026 14:32 UTC — Inventário tela a tela (topo→rodapé): online × código × estático, áreas incorporadas, motores migrados, Vercel × Lovable, canos. Mockup completo em pausa (Claude sobe o mockup).
+- [x] 19/10/2026 14:43 UTC — Caderno de 24 páginas com propostas visuais por sistema, contextos visíveis e formatos variados; leitura de código não equivale a integração executada.
+- [x] 19/10/2026 15:08 UTC — PDF exclusivo do Desk: 34 páginas de capturas DEPOIS arquivadas e complementos, com carregamentos incompletos explicitados. Sem retomar mockup ou publicar.
+- [x] 19/10/2026 15:08 UTC — Caderno sistêmico cobre rotas e subabas de pesquisa/contrato em código, cadeia alimento → ação → writer → releitura → consumidor; proposta, não implementação nem prova de uso.
+- [x] 19/10/2026 15:17 UTC — Inventário v2 entregue na mesma pasta: 117 endereços, alturas de documento e conteúdo main em 1280/375, gavetas prioritárias abertas, categoria vazio/bloqueado, sessão da Proprietária identificada, erros reconciliados. V1 122 páginas e V2 284 páginas renderizadas e conferidas por folhas de contato; sem submissão manual. Preparador pode escrever automaticamente na carga, não auditado como ausência de escrita.
+- [ ] Prova de gravação com F5/releitura, login cliente e equivalência Vercel atual: não executadas nesta auditoria de leitura; exigem teste autorizado e configuração atual comparável.
+
+## Plano executável App/Desk (24/10/2026) — `docs/prompts/2026-10-24-plano-executavel-app-desk-lovable.md`
+- [x] EXEC-00 plano registrado no histórico
+- [x] EXEC-01 `resolverBloqueioPiloto` já montado em `/onboarding/$id` (12 testes ok); prova autenticada pendente da Proprietária
+- [x] EXEC-05 `/golive/app`: "Ver proposta" abre a prévia do mesmo caso; pendência `/piloto-ana` → `/casos`
+- [ ] EXEC-02 contrato/cobrança — bloqueado: envio para assinatura e cobrança exigem autorização específica
+- [ ] EXEC-03 documentos reais — acervo recebido localizado nos uploads e já vinculado à Ana; PDFs internos conferidos, sem certidões ou versões sanitizadas localizadas. Não duplicar nem publicar material interno; recuperação da leitura no armazenamento ainda pendente
+- [ ] EXEC-04 sete abas do App — aguarda conteúdo do EXEC-03 e liberação do congelamento por aba
+- [ ] EXEC-07 homologação final — depende de login real da Ana
+- [x] Acervo recebido (24/10): localizados Registro Unificado PDF/texto e Dossiê Consolidado PDF em uploads/mirror; mesmos nomes/conteúdos/tamanhos das três referências de evidencias já vinculadas à Ana. Nenhuma duplicação, upload ou alteração de acesso executada.
+- [ ] Mostrar acervo em Documentos: BLOQUEADO_POR_DADO — os três recebidos são material interno; não localizadas certidões nem versões sanitizadas para entrega à família. Leitura temporária do armazenamento retornou NoSuchKey nesta sessão; sem substituir diagnóstico por exposição de conteúdo interno.
+
+- [x] 30/10: Rascunho interno v3 do contrato da Ana gerado pelo botão Salvar rascunho. Aberto: itens de escopo ainda trazem o rateio antigo 4.800/2.400 (aguarda decisão da Proprietária).
+- [x] 30/10: Trocar o rateio do escopo (3 linhas → R$ 3.200 com nome completo) e gerar a v4
+- [x] 30/10: Árvore inteira no celular + publicar

@@ -214,20 +214,22 @@ export function relacoesAprovadas(
 }
 
 /**
- * Cobertura por geração G1–G5, contada a partir da pessoa principal pelas
- * arestas pai/mãe gravadas. Quem não tem caminho declarado não entra.
+ * Cobertura por geração (G1–G5 por padrão), contada a partir da pessoa
+ * principal pelas arestas pai/mãe gravadas. Quem não tem caminho declarado
+ * não entra. 13/10/2026 — Proprietária: a linhagem vai até G10; /nucleos
+ * pede `geracoes = 10`. O padrão 5 fica para quem já chamava (GoLive).
  */
 export function coberturaPorGeracao<
   T extends Pick<PessoaCaso, "id" | "paiId" | "maeId" | "titular" | "requerente" | "contratante">,
->(pessoas: readonly T[]): { rotulo: string; valor: number }[] {
+>(pessoas: readonly T[], geracoes = 5): { rotulo: string; valor: number }[] {
   const raiz = pessoaPrincipalDoCaso(pessoas);
   if (!raiz) return [];
   const porId = new Map(pessoas.map((p) => [p.id, p]));
-  const contagem = [0, 0, 0, 0, 0];
+  const contagem = Array.from({ length: geracoes }, () => 0);
   const visto = new Set<string>();
   let nivel: T[] = [raiz];
 
-  for (let g = 0; g < 5 && nivel.length; g++) {
+  for (let g = 0; g < geracoes && nivel.length; g++) {
     const proximo: T[] = [];
     for (const p of nivel) {
       if (visto.has(p.id)) continue;

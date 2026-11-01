@@ -13,6 +13,7 @@ import {
   prepararEnvioDocumento,
 } from "@/lib/portal-cliente.functions";
 import { AVISO_PUBLICACAO_CLIENTE } from "@/lib/projecoes-cliente";
+import { mensagemDeFalha } from "@/lib/portal-linguagem-viva";
 
 const CATEGORIAS = [
   { valor: "duvida", rotulo: "Dúvida" },
@@ -86,7 +87,8 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] }),
-    onError: (e: Error) => setErro(e.message),
+    // 26/10/2026 (auditoria): nunca repassar texto cru de erro do servidor/banco ao cliente.
+    onError: (e: unknown) => setErro(mensagemDeFalha(e)),
     onSettled: () => setEnviando(null),
   });
 
@@ -97,7 +99,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
       setMensagem("");
       queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] });
     },
-    onError: (e: Error) => setErro(e.message),
+    onError: (e: unknown) => setErro(mensagemDeFalha(e)),
   });
 
   async function baixarDocumento(id: string) {
@@ -106,7 +108,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
       const r = await baixar({ data: { documentoId: id } });
       window.open(r.url, "_blank", "noopener");
     } catch (e) {
-      setErro((e as Error).message);
+      setErro(mensagemDeFalha(e));
     }
   }
 
@@ -156,7 +158,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         <p className="text-sm text-navy/60">Envie apenas o que a equipe pediu aqui. Todo envio passa por revisão.</p>
         {painel.solicitacoes.length === 0 ? (
           <div className="mt-3">
-            <PortalVazio mensagem="Nenhum documento pendente no momento." />
+            <PortalVazio mensagem="Em preparação — os pedidos de documento aparecem aqui quando houver." />
           </div>
         ) : (
           <ul className="mt-3 space-y-3">
@@ -256,7 +258,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
 
         {painel.entregas.length === 0 ? (
           <div className="mt-3">
-            <PortalVazio mensagem="Nenhuma entrega liberada até o momento." />
+            <PortalVazio mensagem="Em preparação — as entregas aparecem aqui quando forem liberadas." />
           </div>
         ) : (
           <ul className="mt-3 space-y-2">
@@ -282,7 +284,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         <h2 className="font-serif text-xl">Faturas</h2>
         {painel.faturas.length === 0 ? (
           <div className="mt-3">
-            <PortalVazio mensagem="Nenhuma fatura liberada para visualização." />
+            <PortalVazio mensagem="Em preparação — as faturas aparecem aqui quando forem liberadas." />
           </div>
         ) : (
           <ul className="mt-3 space-y-2">
@@ -358,6 +360,25 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
             placeholder="Escreva sua mensagem"
             className="mt-2 w-full rounded-lg border border-navy/15 px-3 py-2 text-sm"
           />
+          {novoTicket.isError && !novoTicket.isPending ? (
+            <p
+              role="alert"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+            >
+              Não foi possível enviar agora. Sua mensagem continua aqui.
+              <button
+                type="button"
+                onClick={() => {
+                  setErro(null);
+                  novoTicket.mutate();
+                }}
+                disabled={!assunto.trim() || !mensagem.trim()}
+                className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium text-terracotta disabled:opacity-60"
+              >
+                Reenviar
+              </button>
+            </p>
+          ) : null}
           <button
             onClick={() => novoTicket.mutate()}
             disabled={novoTicket.isPending || !assunto.trim() || !mensagem.trim()}

@@ -7,6 +7,7 @@ import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import {
   Campo,
   FiltroStatus,
@@ -149,6 +150,9 @@ function OrdensPage() {
     return c ? (c.codigo ?? c.titulo) : "—";
   };
   const rotuloContrato = (id: unknown) => contratos.find((c) => c.id === id)?.contract_number ?? "—";
+  // V4-05: contagem real das ordens já listadas (respeita filtro/caso); sem leitura, traço.
+  const kpi = (n: number) => (q.isLoading ? "…" : q.error || q.data === undefined ? "—" : String(n));
+  const contarStatus = (...st: string[]) => linhas.filter((l) => st.includes(String(l["status"]))).length;
 
   return (
     <SaasShell
@@ -179,6 +183,12 @@ function OrdensPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-ordens-kpis-v4>
+        <Indicador rotulo="Ordens" valor={kpi(linhas.length)} apoio={caseId ? "deste caso" : "conforme o filtro"} />
+        <Indicador rotulo="Aguardando aprovação" valor={kpi(contarStatus("draft", "pending_approval"))} />
+        <Indicador rotulo="Em execução" valor={kpi(contarStatus("active"))} />
+        <Indicador rotulo="Concluídas" valor={kpi(contarStatus("completed"))} />
+      </div>
       <div className="space-y-4">
         {!caseId && <FiltroStatus rotulos={ROTULO_ORDEM} valor={status} aoMudar={setStatus} />}
         {erro ? (
@@ -216,7 +226,8 @@ function OrdensPage() {
           !linhas.length ? (
           <EstadoVazio mensagem="Nenhuma ordem de serviço neste filtro." />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+          <CaCard titulo="Ordens de serviço" className="overflow-hidden">
+          <div className="-mx-4 overflow-x-auto sm:-mx-5">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
                 <tr>
@@ -265,6 +276,7 @@ function OrdensPage() {
               </tbody>
             </table>
           </div>
+          </CaCard>
         )
           }
         </EstadoDados>

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import { Button } from "@/components/ui/button";
 import {
   CA06_DATA,
@@ -44,11 +45,11 @@ export const Route = createFileRoute("/_authenticated/governanca/catalogo-operac
   component: CatalogoOperacional30,
 });
 
+// V4-05: bloco local vira o CaCard canônico (mesmo conteúdo).
 const Bloco = ({ titulo, children }: { titulo: string; children: React.ReactNode }) => (
-  <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-    <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-    <div className="mt-3 text-sm text-navy/70">{children}</div>
-  </section>
+  <CaCard titulo={titulo}>
+    <div className="text-sm text-navy/70">{children}</div>
+  </CaCard>
 );
 
 const Lista = ({ itens }: { itens: readonly string[] }) => (

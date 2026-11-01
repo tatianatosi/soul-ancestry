@@ -59,18 +59,23 @@ describe("3. Documentos — 4 cards, envio integrado a Solicitados, sem KPI/pain
   });
 
   it("mantém exatamente as 4 caixas do §7", () => {
+    // 26/10/2026 — Lovable (mockup17) trocou a 4ª caixa, de "Entregas"
+    // (atalho sem fonte própria para Legado) para "Conferência" (fonte
+    // própria: checklist consolidado). Ver a5-documentos-*-estados-*.test.ts.
     for (const attr of [
       "data-documentos-solicitados",
       "data-documentos-recebidos",
       "data-documentos-liberados",
-      "data-documentos-entregas",
+      "data-documentos-conferencia",
     ]) {
       expect(documentos).toContain(attr);
     }
   });
 
   it("a instrução de envio está integrada ao card Solicitados nos dois modos (prévia e real)", () => {
-    expect(documentos).toContain("Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.");
+    expect(documentos).toContain(
+      "Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.",
+    );
     expect(documentos).toContain("<EnviarDocumento casoId={casoAtivo} />");
     /*
       08/10/2026: a âncora deixou de depender da classe CSS (o Lovable trocou
@@ -127,11 +132,18 @@ describe("5. Caso 360 — visão geral não repete o mesmo bloqueio em banner e 
   });
 
   it("as seis seções originais continuam intactas — Documentos e Financeiro somaram-se (P24, 2026-09-26)", () => {
-    const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
-      (m) => m[1] ?? m[2],
-    );
+    const secoes = [
+      ...pagina.matchAll(/<SecaoAncora\s+id="(\w+)"|<details\s+id="secao-(\w+)"/g),
+    ].map((m) => m[1] ?? m[2]);
     expect(secoes).toEqual([
-      "visao", "comercial", "tecnico", "pessoas", "jornada", "documentos", "financeiro", "log",
+      "visao",
+      "comercial",
+      "tecnico",
+      "pessoas",
+      "jornada",
+      "documentos",
+      "financeiro",
+      "log",
     ]);
   });
 

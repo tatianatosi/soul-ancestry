@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import { ContratoBaseLeitor } from "@/components/contrato/contrato-base-leitor";
 import { CorpoContratualVersionado } from "@/components/contrato/corpo-contratual";
 
@@ -41,6 +42,7 @@ import {
   previaFinalTeste,
 } from "@/lib/contrato-base-previa";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
+import { PerfilInstitucionalAcoes } from "@/components/contrato/perfil-institucional-acoes";
 import {
   ANEXOS_FAMILIARES,
   FONTES_APENAS_APOIO,
@@ -73,11 +75,11 @@ export const Route = createFileRoute("/_authenticated/governanca/contrato-base")
 
 function Bloco({ titulo, children, nota }: { titulo: string; nota?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-      <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-      {nota && <p className="mt-1 text-xs text-navy/55">{nota}</p>}
+    // V4-05: bloco local vira o CaCard canônico (mesmo conteúdo, só leitura).
+    <CaCard titulo={titulo}>
+      {nota && <p className="-mt-2 text-xs text-navy/55">{nota}</p>}
       <div className="mt-3">{children}</div>
-    </section>
+    </CaCard>
   );
 }
 
@@ -237,6 +239,9 @@ function Pagina() {
           <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
             <div className="mb-3">
               <PerfilInstitucionalBloco campos={perfil.campos} versao={perfil.versao} status={perfil.status} pendencias={perfil.pendencias} />
+            </div>
+            <div className="mb-3">
+              <PerfilInstitucionalAcoes />
             </div>
             <div className="mb-3">
               <MatrizClausulas linhas={clausulas} />

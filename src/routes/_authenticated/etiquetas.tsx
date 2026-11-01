@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { carregarMapaEtiquetas } from "@/lib/caso-canonico.functions";
 
@@ -52,11 +54,22 @@ function Etiquetas() {
       );
   }, [busca]);
 
+  // V4-05: contagem real da taxonomia carregada; sem leitura, traço.
+  const taxonomiaCarregada = q.data?.taxonomia as LinhaEtiqueta[] | undefined;
+  const kpi = (contar: (t: LinhaEtiqueta[]) => number) =>
+    q.isLoading ? "…" : q.error || !taxonomiaCarregada ? "—" : String(contar(taxonomiaCarregada));
+
   return (
     <SaasShell
       titulo="Taxonomia canônica de etiquetas"
       descricao="O Desk é a fonte canônica. O agente de WhatsApp apenas espelha esta taxonomia — nada é sincronizado automaticamente."
     >
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4" data-etiquetas-kpis-v4>
+        <Indicador rotulo="Etiquetas" valor={kpi((t) => t.length)} />
+        <Indicador rotulo="Categorias" valor={kpi((t) => new Set(t.map((l) => String(l.category))).size)} />
+        <Indicador rotulo="Com equivalente no agente" valor={kpi((t) => t.filter((l) => l.meta_agent_equivalent).length)} />
+        <Indicador rotulo="Em uso" valor={kpi((t) => t.filter((l) => Number(l.aplicacoes) > 0).length)} />
+      </div>
       <EstadoDados<LinhaEtiqueta>
         carregando={q.isLoading}
         erro={q.error}
@@ -75,7 +88,11 @@ function Etiquetas() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+          {linhas.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma etiqueta corresponde à busca." />
+          ) : (
+          <CaCard titulo="Etiquetas canônicas" className="overflow-hidden">
+          <div className="-mx-4 overflow-x-auto sm:-mx-5">
             <table className="w-full text-left text-sm">
               <thead className="text-[11px] uppercase tracking-wide text-navy/50">
                 <tr>
@@ -103,6 +120,8 @@ function Etiquetas() {
               </tbody>
             </table>
           </div>
+          </CaCard>
+          )}
           <p className="mt-4 text-xs text-navy/55">
             {linhas.length} etiqueta(s) listada(s). Etiquetas fora desta lista não podem ser aplicadas a casos, famílias ou pessoas.
           </p>

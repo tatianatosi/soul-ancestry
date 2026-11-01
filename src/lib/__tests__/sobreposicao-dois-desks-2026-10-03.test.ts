@@ -46,20 +46,32 @@ describe("o tamanho da sobreposição, medido e congelado", () => {
     expect(abas.length).toBe(19);
   });
 
-  it("o Desk do menu continua com 6 grupos — o paralelo nunca virou o 7º", () => {
-    expect(GRUPOS_DESK.length).toBe(7);
-    const rotasDoMenu = JSON.stringify(GRUPOS_DESK);
-    expect(rotasDoMenu).not.toMatch(/"\/golive/);
+  it("o menu continua com 8 grupos — o GoLive entra DENTRO de Casos, não como grupo novo", () => {
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
+    expect(GRUPOS_DESK.length).toBe(8); // 18/10/2026: 7 V4 + Financeiro
+    expect(GRUPOS_DESK.some((g) => g.to.startsWith("/golive"))).toBe(false);
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos");
+    expect(JSON.stringify(casos)).toMatch(/"\/golive"/);
   });
 
-  it("a home pública ainda abre o Desk paralelo — porta declarada, não escondida", () => {
-    expect(home).toMatch(/to="\/golive"/);
-    expect(home).toMatch(/Nova tela do Desk/);
+  /*
+   * 22/10/2026 — decisão da Proprietária (parecer de design): a vitrine pública
+   * ficou com dois botões apenas, "Entrar no Clube" e "Falar com Especialista".
+   * Com isso a porta pública para o Desk paralelo FECHOU. A sobreposição não
+   * sumiu — as 19 rotas e a nav própria continuam medidas acima, e o Painel Hoje
+   * ainda aponta para dentro —, mas deixou de estar exposta a quem não tem
+   * sessão. O teste passa a travar o lado oposto: a porta não volta à home
+   * pública sem nova decisão.
+   */
+  it("a home pública não abre mais o Desk paralelo — porta fechada em 22/10, e não volta sozinha", () => {
+    expect(home).not.toMatch(/to="\/golive"/);
+    expect(home).not.toMatch(/Nova tela do Desk/);
   });
 
-  it("o Painel Hoje manda para dentro do paralelo em 7 pontos", () => {
+  it("o Painel Hoje só aponta para o GoLive nas Aprovações (3 pontos)", () => {
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
     const links = painel.match(/"\/golive[^"]*"/g) ?? [];
-    expect(links.length).toBe(7);
+    expect(links).toEqual(["/golive/aprovacoes", "/golive/aprovacoes", "/golive/aprovacoes"].map((l) => `"${l}"`));
   });
 });
 

@@ -39,11 +39,16 @@
   --color-gold-soft: var(--gold-soft);
   --color-cream: var(--cream);
   --color-areia: var(--areia);
+  --color-cream-base: var(--cream-base);
   --color-navy-deep: var(--navy);
   --color-terracotta: var(--terracotta);
+  --color-terracotta-nobre: var(--terracotta-nobre);
   --color-preto: var(--preto);
   --color-sage: var(--sage);
   --color-plum: var(--plum);
+  /* Tons de acervo (Legado/legacy_record_links) — trilha rotulada, nunca a paleta operacional. */
+  --color-acervo: var(--acervo);
+  --color-acervo-suave: var(--acervo-suave);
   /* Estados semânticos do Desk (P2 — identidade visual interna). */
   --color-critico: var(--critico);
   --color-critico-suave: var(--critico-suave);
@@ -79,10 +84,22 @@
   --gold-soft: color-mix(in srgb, var(--gold) 45%, transparent);
   --cream: #F0EEE9;
   --areia: color-mix(in srgb, var(--preto) 8%, var(--cream));
+  /* 14/10/2026 — autorizado pela Proprietária: variação mais rica do bege
+     areia para superfícies maiores (cards de destaque, faixas de seção),
+     sem recorrer a hex literal nos componentes. */
+  --cream-base: color-mix(in srgb, var(--preto) 14%, var(--cream));
   --terracotta: #9A3A2F;
+  /* Terracota nobre — tom mais profundo para acento decorativo/de marca;
+     nunca usar onde o significado é "crítico" (isso continua --terracotta). */
+  --terracotta-nobre: #7A2F26;
   --sage: #6B7B5E;
   --plum: #7B4F9E;
   --preto: #28334A;
+  /* Tons de acervo — família sépia/pergaminho para a trilha de Legado
+     (legacy_record_links): planilha mestre, matriz, DRE, Asaas antigo.
+     Nunca usar fora dessa trilha rotulada (AGENTS.md). */
+  --acervo: #6B5537;
+  --acervo-suave: #F1E9D8;
 
   /* Estados semânticos do Desk — contraste AA sobre fundo claro.
      Crítico usa a terracota da marca; atenção usa um âmbar escurecido
@@ -250,6 +267,10 @@
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, .font-serif { font-family: var(--font-serif); }
+  /* Evita títulos terminando com uma palavra órfã numa linha isolada —
+     regra aditiva, não toca composição nem className de tela nenhuma. */
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
 }
 
 /* Patch global de responsividade do Desk autenticado. O escopo impede que
@@ -436,3 +457,33 @@
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
+
+/*
+  Acabamento visual do Desk (22/10/2026, decisão da Proprietária).
+
+  1. Fade de entrada de 200ms a cada troca de tela, igual ao que o App Cliente
+     já faz (`app-entrada`, em portal-v11.css). O bloco `[data-desk-entrada]`
+     é remontado por rota no SaasShell, então a animação roda de novo.
+  2. Quem pede menos movimento no sistema operacional não recebe animação
+     nenhuma no Desk — mesma regra que o kit já aplica no escopo dele.
+  Escopo limitado ao Desk: nenhum token global muda.
+*/
+[data-desk-entrada] {
+  animation: desk-entrada 200ms ease-out;
+}
+
+@keyframes desk-entrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-desk-shell] *,
+  [data-desk-shell] *::before,
+  [data-desk-shell] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

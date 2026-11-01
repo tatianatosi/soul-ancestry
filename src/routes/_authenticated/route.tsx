@@ -21,7 +21,8 @@ export const Route = createFileRoute("/_authenticated")({
     const { data: papeis, error: erroPapeis } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", usuario.id);
+      .eq("user_id", usuario.id)
+      .is("archived_at", null);
     const decisao = decidirAcessoDesk({
       autenticado: true,
       papeis: (papeis ?? []).map((p) => p.role as string),

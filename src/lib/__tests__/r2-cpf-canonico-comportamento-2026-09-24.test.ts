@@ -79,6 +79,6 @@ describe("conferirDivergenciaCpfMembrosCaso — escrita com releitura e conflito
     expect(pessoa360).not.toContain("conferirDivergenciaCpfMembrosCaso");
   });
   it("Caso 360 abre a seção pedida pelo link contextual (#pessoas, #jornada)", () => {
-    expect(caso360).toContain('window.location.hash.replace("#", "")');
+    expect(caso360).toContain('(hashRota || window.location.hash).replace("#", "")');
   });
 });

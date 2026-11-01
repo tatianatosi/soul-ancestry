@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 
 import {
   agruparPlanoAcao,
@@ -158,10 +160,7 @@ function Secao({
   estimativas: Record<string, any>[];
 }) {
   return (
-    <section className="mb-6">
-      <h2 className="font-serif text-lg text-navy">
-        {titulo} <span className="text-sm text-navy/50">({itens.length})</span>
-      </h2>
+    <CaCard className="mb-6" titulo={`${titulo} (${itens.length})`}>
       {descricao ? <p className="mb-2 text-xs text-navy/55">{descricao}</p> : null}
       {itens.length ? (
         <ul className="mt-2 grid gap-3 lg:grid-cols-2">
@@ -170,9 +169,9 @@ function Secao({
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-xs text-navy/50">Nenhuma ação nesta lista.</p>
+        <EstadoVazio mensagem="Nenhuma ação nesta lista." />
       )}
-    </section>
+    </CaCard>
   );
 }
 
@@ -238,6 +237,14 @@ function PlanoAcao() {
         e tinham zero chamadores — a equipe via a fila e não conseguia criar,
         editar nem arquivar nada pela tela.
       */}
+      {/* Casca V4: KPIs com a contagem real dos grupos já calculados abaixo. */}
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-plano-acao-kpis>
+        <Indicador rotulo="Urgente hoje" valor={String(grupos.urgenteHoje.length)} apoio="Prazo hoje ou vencido" />
+        <Indicador rotulo="Esta semana" valor={String(grupos.estaSemana.length)} />
+        <Indicador rotulo="Aguardando resposta" valor={String(grupos.aguardandoResposta.length)} />
+        <Indicador rotulo="Rechecagens vencidas" valor={String(grupos.rechecagensVencidas.length)} />
+      </div>
+
       <EditarPlanoAcao
         caseId={caseId}
         podeEditar={Boolean((dados as any)?.podeEditar)}
@@ -267,9 +274,8 @@ function PlanoAcao() {
       />
       <Secao titulo="Rechecagens vencidas" itens={grupos.rechecagensVencidas} nomeInstituicao={nomeInstituicao} estimativas={estimativas} />
 
-      <section className="mb-6">
-        <h2 className="font-serif text-lg text-navy">Ações por instituição</h2>
-        <div className="mt-2 grid gap-3 lg:grid-cols-2">
+      <CaCard className="mb-6" titulo="Ações por instituição">
+        <div className="grid gap-3 lg:grid-cols-2">
           {grupos.porInstituicao.map((g) => (
             <div key={g.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
               <p className="text-sm font-medium text-navy">{nomeInstituicao(g.chave) ?? "Sem instituição vinculada"}</p>
@@ -284,10 +290,9 @@ function PlanoAcao() {
           ))}
           {grupos.porInstituicao.length === 0 && <p className="text-xs text-navy/50">Nenhuma ação em aberto.</p>}
         </div>
-      </section>
+      </CaCard>
 
-      <section className="mb-6">
-        <h2 className="font-serif text-lg text-navy">Pendências por pessoa / geração</h2>
+      <CaCard className="mb-6" titulo="Pendências por pessoa / geração">
         <p className="mb-2 text-xs text-navy/55">Agrupadas pelo registro de pesquisa, achado, evidência ou solicitação vinculada.</p>
         <div className="grid gap-3 lg:grid-cols-2">
           {grupos.porPessoaGeracao.map((g) => (
@@ -306,12 +311,9 @@ function PlanoAcao() {
           ))}
           {grupos.porPessoaGeracao.length === 0 && <p className="text-xs text-navy/50">Nenhuma pendência em aberto.</p>}
         </div>
-      </section>
+      </CaCard>
 
-      <section className="mb-6">
-        <h2 className="font-serif text-lg text-navy">
-          Estimativas de terceiros aguardando aprovação <span className="text-sm text-navy/50">({aguardandoAprovacao.length})</span>
-        </h2>
+      <CaCard className="mb-6" titulo={`Estimativas de terceiros aguardando aprovação (${aguardandoAprovacao.length})`}>
         <p className="mb-2 text-xs text-navy/55">{AVISO_ESTIMATIVA}</p>
         <div className="grid gap-3 lg:grid-cols-2">
           {aguardandoAprovacao.map((e) => {
@@ -336,13 +338,10 @@ function PlanoAcao() {
           })}
           {aguardandoAprovacao.length === 0 && <p className="text-xs text-navy/50">Nenhuma estimativa aguardando aprovação.</p>}
         </div>
-      </section>
+      </CaCard>
 
-      <section className="mb-6">
-        <h2 className="font-serif text-lg text-navy">
-          Histórico de ações concluídas <span className="text-sm text-navy/50">({grupos.concluidas.length})</span>
-        </h2>
-        <ul className="mt-2 space-y-1 text-xs text-navy/60">
+      <CaCard className="mb-6" titulo={`Histórico de ações concluídas (${grupos.concluidas.length})`}>
+        <ul className="space-y-1 text-xs text-navy/60">
           {grupos.concluidas.map((i) => (
             <li key={i.id}>
               {i.due_date ?? "—"} · {i.titulo} — {rotuloDe(STATUS_ACAO, i.status)} · resultado interno:{" "}
@@ -351,11 +350,10 @@ function PlanoAcao() {
           ))}
           {grupos.concluidas.length === 0 && <li>Nenhuma ação concluída registrada.</li>}
         </ul>
-      </section>
+      </CaCard>
 
-      <section>
-        <h2 className="font-serif text-lg text-navy">Registro imutável de interações</h2>
-        <ul className="mt-2 space-y-1 text-xs text-navy/60">
+      <CaCard titulo="Registro imutável de interações">
+        <ul className="space-y-1 text-xs text-navy/60">
           {((dados?.interacoes ?? []) as Record<string, any>[]).slice(0, 20).map((it) => (
             <li key={it.id}>
               {String(it.ocorrido_em ?? "").slice(0, 10)} · {it.canal ?? "—"} — {it.resumo ?? it.conteudo_interno ?? "—"}
@@ -363,7 +361,7 @@ function PlanoAcao() {
           ))}
           {((dados?.interacoes ?? []) as unknown[]).length === 0 && <li>Nenhuma interação registrada.</li>}
         </ul>
-      </section>
+      </CaCard>
     </div>
     </SaasShell>
   );

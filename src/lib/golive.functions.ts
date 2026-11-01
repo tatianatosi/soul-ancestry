@@ -64,27 +64,32 @@ async function lista(
 
 export type DadosGoLive = Awaited<ReturnType<typeof carregarGoLive>>;
 
+// Sem casoId, cai no caso-piloto (CODIGO_CASO_GO_LIVE): as superfícies /golive-* seguem idênticas.
 export const carregarGoLive = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data: { casoId?: string } | undefined) => ({
+    casoId: typeof data?.casoId === "string" && data.casoId.trim() ? data.casoId.trim() : undefined,
+  }))
+  .handler(async ({ data: entrada, context }) => {
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const porId = entrada.casoId;
 
-    const { data: caso, error } = await supabase
-      .from("crm_casos")
-      .select("*")
-      .eq("organization_id", organizationId)
-      .eq("codigo", CODIGO_CASO_GO_LIVE)
+    const consulta = supabase.from("crm_casos").select("*").eq("organization_id", organizationId);
+    const ehUuid = Boolean(porId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(porId));
+    const filtrada = !porId ? consulta.eq("codigo", CODIGO_CASO_GO_LIVE) : ehUuid ? consulta.eq("id", porId) : consulta.eq("codigo", porId);
+    const { data: caso, error } = await filtrada
       .is("archived_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!caso) {
       return {
         encontrado: false as const,
-        codigo: CODIGO_CASO_GO_LIVE,
+        codigo: porId ?? CODIGO_CASO_GO_LIVE,
       };
     }
+    const codigoDoCaso = String(caso.codigo ?? (porId ? "" : CODIGO_CASO_GO_LIVE));
 
     const casoId = String(caso.id);
     const [
@@ -170,6 +175,21 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     /* Alertas abertos por caso da carteira. Só contagem do que já está gravado
        em `case_alerts`; sem criar, resolver ou disparar nada. */
     const idsCarteira = (carteira ?? []).map((c) => String(c["id"]));
+
+    /* Fila oficial de próxima ação (RPC proxima_acao_prioritaria_lote). Nível 9
+       = indefinido → sem próxima ação. Se a RPC falhar, mantém a leitura da
+       coluna como antes (nunca esconder como "tudo certo"). */
+    const canonicaResp = idsCarteira.length
+      ? await supabase.rpc("proxima_acao_prioritaria_lote", { _cases: idsCarteira })
+      : { data: [], error: null };
+    const proximaCanonica: Map<string, { nivel: number; motivo: string }> | null = canonicaResp.error
+      ? null
+      : new Map(
+          ((canonicaResp.data ?? []) as { case_id: string; nivel: number; motivo: string }[]).map((p) => [
+            p.case_id,
+            { nivel: p.nivel, motivo: p.motivo },
+          ]),
+        );
     const alertasCarteira = idsCarteira.length
       ? (
           await supabase
@@ -446,7 +466,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
 
     return {
       encontrado: true as const,
-      codigo: CODIGO_CASO_GO_LIVE,
+      codigo: codigoDoCaso,
       /*
        * Denominador real do eixo "Conexões Familiares" do Radar (05/10/2026,
        * PREMISSA da Proprietária): nunca o teto ilustrativo de 31.
@@ -457,7 +477,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         pessoaPrincipalId: String(clienteCanonico?.id ?? contratante?.["id"] ?? "") || null,
         email: (clienteCanonico?.email as string) ?? (contratante?.["email"] as string) ?? null,
         telefone: (clienteCanonico?.telefone as string) ?? (contratante?.["telefone"] as string) ?? null,
-        casoCanonico: CODIGO_CASO_GO_LIVE,
+        casoCanonico: codigoDoCaso,
         casoId,
         nucleo: nucleo ? String(nucleo["nome"] ?? "Núcleo familiar") : null,
         nucleoMembros: nucleoMembros.map((m) => ({
@@ -477,8 +497,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       },
       caso: {
         id: casoId,
-        codigo: String(caso.codigo ?? CODIGO_CASO_GO_LIVE),
-        titulo: (caso.titulo as string) ?? "Projeto familiar — Ana Luiza",
+        codigo: codigoDoCaso,
+        titulo: (caso.titulo as string) ?? (porId ? "Caso sem título registrado" : "Projeto familiar — Ana Luiza"),
         cliente: (caso.cliente_nome as string) ?? null,
         status: (caso.status as string) ?? null,
         fase: (caso.fase as string) ?? null,
@@ -611,7 +631,12 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           prioridade: (c["prioridade"] as string) ?? null,
           responsavel: (c["responsavel_principal"] as string) ?? null,
           proximaAcao: (c["proxima_acao"] as string) ?? null,
-          temProximaAcao: Boolean(c["proxima_acao"]),
+          temProximaAcao: proximaCanonica
+            ? (() => {
+                const p = proximaCanonica.get(String(c["id"]));
+                return Boolean(p && p.nivel !== 9 && p.motivo);
+              })()
+            : Boolean(c["proxima_acao"]),
           prazoProximaAcao: (c["prazo_proxima_acao"] as string) ?? null,
           contratoAssinado: c["contrato_assinado"] === true,
           pagamentoConfirmado: c["pagamento_confirmado"] === true,

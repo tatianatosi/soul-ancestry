@@ -7,11 +7,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/configuracoes")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Configurações — Go-live Clube Ancestral" },

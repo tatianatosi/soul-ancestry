@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { EstadoDados } from "@/components/saas/estado-dados";
 import { FontePortalProvider } from "@/components/portal/fonte-portal";
+import { comTimeout } from "@/lib/portal-resiliencia";
 import {
   ABAS_APP_CLIENTE,
   TELAS_INTERNAS_PORTAL,
@@ -13,7 +13,9 @@ import {
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import { dadosVivosDoPortalComoAdmin } from "@/lib/app-cliente-como-pessoa.functions";
 import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
-
+import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
+import { NucleosAcessoCaso } from "@/components/desk/nucleos-acesso-caso";
+import { AuditoriaVisibilidadeApp } from "@/components/desk/auditoria-visibilidade-app";
 
 /**
  * Acesso master ao App Cliente com dado real de um caso.
@@ -26,8 +28,16 @@ export const Route = createFileRoute("/_authenticated/app-cliente-como-pessoa")(
       { title: "App Cliente como pessoa — Clube Ancestral" },
       {
         name: "description",
-        content: "Acesso master somente leitura: o App Cliente real de um caso escolhido, com a mesma projeção sanitizada que o cliente vê.",
+        content:
+          "Acesso master somente leitura: o App Cliente real de um caso escolhido, com a mesma projeção sanitizada que o cliente vê.",
       },
+      { property: "og:title", content: "App Cliente como pessoa — Clube Ancestral" },
+      {
+        property: "og:description",
+        content: "Prévia administrativa das sete abas com conteúdo autorizado do caso escolhido.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -49,7 +59,7 @@ function AppClienteComoPessoa() {
   const carregarDados = useServerFn(dadosVivosDoPortalComoAdmin);
   const dados = useQuery({
     queryKey: ["app-cliente-como-pessoa", casoId],
-    queryFn: () => carregarDados({ data: { casoId } }),
+    queryFn: () => comTimeout(carregarDados({ data: { casoId } })),
     enabled: Boolean(casoId),
     retry: false,
   });
@@ -61,6 +71,41 @@ function AppClienteComoPessoa() {
 
   return (
     <div className="min-h-screen bg-cream" data-previa-app-cliente-real>
+      {casoId ? (
+        <div
+          className="border-b-2 border-gold bg-navy px-4 py-2 text-center"
+          role="note"
+          data-banner-visao-master
+        >
+          <p className="font-serif text-base text-cream sm:text-lg">
+            Visualização Master Administrativa — Sessão de Auditoria
+          </p>
+          <p className="text-[11px] tracking-wide text-gold">
+            Somente leitura · você vê o aplicativo como a família, sem virar cliente
+          </p>
+        </div>
+      ) : null}
+      {casoId ? (
+        <section
+          className="mx-auto grid max-w-5xl gap-4 px-4 py-4"
+          aria-label="Painel interno da equipe"
+          data-painel-interno-visao-master
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-navy/55">
+            Painel interno da equipe — não aparece para a família
+          </p>
+          <FilaPublicacaoReal caseId={casoId} />
+          <NucleosAcessoCaso caseId={casoId} />
+          {dados.data ? (
+            <AuditoriaVisibilidadeApp
+              projecoes={dados.data.projecoes as Record<string, unknown>[]}
+              documentos={dados.data.documentos as unknown[]}
+              entregasLiberadas={dados.data.escopo?.entregasLiberadas ?? 0}
+              temAcesso={dados.data.escopo?.temAcesso ?? false}
+            />
+          ) : null}
+        </section>
+      ) : null}
       {!casoId ? (
         <div className="mx-auto max-w-xl p-6">
           <p className="rounded-xl border border-navy/10 bg-card p-5 text-sm text-navy/70">
@@ -68,31 +113,25 @@ function AppClienteComoPessoa() {
           </p>
         </div>
       ) : casos.isLoading || dados.isLoading ? (
-        <p className="p-6 text-center text-sm text-navy/60" role="status">Preparando o aplicativo da família…</p>
-      ) : dados.isError ? (
-        <div className="mx-auto max-w-xl p-6">
-          <EstadoDados<Record<string, unknown>>
-            superficie="app"
-            erro={dados.error}
-            dados={null}
-            aoTentarNovamente={() => void dados.refetch()}
-            recurso="o aplicativo da família"
-          >
-            {() => null}
-          </EstadoDados>
-        </div>
+        <p className="p-6 text-center text-sm text-navy/60" role="status">
+          Preparando o aplicativo da família…
+        </p>
       ) : (
         <FontePortalProvider
           fonte={{
             dados: dados.data ?? { projecoes: [], documentos: [], proximaAcao: null },
             carregando: false,
-            erro: false,
+            // 12/10/2026: falha de leitura chega a cada aba como erro (nunca
+            // como vazio), com nova tentativa real.
+            erro: dados.isError,
+            recarregar: () => void dados.refetch(),
             escopo: dados.data?.escopo,
             aoNavegar: (path) => setRotaInterna(rotaInternaDoPortal(path)),
             rotaInterna,
             previa: {
               selo: "Visualização do aplicativo da família",
               titulo: casoEscolhido ? String(casoEscolhido["titulo"]) : "Sua história familiar",
+              pais: casoEscolhido ? ((casoEscolhido["pais"] as string | null) ?? null) : null,
               ...(casoEscolhido
                 ? {
                     identidade: identidadeDeCrmCaso({

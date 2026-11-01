@@ -29,13 +29,16 @@ import {
   salvarFonte,
 } from "@/lib/fontes-genealogicas.functions";
 import { toast } from "sonner";
+import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
 
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { MarcosJuridicosPorPais } from "@/components/pesquisa/marcos-juridicos-paises";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
@@ -81,13 +84,25 @@ function Campo({ r, v }: { r: string; v: React.ReactNode }) {
   );
 }
 
-function Secao({ titulo, subtitulo, children }: { titulo: string; subtitulo?: string; children: React.ReactNode }) {
+// V4-04: seção do catálogo = cartão canônico (CaCard) com eyebrow.
+function Secao({
+  titulo,
+  subtitulo,
+  eyebrow = "Fontes · catálogo",
+  className,
+  children,
+}: {
+  titulo: string;
+  subtitulo?: string;
+  eyebrow?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="rounded-lg border border-navy/10 bg-cream/40 p-4">
-      <h2 className="font-serif text-base text-navy">{titulo}</h2>
-      {subtitulo && <p className="mb-3 text-[11px] text-navy/50">{subtitulo}</p>}
+    <CaCard titulo={titulo} eyebrow={eyebrow} className={className}>
+      {subtitulo && <p className="-mt-1 mb-3 text-[11px] text-navy/50">{subtitulo}</p>}
       <div className="mt-2 space-y-3">{children}</div>
-    </section>
+    </CaCard>
   );
 }
 
@@ -196,9 +211,7 @@ function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz
             {fonte.pais_eixo} · {rotuloDe(NIVEIS_FONTE as any, fonte.nivel_de_fonte)} · {rotuloDe(ESTAGIOS as any, fonte.estagio_maturidade)}
           </span>
         </span>
-        <span className="rounded-full border border-gold/40 px-2 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-          {rotuloDe(PRIORIDADES as any, fonte.prioridade)}
-        </span>
+        <Etiqueta texto={rotuloDe(PRIORIDADES as any, fonte.prioridade)} />
       </button>
 
       {aberto && (
@@ -512,7 +525,7 @@ function FontesGenealogicas() {
 
   const render = (lista: Fonte[]) =>
     lista.length === 0 ? (
-      <p className="text-[11px] text-navy/50">Nenhuma fonte nesta lista.</p>
+      <EstadoVazio mensagem="Nenhuma fonte nesta lista." />
     ) : (
       lista.map((f) => <CartaoFonte key={f.id} fonte={f} matriz={matrizPor(f.id)} backlog={backlogPor(f.id)} onSalvo={onSalvo} />)
     );
@@ -525,10 +538,21 @@ function FontesGenealogicas() {
     <div className="space-y-5">
       <header className="space-y-2">
         <p className="rounded border border-gold/40 bg-gold/10 p-2 text-[11px] text-navy/70">{AVISO_CATALOGO}</p>
-        <p className="text-[11px] text-navy/50">
-          {grupos.total} fontes catalogadas · {grupos.recomendaveis.length} recomendáveis · {grupos.termosAConfirmar.length} com termos a
-          confirmar · {grupos.bloqueadas.length} restritas ou descontinuadas
-        </p>
+        {/* V4-04: as mesmas quatro contagens da linha-resumo, agora como faixa de KPIs. */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-fontes-kpis>
+          <Indicador
+            rotulo="Fontes catalogadas"
+            valor={String(grupos.total)}
+            apoio={busca.trim() ? "Na busca atual" : "Catálogo interno"}
+          />
+          <Indicador rotulo="Recomendáveis" valor={String(grupos.recomendaveis.length)} apoio="Uso operacional" />
+          <Indicador rotulo="Termos a confirmar" valor={String(grupos.termosAConfirmar.length)} apoio="Aguardam parecer" />
+          <Indicador
+            rotulo="Restritas ou descontinuadas"
+            valor={String(grupos.bloqueadas.length)}
+            apoio="Nunca recomendadas"
+          />
+        </div>
         <input
           type="search"
           value={busca}
@@ -590,6 +614,9 @@ function FontesGenealogicas() {
 
       <MarcosJuridicosPorPais />
 
+      <FontesPorPaisPainel />
+
+      <div className="grid gap-5 lg:grid-cols-2">
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
         {render(grupos.recomendaveis)}
       </Secao>
@@ -609,8 +636,12 @@ function FontesGenealogicas() {
       <Secao titulo="Sem verificação registrada" subtitulo="Fonte sem data de última verificação não sustenta decisão operacional.">
         {render(grupos.semVerificacao)}
       </Secao>
+      </div>
 
-      <Secao titulo="Catálogo por estágio de maturidade">
+      <Secao titulo="Catálogo por estágio de maturidade" eyebrow="Fontes · maturidade">
+        {grupos.porEstagio.every((g) => g.fontes.length === 0) ? (
+          <EstadoVazio mensagem="Nenhuma fonte nesta lista." />
+        ) : null}
         {grupos.porEstagio
           .filter((g) => g.fontes.length > 0)
           .map((g) => (

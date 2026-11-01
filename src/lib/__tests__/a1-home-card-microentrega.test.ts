@@ -27,7 +27,7 @@ describe("A1 Home — card Microentrega público removido", () => {
   it("microentrega publicada aparece só em linha editorial, sem cartão próprio", () => {
     expect(codigo).toMatch(/microentrega=\{microentrega\}/);
     expect(codigo).toContain('microentrega ? (');
-    expect(codigo).toContain('border-l-2 border-plum/60');
+    expect(codigo).toContain('border-l-2 border-gold/60');
     expect(codigo).not.toMatch(/\bmicentrega\?:/);
   });
 

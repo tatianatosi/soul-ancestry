@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Selo } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -50,8 +51,24 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // V4-05: contagem real da lista carregada; sem lista, traço — nunca zero inventado.
+  const casosLista = (q.data?.casos ?? []) as any[];
+  const kpi = (n: number) => (q.isLoading ? "…" : q.error || q.data === undefined ? "—" : String(n));
+
   return (
-    <SaasShell titulo="Motor contratual — dados parametrizáveis">
+    <SaasShell
+      titulo="Motor contratual — dados parametrizáveis"
+      descricao="Um registro mestre por caso real, com origem declarada de cada parâmetro."
+    >
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-parametros-kpis-v4>
+        <Indicador rotulo="Casos reais" valor={kpi(casosLista.length)} />
+        <Indicador rotulo="Com registro mestre" valor={kpi(casosLista.filter((c) => c.parametros).length)} />
+        <Indicador rotulo="Sem registro mestre" valor={kpi(casosLista.filter((c) => !c.parametros).length)} />
+        <Indicador
+          rotulo="Parâmetros completos"
+          valor={kpi(casosLista.filter((c) => c.parametros?.completude_pct === 100).length)}
+        />
+      </div>
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}

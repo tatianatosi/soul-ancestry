@@ -4,16 +4,19 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
+import { comTimeout } from "@/lib/portal-resiliencia";
 import type {
   DocumentoPortal,
   EtapaCliente,
   MarcoHistoricoCliente,
   SolicitacaoDocumentoCliente,
+  ChecklistDocumentalCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { EscopoCliente } from "@/lib/app-visibilidade";
 import type { IdentidadeCaso } from "@/lib/caso-compartilhado";
+import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -57,11 +60,15 @@ export type DadosPortal = {
   historico?: MarcoHistoricoCliente[];
   /** Documentos pedidos pela equipe e ainda abertos, nomeados (aba Documentos). */
   solicitacoes?: SolicitacaoDocumentoCliente[];
+  /** Checklist consolidado: todos os pedidos de documento desta família, com contador (aba Documentos). */
+  checklist?: ChecklistDocumentalCliente;
   /**
    * Pessoas mapeadas pela pesquisa neste caso (05/10/2026, PREMISSA da
    * Proprietária): denominador real de "Conexões Familiares" no Radar.
    */
   pessoasMapeadas?: number;
+  /** Régua das 5 etapas, estado do caso e perfil da titular. */
+  resumoCaso?: ResumoCasoCliente | null;
 };
 
 /**
@@ -85,12 +92,16 @@ export type PreviaPortal = {
   destinoSair?: string;
   /** Identidade canônica do caso (Ordem 2) — UUID = crm_casos.id. */
   identidade?: IdentidadeCaso;
+  /** País da trilha registrado no caso (crm_casos.pais), só para o selo da Home. */
+  pais?: string | null;
 };
 
 export type FontePortal = {
   dados: DadosPortal;
   carregando: boolean;
   erro: boolean;
+  /** Nova tentativa da leitura de origem (botão "Tentar novamente"). */
+  recarregar?: () => void;
   previa: PreviaPortal;
   /** Escopo real do caso, quando o acesso master já o calculou. */
   escopo?: EscopoCliente;
@@ -137,11 +148,13 @@ export function usePortalVivo() {
     // O caso entra na chave: sem isso, trocar de caso devolveria o conteúdo
     // do caso anterior servido pelo cache.
     queryKey: ["portal-dados-vivos", casoId ?? "padrao"],
-    queryFn: () => carregar({ data: casoId ? { casoId } : {} }),
+    // 12/10/2026: toda leitura termina em sucesso, vazio honesto ou erro.
+    queryFn: () => comTimeout(carregar({ data: casoId ? { casoId } : {} })),
     enabled: externa === null,
     // O que o Desk publica aparece no App sem recarregar (decisão 01/10/2026: 30 s).
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
+    retry: 1,
   });
 
   if (externa) {
@@ -150,15 +163,20 @@ export function usePortalVivo() {
       isLoading: externa.carregando,
       isError: externa.erro,
       error: externa.erro ? new Error("Falha ao carregar os dados do acompanhamento.") : null,
-      refetch: () => {},
+      refetch: () => externa.recarregar?.(),
+      isFetching: false,
     };
   }
+  // Refresh em segundo plano que falha não apaga o que já está na tela:
+  // com dado anterior, o erro não é propagado como estado da tela.
+  const semDado = consulta.data === undefined;
   return {
     data: consulta.data,
     isLoading: consulta.isLoading,
-    isError: consulta.isError,
-    error: consulta.error,
+    isError: consulta.isError && semDado,
+    error: semDado ? consulta.error : null,
     refetch: () => void consulta.refetch(),
+    isFetching: consulta.isFetching,
   };
 }
 
@@ -185,6 +203,10 @@ export function LinkPortal({
   children: ReactNode;
 }) {
   const fonte = useContext(FontePortalContext);
+  // 26/10/2026: mantém o caso escolhido (?casoId) ao trocar de aba; sem isso a
+  // família com mais de um caso via casos diferentes em abas diferentes.
+  const busca = useSearch({ strict: false }) as { casoId?: string };
+  const casoId = typeof busca?.casoId === "string" ? busca.casoId : undefined;
   if (fonte?.previa && fonte.aoNavegar) {
     return (
       <button type="button" onClick={() => fonte.aoNavegar?.(to)} className={className}>
@@ -193,7 +215,11 @@ export function LinkPortal({
     );
   }
   return (
-    <Link to={to} className={className}>
+    <Link
+      to={to}
+      search={casoId && to.startsWith("/portal") ? ({ casoId } as never) : undefined}
+      className={className}
+    >
       {children}
     </Link>
   );

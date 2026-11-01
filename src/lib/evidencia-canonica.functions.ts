@@ -15,7 +15,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { organizacaoDo } from "@/lib/caso-canonico.server";
+import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE } from "@/lib/pesquisa-modulo.server";
 import { semCache } from "@/lib/no-store";
 import { estadoFinoDaLinha } from "@/lib/evidencia-canonica";
 import {
@@ -24,6 +24,22 @@ import {
   gravarEvidenciaCanonica,
   mudarSituacaoEvidenciaCanonica,
 } from "@/lib/evidencia-canonica.server";
+
+/**
+ * Mesmo gate de papel que o resto do módulo de pesquisa usa (`PAPEIS_EDITA` /
+ * `PAPEIS_LE_DETALHE`). Antes esta camada só pedia sessão: quem a chamasse
+ * escrevia evidência sem passar pelo gate de papel que as telas já tinham.
+ */
+async function organizacaoComPapel(
+  supabase: any,
+  userId: string,
+  permitidos: string[],
+  acao: string,
+): Promise<string> {
+  const { organizationId, papel } = await contextoRg(supabase, userId);
+  if (!permitidos.includes(papel)) throw new Error(`Seu papel não pode ${acao}.`);
+  return organizationId;
+}
 
 /** As evidências do caso, com o estado fino já resolvido. */
 export const listarEvidenciasDoCaso = createServerFn({ method: "GET" })
@@ -35,7 +51,12 @@ export const listarEvidenciasDoCaso = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const organizationId = await organizacaoComPapel(
+      supabase,
+      context.userId as string,
+      PAPEIS_LE_DETALHE,
+      "ler as evidências do caso",
+    );
     const researchCaseId = await areaDePesquisaDoCaso(supabase, organizationId, data.caseId);
     const { data: linhas, error } = await supabase
       .from("research_evidence_items")
@@ -76,7 +97,12 @@ export const salvarEvidenciaCanonica = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const organizationId = await organizacaoComPapel(
+      supabase,
+      context.userId as string,
+      PAPEIS_EDITA,
+      "registrar evidência",
+    );
     return gravarEvidenciaCanonica(supabase, context.userId as string, organizationId, data);
   });
 
@@ -100,7 +126,12 @@ export const mudarSituacaoEvidencia = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const organizationId = await organizacaoComPapel(
+      supabase,
+      context.userId as string,
+      PAPEIS_EDITA,
+      "mudar a situação de evidência",
+    );
     return mudarSituacaoEvidenciaCanonica(supabase, context.userId as string, organizationId, data);
   });
 
@@ -114,6 +145,11 @@ export const arquivarEvidenciaCanonica = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const organizationId = await organizacaoComPapel(
+      supabase,
+      context.userId as string,
+      PAPEIS_EDITA,
+      "arquivar evidência",
+    );
     return arquivarEvidenciaCanonicaCore(supabase, context.userId as string, organizationId, data);
   });

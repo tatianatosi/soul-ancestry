@@ -4,18 +4,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Archive, BookOpen, Bookmark, Database, FileText, Scale } from "lucide-react";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
+import "@/components/desk/mockup4-superficies.css";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
 import { CaCard } from "@/components/ui/ca-card";
+import { AnelPercentual, BarrasHorizontais, Cartao, Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
 import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
 import { ConteudoEditorialConectado } from "@/components/biblioteca/conteudo-editorial-conectado";
 import { PesquisaConectada } from "@/components/desk/superficies-kit-conectadas";
-import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
+import { MAPA_CENTRO_INTELIGENCIA, MAPA_CONSUMO_SUBAREAS, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
@@ -29,6 +33,14 @@ import {
   type EstadoVigencia,
   type ItemBiblioteca,
 } from "@/lib/biblioteca-mestre.functions";
+
+/** Rótulos da faixa de KPIs, mostrados com "—" enquanto a leitura não chega. */
+const ROTULOS_KPI_BIBLIOTECA = [
+  { rotulo: "Itens vigentes", apoio: "Todas as subáreas" },
+  { rotulo: "Homologados", apoio: "Vigência interna — não publica" },
+  { rotulo: "Não homologados", apoio: "Aguardam critério registrado" },
+  { rotulo: "Arquivados", apoio: "Sem exclusão física" },
+];
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
   head: () => ({
@@ -142,6 +154,30 @@ function BibliotecaPage() {
     return m;
   }, [itens]);
 
+  // V4-04: faixa de KPIs da Biblioteca — só contagem dos itens já lidos pelas
+  // duas consultas; sem leitura completa, não há número (nunca zero por erro).
+  // Homologado = estado interno de vigência; não é publicação ao App.
+  const kpisBiblioteca =
+    geral.data && catalogo.data
+      ? [
+          { rotulo: "Itens vigentes", valor: itens.filter((i) => !i.arquivado).length, apoio: "Todas as subáreas" },
+          {
+            rotulo: "Homologados",
+            valor: itens.filter((i) => !i.arquivado && i.homologado).length,
+            apoio: "Vigência interna — não publica",
+          },
+          {
+            rotulo: "Não homologados",
+            valor: itens.filter((i) => !i.arquivado && !i.homologado).length,
+            apoio: "Aguardam critério registrado",
+          },
+          { rotulo: "Arquivados", valor: itens.filter((i) => i.arquivado).length, apoio: "Sem exclusão física" },
+        ]
+      : null;
+
+  const totalVigentes = itens.filter((i) => !i.arquivado).length;
+  const homologadosVigentes = itens.filter((i) => !i.arquivado && i.homologado).length;
+
   const opcoes = useMemo(() => {
     const st = new Set<string>();
     const rp = new Set<string>();
@@ -189,13 +225,20 @@ function BibliotecaPage() {
     { label: "Acervo", descricao: "Materiais internos aprovados", chave: "acervo", Icone: Archive },
     { label: "Bases Genealógicas", descricao: "Repositórios e arquivos", chave: "bases", Icone: Database },
     { label: "Dicionários", descricao: "Termos e taxonomias", chave: "dicionarios", Icone: BookOpen },
-    { label: "Trilhas Jurídicas", descricao: "Regras versionadas", chave: "juridico", Icone: Scale },
+    { label: "Trilhas Jurídicas", descricao: "Vias por país com requisitos e riscos", chave: "trilhas", Icone: Scale },
     { label: "Modelos", descricao: "Sem fonte própria; leitura da categoria Modelos do acervo", chave: "modelos", Icone: FileText },
-    { label: "Referências", descricao: "Entrada de consulta do mesmo acervo, sem coleção paralela", chave: "acervo", Icone: Bookmark },
+    { label: "Referências", descricao: "Regras jurídicas versionadas e citáveis", chave: "juridico", Icone: Bookmark },
   ];
 
-  const abrirEntrada = (chave: SubareaBiblioteca) => {
+  const [entradaAtiva, setEntradaAtiva] = useState<string | null>(null);
+  const abrirEntrada = (chave: SubareaBiblioteca, label: string) => {
     setSub(chave);
+    setEntradaAtiva(label);
+    setBusca("");
+    setStatus("");
+    setResponsavel("");
+    setPais("");
+    setArquivamento("ativos");
     setDetalhe(null);
     setGestaoAberta(true);
     window.requestAnimationFrame(() => document.getElementById("gestao-biblioteca")?.scrollIntoView({ behavior: "smooth" }));
@@ -207,22 +250,77 @@ function BibliotecaPage() {
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
       visualKit="pantone"
     >
+      <FonteAlimento
+        fonte="Referências estruturadas e homologadas da operação"
+        consumidor="Pesquisa, relatórios, propostas e o dia a dia do Desk — nada aqui é exposto ao App Cliente"
+        detalheTecnico="MAPA_CONSUMO_SUBAREAS"
+      />
+      <div data-desk-mockup4="biblioteca">
       <PesquisaConectada />
+      {/*
+        Prancha V4 (19/10/2026): a faixa de KPIs nunca some — sem leitura
+        completa mostra "—" (nunca zero por erro); com leitura, só contagem real.
+      */}
+      <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-biblioteca-kpis>
+        {(kpisBiblioteca ?? ROTULOS_KPI_BIBLIOTECA.map((k) => ({ ...k, valor: null as number | null }))).map((k) => (
+          <Indicador key={k.rotulo} rotulo={k.rotulo} valor={k.valor === null ? "—" : String(k.valor)} apoio={k.apoio} />
+        ))}
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2" data-biblioteca-graficos>
+        <Cartao titulo="Itens vigentes por subárea" data-biblioteca-cobertura>
+          <BarrasHorizontais
+            tituloAcessivel="Itens vigentes por subárea da Biblioteca Mestre"
+            itens={entradas.map(({ label, chave }, i) => {
+              const n = kpisBiblioteca ? (contadores.get(chave) ?? 0) : 0;
+              return {
+                rotulo: label,
+                valor: totalVigentes > 0 ? (n / totalVigentes) * 100 : 0,
+                apoio: kpisBiblioteca ? `${n} ${n === 1 ? "item" : "itens"}` : "—",
+                tom: i % 2 === 1 ? ("gold" as const) : ("navy" as const),
+              };
+            })}
+          />
+          {kpisBiblioteca && totalVigentes === 0 ? (
+            <p className="mt-2 text-[11px] text-navy/55">Nenhum item vigente registrado ainda.</p>
+          ) : !kpisBiblioteca ? (
+            erroLeitura ? (
+              <p className="mt-2 text-[11px] text-navy/55">Leitura indisponível — não é acervo vazio.</p>
+            ) : (
+              <div className="mt-2"><CarregandoDesk linhas={1} rotulo="Carregando os indicadores da biblioteca" /></div>
+            )
+          ) : null}
+        </Cartao>
+        <Cartao titulo="Vigência interna" data-biblioteca-vigencia>
+          <div className="flex items-center gap-4">
+            <AnelPercentual
+              valor={kpisBiblioteca && totalVigentes > 0 ? (homologadosVigentes / totalVigentes) * 100 : null}
+              tituloAcessivel="Itens vigentes homologados"
+            />
+            <div className="min-w-0 text-xs text-navy/70">
+              <p className="text-sm font-semibold text-navy">Homologados entre os vigentes</p>
+              <p className="mt-1 text-[11px] text-navy/55">
+                {kpisBiblioteca && totalVigentes > 0
+                  ? `${homologadosVigentes} de ${totalVigentes} itens vigentes. Homologar é estado interno — não publica no App Cliente.`
+                  : "Sem item vigente lido — nada a calcular."}
+              </p>
+            </div>
+          </div>
+        </Cartao>
+      </div>
       <section className="mt-7" aria-labelledby="entradas-biblioteca">
-        <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Biblioteca Mestre</p>
-          <h2 id="entradas-biblioteca" className="mt-1 font-serif text-2xl text-navy">Entradas de referência</h2>
-        </div>
+        <CaCard titulo="Entradas de referência" eyebrow="Biblioteca Mestre">
+        <span id="entradas-biblioteca" className="sr-only">Entradas de referência</span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {entradas.map(({ label, descricao, chave, Icone }) => {
             const quantidade = contadores.get(chave);
+            const consumo = MAPA_CONSUMO_SUBAREAS.find((c) => c.chave === chave);
             return (
               <Button
                 key={label}
                 type="button"
                 variant="ghost"
-                onClick={() => abrirEntrada(chave)}
-                className="group grid h-auto min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 whitespace-normal rounded-none border-t-2 border-gold bg-background/60 p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold"
+                onClick={() => abrirEntrada(chave, label)}
+                className="group grid h-auto min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 whitespace-normal rounded-xl border border-border border-t-2 border-t-gold bg-card p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold"
               >
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-navy text-cream">
                   <Icone className="h-5 w-5" aria-hidden="true" />
@@ -233,14 +331,21 @@ function BibliotecaPage() {
                   <span className="mt-3 block text-xs font-semibold text-navy">
                     {carregando ? "Carregando…" : erroLeitura ? "Leitura indisponível" : quantidade ? `${quantidade} ${quantidade === 1 ? "registro" : "registros"}` : "Sem registros"}
                   </span>
-                  {label === "Modelos" || label === "Referências" ? (
+                  {label === "Modelos" ? (
                     <span className="mt-1 block text-[11px] text-navy/50">Fonte compartilhada declarada</span>
+                  ) : null}
+                  {consumo ? (
+                    <span className="mt-2 block border-t border-navy/10 pt-2 text-[11px] leading-snug text-navy/55">
+                      <span className="block"><strong className="font-medium text-navy/70">Quem usa:</strong> {consumo.consumidor}</span>
+                      <span className="mt-0.5 block"><strong className="font-medium text-navy/70">Efeito:</strong> {consumo.efeito}</span>
+                    </span>
                   ) : null}
                 </span>
               </Button>
             );
           })}
         </div>
+        </CaCard>
       </section>
       <details
         id="gestao-biblioteca"
@@ -250,6 +355,11 @@ function BibliotecaPage() {
       >
         <summary className="cursor-pointer font-medium text-navy">Abrir gestão da Biblioteca</summary>
         <div className="mt-5 space-y-6 border-t border-navy/10 pt-5">
+        {entradaAtiva ? (
+          <p role="status" className="rounded-md border border-gold/40 bg-gold/10 px-3 py-2 text-sm text-navy">
+            Aberto por “{entradaAtiva}”: mostrando {meta.label}, somente itens ativos, filtros limpos.
+          </p>
+        ) : null}
         <FilaPublicacaoReal />
         <ConteudoEditorialConectado />
         {/*
@@ -297,6 +407,62 @@ function BibliotecaPage() {
           </div>
         </CaCard>
 
+        {/*
+          L02 (18/10/2026): tabela fonte → consumidor de cada subárea.
+          Declaração de leitura: não move dado, não cria rota nem fonte nova.
+        */}
+        <CaCard titulo="Fonte → consumidor" eyebrow="Biblioteca Mestre">
+          <p className="mb-3 mt-1 text-sm text-navy/65">
+            O que cada subárea contém, de onde ela lê, quem a consome no Desk e qual o efeito do uso. Nenhuma subárea
+            é projetada ao App Cliente.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                <tr>
+                  <th className="py-2 pr-3">Subárea</th>
+                  <th className="py-2 pr-3">Conteúdo</th>
+                  <th className="py-2 pr-3">Fonte</th>
+                  <th className="py-2 pr-3">Consumidor</th>
+                  <th className="py-2">Efeito do uso</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-navy/10">
+                {MAPA_CONSUMO_SUBAREAS.map((c) => {
+                  const metaSub = SUBAREAS_BIBLIOTECA.find((s) => s.chave === c.chave);
+                  const fonteTecnica =
+                    c.chave === "acervo" || c.chave === "modelos" || c.chave === "governanca" || c.chave === "mapas" || c.chave === "arquivo"
+                      ? "master_library_items"
+                      : c.chave === "bases"
+                        ? "genealogical_sources_catalog"
+                        : c.chave === "dicionarios"
+                          ? "controlled_taxonomies"
+                          : c.chave === "trilhas"
+                            ? "citizenship_tracks"
+                            : c.chave === "juridico"
+                              ? "versioned_legal_rules"
+                              : "product_catalog";
+                  return (
+                    <tr key={c.chave} className="align-top">
+                      <td className="py-2 pr-3 font-medium text-navy">{metaSub?.label ?? c.chave}</td>
+                      <td className="py-2 pr-3 text-navy/65">{c.conteudo}</td>
+                      <td className="py-2 pr-3 text-navy/65">
+                        {rotuloFonteNegocio(fonteTecnica)}
+                        <details className="mt-1">
+                          <summary className="cursor-pointer text-[10px] text-navy/50">Detalhes técnicos</summary>
+                          <code className="mt-1 block font-mono text-[10px]">{fonteTecnica}</code>
+                        </details>
+                      </td>
+                      <td className="py-2 pr-3 text-navy/65">{c.consumidor}</td>
+                      <td className="py-2 text-navy/65">{c.efeito}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CaCard>
+
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <h2 className="font-serif text-lg text-navy">Da Biblioteca até o App Cliente</h2>
           <p className="mb-3 mt-1 text-sm text-navy/65">
@@ -314,6 +480,7 @@ function BibliotecaPage() {
               type="button"
               onClick={() => {
                 setSub(s.chave);
+                setEntradaAtiva(null);
                 setDetalhe(null);
               }}
               className={`rounded-xl border p-3 text-left transition ${
@@ -330,18 +497,15 @@ function BibliotecaPage() {
           ))}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
-          <h2 className="font-serif text-lg text-navy">{meta.label}</h2>
-          <p className="mt-1 text-sm text-navy/65">{meta.finalidade}</p>
+        <CaCard titulo={meta.label} eyebrow="Biblioteca Mestre · subárea">
+          <p className="text-sm text-navy/65">{meta.finalidade}</p>
           <p className="mt-2 text-xs text-navy/55">Regra interna: {meta.regra}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {meta.dimensoes.map((d) => (
-              <span key={d} className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-xs text-navy/70">
-                {d}
-              </span>
+              <Etiqueta key={d} texto={d} />
             ))}
           </div>
-        </section>
+        </CaCard>
 
         <section className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <input
@@ -425,22 +589,11 @@ function BibliotecaPage() {
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
-                    {i.status && (
-                      <span className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-xs text-navy/70">
-                        {i.status}
-                      </span>
-                    )}
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs ${
-                        i.arquivado
-                          ? "border border-navy/15 bg-cream text-navy/60"
-                          : i.homologado
-                            ? "border border-gold/40 bg-gold/15 text-navy"
-                            : "border border-terracotta/30 bg-terracotta/10 text-terracotta"
-                      }`}
-                    >
-                      {i.arquivado ? "Arquivado" : i.homologado ? "Homologado" : "Não homologado"}
-                    </span>
+                    {i.status && <Etiqueta texto={i.status} />}
+                    <Etiqueta
+                      texto={i.arquivado ? "Arquivado" : i.homologado ? "Homologado" : "Não homologado"}
+                      tom={i.arquivado ? "neutro" : i.homologado ? "sucesso" : "atencao"}
+                    />
                   </div>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">
@@ -634,6 +787,7 @@ function BibliotecaPage() {
         {sub === "governanca" && <ManifestoResgate />}
         </div>
       </details>
+      </div>
     </SaasShell>
   );
 }

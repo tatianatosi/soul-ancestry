@@ -59,7 +59,9 @@ import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticate
 import { Route as AcessoIndexRouteImport } from './routes/acesso.index'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
+import { Route as ApiErroRouteImport } from './routes/api/erro'
 import { Route as ApiPesquisaAssistenteRouteImport } from './routes/api/pesquisa-assistente'
+import { Route as ApiSaudeRouteImport } from './routes/api/saude'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
 import { Route as EquipeDiagnosticoConexaoRouteImport } from './routes/equipe.diagnostico-conexao'
 import { Route as EquipeDiagnosticoRotasRouteImport } from './routes/equipe.diagnostico-rotas'
@@ -402,9 +404,19 @@ const AcessoSemPermissaoRoute = AcessoSemPermissaoRouteImport.update({
   path: '/sem-permissao',
   getParentRoute: () => AcessoRoute,
 } as any)
+const ApiErroRoute = ApiErroRouteImport.update({
+  id: '/api/erro',
+  path: '/api/erro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPesquisaAssistenteRoute = ApiPesquisaAssistenteRouteImport.update({
   id: '/api/pesquisa-assistente',
   path: '/api/pesquisa-assistente',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSaudeRoute = ApiSaudeRouteImport.update({
+  id: '/api/saude',
+  path: '/api/saude',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CanvasTokenRoute = CanvasTokenRouteImport.update({
@@ -863,7 +875,9 @@ export interface FileRoutesByFullPath {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
+  '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
   '/equipe/diagnostico-conexao': typeof EquipeDiagnosticoConexaoRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
@@ -985,7 +999,9 @@ export interface FileRoutesByTo {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
+  '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
   '/equipe/diagnostico-conexao': typeof EquipeDiagnosticoConexaoRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
@@ -1111,7 +1127,9 @@ export interface FileRoutesById {
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
+  '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
   '/equipe/diagnostico-conexao': typeof EquipeDiagnosticoConexaoRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
@@ -1237,7 +1255,9 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
+    | '/api/saude'
     | '/canvas/$token'
     | '/equipe/diagnostico-conexao'
     | '/equipe/diagnostico-rotas'
@@ -1359,7 +1379,9 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
+    | '/api/saude'
     | '/canvas/$token'
     | '/equipe/diagnostico-conexao'
     | '/equipe/diagnostico-rotas'
@@ -1484,7 +1506,9 @@ export interface FileRouteTypes {
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
+    | '/api/saude'
     | '/canvas/$token'
     | '/equipe/diagnostico-conexao'
     | '/equipe/diagnostico-rotas'
@@ -1567,7 +1591,9 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  ApiErroRoute: typeof ApiErroRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
+  ApiSaudeRoute: typeof ApiSaudeRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
   EquipeDiagnosticoRotasRoute: typeof EquipeDiagnosticoRotasRoute
@@ -1931,11 +1957,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcessoSemPermissaoRouteImport
       parentRoute: typeof AcessoRoute
     }
+    '/api/erro': {
+      id: '/api/erro'
+      path: '/api/erro'
+      fullPath: '/api/erro'
+      preLoaderRoute: typeof ApiErroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pesquisa-assistente': {
       id: '/api/pesquisa-assistente'
       path: '/api/pesquisa-assistente'
       fullPath: '/api/pesquisa-assistente'
       preLoaderRoute: typeof ApiPesquisaAssistenteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/saude': {
+      id: '/api/saude'
+      path: '/api/saude'
+      fullPath: '/api/saude'
+      preLoaderRoute: typeof ApiSaudeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/canvas/$token': {
@@ -2711,7 +2751,9 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  ApiErroRoute: ApiErroRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
+  ApiSaudeRoute: ApiSaudeRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,
   EquipeDiagnosticoRotasRoute: EquipeDiagnosticoRotasRoute,

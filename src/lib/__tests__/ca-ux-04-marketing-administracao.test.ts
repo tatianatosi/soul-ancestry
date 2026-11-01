@@ -21,11 +21,11 @@ import {
 } from "@/lib/marketing-aquisicao";
 
 const ler = (p: string) => readFileSync(p, "utf8");
-const ORDEM = ["hoje", "comercial", "casos", "pessoas", "pesquisa", "marketing", "governanca"];
+const ORDEM = ["hoje", "comercial", "casos", "pessoas", "pesquisa", "marketing", "financeiro", "governanca"];
 
 describe("CA-UX-04 — navegação", () => {
   it("tem exatamente 6 grupos; Marketing mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual(ORDEM);
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     // V4: Marketing virou grupo de primeiro nível, não submenu de Comercial.
@@ -39,7 +39,9 @@ describe("CA-UX-04 — navegação", () => {
   });
 
   it("mantém rotas administrativas em Governança, com permissão preservada", () => {
-    expect(rotasDoMenuConta()).toEqual(["/app-cliente-demo"]);
+    // 11/10/2026: a sessão DEMO saiu da lateral (MENU_CONTA vazio); a rota
+    // /app-cliente-demo segue preservada por link direto.
+    expect(rotasDoMenuConta()).toEqual([]);
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     // V4: etiquetas viraram alimento contextual e saíram do menu.

@@ -15,7 +15,7 @@ import { ROTULO_SINAL, type SinalPrioridade } from "@/lib/prioridade-matriz";
   posicionados pelo motor. Nenhum número novo é calculado aqui: a posição
   vem de `posicionar`, e este mapa só traduz faixa em coordenada de desenho.
 */
-const ESCALA_ELEGIBILIDADE: Record<CasoPosicionado["elegibilidade"], number> = {
+export const ESCALA_ELEGIBILIDADE: Record<CasoPosicionado["elegibilidade"], number> = {
   forte: 95,
   provavel: 78,
   possivel_com_pesquisa: 58,
@@ -24,14 +24,14 @@ const ESCALA_ELEGIBILIDADE: Record<CasoPosicionado["elegibilidade"], number> = {
   nao_avaliada: 8,
 };
 
-const ESCALA_URGENCIA: Record<CasoPosicionado["urgencia"], number> = {
+export const ESCALA_URGENCIA: Record<CasoPosicionado["urgencia"], number> = {
   vencida: 92,
   aproximando: 68,
   em_dia: 40,
   sem_base: 10,
 };
 
-const PESO_SINAL: Record<CasoPosicionado["sinal"], number> = {
+export const PESO_SINAL: Record<CasoPosicionado["sinal"], number> = {
   critica: 0,
   atencao: 1,
   acompanhada: 2,
@@ -178,7 +178,7 @@ export function MatrizPrioridadesConectada({
             className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-[11px] text-navy/60"
             data-radar-chip-sem-dados
           >
-            Sem dados reais
+            Dados insuficientes
           </span>
         ) : (
           ordem.map((sinal) => (
@@ -204,7 +204,7 @@ export function MatrizPrioridadesConectada({
       <section data-radar-lista-situacao className="rounded-xl border border-navy/10 bg-cream/40 p-4">
         <p className="mb-2 text-sm font-medium text-navy">Lista de situação</p>
         {casos.length === 0 ? (
-          <p className="text-xs text-navy/50">Nenhum caso com posição calculada.</p>
+          <p className="text-xs text-navy/50">Dados insuficientes</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">

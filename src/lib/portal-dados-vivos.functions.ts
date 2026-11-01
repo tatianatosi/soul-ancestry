@@ -7,10 +7,13 @@ import type {
   EtapaCliente,
   EventoTimelinePortal,
   MarcoHistoricoCliente,
+  ChecklistDocumentalCliente,
+  SolicitacaoChecklistBruta,
   SolicitacaoDocumentoBruta,
   SolicitacaoDocumentoCliente,
 } from "@/lib/portal-dados-vivos";
 import {
+  checklistDocumentalCliente,
   composicaoDoCasoCliente,
   etapaDoCasoCliente,
   historicoSanitizado,
@@ -18,7 +21,19 @@ import {
   solicitacoesAbertasCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
+import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
+import { rotuloAnoArvore } from "@/lib/arvore-publicacao";
+
+export type VinculoArvoreCliente = { de: string; para: string; tipo: "pai_mae" | "conjuge" };
+
+/**
+ * 29/10/2026 — ano sob o nome no cartão da Árvore, autorizado pela
+ * Proprietária. Sai só de perfil do próprio caso com `client_visibility =
+ * 'aprovada'` e data registrada; nunca de nota interna, timeline ou dedução
+ * por nome.
+ */
+export type AnoArvoreCliente = { pessoa_id: string; rotulo: string };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -63,6 +78,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     historico: MarcoHistoricoCliente[];
     /** Documentos pedidos pela equipe e ainda abertos, com o nome do pedido. */
     solicitacoes: SolicitacaoDocumentoCliente[];
+    checklist: ChecklistDocumentalCliente;
     /**
      * Pessoas mapeadas pela pesquisa neste caso (05/10/2026, PREMISSA da
      * Proprietária): denominador real do eixo "Conexões Familiares" do
@@ -70,6 +86,17 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
      * `portal_casos.pessoas_mapeadas` (migration 20261005180000).
      */
     pessoasMapeadas: number;
+    /**
+     * 12/10/2026 — ligações da Árvore autorizadas pela Proprietária. Só
+     * vínculos com `client_visibility = 'aprovada'`, não arquivados, cujas
+     * DUAS pontas já estão publicadas na Árvore deste caso. Sai apenas
+     * de/para/tipo — nenhuma nota, fonte ou status interno.
+     */
+    vinculosArvore: VinculoArvoreCliente[];
+    /** Anos autorizados por pessoa publicada (29/10/2026), para o cartão da Árvore. */
+    anosArvore: AnoArvoreCliente[];
+    /** Régua das 5 etapas, estado do caso e perfil da titular (13/10/2026). */
+    resumoCaso: ResumoCasoCliente | null;
   }> => {
     semCache();
     const supabase = context.supabase as any;
@@ -123,7 +150,11 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         proximaEntrega: null,
         historico: [],
         solicitacoes: [],
+        checklist: { itens: [], total: 0, concluidos: 0 },
         pessoasMapeadas: 0,
+        vinculosArvore: [],
+        anosArvore: [],
+        resumoCaso: null,
       };
     const alvo = [String(casoAtivo.id)];
 
@@ -136,15 +167,18 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
           "id, case_id, projection_type, content_sanitized, effective_from, updated_at, pessoa_id, geracao_cliente, source_entity_id, vinculo_projecao_id",
         )
         .in("case_id", alvo),
-      supabase.from("documents").select("id, liberado_cliente, origem, is_demo").in("case_id", alvo),
+      supabase.from("documents").select("id, liberado_cliente, origem, titulo, liberado_em").in("case_id", alvo),
       // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): mesma consulta de antes,
       // agora também com título/descrição/prazo (policy `pdr_sel_portal`) — a
       // aba Documentos passa a nomear QUAL documento é pedido.
       supabase
         .from("portal_document_requests")
-        .select("id, case_id, status, titulo, descricao, prazo, motivo_recusa")
+        .select("id, case_id, status, titulo, descricao, prazo, motivo_recusa, obrigatorio")
         .in("case_id", alvo)
-        .in("status", ["aguardando", "recusado"]),
+        // P0 do App (24/10/2026): lê TODOS os pedidos do caso (a policy `pdr_sel_portal`
+        // já os entrega à família, sem arquivados) para montar o checklist com
+        // contador. As contagens de pendência abaixo continuam só com aguardando/recusado.
+        .is("archived_at", null),
       supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["aberta", "vencida"]),
       // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): "Histórico (3 marcos)"
       // da Ficha Piloto. RLS (`cte_select_portal`) já restringe a leitura a
@@ -160,7 +194,8 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         .limit(3),
     ]);
 
-    const documentosPendentes = ((pendencias.data ?? []) as { case_id: string }[]).length;
+    const pedidos = (pendencias.data ?? []) as Array<SolicitacaoChecklistBruta & { case_id: string }>;
+    const documentosPendentes = pedidos.filter((p) => p.status === "aguardando" || p.status === "recusado").length;
     const pagamentoPendente = ((faturas.data ?? []) as { case_id: string }[]).length > 0;
     // Mesma origem do conteúdo. Antes era `permitidos.find(...) ?? permitidos[0]`,
     // que com o alvo agregado devolvia o PRIMEIRO caso — a próxima ação de um
@@ -176,8 +211,74 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       }),
     );
 
+    // Acesso ao caso já foi decidido pela RLS de `portal_casos` acima. A
+    // tabela de relações não tem policy de portal, então a leitura é feita no
+    // servidor e recortada aqui: só pontas publicadas, só vínculo aprovado.
+    const projecoes = (proj.data ?? []) as ProjecaoBruta[];
+    const publicados = new Set(
+      projecoes
+        .filter((p: any) => String(p.projection_type ?? "").toLowerCase() === "arvore" && p.pessoa_id)
+        .map((p: any) => String(p.pessoa_id)),
+    );
+    let vinculosArvore: VinculoArvoreCliente[] = [];
+    if (publicados.size > 1) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const rel = await (supabaseAdmin as any)
+        .from("genealogical_relationships")
+        .select("person_from_id, person_to_id, relation_type")
+        .eq("case_id", String(casoAtivo.id))
+        .eq("client_visibility", "aprovada")
+        .is("archived_at", null)
+        .in("relation_type", ["pai_mae", "conjuge"]);
+      vinculosArvore = ((rel.data ?? []) as { person_from_id: string; person_to_id: string; relation_type: string }[])
+        .filter((r) => publicados.has(String(r.person_from_id)) && publicados.has(String(r.person_to_id)))
+        .map((r) => ({
+          de: String(r.person_from_id),
+          para: String(r.person_to_id),
+          tipo: r.relation_type === "conjuge" ? ("conjuge" as const) : ("pai_mae" as const),
+        }));
+    }
+
+    // 29/10/2026 — anos autorizados: perfil do próprio caso, visibilidade
+    // "aprovada", não arquivado, com data registrada e pessoa já publicada na
+    // Árvore. Falha de leitura devolve lista vazia, nunca ano inventado.
+    let anosArvore: AnoArvoreCliente[] = [];
+    if (publicados.size > 0) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const prof = await (supabaseAdmin as any)
+          .from("genealogical_person_profiles")
+          .select("id, research_person_id, nascimento_data, nascimento_precisao, morte_data, morte_precisao")
+          .eq("case_id", String(casoAtivo.id))
+          .eq("client_visibility", "aprovada")
+          .is("archived_at", null)
+          .or("nascimento_data.not.is.null,morte_data.not.is.null")
+          // O nó da Árvore é publicado por pessoa da pesquisa (pessoa_id =
+          // research_person_id do perfil), nunca pelo id interno do perfil.
+          .in("research_person_id", [...publicados]);
+        anosArvore = ((prof.data ?? []) as any[])
+          .map((r) => ({ pessoa_id: String(r.research_person_id), rotulo: rotuloAnoArvore(r) }))
+          .filter((a): a is AnoArvoreCliente => Boolean(a.rotulo));
+      } catch {
+        anosArvore = [];
+      }
+    }
+
+    // Acesso ao caso já decidido pela RLS de `portal_casos`; leitura do resumo
+    // no servidor, recortada a campos sanitizados (sem CPF/RG/endereço).
+    let resumoCaso: ResumoCasoCliente | null = null;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      resumoCaso = await lerResumoCaso(supabaseAdmin, String(casoAtivo.id));
+    } catch {
+      resumoCaso = null;
+    }
+
     return {
-      projecoes: (proj.data ?? []) as ProjecaoBruta[],
+      resumoCaso,
+      vinculosArvore,
+      anosArvore,
+      projecoes,
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,
       casoAtivoId: String(casoAtivo.id),
@@ -185,7 +286,8 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       composicao: composicaoDoCasoCliente(casoAtivo.composicao),
       proximaEntrega: proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em),
       historico: historicoSanitizado((timeline.data ?? []) as EventoTimelinePortal[]),
-      solicitacoes: solicitacoesAbertasCliente((pendencias.data ?? []) as SolicitacaoDocumentoBruta[]),
+      solicitacoes: solicitacoesAbertasCliente(pedidos),
+      checklist: checklistDocumentalCliente(pedidos),
       pessoasMapeadas: Math.max(0, Number(casoAtivo.pessoas_mapeadas ?? 0)),
     };
   });

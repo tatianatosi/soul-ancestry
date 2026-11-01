@@ -1,4 +1,5 @@
 import type { CaseData } from "@/types/case";
+import { activeCase } from "./activeCase";
 import { caseDataGiovanna } from "./caseDataGiovanna";
 import { caseDataSophia } from "./caseDataSophia";
 
@@ -10,11 +11,12 @@ import { caseDataSophia } from "./caseDataSophia";
  */
 export const CASE_DIRECTORY: CaseData[] = [caseDataGiovanna, caseDataSophia];
 
-export const CASO_PADRAO_ID = caseDataGiovanna.geral.case_id;
-
+/**
+ * Caso pelo id. Id ausente ou desconhecido devolve `activeCase` (modelo vazio),
+ * nunca o caso de outro cliente: o dado de uma família não aparece para outra.
+ */
 export const casoPorId = (id?: string | null): CaseData =>
-  CASE_DIRECTORY.find((c) => c.geral.case_id === id) ??
-  CASE_DIRECTORY.find((c) => c.geral.case_id === CASO_PADRAO_ID)!;
+  CASE_DIRECTORY.find((c) => c.geral.case_id === id) ?? activeCase;
 
 export const CASOS_DISPONIVEIS = CASE_DIRECTORY.map((c) => ({
   id: c.geral.case_id,

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CartaoEditorial } from "@/components/portal/elementos-mockup";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
@@ -56,7 +57,7 @@ export function PortalFase02() {
               <ChipMeta rotulo="Tipo" valor="Atualização" />
               <ChipMeta
                 rotulo="Publicados"
-                valor={itens.length === 0 ? "Nenhum ainda" : String(itens.length)}
+                valor={itens.length === 0 ? "Em preparação" : String(itens.length)}
               />
               <ChipMeta
                 rotulo="Estado"
@@ -64,9 +65,7 @@ export function PortalFase02() {
               />
             </div>
             {itens.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-                Nenhuma atualização desta etapa foi publicada para consulta até agora.
-              </p>
+              <CartaoEditorial texto="As atualizações desta etapa terão seu lugar aqui quando forem publicadas." />
             ) : (
               <ul className="space-y-3">
                 {itens.map((item) => (

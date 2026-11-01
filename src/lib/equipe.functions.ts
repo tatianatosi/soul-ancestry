@@ -1,23 +1,19 @@
 import { semCache } from "@/lib/no-store";
+import { origemDeAutenticacao } from "@/lib/origem-canonica";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** URL pública de produção do Desk (destino oficial dos convites/redefinições). */
-const ORIGEM_PRODUCAO = "https://soul-ancestry.lovable.app";
-
+/**
+ * Destino oficial dos convites e redefinições de senha da equipe.
+ * E1 (23/10/2026): antes era uma lista de BLOQUEIO (prévia/localhost) sobre o cabeçalho
+ * da requisição — qualquer host novo passava. Agora é lista de PERMISSÃO exata
+ * (`origem-canonica.ts`): só a produção; o cabeçalho nunca define o destino.
+ */
 function origem() {
-  const o = getRequestHeader("origin");
-  const host = getRequestHeader("host");
-  const bruta = o || (host ? `https://${host}` : "");
-  // Convites e redefinições nunca podem apontar para a prévia do editor:
-  // o destino é sempre o ambiente publicado de produção.
-  if (!bruta || /lovableproject\.com|id-preview|localhost|127\.0\.0\.1/.test(bruta)) {
-    return ORIGEM_PRODUCAO;
-  }
-  return bruta;
+  return origemDeAutenticacao(getRequestHeader("origin"));
 }
 
 /** Rate limit de login. Resposta neutra: não revela existência de conta. */
@@ -27,8 +23,16 @@ export const prepararLoginEquipe = createServerFn({ method: "POST" })
     const h = await import("./equipe.server");
     const email = h.normalizarEmail(data.email);
     if (!h.emailValido(email)) return { bloqueado: false, liberaEmSegundos: 0 };
-    // Somente leitura: a tentativa só é contabilizada quando falha.
-    return h.estadoLimite("staff_login", email, 8, 15);
+    /*
+     * 26/10/2026 (auditoria pré-lançamento, H2): este limite não protegia nada
+     * (a senha é conferida direto no Supabase, que já tem limite próprio) e
+     * podia ser usado para trancar a Proprietária: `registrarFalhaLoginEquipe`
+     * não exige login, então qualquer pessoa contava "falhas" no e-mail dela.
+     * As falhas continuam registradas em auth_throttle para consulta; o
+     * formulário não bloqueia mais por elas.
+     */
+    void h.estadoLimite;
+    return { bloqueado: false, liberaEmSegundos: 0 };
   });
 
 /** Credencial inválida: só a falha consome o limite. */

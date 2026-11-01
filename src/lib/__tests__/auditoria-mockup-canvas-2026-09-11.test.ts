@@ -8,9 +8,13 @@ const goLive = readFileSync("src/components/desk-go-live.tsx", "utf8");
 const modulos = readFileSync("src/lib/desk-modulos.ts", "utf8");
 
 describe("Auditoria 2026-09-11 — Casos cards, Propostas Canva, Go-live fora", () => {
-  it("Casos 360 usa apresentação em cards com próxima ação", () => {
+  // 19/10/2026 — reconciliação com o Lovable: a listagem de Casos passou de
+  // apresentação em cards para tabela (mobile sem overflow, cortes
+  // L03/L04/L08); `renderCard` e `obterProximaAcaoCanonica` continuam reais
+  // (usados pela própria tabela/card), só a apresentação padrão mudou.
+  it("Casos 360 usa a apresentação real do EntidadeCrud, com próxima ação", () => {
     expect(crud).toContain('apresentacao?: "tabela" | "cards"');
-    expect(lista).toContain('apresentacao="cards"');
+    expect(lista).toContain('apresentacao="tabela"');
     expect(lista).toContain("renderCard=");
     expect(lista).toContain("obterProximaAcaoCanonica");
   });
@@ -24,7 +28,7 @@ describe("Auditoria 2026-09-11 — Casos cards, Propostas Canva, Go-live fora", 
 
   it("Go-live não é produto: módulo vira Fechamento e fixture avisa legado", () => {
     expect(modulos).toContain('nome: "Fechamento e ativação"');
-    expect(goLive).toContain("Arquivo histórico — fora da operação");
-    expect(goLive).toContain("saiu do vocabulário de produto");
+    // 31/10/2026: a fixture saiu; o componente lê o caso real escolhido.
+    expect(goLive).toContain("lidos do caso REAL");
   });
 });

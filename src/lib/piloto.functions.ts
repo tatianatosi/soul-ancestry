@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { contextoRg, PAPEIS_EDITA } from "@/lib/pesquisa-modulo.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -30,10 +31,24 @@ async function orgDoUsuario(supabase: Sb, userId: string) {
   return org;
 }
 
-/** Painel do piloto real: caso canônico único, conferência de dados e bloqueios. */
+/**
+ * Religação 31/10/2026 — o piloto foi absorvido pelo Caso 360: toda função
+ * daqui trabalha no caso ESCOLHIDO (`caseId`), nunca no "primeiro caso piloto".
+ * Escrever exige papel de edição; liberar o portal exige admin ou operações.
+ */
+const PAPEIS_LIBERA_PORTAL = ["admin", "operacoes"];
+
+async function orgComPapel(supabase: Sb, userId: string, permitidos: string[], acao: string) {
+  const { organizationId, papel } = await contextoRg(supabase, userId);
+  if (!permitidos.includes(papel)) throw new Error(`Seu papel não pode ${acao}.`);
+  return organizationId as string;
+}
+
+/** Painel de conferência do caso escolhido: dados conferidos, bloqueios e pesquisa. */
 export const painelPiloto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input: { caseId: string }) => input)
+  .handler(async ({ context, data }) => {
     semCache();
     const supabase = context.supabase as Sb;
     const org = await orgDoUsuario(supabase, context.userId as string);
@@ -42,10 +57,8 @@ export const painelPiloto = createServerFn({ method: "GET" })
       .from("crm_casos")
       .select("*")
       .eq("organization_id", org)
-      .eq("piloto", true)
-      .eq("demo", false)
-      .is("archived_at", null)
-      .order("created_at", { ascending: true });
+      .eq("id", data.caseId)
+      .is("archived_at", null);
 
     const caso = (casos ?? [])[0] as Record<string, any> | undefined;
     if (!caso) return { caso: null, cliente: null, campos: [], bloqueios: [], pesquisa: null, duplicatas: 0 };
@@ -90,7 +103,7 @@ export const salvarDadoPiloto = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
-    const org = await orgDoUsuario(supabase, context.userId as string);
+    const org = await orgComPapel(supabase, context.userId as string, PAPEIS_EDITA, "registrar dado conferido");
     await gravarComVerificacao({
       supabase,
       tabela: "piloto_conferencia",
@@ -113,7 +126,7 @@ export const verificarDadoPiloto = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string; verificado: boolean }) => input)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
-    const org = await orgDoUsuario(supabase, context.userId as string);
+    const org = await orgComPapel(supabase, context.userId as string, PAPEIS_EDITA, "verificar dado conferido");
     if (data.verificado) {
       const { data: atual } = await supabase
         .from("piloto_conferencia")
@@ -139,40 +152,22 @@ export const verificarDadoPiloto = createServerFn({ method: "POST" })
   });
 
 
-/** Resolve um bloqueio crítico (admin ou operações, com justificativa). */
-export const resolverBloqueioPiloto = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) => input)
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as Sb;
-    const org = await orgDoUsuario(supabase, context.userId as string);
-    const justificativa = (data.justificativa ?? "").trim() || "Sem justificativa informada.";
-    await gravarComVerificacao({
-      supabase,
-      tabela: "piloto_bloqueios",
-      id: data.id,
-      organizationId: org,
-      userId: context.userId as string,
-      payload: { status: data.status, justificativa },
-    });
-    return { ok: true };
-  });
-
-/** Cria a pesquisa do piloto — só depois de o caso operacional estar canônico. */
+/** Cria a pesquisa do caso escolhido — só depois de o caso operacional estar canônico. */
 export const criarPesquisaPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input: { caseId: string }) => input)
+  .handler(async ({ context, data }) => {
     const supabase = context.supabase as Sb;
-    const org = await orgDoUsuario(supabase, context.userId as string);
+    const org = await orgComPapel(supabase, context.userId as string, PAPEIS_EDITA, "criar a pesquisa do caso");
 
     const { data: caso } = await supabase
       .from("crm_casos")
-      .select("id,codigo,cliente_id,demo")
+      .select("id,codigo,titulo,cliente_id,demo")
       .eq("organization_id", org)
-      .eq("piloto", true)
+      .eq("id", data.caseId)
       .is("archived_at", null)
       .maybeSingle();
-    if (!caso) throw new Error("Caso piloto não encontrado.");
+    if (!caso) throw new Error("Caso não encontrado nesta organização.");
     if (caso["demo"]) throw new Error("Pesquisa do piloto não pode partir de caso de demonstração.");
 
     const { data: existente } = await supabase
@@ -189,7 +184,7 @@ export const criarPesquisaPiloto = createServerFn({ method: "POST" })
         organization_id: org,
         case_id: caso["id"],
         status: "preparation",
-        research_objective: "Preparação de pesquisa a partir de dados conferidos — Ana Luiza, primeira cliente.",
+        research_objective: `Preparação de pesquisa a partir de dados conferidos — ${String(caso["titulo"] ?? caso["codigo"] ?? "caso")}.`,
         external_research_gate_status: "blocked_by_contract",
         external_research_authorization_status: "not_requested",
         demo: false,
@@ -200,20 +195,20 @@ export const criarPesquisaPiloto = createServerFn({ method: "POST" })
     return { id: criada["id"] as string, jaExistia: false };
   });
 
-/** Libera o portal do cliente somente por ação humana explícita. */
+/** Libera o portal do cliente do caso escolhido, somente por ação humana explícita. */
 export const liberarPortalPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { liberar: boolean }) => input)
+  .inputValidator((input: { caseId: string; liberar: boolean }) => input)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
-    const org = await orgDoUsuario(supabase, context.userId as string);
+    const org = await orgComPapel(supabase, context.userId as string, PAPEIS_LIBERA_PORTAL, "liberar o portal do cliente");
     const { data: linhas, error } = await supabase
       .from("crm_casos")
       .update({ app_access_status: data.liberar ? "liberado" : "bloqueado", updated_by: context.userId })
       .eq("organization_id", org)
-      .eq("piloto", true)
+      .eq("id", data.caseId)
       .select("id");
     if (error) throw new Error(error.message);
-    if (!linhas?.length) throw new Error("NENHUMA_LINHA_AFETADA: nenhum caso piloto encontrado nesta organização.");
+    if (!linhas?.length) throw new Error("NENHUMA_LINHA_AFETADA: caso não encontrado nesta organização.");
     return { ok: true };
   });

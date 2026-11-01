@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
-import { registrarMembroNucleoGoLive } from "@/lib/golive-escritores.functions";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
+import { registrarMembroNucleoGoLive, resolverPessoaGoLive } from "@/lib/golive-escritores.functions";
+import { AcaoConferirPessoa } from "@/components/golive/acoes-registro";
 import { Barras, Rede, Rosca } from "@/components/golive/graficos";
 import {
   coberturaPorGeracao,
@@ -20,6 +21,7 @@ import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/pessoas")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Pessoas & Famílias — Go-live Clube Ancestral" },
@@ -36,7 +38,8 @@ export const Route = createFileRoute("/_authenticated/golive/pessoas")({
 function PessoasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  const adicionarMembro = useServerFn(registrarMembroNucleoGoLive);
+  const adicionarMembro = useEscritorGoLive(registrarMembroNucleoGoLive);
+  const conferirPessoa = useEscritorGoLive(resolverPessoaGoLive);
 
   /* Fonte: nucleo_membros (núcleo do caso), case_members e case_dependents.
      Geração e relação só saem de pai_id/mae_id gravados. */
@@ -151,13 +154,16 @@ function PessoasGoLive() {
                 }
                 confirmacao="Pessoa adicionada ao núcleo."
               />
+              <AcaoConferirPessoa
+                aoConfirmar={(v) => conferirPessoa({ data: v as Parameters<typeof conferirPessoa>[0]["data"] })}
+              />
             </Acoes>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
-              <Link to="/golive/pessoa" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              <Link search={true} to="/golive/pessoa" className="text-sm text-navy underline decoration-gold underline-offset-4">
                 Abrir Pessoa 360
               </Link>
-              <Link to="/golive/caso" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              <Link search={true} to="/golive/caso" className="text-sm text-navy underline decoration-gold underline-offset-4">
                 Abrir Caso 360
               </Link>
             </div>
@@ -175,7 +181,7 @@ function PessoasGoLive() {
             ) : (
               <Vazio
                 cta={
-                  <Link to="/golive/pessoa">
+                  <Link search={true} to="/golive/pessoa">
                     <Button size="sm">Abrir Pessoa 360</Button>
                   </Link>
                 }
@@ -242,7 +248,7 @@ function ImpactoDaPesquisa({
       ) : (
         <Vazio
           cta={
-            <Link to="/golive/pesquisa">
+            <Link search={true} to="/golive/pesquisa">
               <Button size="sm">Aprovar achado na Pesquisa</Button>
             </Link>
           }
@@ -305,7 +311,7 @@ function ArvoreAprovada({
       ) : (
         <Vazio
           cta={
-            <Link to="/golive/caso">
+            <Link search={true} to="/golive/caso">
               <Button size="sm">Aprovar vínculos no caso</Button>
             </Link>
           }

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   AGENTE_PESQUISA,
   CADEIA_OPERACIONAL,
@@ -51,10 +52,8 @@ const CORES_SITUACAO: Record<SituacaoCriterio, string> = {
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-      <h2 className="text-sm font-semibold text-navy">{titulo}</h2>
-      <div className="mt-2">{children}</div>
-    </section>
+    // V4-05: bloco local vira o CaCard canônico (mesmo conteúdo, só leitura).
+    <CaCard titulo={titulo}>{children}</CaCard>
   );
 }
 

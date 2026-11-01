@@ -6,6 +6,8 @@ import { useMemo, useState } from "react";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import {
   CAMPOS_PLACEGO,
   FONTES_LEGADAS,
@@ -34,11 +36,11 @@ export const Route = createFileRoute("/_authenticated/importacoes")({
   component: Importacoes,
 });
 
+// V4-05: o cartão local passa a ser o CaCard canônico (mesmo conteúdo).
 const Cartao = ({ titulo, children }: { titulo: string; children: React.ReactNode }) => (
-  <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-    <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-    <div className="mt-3 text-sm text-navy/70">{children}</div>
-  </section>
+  <CaCard titulo={titulo}>
+    <div className="text-sm text-navy/70">{children}</div>
+  </CaCard>
 );
 
 function Importacoes() {
@@ -76,6 +78,9 @@ function Importacoes() {
     },
   });
 
+  // V4-05: contagem real do que a tela já carrega; sem leitura, traço.
+  const kpi = (n: number | undefined) => (q.isLoading ? "…" : q.error || n === undefined ? "—" : String(n));
+
   const lerArquivo = async (file: File) => {
     setArquivo(file.name);
     setCsv(await file.text());
@@ -95,6 +100,19 @@ function Importacoes() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-importacoes-kpis-v4>
+        <Indicador rotulo="Lotes de importação" valor={kpi(q.data?.lotes?.length)} />
+        <Indicador
+          rotulo="Exceções abertas"
+          valor={kpi(q.data?.excecoes?.filter((e) => e.status === "aberta").length)}
+        />
+        <Indicador rotulo="Vínculos legados" valor={kpi(q.data?.vinculos?.length)} />
+        <Indicador
+          rotulo="Fontes legadas"
+          valor={String(FONTES_LEGADAS.filter((f) => f.situacao !== "canonica").length)}
+          apoio="somente leitura"
+        />
+      </div>
       <div className="grid gap-4">
         <Cartao titulo="Fontes e situação de governança">
           <div className="overflow-x-auto">
@@ -112,13 +130,10 @@ function Importacoes() {
                   <tr key={f.codigo} className="border-t border-navy/5 align-top">
                     <td className="py-2 pr-4 font-medium text-navy">{f.nome}</td>
                     <td className="py-2 pr-4">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] ${
-                          f.situacao === "canonica" ? "bg-gold/20 text-navy" : "bg-navy/5 text-navy/60"
-                        }`}
-                      >
-                        {f.situacao === "canonica" ? "canônica" : "legado somente leitura"}
-                      </span>
+                      <Etiqueta
+                        texto={f.situacao === "canonica" ? "canônica" : "legado somente leitura"}
+                        tom={f.situacao === "canonica" ? "sucesso" : "neutro"}
+                      />
                     </td>
                     <td className="py-2 pr-4">{f.usoPermitido}</td>
                     <td className="py-2">{f.usoProibido}</td>
@@ -149,6 +164,9 @@ function Importacoes() {
             onChange={(e) => {
               setCsv(e.target.value);
               setMapeamento({});
+              // 26/10/2026 (auditoria): sem isto, editar o CSV depois de pré-visualizar
+              // mantinha "Confirmar importação" habilitado e importava texto nunca visto na prévia.
+              mPreview.reset();
             }}
           />
 
@@ -166,7 +184,10 @@ function Importacoes() {
                     <select
                       className="rounded border border-navy/15 px-2 py-1 text-xs"
                       value={mapaEfetivo[c.campo] ?? ""}
-                      onChange={(e) => setMapeamento({ ...mapaEfetivo, [c.campo]: e.target.value })}
+                      onChange={(e) => {
+                        setMapeamento({ ...mapaEfetivo, [c.campo]: e.target.value });
+                        mPreview.reset(); // mapeamento mudou: a prévia anterior não vale mais
+                      }}
                     >
                       <option value="">— não mapear —</option>
                       {cabecalho.map((h) => (
@@ -297,9 +318,12 @@ function Importacoes() {
             <div className="space-y-2">
               {excecoes.map((e) => (
                 <div key={e.id} className="rounded-lg border border-navy/10 p-3">
-                  <p className="text-sm text-navy">
-                    <span className="font-medium">{e.exception_type}</span> — {e.reason}
-                  </p>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="text-sm text-navy">
+                      <span className="font-medium">{e.exception_type}</span> — {e.reason}
+                    </p>
+                    <Etiqueta texto={String(e.status)} tom={e.status === "aberta" ? "atencao" : "neutro"} />
+                  </div>
                   <p className="text-xs text-navy/60">
                     Origem {e.source_system} · registro {e.source_record_id ?? "—"} · situação {e.status}
                   </p>

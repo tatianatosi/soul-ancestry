@@ -18,7 +18,7 @@ const ler = (p: string) => readFileSync(p, "utf8");
 
 describe("Abas — circuito nas seis áreas (sem tela nova)", () => {
   it("Desk tem exatamente 6 grupos e Calls mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
     expect(comercial?.label).toBe("Comercial");
     expect(comercial?.sub.some((i) => "to" in i && i.to === "/calls")).toBe(true);

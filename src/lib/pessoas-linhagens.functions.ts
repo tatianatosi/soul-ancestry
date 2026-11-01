@@ -7,9 +7,18 @@ import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { normalizarNome } from "@/lib/pessoa-identidade";
-import { validarAderenciaPercentual } from "@/lib/pessoas-linhagens";
+import {
+  arestasFiliacao,
+  GERACAO_MAXIMA_LINHAGEM,
+  geracaoAscendente,
+  validarAderenciaPercentual,
+  type PessoaGeracao,
+  type Perfil,
+  type Relacao,
+} from "@/lib/pessoas-linhagens";
 import { clienteElegivelParaPerfil, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { exigirPersistenciaConferida } from "@/lib/verificacao-persistencia";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -176,6 +185,114 @@ async function autorizarEscrita(supabase: Sb, userId: string) {
     throw new Error("Seu papel não pode editar pessoas, relações ou linhagens.");
   return organizationId;
 }
+
+
+export type LeituraLinhagemNucleo = {
+  linha: {
+    id: string;
+    nome: string | null;
+    tipo: string | null;
+    status: string | null;
+    proximoMarco: string | null;
+    riscoPrincipal: string | null;
+  } | null;
+  /** G1 = pessoa âncora da linha; sobe pela filiação persistida até G10. */
+  geracoes: (PessoaGeracao & { localidade: string | null; clienteId: string | null; ano: string | null })[];
+  /** Só arestas de filiação gravadas entre pessoas exibidas (pai → filho). */
+  arestas: { pai: string; filho: string }[];
+  /** Cônjuges da pessoa âncora (G1) só por relação `conjuge` gravada e não refutada. */
+  conjugesAncora: { personId: string; nome: string; status: string }[];
+  totalPerfis: number;
+};
+
+/** Ano de nascimento só do perfil gravado: data exata ou ano aproximado escrito. */
+function anoDoPerfil(p: Perfil | undefined): string | null {
+  if (!p) return null;
+  const exata = typeof p.nascimento_data === "string" ? p.nascimento_data.match(/^(\d{4})/) : null;
+  if (exata) return exata[1]!;
+  const aprox = typeof p.nascimento_data_aproximada === "string" ? p.nascimento_data_aproximada.match(/\d{4}/) : null;
+  return aprox ? `c. ${aprox[0]}` : null;
+}
+
+/**
+ * 13/10/2026 — Pessoas & Linhagens (prancha V4) em /nucleos. Leitura pura:
+ * diferente de `painelPessoasLinhagens`, não faz backfill de perfis nem
+ * nenhuma outra escrita. Só lê perfis, relações e linhas do caso e sobe a
+ * filiação persistida a partir da pessoa âncora da primeira linha ativa.
+ * Sem âncora, sem gerações — nada é inferido.
+ */
+export const lerLinhagemDoCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => d)
+  .handler(async ({ data, context }): Promise<LeituraLinhagemNucleo> => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await autorizarLeitura(supabase, context.userId as string);
+    const org = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
+    const [perfisR, relacoesR, linhasR] = await Promise.all([
+      org("genealogical_person_profiles").eq("case_id", data.caseId).is("archived_at", null),
+      org("genealogical_relationships").eq("case_id", data.caseId).is("archived_at", null),
+      org("lineage_paths").eq("case_id", data.caseId).is("archived_at", null).order("created_at", { ascending: true }),
+    ]);
+    const perfis = linhas<Perfil>(perfisR as any, "perfis genealógicos do caso");
+    const relacoes = linhas<Relacao>(relacoesR as any, "relações genealógicas do caso");
+    const linhaFoco = linhas<any>(linhasR as any, "linhas do caso").find((l) => l.pessoa_ancora_id) ?? null;
+    const porPessoa = new Map(perfis.map((p) => [p.research_person_id, p]));
+    const geracoes = geracaoAscendente(linhaFoco?.pessoa_ancora_id, perfis, relacoes)
+      .filter((g) => g.geracao <= GERACAO_MAXIMA_LINHAGEM)
+      .map((g) => ({
+        ...g,
+        localidade: porPessoa.get(g.personId)?.nascimento_localidade ?? null,
+        clienteId: porPessoa.get(g.personId)?.client_id ?? null,
+        ano: anoDoPerfil(porPessoa.get(g.personId)),
+      }));
+    const ancora = geracoes.find((g) => g.geracao === 1)?.personId ?? null;
+    const conjugesAncora = ancora
+      ? relacoes
+          .filter(
+            (r) =>
+              !r.archived_at &&
+              r.relation_type === "conjuge" &&
+              r.status_pesquisa !== "refutado" &&
+              r.status_pesquisa !== "descartado" &&
+              (r.person_from_id === ancora || r.person_to_id === ancora),
+          )
+          .map((r) => (r.person_from_id === ancora ? r.person_to_id : r.person_from_id))
+          .filter((id, i, l) => id !== ancora && l.indexOf(id) === i && porPessoa.has(id))
+          .map((id) => ({
+            personId: id,
+            nome: porPessoa.get(id)!.nome_completo ?? "Pessoa não identificada",
+            status: porPessoa.get(id)!.status_verificacao ?? "pendente",
+          }))
+      : [];
+    const exibidas = new Set(geracoes.map((g) => g.personId));
+    const vistas = new Set<string>();
+    const arestas = arestasFiliacao(relacoes)
+      .filter((a) => exibidas.has(a.pai) && exibidas.has(a.filho))
+      .map((a) => ({ pai: a.pai, filho: a.filho }))
+      .filter((a) => {
+        const chave = `${a.pai}>${a.filho}`;
+        if (vistas.has(chave)) return false;
+        vistas.add(chave);
+        return true;
+      });
+    return {
+      linha: linhaFoco
+        ? {
+            id: String(linhaFoco.id),
+            nome: linhaFoco.nome_da_linha ?? null,
+            tipo: linhaFoco.tipo_da_linha ?? null,
+            status: linhaFoco.status ?? null,
+            proximoMarco: linhaFoco.proximo_marco ?? null,
+            riscoPrincipal: linhaFoco.risco_principal ?? null,
+          }
+        : null,
+      geracoes,
+      arestas,
+      conjugesAncora,
+      totalPerfis: perfis.length,
+    };
+  });
 
 /** Painel interno completo: pessoas, perfis, variantes, relações, eventos e linhagens. */
 export const painelPessoasLinhagens = createServerFn({ method: "GET" })
@@ -627,6 +744,13 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       }
     };
 
+    /*
+     * 30/10/2026 — resgate da PR #32. Desde 24/10 os helpers compartilhados
+     * só registram aviso quando a releitura diverge, e a tela mostrava "Salvo
+     * e confirmado no banco" mesmo assim. Na ficha genealógica a regra volta
+     * a ser estrita: releitura vazia ou valor diferente do enviado é erro,
+     * antes de propagar vínculo, auditoria ou linha do tempo.
+     */
     if (data.id) {
       const r = await gravarComVerificacao({
         supabase,
@@ -636,6 +760,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: valores,
       });
+      exigirPersistenciaConferida(valores, r.registro);
       await registrarVinculo(data.id);
       return { registro: r.registro } as any;
     }
@@ -647,6 +772,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: valores,
     });
+    exigirPersistenciaConferida(valores, r.registro);
     await registrarVinculo(r.id);
     return { registro: r.registro } as any;
   });

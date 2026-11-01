@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, PlayCircle, Plug, ShieldCheck, TestTube2 } from "lucide-react";
+import { AlertTriangle, PlayCircle, ShieldCheck, TestTube2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
+import { EstadoVazio } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import {
@@ -59,7 +61,7 @@ export function CentroIntegracoes() {
   const [retry, setRetry] = useState(3);
   const [backoff, setBackoff] = useState(60);
   const [modalAtivar, setModalAtivar] = useState(false);
-  const [confirmacao, setConfirmacao] = useState("");
+  const [, setConfirmacao] = useState("");
   const [resultado, setResultado] = useState<any>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({ queryKey: ["integracoes"], queryFn: () => carregar({}) });
@@ -123,7 +125,8 @@ export function CentroIntegracoes() {
   });
 
   const mAtivar = useMutation({
-    mutationFn: () => ativar({ data: { id: atual.id, confirmacao } }),
+    // 25/10/2026: sem digitar ATIVAR; o botão "Confirmar ativação" já é o aceite.
+    mutationFn: () => ativar({ data: { id: atual.id, confirmacao: "ATIVAR" } }),
     onSuccess: () => {
       setModalAtivar(false);
       setConfirmacao("");
@@ -204,7 +207,7 @@ export function CentroIntegracoes() {
         </section>
       ) : null}
 
-      {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando as integrações" /> : null}
       {isError ? (
         <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
           Não foi possível carregar as integrações.
@@ -247,10 +250,7 @@ export function CentroIntegracoes() {
 
         <div className="space-y-4">
           {!atual ? (
-            <p className="rounded-xl border border-navy/10 bg-cream/40 p-6 text-sm text-navy/60">
-              <Plug className="mr-2 inline h-4 w-4" />
-              Escolha uma integração para configurar, testar com dados DEMO e ver os logs mascarados.
-            </p>
+            <EstadoVazio mensagem="Escolha uma integração para configurar, testar com dados DEMO e ver os logs mascarados." />
           ) : (
             <>
               <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
@@ -463,10 +463,6 @@ export function CentroIntegracoes() {
               A partir da ativação esta integração pode agir fora do sistema. A ação exige admin, fica registrada em
               auditoria e pode ser revertida a qualquer momento.
             </p>
-            <label className="mt-4 block text-sm">
-              <span className="text-navy/60">Digite ATIVAR para confirmar</span>
-              <input value={confirmacao} onChange={(e) => setConfirmacao(e.target.value)} className={inputCls} />
-            </label>
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => {
@@ -479,7 +475,7 @@ export function CentroIntegracoes() {
               </button>
               <button
                 onClick={() => mAtivar.mutate()}
-                disabled={confirmacao.trim().toUpperCase() !== "ATIVAR" || mAtivar.isPending}
+                disabled={mAtivar.isPending}
                 className="rounded-lg bg-gold px-3 py-2 text-sm font-medium text-navy disabled:opacity-60"
               >
                 Confirmar ativação

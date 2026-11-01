@@ -3,16 +3,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
-import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
+import { ChipsEscolha, MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+// Frente 2 (19/10/2026) — "Produtos/serviços recomendados" abaixo é a lista
+// curada de sinal comercial (gate de via inviável incluído); o seletor de
+// produto-pai REAL (PP-01–09, planner_catalog_feed) vem deste componente já
+// existente (antes só em /catalogo), reaproveitado aqui — não duplicado.
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
@@ -54,7 +62,7 @@ import { ETAPAS_SPIN, progressoSpin, sinaisQualidadeLead, spinDerivadoDoLead } f
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
-import { leadForaDoPipeline, etapaPipeline, ROTULO_ETAPA_PIPELINE } from "@/lib/crm-desk";
+import { leadForaDoPipeline, etapaPipeline, ETAPAS_PIPELINE, ROTULO_ETAPA_PIPELINE } from "@/lib/crm-desk";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   INDICADORES_LEADS,
@@ -63,6 +71,15 @@ import {
   leadValidoParaIndicadores,
   type IndicadorLeads,
 } from "@/lib/crm-vivo-metricas";
+import { CaCard } from "@/components/ui/ca-card";
+import { Clock, Filter, User } from "lucide-react";
+
+import { BarrasHorizontais, Etiqueta, GraficoColunas, Pessoa } from "@/components/prancha-v4/kit";
+import { FunilDegraus } from "@/components/prancha-v4/funil-degraus";
+import { humano } from "@/lib/rotulos-golive";
+import { listarComercial, listarVinculos as listarVinculosComercial, totalInvestimentoMarketing } from "@/lib/comercial.functions";
+import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
+import { FichaSecao, FichaSecoes } from "@/components/crm/ficha-secoes";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -93,6 +110,9 @@ function LeadsPage() {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const arquivar = useServerFn(arquivarLeadDesk);
+  const listarComercialFn = useServerFn(listarComercial);
+  const listarVinculosFn = useServerFn(listarVinculosComercial);
+  const investimentoFn = useServerFn(totalInvestimentoMarketing);
   const qc = useQueryClient();
 
   const [mostrarArquivados, setMostrarArquivados] = useState(false);
@@ -101,11 +121,51 @@ function LeadsPage() {
     queryFn: () => carregar({ data: { incluirArquivados: mostrarArquivados } }),
     retry: false,
   });
+  /*
+    Propostas em negociação, investimento em marketing e nomes de cliente
+    (Prancha V4, Proprietária, 13/10/2026): `listarComercial` (recurso
+    "proposals") e `listarVinculos` já existem e já são usados por
+    financeiro.tsx — reaproveitados aqui, sem tabela ou coluna nova.
+    `totalInvestimentoMarketing` lê a mesma `marketing_investments` já usada
+    por `carregarConversao` (tela de Marketing), só o total agregado.
+  */
+  const qPropostas = useQuery({
+    queryKey: ["comercial", "proposals", ""],
+    queryFn: () => listarComercialFn({ data: { recurso: "proposals" } }),
+  });
+  const qVinculosComercial = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => listarVinculosFn({}) });
+  const qInvestimento = useQuery({ queryKey: ["marketing-investimento-total"], queryFn: () => investimentoFn({}) });
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
+  /*
+    17/10/2026 — Correção da Proprietária ao corte radical anterior:
+    AncestralScan e templates de WhatsApp precisam de acesso funcional,
+    não só sair do render. Viram gavetas (Sheet) acionadas por botão —
+    mesmos componentes, mesma lógica, só reembalados numa superfície
+    contextual em vez de montados sempre na página.
+  */
+  const [scanAberto, setScanAberto] = useState(false);
+  const [templatesAberto, setTemplatesAberto] = useState(false);
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(Object.keys(rascunho).length > 0);
   const [leadPendente, setLeadPendente] = useState<string | null>(null);
+  /*
+   * 26/10/2026 — achado da auditoria pré-lançamento: trocar de lead pelo
+   * Kanban ou por "Abrir ficha" descartava rascunho sem aviso; só o clique na
+   * lista (abaixo) tinha a confirmação do Corte 1. `window.confirm` é
+   * proibido no projeto — reaproveita o MESMO banner inline já desenhado
+   * para a lista, em vez de inventar um segundo mecanismo.
+   */
+  const trocarDeLead = (id: string | null) => {
+    if (id === selecionado) return;
+    if (Object.keys(rascunho).length > 0) {
+      setLeadPendente(id);
+      return;
+    }
+    setSelecionado(id);
+    setRascunho({});
+    setMsg(null);
+  };
   const [filtroEixo, setFiltroEixo] = useState("");
   const [mostrarConvertidos, setMostrarConvertidos] = useState(false);
   const [indicadorAtivo, setIndicadorAtivo] = useState<IndicadorLeads | null>(null);
@@ -121,7 +181,15 @@ function LeadsPage() {
   const leads = (q.data ?? []) as LeadComPendencias[];
   const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
   const editado = useMemo(() => ({ ...(atual ?? { nome: "" }), ...rascunho }) as LeadDesk, [atual, rascunho]);
-  const erros = useMemo(() => (atual || Object.keys(rascunho).length ? validarLead(editado) : []), [editado, atual, rascunho]);
+  // 26/10/2026 (auditoria): sem o segundo argumento, a validação do cliente
+  // sempre rodava em modo estrito, mesmo para a proprietária — o servidor já
+  // libera pendência de processo para ela (`proprietariaOperando`); a tela
+  // mostrava "Pendências que impedem esta gravação" para regras que o
+  // servidor ia aceitar.
+  const erros = useMemo(
+    () => (atual || Object.keys(rascunho).length ? validarLead(editado, autoridade.proprietaria) : []),
+    [editado, atual, rascunho, autoridade.proprietaria],
+  );
   const errosBloqueantes = useMemo(
     () => errosBloqueantesAlteracao(atual, editado, Object.keys(rascunho)),
     [atual, editado, rascunho],
@@ -189,6 +257,129 @@ function LeadsPage() {
 
   const hojeIndicadores = new Date();
   const contagemIndicadores = indicadoresLeads(leads as never, hojeIndicadores);
+
+  /*
+    Funil comercial e Mesa de Discovery (Prancha V4, Proprietária,
+    13/10/2026): mesmos `leads` já carregados por `listarLeadsDesk` acima —
+    sem query nova. O funil usa o pipeline canônico já existente
+    (ETAPAS_PIPELINE/etapaPipeline, CRM Vivo 27/09/2026), nunca uma etapa
+    inventada. A mesa de Discovery lista só leads com call agendada ou
+    realizada (`call_agendada_em`/`call_realizada_em`/`status_call`, já
+    gravados pelos escritores reais) — sem lead de exemplo.
+  */
+  const pipelineLeads = (leads as LeadDesk[]).filter(leadValidoParaIndicadores);
+  const funilItens = ETAPAS_PIPELINE.map((etapa) => {
+    const total = pipelineLeads.filter((l) => etapaPipeline(l) === etapa).length;
+    const percentual = pipelineLeads.length ? Math.round((total / pipelineLeads.length) * 100) : 0;
+    return { rotulo: ROTULO_ETAPA_PIPELINE[etapa], valor: percentual, apoio: `${total} leads`, total };
+  });
+  /*
+    Bloco superior de KPIs comerciais e blocos de Propostas/Saúde comercial
+    (Prancha V4, 13/10/2026): investimento soma `totalInvestimentoMarketing`
+    (marketing_investments real); leads entrantes e taxa de conversão vêm do
+    mesmo `pipelineLeads` do funil; propostas em negociação vêm de
+    `listarComercial("proposals")`, real, sem query nova além da já pedida.
+  */
+  const contratoCount = pipelineLeads.filter((l) => etapaPipeline(l) === "contrato").length;
+  const taxaConversao = pipelineLeads.length ? Math.round((contratoCount / pipelineLeads.length) * 100) : null;
+  const propostas = (qPropostas.data ?? []) as Record<string, unknown>[];
+  // "Em aberto" (Decisão executiva, 13/10/2026): ainda não chegou a um estado
+  // terminal do fluxo real (comercial-fluxo.ts) — nem aprovada, recusada,
+  // expirada nem substituída.
+  const ESTADOS_PROPOSTA_ABERTA = new Set(["rascunho", "em_revisao", "enviada", "em_negociacao"]);
+  const propostasAtivas = propostas.filter((p) => !p["archived_at"] && ESTADOS_PROPOSTA_ABERTA.has(String(p["status"] ?? "")));
+  const totalPropostasAtivas = propostasAtivas.reduce((soma, p) => soma + (Number(p["valor"]) || 0), 0);
+  const clientesComercial = qVinculosComercial.data?.clientes ?? [];
+  const nomeClienteComercial = (id: unknown) => clientesComercial.find((c) => c.id === id)?.nome ?? "—";
+  const ROTULO_STATUS_PROPOSTA: Record<string, string> = {
+    rascunho: "Rascunho",
+    em_revisao: "Em revisão",
+    enviada: "Enviada",
+    em_negociacao: "Em negociação",
+    aprovada: "Aprovada",
+    recusada: "Recusada",
+    expirada: "Expirada",
+    substituida: "Substituída",
+  };
+  const TOM_STATUS_PROPOSTA: Record<string, "sucesso" | "critico" | "atencao" | "neutro"> = {
+    aprovada: "sucesso",
+    enviada: "atencao",
+    em_negociacao: "atencao",
+    recusada: "critico",
+    expirada: "critico",
+    rascunho: "neutro",
+    em_revisao: "neutro",
+    substituida: "neutro",
+  };
+  const propostasVisiveis = propostas.filter((p) => !p["archived_at"]).slice(0, 8);
+
+  // Tons temáticos de canal (Proprietária, 13/10/2026 — "barras suaves em
+  // tons temáticos", "badges de canal com cores distintas"): cicla os 3 tons
+  // de marca já existentes (navy/gold/terracotta, kit.tsx) — nenhuma cor
+  // nova fora do design system. Mapa estável por canal, não por posição.
+  const TONS_CANAL: readonly ("navy" | "gold" | "terracotta")[] = ["navy", "gold", "terracotta"];
+  const tomDoCanal = (valor: string) => TONS_CANAL[ORIGENS_LEAD.findIndex((o) => o.valor === valor) % TONS_CANAL.length] ?? "navy";
+  const CLASSE_BADGE_CANAL: Record<"navy" | "gold" | "terracotta", string> = {
+    navy: "border-navy/25 bg-navy/10 text-navy",
+    gold: "border-gold/40 bg-gold/15 text-navy",
+    terracotta: "border-terracotta/30 bg-terracotta/10 text-terracotta",
+  };
+
+  /*
+    Aquisição por canal (colunas, totais absolutos) e Qualidade por canal
+    (Proprietária, 13/10/2026): o mockup de referência pede uma 3ª coluna
+    "Origem e qualidade" com rótulos Alta/Boa/Média — não existe fonte real
+    para uma nota qualitativa por canal, então ela não entra; no lugar, a
+    taxa real de conversão a contrato por canal (mesmo etapaPipeline do
+    funil), que é o dado real mais próximo da intenção ("canal que mais
+    converte").
+  */
+  const leadsPorCanal = ORIGENS_LEAD.map((o) => ({ origem: o, leads: pipelineLeads.filter((l) => l.origem === o.valor) })).filter(
+    (c) => c.leads.length > 0,
+  );
+  const maiorCanal = Math.max(0, ...leadsPorCanal.map((c) => c.leads.length));
+  const aquisicaoPorCanal = leadsPorCanal.map((c) => ({
+    rotulo: c.origem.rotulo,
+    valor: c.leads.length,
+    destaque: c.leads.length === maiorCanal,
+  }));
+  const qualidadePorCanal = leadsPorCanal.map((c) => {
+    const convertidos = c.leads.filter((l) => etapaPipeline(l) === "contrato").length;
+    const percentual = Math.round((convertidos / c.leads.length) * 100);
+    return { rotulo: c.origem.rotulo, valor: percentual, apoio: `${convertidos} de ${c.leads.length}`, tom: tomDoCanal(c.origem.valor) };
+  });
+
+  const leadsAtivosTabela = [...pipelineLeads]
+    .sort((a, b) => (b.ultimo_followup_em ?? b.created_at ?? "").localeCompare(a.ultimo_followup_em ?? a.created_at ?? ""))
+    .slice(0, 8);
+
+  /*
+    Quadro por etapa (Prancha Visual do Desk, kit de referência 13/09/2026,
+    "sem dados reais" — layout aprovado, reconstruído aqui com leads reais):
+    mesmo pipelineLeads do funil, agrupado por etapaPipeline em colunas. Dias
+    parado é calculado de ultimo_followup_em/created_at real, nunca um valor
+    de exemplo fixo.
+  */
+  const diasParado = (l: LeadDesk) => {
+    const base = l.ultimo_followup_em ?? l.created_at;
+    if (!base) return null;
+    const d = new Date(base);
+    if (Number.isNaN(d.getTime())) return null;
+    return Math.floor((hojeIndicadores.getTime() - d.getTime()) / 86_400_000);
+  };
+  const colunasPipeline = ETAPAS_PIPELINE.map((etapa) => ({
+    etapa,
+    rotulo: ROTULO_ETAPA_PIPELINE[etapa],
+    leads: pipelineLeads.filter((l) => etapaPipeline(l) === etapa),
+  }));
+  // KPIs da prancha V4 — mesmos leads do kanban: "Discovery" é a coluna
+  // Discovery; "Parados" é quem mostra o chip "Lead parado há N dias" (≥ 7).
+  const discoveryAbertas = colunasPipeline.find((c) => c.etapa === "discovery")?.leads.length ?? 0;
+  const leadsParados = pipelineLeads.filter((l) => {
+    const dias = diasParado(l);
+    return dias !== null && dias >= 7;
+  }).length;
+
   const visiveis = leads.filter((l) => {
     // CRM Vivo (27/09/2026): convertido em caso ou encerrado sai do pipeline, salvo pedido explícito.
     if (!mostrarConvertidos && leadForaDoPipeline(l as never)) return false;
@@ -207,6 +398,11 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
+      <FonteAlimento
+        fonte="Entrada de leads e listas controladas do CRM Mestre (CA04)"
+        consumidor="Mesa de Calls, proposta e handoff ao caso — a identidade da pessoa se mantém"
+        detalheTecnico="crm-desk · listarLeadsDesk"
+      />
       {leadPendente ? (
         <div role="alert" className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
           Há alterações não salvas neste lead.
@@ -234,48 +430,8 @@ function LeadsPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
-      {/* CRM Vivo (27/09/2026): 5 indicadores acionáveis, só leads reais do pipeline. Clique filtra a lista. */}
-      <div className="mb-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-5" data-indicadores-leads>
-        {INDICADORES_LEADS.map((i) => (
-          <button
-            key={i.chave}
-            type="button"
-            data-indicador={i.chave}
-            onClick={() => setIndicadorAtivo((a) => (a === i.chave ? null : i.chave))}
-            className={`rounded-xl border px-3 py-2 text-left ${
-              indicadorAtivo === i.chave ? "border-gold bg-gold/15" : "border-navy/10 bg-cream/40"
-            }`}
-          >
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">{i.rotulo}</p>
-            <p className="font-serif text-2xl text-navy">{contagemIndicadores[i.chave]}</p>
-          </button>
-        ))}
-      </div>
-      <label className="mb-4 flex items-center gap-2 text-xs text-navy/70">
-        <input type="checkbox" checked={mostrarConvertidos} onChange={(e) => setMostrarConvertidos(e.target.checked)} />
-        Mostrar convertidos/encerrados (fora do pipeline)
-      </label>
-      <NovoLeadDialog
-        aberto={novoLeadAberto}
-        onFechar={() => setNovoLeadAberto(false)}
-        onCriado={(id) => {
-          setNovoLeadAberto(false);
-          setRascunho({});
-          setSelecionado(id);
-          setMsg("Lead criado em Triagem.");
-        }}
-      />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
-        <div className="space-y-3">
-          {/*
-            Onda 4 dos órfãos (03/10/2026): a porta de entrada do Scan existia
-            no servidor e não tinha tela — só se via a triagem de um lead que
-            nunca podia nascer pelo Desk.
-          */}
-          <div className="mb-4">
-            <ImportarTriagemScan />
-          </div>
-
+      <div className="mb-6" aria-label="Filtros diários">
+          <div id="leads-filtros" className="scroll-mt-24" />
           <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
             <div className="grid gap-3">
               <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
@@ -298,6 +454,449 @@ function LeadsPage() {
               </button>
             </div>
           </Secao>
+      </div>
+      {/*
+        19/10/2026 — conferência bloco a bloco com a prancha V4 (Comercial /
+        CRM Vivo): a ordem da prancha é 4 KPIs → cartão-cabeçalho "Funil
+        comercial vivo" → trio (Aquisição | Conversão | Origem e qualidade) →
+        kanban de 5 colunas. Os KPIs da prancha saem do MESMO pipelineLeads
+        do funil e do kanban — nenhuma conta paralela. Os indicadores que já
+        existiam (investimento, entrantes, taxa, propostas, filas clicáveis)
+        continuam, abaixo do kanban, como leitura complementar.
+      */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-topo data-leads-kpis-prancha>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Leads ativos</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{pipelineLeads.length}</p>
+          <p className="mt-1 text-[11px] text-navy/55">em cinco etapas</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Discovery</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{discoveryAbertas}</p>
+          <p className="mt-1 text-[11px] text-navy/55">conversas abertas</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Conversão</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{taxaConversao === null ? "—" : `${taxaConversao}%`}</p>
+          <p className="mt-1 text-[11px] text-navy/55">{taxaConversao === null ? "Sem dados suficientes" : "lead → cliente"}</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-widest text-navy/55">Parados</p>
+          <p className="mt-1 font-serif text-3xl leading-none text-navy">{leadsParados}</p>
+          <p className="mt-1 text-[11px] text-navy/55">com alerta visível</p>
+        </div>
+      </div>
+
+      {/*
+        Cartão-cabeçalho do funil (prancha V4): título, trilha das etapas e os
+        dois botões. "Filtros" rola até a seção de filtros real (mesmos
+        campos), "Novo lead" abre o mesmo NovoLeadDialog real — nenhum botão
+        decorativo novo.
+      */}
+      <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-6 shadow-sm" data-leads-funil-cabecalho>
+        <div className="min-w-0">
+          <h2 className="font-serif text-xl text-navy">Funil comercial vivo</h2>
+          <p className="mt-1 text-xs text-navy/60">Origem → Discovery → diagnóstico → proposta → contrato</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="#leads-filtros"
+            className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+          >
+            <Filter className="h-3.5 w-3.5" aria-hidden="true" />
+            Filtros
+          </a>
+          <button
+            type="button"
+            onClick={() => setNovoLeadAberto(true)}
+            className="rounded-full bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+          >
+            Novo lead
+          </button>
+        </div>
+      </section>
+
+      {/*
+        Trio infográfico central (prancha V4): os 3 gráficos aparecem sempre.
+        Sem lead, Aquisição desenha as colunas de todos os canais em zero,
+        Conversão desenha os 5 degraus com "0" e Origem e qualidade desenha
+        os trilhos vazios — e o texto diz "Sem dados suficientes". "Origem e
+        qualidade" mostra a taxa real de conversão a contrato por canal
+        ("N de M"), não uma nota Alta/Boa/Média sem fonte.
+      */}
+      <div className="mb-6 grid gap-6 lg:grid-cols-3">
+        <CaCard
+          titulo="Aquisição por canal"
+          eyebrow="Comercial · Volume real por origem"
+          data-leads-aquisicao-canal
+          className="rounded-2xl p-6"
+        >
+          <GraficoColunas
+            itens={aquisicaoPorCanal.length ? aquisicaoPorCanal : ORIGENS_LEAD.map((o) => ({ rotulo: o.rotulo, valor: 0 }))}
+            tituloAcessivel={
+              aquisicaoPorCanal.length
+                ? `Aquisição por canal: ${aquisicaoPorCanal.map((c) => `${c.rotulo} ${c.valor}`).join(", ")}`
+                : "Aquisição por canal: nenhum lead registrado em nenhum canal"
+            }
+          />
+          {aquisicaoPorCanal.length ? null : (
+            <p className="mt-2 text-xs text-navy/60" data-leads-aquisicao-canal-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+        </CaCard>
+
+        <CaCard
+          titulo="Conversão por etapa"
+          eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
+          data-leads-funil
+          className="rounded-2xl p-6"
+        >
+          <FunilDegraus
+            etapas={funilItens.map((i) => ({ rotulo: i.rotulo, total: i.total }))}
+            tituloAcessivel={`Funil comercial: ${funilItens
+              .map((i) => (pipelineLeads.length ? `${i.rotulo} ${i.apoio} (${i.valor}%)` : `${i.rotulo} 0`))
+              .join(", ")}`}
+            rodape="Pipeline atual · sem recorte de período"
+          />
+          {pipelineLeads.length ? (
+            <>
+              <p className="mt-3 text-xs text-navy/60" data-leads-funil-total>
+                {pipelineLeads.length} leads válidos no funil (demonstrações e arquivados ficam fora).
+              </p>
+              {funilItens.some((item) => item.apoio === "0 leads") ? (
+                <p className="mt-1 text-xs text-navy/60" data-leads-funil-etapas-vazias>
+                  Etapas sem lead registrado: {funilItens.filter((item) => item.apoio === "0 leads").map((item) => item.rotulo).join(", ")}.
+                </p>
+              ) : null}
+            </>
+          ) : null}
+          {pipelineLeads.length ? null : (
+            <p className="mt-2 text-xs text-navy/60" data-leads-funil-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+        </CaCard>
+
+        <CaCard
+          titulo="Origem e qualidade"
+          eyebrow="Comercial · Taxa real de conversão a contrato"
+          data-leads-qualidade-canal
+          className="rounded-2xl p-6"
+        >
+          <BarrasHorizontais
+            itens={
+              qualidadePorCanal.length
+                ? qualidadePorCanal
+                : ORIGENS_LEAD.slice(0, 4).map((o) => ({ rotulo: o.rotulo, valor: 0, apoio: "sem lead", tom: tomDoCanal(o.valor) }))
+            }
+            tituloAcessivel={
+              qualidadePorCanal.length
+                ? `Qualidade por canal: ${qualidadePorCanal.map((c) => `${c.rotulo} ${c.valor}%`).join(", ")}`
+                : "Qualidade por canal: nenhum lead registrado"
+            }
+          />
+          {qualidadePorCanal.length ? null : (
+            <p className="mt-2 text-xs text-navy/60" data-leads-qualidade-canal-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+          <p className="mt-3 text-xs text-navy/70" data-leads-sem-proxima-acao>
+            {contagemIndicadores.sem_proxima_acao > 0
+              ? `${contagemIndicadores.sem_proxima_acao} lead(s) sem próxima ação definida.`
+              : "Nenhum lead sem próxima ação."}
+          </p>
+        </CaCard>
+      </div>
+
+      {/*
+        Kanban de 5 colunas (prancha V4): Leads · Discovery · Diagnóstico ·
+        Proposta · Contrato. As colunas aparecem sempre — sem lead, cada uma
+        mostra seu "0" e o vazio honesto. Cartão: nome, código · canal,
+        próximo passo, alertas, responsável e data da próxima ação, todos de
+        campo real do lead; "parado há N dias" vem de
+        `ultimo_followup_em`/`created_at`, nunca de prazo de exemplo.
+      */}
+      <section className="mb-6" data-leads-quadro-etapas aria-label="Funil comercial vivo por etapa">
+        <h3 className="mb-3 font-serif text-lg text-navy">Quadro por etapa</h3>
+        {pipelineLeads.length === 0 ? (
+          <p className="mb-3 text-sm text-navy/60" data-leads-quadro-etapas-vazio>
+            Sem dados suficientes
+          </p>
+        ) : null}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5" data-leads-quadro-etapas-colunas>
+          {colunasPipeline.map((coluna) => (
+            <div key={coluna.etapa} className="min-w-0 rounded-2xl border border-navy/10 bg-cream/40 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="font-serif text-[11px] uppercase tracking-wide text-navy/70">{coluna.rotulo}</span>
+                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-card px-1.5 text-[10px] font-semibold text-navy shadow-sm">
+                  {coluna.leads.length}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {coluna.leads.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-navy/15 px-2 py-3 text-center text-[11px] text-navy/45">
+                    Nenhum lead nesta etapa.
+                  </p>
+                ) : (
+                  coluna.leads.map((l) => {
+                    const dias = diasParado(l);
+                    return (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => trocarDeLead(l.id ?? null)}
+                        className="block w-full rounded-xl border border-navy/10 bg-card p-3 text-left shadow-sm hover:border-gold"
+                      >
+                        <span className="block truncate text-sm font-semibold text-navy">{l.nome}</span>
+                        <span className="mt-0.5 flex min-w-0 flex-wrap items-center gap-1 text-[11px] text-navy/55">
+                          <span className="truncate">{l.codigo ?? "Sem código"}</span>
+                          {l.origem ? (
+                            <span className={`rounded-full border px-1.5 py-px text-[10px] font-medium ${CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]}`}>
+                              {rotulo("origem", l.origem)}
+                            </span>
+                          ) : (
+                            <span>· canal não registrado</span>
+                          )}
+                        </span>
+                        <span className="mt-2 block border-t border-navy/5 pt-2 text-[11px] text-navy/70">
+                          <strong className="font-semibold text-navy">Próximo passo:</strong>{" "}
+                          {l.proxima_acao ? humano(l.proxima_acao, "") : "não registrado"}
+                        </span>
+                        <span className="mt-2 flex flex-wrap items-center gap-1.5">
+                          {dias !== null && dias >= 7 ? <Etiqueta texto={`Lead parado há ${dias} dias`} tom="critico" /> : null}
+                          {!l.proxima_acao ? <Etiqueta texto="Sem próxima ação" tom="atencao" /> : null}
+                        </span>
+                        <span className="mt-2 flex items-center justify-between gap-2 border-t border-navy/5 pt-2 text-[10px] text-navy/55">
+                          <span className="flex min-w-0 items-center gap-1">
+                            <User className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span className="truncate">{l.responsavel_nome || "Sem responsável"}</span>
+                          </span>
+                          <span className="flex shrink-0 items-center gap-1 tabular-nums">
+                            <Clock className="h-3 w-3" aria-hidden="true" />
+                            {l.proxima_acao_em ? dataBr(l.proxima_acao_em) : "Sem data"}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Leitura complementar já existente (investimento, entrantes, taxa, propostas) — mesmas fontes. */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-complementares>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Investimento em Marketing</p>
+          <p className="font-serif text-2xl text-navy">
+            {qInvestimento.isLoading
+              ? "…"
+              : qInvestimento.data && qInvestimento.data.lancamentos > 0
+                ? moedaBRL(qInvestimento.data.total)
+                : "Sem dados suficientes"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Leads Entrantes</p>
+          <p className="font-serif text-2xl text-navy">{pipelineLeads.length}</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Taxa de Conversão</p>
+          <p className="font-serif text-2xl text-navy">{taxaConversao === null ? "Sem dados suficientes" : `${taxaConversao}%`}</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Propostas em Aberto</p>
+          <p className="font-serif text-2xl text-navy">
+            {qPropostas.isLoading ? "…" : propostasAtivas.length ? `${propostasAtivas.length} · ${moedaBRL(totalPropostasAtivas)}` : "Sem dados suficientes"}
+          </p>
+        </div>
+      </div>
+
+      {/* CRM Vivo (27/09/2026): 5 indicadores acionáveis, só leads reais do pipeline. Clique filtra a lista. */}
+      <div className="mb-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-5" data-indicadores-leads>
+        {INDICADORES_LEADS.map((i) => (
+          <button
+            key={i.chave}
+            type="button"
+            data-indicador={i.chave}
+            onClick={() => setIndicadorAtivo((a) => (a === i.chave ? null : i.chave))}
+            className={`rounded-xl border px-3 py-2 text-left ${
+              indicadorAtivo === i.chave ? "border-gold bg-gold/15" : "border-navy/10 bg-cream/40"
+            }`}
+          >
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">{i.rotulo}</p>
+            <p className="font-serif text-2xl text-navy">{contagemIndicadores[i.chave]}</p>
+          </button>
+        ))}
+      </div>
+
+      {/*
+        Decisão executiva (Proprietária, 13/10/2026): duas telas no setor
+        Comercial — /leads é "Comercial & Funil" (carteira, aquisição,
+        propostas); Discovery Calls e qualificação (SPIN, consentimento,
+        handoff) ficam em /calls, rota própria já existente. A Mesa de
+        Discovery sai daqui para não duplicar a dona do dado.
+      */}
+      {/*
+        Termômetro de conversão da carteira (Proprietária, 13/10/2026):
+        mesmo cálculo real já usado no KPI "Taxa de Conversão" do topo
+        (contratoCount ÷ pipelineLeads.length) — nenhuma meta mensal inventada.
+      */}
+      <div className="mb-6" data-leads-termometro-conversao>
+        <div className="mb-1 flex items-center justify-between text-[11px] text-navy/60">
+          <span>Contratos fechados sobre o total de oportunidades</span>
+          <span className="tabular-nums">
+            {taxaConversao === null ? "Sem dados suficientes" : `${contratoCount} de ${pipelineLeads.length} · ${taxaConversao}%`}
+          </span>
+        </div>
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-navy/10">
+          <div className="h-full rounded-full bg-gold" style={{ width: `${taxaConversao ?? 0}%` }} />
+        </div>
+      </div>
+
+      {/*
+        Bloco 4 — Propostas comerciais (Prancha V4, 13/10/2026): mesma
+        `listarComercial("proposals")` que já alimenta Financeiro/Formalização
+        — sem campo inventado (o schema real não tem "rota consular", então
+        a coluna não existe aqui). Status real do fluxo de propostas
+        (comercial-fluxo.ts), nunca "aceita" fictício.
+      */}
+      <CaCard
+        titulo="Propostas comerciais"
+        eyebrow="Comercial · Emitidas, por status real do fluxo"
+        data-leads-propostas
+        className="mb-6 rounded-2xl p-6"
+      >
+        {qPropostas.isLoading ? (
+          <CarregandoDesk linhas={3} rotulo="Carregando as propostas comerciais" />
+        ) : propostasVisiveis.length === 0 ? (
+          <p className="text-sm text-navy/60" data-leads-propostas-vazio>
+            Sem dados suficientes
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-navy/10">
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs uppercase text-navy/65">
+                <tr>
+                  <th className="px-3 py-2">Cliente</th>
+                  <th className="px-3 py-2">Valor</th>
+                  <th className="px-3 py-2">Forma de pagamento</th>
+                  <th className="px-3 py-2">Validade</th>
+                  <th className="px-3 py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {propostasVisiveis.map((p) => (
+                  <tr key={String(p["id"])} className="border-t border-navy/5">
+                    <td className="px-3 py-2 text-navy">{nomeClienteComercial(p["client_id"])}</td>
+                    <td className="px-3 py-2 text-navy">{moedaBRL(p["valor"], p["moeda"])}</td>
+                    <td className="px-3 py-2 text-navy/75">{humano(String(p["forma_pagamento"] ?? ""), "—")}</td>
+                    <td className="px-3 py-2 text-navy/75">{dataBr(p["validade"])}</td>
+                    <td className="px-3 py-2">
+                      <Etiqueta
+                        texto={ROTULO_STATUS_PROPOSTA[String(p["status"] ?? "")] ?? "—"}
+                        tom={TOM_STATUS_PROPOSTA[String(p["status"] ?? "")] ?? "neutro"}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CaCard>
+
+      {/*
+        Bloco 5 — Leads ativos (Prancha V4, 13/10/2026): mesmos `leads` já
+        carregados, ordenados por último contato real — a ficha completa
+        continua na gestão abaixo (filtros + editor), este é o resumo.
+      */}
+      <CaCard
+        titulo="Leads ativos"
+        eyebrow="Comercial · Por último contato"
+        data-leads-ativos-tabela
+        className="mb-6 rounded-2xl p-6"
+      >
+        {leadsAtivosTabela.length === 0 ? (
+          <p className="text-sm text-navy/60" data-leads-ativos-vazio>
+            Nenhum lead ativo no pipeline.
+          </p>
+        ) : (
+          <ul className="space-y-4">
+            {leadsAtivosTabela.map((l) => (
+              <li key={l.id} className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Pessoa nome={l.nome} papel={humano(l.responsavel_nome ?? "", "sem responsável")} />
+                  {l.origem ? (
+                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]}`}>
+                      {rotulo("origem", l.origem)}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 items-center gap-3 text-xs text-navy/60">
+                  <span className="hidden sm:inline">
+                    {l.proxima_acao ? `Próxima ação: ${l.proxima_acao}` : "Sem próxima ação"}
+                  </span>
+                  <button
+                    type="button"
+                    className="rounded-full border border-navy/15 px-2 py-1 text-[11px] text-navy/70 hover:bg-navy/5"
+                    onClick={() => trocarDeLead(l.id ?? null)}
+                  >
+                    Abrir ficha
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CaCard>
+
+      <label className="mb-4 flex items-center gap-2 text-xs text-navy/70">
+        <input type="checkbox" checked={mostrarConvertidos} onChange={(e) => setMostrarConvertidos(e.target.checked)} />
+        Mostrar convertidos/encerrados (fora do pipeline)
+      </label>
+      <NovoLeadDialog
+        aberto={novoLeadAberto}
+        onFechar={() => setNovoLeadAberto(false)}
+        onCriado={(id) => {
+          setNovoLeadAberto(false);
+          setRascunho({});
+          setSelecionado(id);
+          setMsg("Lead criado em Triagem.");
+        }}
+      />
+      {/*
+        17/10/2026 — Correção da Proprietária: a ficha de edição completa
+        do lead (36 campos, organizada em seções: SPIN, radar, handoff,
+        jornada) vira gaveta (Sheet) aberta por "Abrir ficha", em vez de
+        montar inline ao lado da lista na carteira inicial. Mesmo
+        conteúdo, mesma lógica — só a superfície muda.
+      */}
+      <div className="max-w-[420px]">
+        <div className="space-y-3">
+          <button
+            type="button"
+            id="leads-triagem-scan"
+            className="rounded-lg border border-navy/20 px-3 py-2 text-xs font-medium text-navy hover:bg-navy/5"
+            onClick={() => setScanAberto(true)}
+          >
+            Importar triagem do AncestralScan
+          </button>
+          <Sheet open={scanAberto} onOpenChange={setScanAberto}>
+            <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+              <SheetHeader>
+                <SheetTitle>Triagem do AncestralScan</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                <ImportarTriagemScan />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+
 
           <Secao titulo={`Leads (${visiveis.length})`} descricao="Código único gerado pelo sistema.">
             <EstadoDados
@@ -314,17 +913,7 @@ function LeadsPage() {
                 <li key={l.id}>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (l.id === selecionado) return;
-                      // Corte 1: trocar de lead com edição pendente pede confirmação.
-                      if (Object.keys(rascunho).length > 0) {
-                        setLeadPendente(l.id ?? null);
-                        return;
-                      }
-                      setSelecionado(l.id ?? null);
-                      setRascunho({});
-                      setMsg(null);
-                    }}
+                    onClick={() => trocarDeLead(l.id ?? null)}
                     className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${
                       selecionado === l.id ? "border-gold bg-cream/60" : "border-navy/10 bg-cream/40"
                     }`}
@@ -361,8 +950,63 @@ function LeadsPage() {
           </Secao>
         </div>
 
-        <div className="space-y-3">
+      </div>
+
+      <Sheet
+        open={Boolean(atual)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelecionado(null);
+            setRascunho({});
+          }
+        }}
+      >
+        <SheetContent className="w-full overflow-y-auto sm:max-w-3xl">
+        <SheetHeader>
+          <SheetTitle>{atual ? `${atual.codigo ?? "Lead"} · ${atual.nome}` : "Ficha do lead"}</SheetTitle>
+        </SheetHeader>
+        <div className="mt-4 space-y-3">
+          <FichaSecoes>
+          {atual ? <div className="mb-4 border-b border-border pb-4 text-sm text-navy">
+            <Pessoa nome={atual.nome} papel={atual.responsavel_nome || "Responsável não registrado"} />
+            <p className="mt-2 break-words">{atual.email || "E-mail não registrado"}</p>
+            <p className="mt-1">Próxima ação: {atual.proxima_acao ? rotulo("proxima_acao", atual.proxima_acao) : "Não registrado"}</p>
+            <p className="text-xs text-muted-foreground">Prazo: {atual.proxima_acao_em ? dataBr(atual.proxima_acao_em) : "Não registrado"} · {Object.keys(rascunho).length ? "Alterações em rascunho" : "Registro salvo"}</p>
+          </div> : null}
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
+
+          {/*
+            19/10/2026 — corte L03 (Prancha V4): identidade da pessoa sempre
+            visível no topo da ficha (nome, origem, etapa, responsável,
+            próxima ação), antes de qualquer leitura derivada. Só repete
+            fatos já registrados; ausências são explícitas.
+          */}
+          {atual ? (
+            <div className="rounded-xl border border-navy/15 bg-navy px-4 py-3 text-cream" data-l03-identidade>
+              <p className="font-serif text-lg leading-tight">{atual.nome || "Nome não registrado"}</p>
+              <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] sm:grid-cols-4">
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Origem</dt>
+                  <dd>{atual.origem ? rotulo("origem", atual.origem) : "Não registrado"}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Etapa</dt>
+                  <dd>{ROTULO_ETAPA_PIPELINE[etapaPipeline(atual)]}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Responsável</dt>
+                  <dd>{atual.responsavel_nome || "Não registrado"}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Próxima ação</dt>
+                  <dd>
+                    {atual.proxima_acao ? rotulo("proxima_acao", atual.proxima_acao) : "Não registrado"}
+                    {atual.proxima_acao_em ? ` · ${String(atual.proxima_acao_em).slice(0, 10).split("-").reverse().join("/")}` : ""}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ) : null}
 
           {atual ? (
             <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/40 px-3 py-2 text-xs">
@@ -393,11 +1037,10 @@ function LeadsPage() {
             </div>
           ) : null}
 
-          {atual ? <HandoffLead lead={editado} /> : null}
+          {atual ? <details className="py-2"><summary className="cursor-pointer text-sm text-navy">Resumo do handoff e jornada</summary><HandoffLead lead={editado} /><DerivacaoJornada lead={editado} /></details> : null}
 
-          {atual ? <DerivacaoJornada lead={editado} /> : null}
-
-          <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <details className="border-b border-border py-3">
+            <summary className="cursor-pointer text-sm text-navy">Progresso SPIN e Mesa de Discovery</summary>
             <p className="text-sm font-medium text-navy">SPIN e Mesa de Discovery</p>
             <p className="mt-1 text-xs text-navy/55">
               As perguntas de Situação, Problema, Implicação e Necessidade moram no Painel de Calls,
@@ -419,13 +1062,14 @@ function LeadsPage() {
               })}
             </ul>
             <p className="mt-3 text-xs">
-              <Link to="/calls" className="text-navy underline underline-offset-2">
+              <Link to="/calls" search={editado.id ? { lead: editado.id } : {}} className="text-navy underline underline-offset-2">
                 Abrir a Mesa de Discovery no Painel de Calls
               </Link>
             </p>
-          </div>
+          </details>
 
-          <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <details className="border-b border-border py-3">
+            <summary className="cursor-pointer text-sm text-navy">Leitura preliminar e pendências</summary>
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Radar de elegibilidade preliminar</p>
             <div className="mt-1 flex flex-wrap items-end gap-x-4 gap-y-1">
               <p className="font-serif text-2xl leading-tight text-navy">{radar.rotulo}</p>
@@ -482,7 +1126,7 @@ function LeadsPage() {
               </ul>
             ) : null}
             <p className="mt-3 text-[11px] text-navy/50">{radar.observacao}</p>
-          </div>
+          </details>
 
           {sinais.length ? (
             <div className="rounded-xl border border-gold/50 bg-gold/10 p-4">
@@ -518,7 +1162,20 @@ function LeadsPage() {
             </div>
           ) : null}
 
-          <Secao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
+          {/*
+            19/10/2026 — corte L03: tudo que se edita na ficha mora nesta
+            área única, abaixo deste divisor. Leituras derivadas (SPIN,
+            radar, sinais) ficam acima e não se editam aqui.
+          */}
+          <div className="flex items-center gap-3 pt-2" data-l03-area-edicao>
+            <span className="h-px flex-1 bg-navy/15" aria-hidden />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-navy/50">
+              Área única de edição — as leituras acima são derivadas
+            </p>
+            <span className="h-px flex-1 bg-navy/15" aria-hidden />
+          </div>
+
+          <FichaSecao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
             <div className="grid gap-3 md:grid-cols-2">
               <Texto
                 label="Nome"
@@ -540,7 +1197,13 @@ function LeadsPage() {
                 onChange={(x) => set("telefone")(formatarTelefone(x))}
                 erro={motivoCampoInvalido("Telefone", "telefone", String(campo("telefone") ?? ""))}
               />
-              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
+              {/*
+                19/10/2026 — Diretriz v2.0 (Reintegração micro GoLive): chip de
+                um toque do dicionário CA-04 ("Origem do lead"), mesma lista
+                `ORIGENS_LEAD` e mesmo campo `set("origem")` de antes — só a
+                forma de escolher muda de dropdown para clique direto.
+              */}
+              <ChipsEscolha label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
               <Selecao
                 label="Área responsável"
                 valor={campo("area_responsavel")}
@@ -571,11 +1234,12 @@ function LeadsPage() {
                 onChange={set("ultimo_followup_em")}
               />
             </div>
-          </Secao>
+          </FichaSecao>
 
-          <Secao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
+          <FichaSecao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
             <div className="grid gap-3 md:grid-cols-2">
-              <Selecao label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
+              {/* 19/10/2026 — chip de um toque (dicionário CA-04 "Objetivo principal"/interesse do lead). */}
+              <ChipsEscolha label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
               {/* CRM Vivo (27/09/2026): país de interesse tem um só campo editável —
                   "Nacionalidades de interesse", abaixo. O valor único antigo fica só leitura. */}
               {campo("nacionalidade") ? (
@@ -608,7 +1272,7 @@ function LeadsPage() {
                 />
               </div>
             </div>
-          </Secao>
+          </FichaSecao>
 
           {/*
             23/09/2026 — R3 (autorização explícita da Proprietária):
@@ -707,7 +1371,7 @@ function LeadsPage() {
           </Secao>
 
 
-          <Secao
+          <FichaSecao
             titulo="Consentimento de gravação e transcrição"
             descricao="Gravação, transcrição e uso interno só com consentimento concedido, datado, com canal e versão do aviso. Sem isso, nenhuma referência de gravação pode ser registrada."
           >
@@ -815,7 +1479,7 @@ function LeadsPage() {
                 documental, não substitui o consentimento de quem não o deu.
               </p>
             </div>
-          </Secao>
+          </FichaSecao>
 
           {trilhasIndisponiveis ? (
             <p
@@ -830,7 +1494,7 @@ function LeadsPage() {
             </p>
           ) : null}
 
-          <Secao
+          <FichaSecao
             titulo="Linha familiar, trilha jurídica e pesquisa prévia"
             descricao="Trilhas e marcos são referência interna de triagem, nunca parecer jurídico nem garantia de direito. Pesquisa nominal externa exige autorização registrada."
           >
@@ -846,9 +1510,11 @@ function LeadsPage() {
                 valor={campo("localidades_conhecidas")}
                 onChange={set("localidades_conhecidas")}
               />
-              <MultiSelecao
+              {/* 19/10/2026 — chip de um toque, multi-escolha (dicionário CA-04 "Nacionalidade de interesse"). */}
+              <ChipsEscolha
                 label="Nacionalidades de interesse"
                 opcoes={NACIONALIDADES}
+                multiplo
                 valores={(editado.nacionalidades_interesse ?? []) as string[]}
                 onChange={set("nacionalidades_interesse")}
               />
@@ -899,10 +1565,10 @@ function LeadsPage() {
                 </div>
               ) : null}
             </div>
-          </Secao>
+          </FichaSecao>
 
 
-          <Secao
+          <FichaSecao
             titulo="Recomendação comercial e despesas de terceiros"
             descricao="Preço, condição e link de cobrança vêm do catálogo homologado (product_catalog). A Planilha Mestre é legado de auditoria histórica, não fonte viva. O CRM registra apenas a recomendação e a referência."
           >
@@ -942,9 +1608,18 @@ function LeadsPage() {
             <p className="mt-2 text-xs text-navy/60">
               Despesas de terceiros são sempre do cliente: o Clube não antecipa nem reembolsa. Nenhum valor ou link de cobrança é editável aqui.
             </p>
-          </Secao>
+            {/*
+              Frente 2 (19/10/2026): conecta esta tela à fonte real de
+              Produto-Pai — PP-01–09, planner_catalog_feed — para a
+              recomendação acima ser escolhida olhando o catálogo vivo, não
+              só rótulos fixos. Mesmo componente de /catalogo; sem query nova.
+            */}
+            <div data-leads-produto-pai-real className="mt-4">
+              <PlanejadorProdutosPai />
+            </div>
+          </FichaSecao>
 
-          <Secao
+          <FichaSecao
             titulo="Comercial e formalização"
             descricao="Preço, SKU e link de pagamento não são campo livre: registre apenas referência interna."
           >
@@ -1012,9 +1687,9 @@ function LeadsPage() {
             <p className="mt-3 text-xs text-navy/55">
               Resultado comercial derivado: <strong>{resultadoComercialDerivado(editado)}</strong>
             </p>
-          </Secao>
+          </FichaSecao>
 
-          <div className="flex flex-wrap items-start gap-2">
+          <div className="sticky bottom-0 flex flex-wrap items-start gap-2 border-t border-border bg-background py-3">
             {Object.keys(rascunho).length ? (
               <AcaoOperacional
                 rotulo={mutSalvar.isPending ? "Gravando…" : "Gravar"}
@@ -1055,8 +1730,10 @@ function LeadsPage() {
             Listas controladas em uso: {Object.keys(CATALOGOS).length} campos classificatórios. Entrada fora da lista é recusada no
             servidor e no banco.
           </p>
+          </FichaSecoes>
         </div>
-      </div>
+        </SheetContent>
+      </Sheet>
 
       {/*
         27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). Fluxo
@@ -1074,9 +1751,25 @@ function LeadsPage() {
         </Link>
       </p>
 
-      <div id="crm-templates" className="mt-6 scroll-mt-24">
-        <TemplatesWhatsapp />
-      </div>
+      <button
+        type="button"
+        id="crm-templates"
+        className="mt-6 rounded-lg border border-navy/20 px-3 py-2 text-xs font-medium text-navy hover:bg-navy/5"
+        onClick={() => setTemplatesAberto(true)}
+      >
+        Templates de WhatsApp
+      </button>
+      <Sheet open={templatesAberto} onOpenChange={setTemplatesAberto}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>Templates de WhatsApp</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <TemplatesWhatsapp />
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <p className="mt-6 rounded-lg border border-navy/15 bg-cream px-3 py-2 text-xs text-navy/70">
         Execução diária fica no Painel Hoje — fila única, sem contagem concorrente.{" "}
         <Link to="/painel" className="underline">

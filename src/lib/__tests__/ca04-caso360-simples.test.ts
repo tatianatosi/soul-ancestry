@@ -8,7 +8,14 @@ const pagina = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx",
 
 describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)", () => {
   it("acima da dobra mostra exatamente os seis campos exigidos", () => {
-    for (const campo of ["Situação hoje", "Próxima ação", "Responsável", "Prazo", "Motivo", "Impacto"]) {
+    for (const campo of [
+      "Situação hoje",
+      "Próxima ação",
+      "Responsável",
+      "Prazo",
+      "Motivo",
+      "Impacto",
+    ]) {
       expect(pagina, `campo ausente: ${campo}`).toContain(campo);
     }
   });
@@ -17,7 +24,14 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     const inicioHero = pagina.indexOf("<CaseHealthHero");
     const fimHero = pagina.indexOf("{erro ? (");
     const hero = pagina.slice(inicioHero, fimHero);
-    for (const cta of ["Concluir", "Reprogramar", "Criar tarefa", "Registrar atualização", "Preparar microentrega", "Abrir Visão Administrativa do Cliente"]) {
+    for (const cta of [
+      "Concluir",
+      "Reprogramar",
+      "Criar tarefa",
+      "Registrar atualização",
+      "Preparar microentrega",
+      "Abrir Visão Administrativa do Cliente",
+    ]) {
       expect(hero, `CTA ausente no hero: ${cta}`).toContain(cta);
     }
   });
@@ -42,7 +56,13 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
   });
 
   it("a lista de recentes cobre tarefas, atualizações, documentos, microentregas e alertas — sem novo fetch de tabela nova", () => {
-    for (const rotulo of ["Tarefas", "Atualizações recentes", "Documentos prioritários", "Microentregas recentes", "Alertas críticos"]) {
+    for (const rotulo of [
+      "Tarefas",
+      "Atualizações recentes",
+      "Documentos prioritários",
+      "Microentregas recentes",
+      "Alertas críticos",
+    ]) {
       expect(pagina).toContain(rotulo);
     }
     // Fontes vivas já existentes: listarFilaOps (tarefas), listarDocumentos
@@ -58,9 +78,12 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
 
   it("cada CTA chama a ação certa — reusando escritores já existentes, nenhum novo", () => {
     expect(pagina).toContain("mConcluir.mutate()");
-    expect(pagina).toContain('import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions"');
+    expect(pagina).toContain(
+      'import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions"',
+    );
     expect(pagina).toContain("mReprogramar.mutate(novo.trim())");
-    expect(pagina).toContain('document.getElementById("form-tarefa-caso")');
+    // Prettier pode quebrar a cadeia document.getElementById(...) em múltiplas linhas.
+    expect(pagina).toMatch(/document\s*\.getElementById\("form-tarefa-caso"\)/);
     expect(pagina).toContain("mRegistrarAtualizacao.mutate(texto.trim())");
     expect(pagina).toContain('href="#secao-jornada"');
   });
@@ -72,25 +95,30 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
   it("reload mantém estado: toda mutação do hero invalida/recarrega os dados do caso", () => {
     const bloco = pagina.slice(
       pagina.indexOf("const concluirFn = useServerFn(marcarSemNovaAcaoNecessaria)"),
-      pagina.indexOf("function renderCampoRoteiro") === -1 ? pagina.length : pagina.indexOf("function renderCampoRoteiro"),
+      pagina.indexOf("function renderCampoRoteiro") === -1
+        ? pagina.length
+        : pagina.indexOf("function renderCampoRoteiro"),
     );
     // Cada uma das quatro mutações do hero chama recarregar() ou invalida a
     // query de tarefas — nenhuma deixa a tela com dado velho depois de salvar.
     const trechoMutacoes = pagina.slice(
       pagina.indexOf("const concluirFn = useServerFn(marcarSemNovaAcaoNecessaria)"),
-      pagina.indexOf("<AbaFechamento") === -1 ? pagina.length : pagina.indexOf("const mSalvar = useMutation") + 5000,
+      pagina.indexOf("<AbaFechamento") === -1
+        ? pagina.length
+        : pagina.indexOf("const mSalvar = useMutation") + 5000,
     );
     expect(trechoMutacoes).toContain("recarregar();");
     expect(trechoMutacoes).toContain('queryKey: ["ficha-caso-tarefas", id]');
   });
 
   it("histórico fica recolhido por padrão (details/summary nativos, sem apagar conteúdo)", () => {
-    expect(pagina).toContain('<details id="secao-log"');
+    // Prettier pode quebrar <details\n  id="secao-log" em múltiplas linhas.
+    expect(pagina).toMatch(/<details\s+id="secao-log"/);
     expect(pagina).toContain("<summary");
     expect(pagina).toContain("Histórico");
     // Nada saiu: histórico de fases, registro de alterações e o mapa de
     // persistência continuam todos dentro do details.
-    const inicio = pagina.indexOf('<details id="secao-log"');
+    const inicio = pagina.search(/<details\s+id="secao-log"/);
     const fim = pagina.indexOf("</details>", pagina.indexOf("<MapaPersistenciaCaso", inicio));
     const bloco = pagina.slice(inicio, fim);
     expect(bloco).toContain("Histórico de fases do caso");
@@ -99,11 +127,18 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
   });
 
   it("nenhuma seção original foi removida ou fundida — só recolhida; Documentos e Financeiro somam-se (P24)", () => {
-    const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
-      (m) => m[1] ?? m[2],
-    );
+    const secoes = [
+      ...pagina.matchAll(/<SecaoAncora\s+id="(\w+)"|<details\s+id="secao-(\w+)"/g),
+    ].map((m) => m[1] ?? m[2]);
     expect(secoes).toEqual([
-      "visao", "comercial", "tecnico", "pessoas", "jornada", "documentos", "financeiro", "log",
+      "visao",
+      "comercial",
+      "tecnico",
+      "pessoas",
+      "jornada",
+      "documentos",
+      "financeiro",
+      "log",
     ]);
   });
 
@@ -116,7 +151,7 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     expect(pagina).toContain("sm:grid-cols-2 lg:grid-cols-3");
     expect(pagina).toContain("sm:grid-cols-2 lg:grid-cols-4");
     // A única <table> da página mora dentro da seção recolhida.
-    const antesDoDetails = pagina.slice(0, pagina.indexOf('<details id="secao-log"'));
+    const antesDoDetails = pagina.slice(0, pagina.search(/<details\s+id="secao-log"/));
     expect(antesDoDetails).not.toContain("<table");
   });
 });

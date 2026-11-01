@@ -10,6 +10,8 @@ import { escopoAPartirDePublicacoes, type EscopoCliente } from "@/lib/app-visibi
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
+import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
+import { rotuloAnoArvore } from "@/lib/arvore-publicacao";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -20,6 +22,14 @@ export type DadosPortalComoAdmin = {
   escopo: EscopoCliente;
   /** Mesmo total de `portal_casos.pessoas_mapeadas`: perfis genealógicos ativos do caso. */
   pessoasMapeadas: number;
+  /** Mesmo recorte de `dadosVivosDoPortal`: vínculos aprovados entre pessoas publicadas. */
+  /** Nome da titular (cadastro do cliente do caso) — só nome, para a Conta da prévia. */
+  titularNome: string | null;
+  vinculosArvore: { de: string; para: string; tipo: "pai_mae" | "conjuge" }[];
+  /** 29/10/2026 — anos autorizados por pessoa publicada (mesmo recorte do portal). */
+  anosArvore: { pessoa_id: string; rotulo: string }[];
+  /** Régua das 5 etapas, estado do caso e perfil da titular (13/10/2026). */
+  resumoCaso: ResumoCasoCliente | null;
 };
 
 /**
@@ -86,7 +96,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .lte("effective_from", agora),
       supabase
         .from("documents")
-        .select("id, liberado_cliente, origem")
+        .select("id, liberado_cliente, origem, titulo, liberado_em")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId),
       supabase
@@ -121,7 +131,67 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     const pagamentoPendente =
       linhasDe<{ id: string }>(faturas, "as faturas deste caso").length > 0;
 
+    const publicadosArvore = new Set(
+      projecoes
+        .filter((p: any) => String(p.projection_type ?? "").toLowerCase() === "arvore" && p.pessoa_id)
+        .map((p: any) => String(p.pessoa_id)),
+    );
+    const rel = await supabase
+      .from("genealogical_relationships")
+      .select("person_from_id, person_to_id, relation_type")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.casoId)
+      .eq("client_visibility", "aprovada")
+      .is("archived_at", null)
+      .in("relation_type", ["pai_mae", "conjuge"]);
+    const vinculosArvore = ((rel.data ?? []) as any[])
+      .filter((r) => publicadosArvore.has(String(r.person_from_id)) && publicadosArvore.has(String(r.person_to_id)))
+      .map((r) => ({
+        de: String(r.person_from_id),
+        para: String(r.person_to_id),
+        tipo: r.relation_type === "conjuge" ? ("conjuge" as const) : ("pai_mae" as const),
+      }));
+
+    // 29/10/2026 — anos do cartão da Árvore: só perfil aprovado do próprio
+    // caso, pessoa já publicada, data registrada. Falha devolve lista vazia.
+    let anosArvore: { pessoa_id: string; rotulo: string }[] = [];
+    if (publicadosArvore.size > 0) {
+      try {
+        const prof = await supabase
+          .from("genealogical_person_profiles")
+          .select("research_person_id, nascimento_data, nascimento_precisao, morte_data, morte_precisao")
+          .eq("organization_id", organizationId)
+          .eq("case_id", data.casoId)
+          .eq("client_visibility", "aprovada")
+          .is("archived_at", null)
+          .or("nascimento_data.not.is.null,morte_data.not.is.null")
+          .in("research_person_id", [...publicadosArvore]);
+        anosArvore = ((prof.data ?? []) as any[])
+          .map((r) => ({ pessoa_id: String(r.research_person_id), rotulo: rotuloAnoArvore(r) }))
+          .filter((a): a is { pessoa_id: string; rotulo: string } => Boolean(a.rotulo));
+      } catch {
+        anosArvore = [];
+      }
+    }
+
+    let titularNome: string | null = null;
+    if ((caso as any).cliente_id) {
+      const cli = await supabase
+        .from("clientes")
+        .select("nome")
+        .eq("organization_id", organizationId)
+        .eq("id", (caso as any).cliente_id)
+        .maybeSingle();
+      titularNome = ((cli.data as any)?.nome as string | undefined)?.trim() || null;
+    }
+
+    const resumoCaso = await lerResumoCaso(supabase, data.casoId).catch(() => null);
+
     return {
+      resumoCaso,
+      titularNome,
+      vinculosArvore,
+      anosArvore,
       projecoes,
       documentos,
       pessoasMapeadas: Math.max(0, Number(mapeadas.count ?? 0)),

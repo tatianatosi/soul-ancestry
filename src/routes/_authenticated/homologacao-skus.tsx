@@ -7,6 +7,8 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -82,6 +84,8 @@ function HomologacaoSkusPage() {
   const [filtro, setFiltro] = useState<Filtro>("todos");
 
   const resumo = resumoRevisao(itens, decisoes);
+  // V4-05: sem leitura concluída o KPI mostra traço — zero só quando a lista real é vazia.
+  const kpi = (v: string | number) => (q.isLoading ? "…" : q.error || !skus ? "—" : String(v));
   const decisaoDe = (id: string) => decisoes[id] ?? "pendente";
   const decidir = (id: string, d: DecisaoRevisao) => setDecisoes((a) => ({ ...a, [id]: d }));
 
@@ -103,7 +107,10 @@ function HomologacaoSkusPage() {
       const entrada = { itens, decisoes, motivo, confirmado };
       setErros(validarConfirmacaoLote(entrada));
       const ids = selecaoHomologavel(entrada);
-      if (!ids.length) return null;
+      if (!ids.length) {
+        // 26/10/2026: antes devolvia null e o diálogo fechava sem dizer nada.
+        throw new Error("Nenhum SKU marcado para homologar. Marque ao menos um item antes de confirmar.");
+      }
       return confirmar({
         data: { ids, motivo: motivo.trim() || motivoConfirmacao.trim() },
       });
@@ -128,19 +135,15 @@ function HomologacaoSkusPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {[
-          { r: "SKUs ativos em revisão", v: resumo.total },
-          { r: "Já revisados", v: `${resumo.revisados}/${resumo.total}` },
-          { r: "Marcados para homologar", v: resumo.marcados_homologar },
-          { r: "Elegíveis (sem pendência)", v: resumo.elegiveis },
-          { r: "Bloqueados por pendência", v: resumo.bloqueados },
-        ].map((c) => (
-          <div key={c.r} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-            <p className="text-xs uppercase tracking-wide text-navy/50">{c.r}</p>
-            <p className="mt-1 font-serif text-2xl text-navy">{c.v}</p>
-          </div>
-        ))}
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-homologacao-kpis-v4>
+        <Indicador
+          rotulo="Já revisados"
+          valor={kpi(`${resumo.revisados}/${resumo.total}`)}
+          apoio="de SKUs ativos em revisão"
+        />
+        <Indicador rotulo="Marcados para homologar" valor={kpi(resumo.marcados_homologar)} />
+        <Indicador rotulo="Elegíveis (sem pendência)" valor={kpi(resumo.elegiveis)} />
+        <Indicador rotulo="Bloqueados por pendência" valor={kpi(resumo.bloqueados)} />
       </section>
 
       <section className="mt-4 flex flex-wrap items-center gap-2">
@@ -277,9 +280,8 @@ function HomologacaoSkusPage() {
         </EstadoDados>
       </section>
 
-      <section className="mt-6 rounded-xl border border-navy/15 bg-cream/40 p-4">
-        <h2 className="font-serif text-xl text-navy">Confirmar homologação em lote</h2>
-        <p className="mt-1 text-xs text-navy/60">
+      <CaCard className="mt-6" titulo="Confirmar homologação em lote">
+        <p className="text-xs text-navy/60">
           Só entram no lote os SKUs marcados como “Homologar” e sem pendência bloqueante. Todos os itens precisam ter
           decisão registrada.
         </p>
@@ -343,7 +345,7 @@ function HomologacaoSkusPage() {
             ) : null}
           </div>
         ) : null}
-      </section>
+      </CaCard>
     </SaasShell>
   );
 }

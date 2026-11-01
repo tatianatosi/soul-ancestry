@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { statusEnvioRecuperacao } from "@/lib/equipe.functions";
 
 const ACAO_LABEL: Record<string, string> = {
@@ -120,7 +121,7 @@ export function StatusEnvioRecuperacao() {
 
 
       {q.isLoading ? (
-        <p className="mt-4 text-sm text-navy/60">Carregando…</p>
+        <div className="mt-4"><CarregandoDesk linhas={1} rotulo="Carregando o status do envio" /></div>
       ) : q.error ? (
         <p className="mt-4 text-sm text-terracotta">{(q.error as Error).message}</p>
       ) : (

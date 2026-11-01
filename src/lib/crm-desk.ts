@@ -688,15 +688,18 @@ export function validarLead(l: LeadDesk, livre = false): ErroValidacao[] {
     erros.push({ campo: "contrato_link_interno", motivo: "Contrato assinado exige link interno do contrato." });
   }
 
+  // 27/10/2026 (item 5 da auditoria pré-lançamento, autorizado — "libere
+  // todas as proteções do item 5"): ganham !livre, como as demais regras de
+  // eixo_comercial/eixo_formalizacao acima.
   const pagos = ["pagamento_inicial_confirmado", "cliente_ativo", "onboarding_iniciado", "caso_ativo"];
-  if (pagos.includes(String(l.eixo_formalizacao)) && vazio(l.asaas_evento_referencia)) {
+  if (!livre && pagos.includes(String(l.eixo_formalizacao)) && vazio(l.asaas_evento_referencia)) {
     erros.push({
       campo: "asaas_evento_referencia",
       motivo: "Pagamento inicial confirmado exige referência ao evento transacional do Asaas.",
     });
   }
 
-  if (String(l.eixo_formalizacao) === "onboarding_iniciado" && vazio(l.asaas_evento_referencia)) {
+  if (!livre && String(l.eixo_formalizacao) === "onboarding_iniciado" && vazio(l.asaas_evento_referencia)) {
     erros.push({ campo: "eixo_formalizacao", motivo: "Onboarding não inicia sem pagamento inicial confirmado." });
   }
 
@@ -730,26 +733,28 @@ export function validarLead(l: LeadDesk, livre = false): ErroValidacao[] {
   }
 
   const consentido = String(l.consentimento_status) === "concedido";
-  if (consentido) {
+  if (!livre && consentido) {
     if (vazio(l.consentimento_em)) erros.push({ campo: "consentimento_em", motivo: "Consentimento concedido exige data/hora do registro." });
     if (vazio(l.consentimento_canal)) erros.push({ campo: "consentimento_canal", motivo: "Consentimento concedido exige canal do registro." });
     if (vazio(l.consentimento_versao_aviso)) {
       erros.push({ campo: "consentimento_versao_aviso", motivo: "Consentimento concedido exige a versão do aviso apresentada." });
     }
   }
-  if (!consentido && !vazio(l.gravacao_link_interno)) {
+  if (!livre && !consentido && !vazio(l.gravacao_link_interno)) {
     erros.push({
       campo: "gravacao_link_interno",
       motivo: "Gravação/transcrição só é permitida com consentimento concedido, datado, com canal e versão do aviso.",
     });
   }
 
-  if (["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
+  // 27/10/2026: esta era a duplicata não liberada da mesma regra já livre na
+  // linha 708 — agora as duas tratam !livre do mesmo jeito.
+  if (!livre && ["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
     if (vazio(l.confianca_triagem)) erros.push({ campo: "confianca_triagem", motivo: "Sinal forte/provável exige confiança da triagem." });
     if (vazio(l.linha_transmissao)) erros.push({ campo: "linha_transmissao", motivo: "Sinal forte/provável exige linha de transmissão." });
   }
 
-  if ((l.pesquisa_previa_escopo ?? []).length > 0 && String(l.pesquisa_previa_autorizacao) !== "registrada") {
+  if (!livre && (l.pesquisa_previa_escopo ?? []).length > 0 && String(l.pesquisa_previa_autorizacao) !== "registrada") {
     erros.push({ campo: "pesquisa_previa_escopo", motivo: "Escopo de pesquisa prévia exige autorização registrada." });
   }
   if ((l.pesquisa_previa_escopo ?? []).some((e) => !PESQUISA_PREVIA_ESCOPO.some((o) => o.valor === e))) {
