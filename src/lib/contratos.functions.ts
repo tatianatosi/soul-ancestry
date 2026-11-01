@@ -2076,3 +2076,27 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
 
     return { papel, instrumentos };
   });
+
+/** Histórico do banco antigo guardado em `contract_history_imports` (somente leitura; a RLS libera admin/operações). */
+export const historicoImportadoDoContrato = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contexto(supabase, context.userId as string);
+    const { data: linhas, error } = await supabase
+      .from("contract_history_imports")
+      .select("id,source_table,source_created_at,payload,import_note")
+      .eq("organization_id", organizationId)
+      .eq("contract_id", data.contract_id)
+      .order("source_created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (linhas ?? []) as {
+      id: string;
+      source_table: string;
+      source_created_at: string | null;
+      payload: Record<string, string | number | boolean | null | object> | null;
+      import_note: string | null;
+    }[];
+  });

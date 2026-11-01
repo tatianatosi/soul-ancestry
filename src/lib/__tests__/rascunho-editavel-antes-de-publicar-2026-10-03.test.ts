@@ -84,7 +84,8 @@ describe("Rascunho editável com persistência — o passo que faltava antes de 
   it("a tela de microentregas salva rascunho em vez de publicar direto, e monta o painel de revisão", () => {
     const rota = readFileSync("src/routes/_authenticated/golive.microentregas.tsx", "utf8");
     expect(rota).toContain("salvarRascunhoProjecaoApp");
-    expect(rota).not.toContain("publicarNoAppGoLive");
+    // 31/10/2026: publicar vem de AcaoPublicarNoApp, só para microentrega concluída.
+    expect(rota).toContain("publicarAgora");
     expect(rota).toContain("<RascunhosApp />");
   });
 

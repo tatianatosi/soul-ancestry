@@ -29,8 +29,10 @@ describe("Título do Desk não quebra letra por letra no celular", () => {
   });
 
   it("o título continua podendo quebrar por palavra, nunca cortado", () => {
-    // 31/10/2026: versão aplicada pela Proprietária reduz o título no celular (text-2xl) e mantém 3xl a partir de sm.
-    expect(shell).toContain('<h1 className="break-words font-serif text-2xl leading-tight text-navy sm:text-3xl">{titulo}</h1>');
+    // 31/10/2026 — decisão da Proprietária: título menor no celular (`text-2xl`) e `sm:text-3xl` a partir de sm:.
+    expect(shell).toContain(
+      '<h1 className="break-words font-serif text-2xl leading-tight text-navy sm:text-3xl">{titulo}</h1>',
+    );
     expect(shell).not.toContain("break-all");
   });
 });

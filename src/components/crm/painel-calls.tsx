@@ -68,6 +68,7 @@ import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 import { filaCrmVivo, statusPedeMotivo } from "@/lib/crm-vivo";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
 
 /** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
 const CATALOGO_MULTI: Record<string, Opcao[]> = {
@@ -1113,6 +1114,8 @@ export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string
                 passa a ter uma única superfície editável (o card SPIN),
                 nunca duas.
               */}
+              {/* 31/10/2026 — fontes do país do lead no roteiro Discovery: cobertura e sugestão de fonte. */}
+              <FontesPorPaisPainel paisValor={lead.pais_linha_prioritaria} className="mb-3" />
               <div id="calls-roteiro-vivo" className="scroll-mt-24" />
               <MesaDiscovery
                 lead={lead}
