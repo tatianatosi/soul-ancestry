@@ -12,7 +12,6 @@ import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos
 import { DeParaSkuProdutoPai } from "@/components/catalogo/de-para-sku-produto-pai";
 import { PrecosProdutosPaiCrud } from "@/components/catalogo/precos-produtos-pai-crud";
 import { AuditoriaCatalogo } from "@/components/catalogo/auditoria-catalogo";
-import { PortfolioMestreCruzamento } from "@/components/catalogo/portfolio-mestre-cruzamento";
 import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
   ROTULO_DIVERGENCIA,
@@ -37,8 +36,7 @@ export const Route = createFileRoute("/_authenticated/catalogo")({
       { property: "og:title", content: "Catálogo homologado — Clube Ancestral Desk" },
       {
         property: "og:description",
-        content:
-          "Leitura do catálogo canônico importado, divergências e estado de reconciliação Asaas.",
+        content: "Leitura do catálogo canônico importado, divergências e estado de reconciliação Asaas.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -48,9 +46,7 @@ export const Route = createFileRoute("/_authenticated/catalogo")({
 });
 
 const moedaBR = (v: number | null, moeda: string) =>
-  v === null
-    ? "—"
-    : new Intl.NumberFormat("pt-BR", { style: "currency", currency: moeda || "BRL" }).format(v);
+  v === null ? "—" : new Intl.NumberFormat("pt-BR", { style: "currency", currency: moeda || "BRL" }).format(v);
 
 function CatalogoPage() {
   const carregar = useServerFn(lerCatalogoImportado);
@@ -72,8 +68,7 @@ function CatalogoPage() {
     }
     return [...porProdutoPai.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [itens]);
-  const kpi = (n: number | undefined) =>
-    q.isLoading ? "…" : q.error || n === undefined ? "—" : String(n);
+  const kpi = (n: number | undefined) => (q.isLoading ? "…" : q.error || n === undefined ? "—" : String(n));
 
   return (
     <SaasShell
@@ -111,57 +106,48 @@ function CatalogoPage() {
         >
           {() =>
             grupos.map(([produtoPai, lista]) => (
-              <CaCard
-                key={produtoPai}
-                titulo={produtoPai}
-                eyebrow="Produto-pai"
-                className="overflow-hidden"
-              >
+              <CaCard key={produtoPai} titulo={produtoPai} eyebrow="Produto-pai" className="overflow-hidden">
                 <div className="-mx-4 overflow-x-auto sm:-mx-5">
-                  <table className="w-full text-left text-xs">
-                    <thead className="text-navy/60">
-                      <tr>
-                        <th className="p-3">Produto</th>
-                        <th className="p-3">Contexto</th>
-                        <th className="p-3">Status de condição</th>
-                        <th className="p-3">Origem</th>
-                        <th className="p-3">Asaas (reconciliação)</th>
-                        <th className="p-3">SKU (técnico)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lista.map((i) => {
-                        const sel = elegivelParaPropostaReal(i);
-                        return (
-                          <tr key={i.sku} className="border-t border-navy/5 align-top">
-                            <td className="p-3 text-navy/85">
-                              {i.produto}
-                              <p className="mt-1 text-[11px] text-navy/50">
-                                {moedaBR(i.preco_sugerido, i.moeda)}
-                              </p>
-                            </td>
-                            <td className="p-3 text-navy/60">{i.tipo_oferta}</td>
-                            <td className="p-3">
-                              {sel.permitido ? (
-                                <Etiqueta texto="Elegível para proposta" tom="sucesso" />
-                              ) : (
-                                <span className="text-terracotta">{sel.motivo}</span>
-                              )}
-                            </td>
-                            <td className="p-3 text-navy/50">
-                              Planilha Mestre {i.fonte_versao ?? "—"} · linha {i.fonte_linha ?? "—"}
-                            </td>
-                            <td className="p-3 text-navy/60">
-                              {ROTULO_LINK_FONTE[i.status_link_asaas_fonte ?? ""] ??
-                                i.status_link_asaas_fonte ??
-                                "—"}
-                            </td>
-                            <td className="p-3 font-mono text-navy/45">{i.sku}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <table className="w-full text-left text-xs">
+                  <thead className="text-navy/60">
+                    <tr>
+                      <th className="p-3">Produto</th>
+                      <th className="p-3">Contexto</th>
+                      <th className="p-3">Status de condição</th>
+                      <th className="p-3">Origem</th>
+                      <th className="p-3">Asaas (reconciliação)</th>
+                      <th className="p-3">SKU (técnico)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lista.map((i) => {
+                      const sel = elegivelParaPropostaReal(i);
+                      return (
+                        <tr key={i.sku} className="border-t border-navy/5 align-top">
+                          <td className="p-3 text-navy/85">
+                            {i.produto}
+                            <p className="mt-1 text-[11px] text-navy/50">{moedaBR(i.preco_sugerido, i.moeda)}</p>
+                          </td>
+                          <td className="p-3 text-navy/60">{i.tipo_oferta}</td>
+                          <td className="p-3">
+                            {sel.permitido ? (
+                              <Etiqueta texto="Elegível para proposta" tom="sucesso" />
+                            ) : (
+                              <span className="text-terracotta">{sel.motivo}</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-navy/50">
+                            Planilha Mestre {i.fonte_versao ?? "—"} · linha {i.fonte_linha ?? "—"}
+                          </td>
+                          <td className="p-3 text-navy/60">
+                            {ROTULO_LINK_FONTE[i.status_link_asaas_fonte ?? ""] ?? i.status_link_asaas_fonte ?? "—"}
+                          </td>
+                          <td className="p-3 font-mono text-navy/45">{i.sku}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
                 </div>
               </CaCard>
             ))
@@ -181,10 +167,7 @@ function CatalogoPage() {
           {(lista) => (
             <ul className="mt-3 space-y-2">
               {lista.map((d) => (
-                <li
-                  key={`${d.sku}-${d.tipo}`}
-                  className="rounded-xl border border-navy/10 bg-cream/40 p-3 text-xs"
-                >
+                <li key={`${d.sku}-${d.tipo}`} className="rounded-xl border border-navy/10 bg-cream/40 p-3 text-xs">
                   <p className="font-medium text-navy/85">
                     {d.sku} — {ROTULO_DIVERGENCIA[d.tipo as TipoDivergencia] ?? d.tipo}
                   </p>
@@ -198,8 +181,6 @@ function CatalogoPage() {
           )}
         </EstadoDados>
       </CaCard>
-
-      <PortfolioMestreCruzamento itens={itens} carregando={q.isLoading} />
 
       <AuditoriaCatalogo />
 

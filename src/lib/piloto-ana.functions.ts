@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
-import { contextoRg, PAPEIS_EDITA } from "@/lib/pesquisa-modulo.server";
-import { derivarPendenciasPiloto, NUCLEO_PILOTO, PILOTO_ANA, type MembroPiloto } from "@/lib/piloto-ana";
+import { derivarPendenciasPiloto, NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { semCache } from "@/lib/no-store";
 import { gravarComVerificacao, exigirLinhaGravada } from "@/lib/persistencia.server";
@@ -27,41 +26,23 @@ const CODIGOS_BUSCA_PILOTO = [
   ...(PILOTO_ANA.id_canonico_decidido ? [PILOTO_ANA.id_canonico_decidido] : []),
 ];
 
-/**
- * Religação 31/10/2026 — o caso vem SEMPRE do que foi escolhido no Caso 360
- * (`caseId`), nunca de uma busca pelos códigos da Ana. Os dados fixos da Ana
- * (`PILOTO_ANA`, `NUCLEO_PILOTO`) só valem para o caso cujo código é um dos
- * identificadores dela; qualquer outro caso usa o próprio dado.
- */
-async function localizar(supabase: any, organizationId: string, caseId: string) {
+async function localizar(supabase: any, organizationId: string) {
   const { data } = await supabase
     .from("crm_casos")
     .select("*")
     .eq("organization_id", organizationId)
-    .eq("id", caseId)
+    .or(CODIGOS_BUSCA_PILOTO.map((c) => `codigo.eq.${c}`).join(","))
     .maybeSingle();
   return (data ?? null) as Linha | null;
 }
 
-/** O caso escolhido é o caso da Ana Luiza (único com núcleo semeado a partir de `NUCLEO_PILOTO`)? */
-function ehCasoDaAna(caso: Linha | null): boolean {
-  return !!caso && CODIGOS_BUSCA_PILOTO.includes(String(caso.codigo));
-}
-
-async function organizacaoQueEdita(supabase: any, userId: string, acao: string) {
-  const { organizationId, papel } = await contextoRg(supabase, userId);
-  if (!PAPEIS_EDITA.includes(papel)) throw new Error(`Seu papel não pode ${acao}.`);
-  return organizationId as string;
-}
-
 export const carregarPilotoAna = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { caseId: string }) => data)
-  .handler(async ({ context, data }) => {
+  .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
-    const caso = await localizar(supabase, organizationId, data.caseId);
+    const caso = await localizar(supabase, organizationId);
     if (!caso) return { caso: null, nucleos: [], membros: [], eventos: [], pendencias: [] };
     const [nucleos, eventos, contrato, ordemServico] = await Promise.all([
       supabase.from("nucleos_familiares").select("*").eq("case_id", caso.id).is("archived_at", null),
@@ -108,23 +89,37 @@ export const carregarPilotoAna = createServerFn({ method: "GET" })
     };
   });
 
-/**
- * Materializa o núcleo familiar do caso escolhido, internamente. Não dispara
- * contrato, cobrança, assinatura nem comunicação. No caso da Ana semeia os
- * participantes conferidos dela; em qualquer outro caso cria o núcleo vazio a
- * partir do cliente do próprio caso — nada de família alheia.
- */
+/** Cria o caso-piloto e o núcleo internamente. Não dispara contrato, cobrança, assinatura nem comunicação. */
 export const materializarPilotoAna = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { caseId: string }) => data)
-  .handler(async ({ context, data: entrada }) => {
+  .handler(async ({ context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoQueEdita(supabase, context.userId as string, "materializar o núcleo do caso");
-    const caso = await localizar(supabase, organizationId, entrada.caseId);
-    if (!caso) throw new Error("Caso não encontrado nesta organização.");
-    const casoDaAna = ehCasoDaAna(caso);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    let caso = await localizar(supabase, organizationId);
 
-    if (casoDaAna) {
+    if (!caso) {
+      const { data, error } = await supabase
+        .from("crm_casos")
+        .insert({
+          organization_id: organizationId,
+          codigo: CODIGO_BASE,
+          titulo: `${PILOTO_ANA.nome} — cidadania familiar ${PILOTO_ANA.pais}`,
+          pais: PILOTO_ANA.pais,
+          via: PILOTO_ANA.referencia_juridica_interna,
+          responsavel_principal: PILOTO_ANA.responsavel,
+          eixo_comercial: "confirmacao_formal_recebida",
+          eixo_formalizacao: "formalizacao_em_preparacao",
+          data_confirmacao_formal_proposta: PILOTO_ANA.aceite_formal_confirmado_em,
+          alias_historico: PILOTO_ANA.ids_historicos.join(" | "),
+          ids_historicos: PILOTO_ANA.ids_historicos,
+          resumo_interno: PILOTO_ANA.proposta_observacao,
+          proposta_referencia_interna: `Proposta de referência interna: R$ ${PILOTO_ANA.proposta_referencia_valor} — ${PILOTO_ANA.proposta_referencia_participantes} participantes (evidência interna, não é cobrança).`,
+        })
+        .select("*")
+        .single();
+      if (error) throw new Error(`Não foi possível registrar o caso-piloto: ${error.message}`);
+      caso = data as Linha;
+    } else {
       await gravarComVerificacao({
         supabase,
         tabela: "crm_casos",
@@ -140,30 +135,6 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
       });
     }
 
-    let nomeDoCliente: string | null = null;
-    if (caso.cliente_id) {
-      const { data: cli } = await supabase
-        .from("clientes")
-        .select("nome")
-        .eq("id", caso.cliente_id)
-        .eq("organization_id", organizationId)
-        .maybeSingle();
-      nomeDoCliente = (cli?.nome as string | undefined) ?? null;
-    }
-    const membrosASemear: MembroPiloto[] = casoDaAna
-      ? NUCLEO_PILOTO
-      : nomeDoCliente
-        ? [
-            {
-              nome: nomeDoCliente,
-              papel: "contratante_signatario",
-              signatario: true,
-              situacao: "cadastro em conferência",
-              observacao: "Contratante do caso.",
-            },
-          ]
-        : [];
-
     const { data: nucleoExistente } = await supabase
       .from("nucleos_familiares")
       .select("*")
@@ -178,9 +149,9 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
         .insert({
           organization_id: organizationId,
           case_id: caso.id,
-          nome: casoDaAna ? "Núcleo Silveira Rodrigues" : `Núcleo — ${String(caso.titulo ?? caso.codigo ?? "caso")}`,
-          contratante_nome: casoDaAna ? PILOTO_ANA.nome : nomeDoCliente,
-          descricao: casoDaAna ? "Adriel Felipe não integra este caso: processo separado, fora de escopo." : null,
+          nome: "Núcleo Silveira Rodrigues",
+          contratante_nome: PILOTO_ANA.nome,
+          descricao: "Adriel Felipe não integra este caso: processo separado, fora de escopo.",
         })
         .select("id")
         .single();
@@ -202,7 +173,7 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
     const clientes = (clientesOrg ?? []) as { id: string; nome: string }[];
 
     let ordem = 0;
-    for (const m of membrosASemear) {
+    for (const m of NUCLEO_PILOTO) {
       ordem += 1;
       const existente = membrosPorNome.get(m.nome);
       const clienteId = clienteCorrespondentePorNome(m.nome, clientes);
@@ -246,15 +217,8 @@ export const definirIdCanonicoPiloto = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string; idCanonico: string; decididoPor: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoQueEdita(supabase, context.userId as string, "decidir o ID canônico");
-    const caso = await localizar(supabase, organizationId, data.caseId);
-    if (!caso) throw new Error("Caso não encontrado nesta organização.");
-    // O canônico é escolhido entre os identificadores do PRÓPRIO caso (código atual + históricos).
-    const identificadoresDoCaso = [
-      String(caso.codigo ?? ""),
-      ...(((caso.ids_historicos as string[] | null) ?? []) as string[]),
-    ].filter(Boolean);
-    if (!identificadoresDoCaso.includes(data.idCanonico)) {
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    if (!PILOTO_ANA.ids_historicos.includes(data.idCanonico)) {
       throw new Error("O ID canônico deve ser um dos identificadores históricos preservados. Nenhum terceiro ID é criado automaticamente.");
     }
     await gravarComVerificacao({

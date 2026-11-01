@@ -1,7 +1,6 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { capturarErroProducao } from "./lib/producao-erros.server";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
 const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
@@ -14,11 +13,6 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
       throw error;
     }
     console.error(error);
-    capturarErroProducao(error, {
-      origem: "servidor",
-      mecanismo: "request_middleware",
-      rota: new URL(request.url).pathname,
-    });
     return new Response(renderErrorPage(), {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },
@@ -48,3 +42,4 @@ export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth, noStoreMiddleware],
   requestMiddleware: [errorMiddleware],
 }));
+

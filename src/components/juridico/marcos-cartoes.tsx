@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
-import { RadarMarcosCasos } from "@/components/juridico/radar-marcos-casos";
 
 /**
  * Marcos jurídicos em cartões (rodada 4, 18/10/2026). Só leitura: trilha ›
@@ -60,7 +59,6 @@ export function MarcosJuridicosCartoes() {
           ))}
         </div>
       )}
-      <RadarMarcosCasos />
     </section>
   );
 }

@@ -29,7 +29,6 @@ import {
   salvarFonte,
 } from "@/lib/fontes-genealogicas.functions";
 import { toast } from "sonner";
-import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
 
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Selecao, Texto } from "@/components/caso/campos";
@@ -613,8 +612,6 @@ function FontesGenealogicas() {
       </div>
 
       <MarcosJuridicosPorPais />
-
-      <FontesPorPaisPainel />
 
       <div className="grid gap-5 lg:grid-cols-2">
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">

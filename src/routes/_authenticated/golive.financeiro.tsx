@@ -24,8 +24,7 @@ import {
 import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { Button } from "@/components/ui/button";
-import { registrarFaturaGoLive, registrarPagamentoGoLive } from "@/lib/golive-escritores.functions";
-import { AcaoPagamento, faturasAbertas } from "@/components/golive/acoes-registro";
+import { registrarFaturaGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/financeiro")({
@@ -64,7 +63,6 @@ function FinanceiroGoLive() {
 
   const contratoAssinado = (caso?.contratos ?? []).some((c) => c.status === "signed" || Boolean(c.assinadoEm));
   const novaFatura = useEscritorGoLive(registrarFaturaGoLive);
-  const novoPagamento = useEscritorGoLive(registrarPagamentoGoLive);
 
   const acaoFatura = contratoAssinado ? (
     <Acao
@@ -232,23 +230,6 @@ function FinanceiroGoLive() {
       </Bloco>
 
       <Bloco titulo="Pagamentos">
-        {faturasAbertas(faturas).length ? (
-          <Acoes>
-            <AcaoPagamento
-              faturas={faturas}
-              aoConfirmar={(v) =>
-                novoPagamento({
-                  data: {
-                    faturaId: v["faturaId"] ?? "",
-                    valor: Number(v["valor"]),
-                    metodo: v["metodo"] ?? "",
-                    pagoEm: v["pagoEm"] ?? "",
-                  },
-                })
-              }
-            />
-          </Acoes>
-        ) : null}
         {pagamentos.length ? (
           <ul className="space-y-1 text-sm text-navy">
             {pagamentos.map((p) => (

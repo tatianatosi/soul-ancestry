@@ -3,7 +3,6 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
-import { contextoRg } from "@/lib/pesquisa-modulo.server";
 import {
   deveCriarSnapshotInstitucional,
   montarPayloadInstitucional,
@@ -12,18 +11,6 @@ import {
 } from "@/lib/perfil-institucional-persistido";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-/** Quem pode registrar perfil/snapshot institucional (religação de 31/10/2026). */
-const PAPEIS_PERFIL_INSTITUCIONAL = ["admin", "operacoes"];
-
-/** Organização da sessão + papel; recusa quem não pode gravar o perfil institucional. */
-async function organizacaoDeQuemGrava(supabase: any, userId: string): Promise<string> {
-  const { organizationId, papel } = await contextoRg(supabase, userId);
-  if (!PAPEIS_PERFIL_INSTITUCIONAL.includes(papel)) {
-    throw new Error("Seu papel não pode registrar o perfil institucional.");
-  }
-  return organizationId;
-}
 
 /**
  * CA12-PERFIL (09/09/2026) — leitura sem `.eq("organization_id", ...)`
@@ -88,11 +75,9 @@ export const garantirPerfilInstitucionalDaSessao = createServerFn({ method: "POS
 /** Registra (ou reaproveita) a versão institucional vigente da organização. */
 export const registrarPerfilInstitucional = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { whatsappConfigurado?: boolean }) => data)
+  .inputValidator((data: { organizationId: string; whatsappConfigurado?: boolean }) => data)
   .handler(async ({ context, data }) => {
     const supabase = (context as any).supabase;
-    // A organização vem da sessão, nunca do cliente (religação 31/10/2026).
-    const organizationId = await organizacaoDeQuemGrava(supabase, (context as any).userId);
     const payload = montarPayloadInstitucional(!!data.whatsappConfigurado);
     const violacoes = violacoesDoPayload(payload);
     if (violacoes.length) throw new Error(violacoes[0]);
@@ -100,7 +85,7 @@ export const registrarPerfilInstitucional = createServerFn({ method: "POST" })
     const { data: existente, error: erroLeitura } = await supabase
       .from("institutional_profiles")
       .select("id")
-      .eq("organization_id", organizationId)
+      .eq("organization_id", data.organizationId)
       .eq("versao", payload.versao)
       .maybeSingle();
     if (erroLeitura) throw new Error(erroLeitura.message);
@@ -111,7 +96,7 @@ export const registrarPerfilInstitucional = createServerFn({ method: "POST" })
     const { data: inserido, error } = await supabase
       .from("institutional_profiles")
       .insert({
-        organization_id: organizationId,
+        organization_id: data.organizationId,
         versao: payload.versao,
         status: payload.status,
         campos: payload.campos,
@@ -124,7 +109,7 @@ export const registrarPerfilInstitucional = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     await supabase.from("institutional_profile_events").insert({
-      organization_id: organizationId,
+      organization_id: data.organizationId,
       profile_id: inserido.id,
       evento: "perfil_institucional_registrado",
       detalhe: `Versão ${payload.versao} registrada em revisão jurídica.`,
@@ -144,13 +129,11 @@ export const registrarSnapshotInstitucional = createServerFn({ method: "POST" })
   .inputValidator((data: { contractVersionId: string; evento: string }) => data)
   .handler(async ({ context, data }) => {
     const supabase = (context as any).supabase;
-    const organizationId = await organizacaoDeQuemGrava(supabase, (context as any).userId);
 
     const { data: versao, error: erroVersao } = await supabase
       .from("contract_versions")
       .select("id,organization_id,institutional_profile_snapshot")
       .eq("id", data.contractVersionId)
-      .eq("organization_id", organizationId)
       .maybeSingle();
     if (erroVersao) throw new Error(erroVersao.message);
     if (!versao) throw new Error("Versão contratual não encontrada.");

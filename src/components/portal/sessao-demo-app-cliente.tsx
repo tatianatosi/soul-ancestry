@@ -12,7 +12,6 @@ import {
   IDENTIDADE_DEMO_SOPHIA,
   SELO_DEMO_PORTAL,
 } from "@/lib/portal-demo-sophia";
-import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 import { escopoAPartirDePublicacoes } from "@/lib/app-visibilidade";
 
 /**
@@ -113,17 +112,6 @@ export function SessaoDemoAppCliente({
       <div className="overflow-hidden rounded-xl border border-navy/15" data-demo-app-cliente>
         {app}
       </div>
-
-      <details className="rounded-xl border border-navy/10 bg-card p-4" data-demo-exemplos-visuais>
-        <summary className="cursor-pointer text-sm font-medium text-navy">
-          Exemplos visuais ilustrativos (sem dado de família)
-        </summary>
-        <div className="mt-3 grid gap-4">
-          {(["historia", "arvore", "origem", "documentos"] as const).map((tipo) => (
-            <BlocoExemploVisual key={tipo} tipo={tipo} />
-          ))}
-        </div>
-      </details>
     </div>
   );
 }

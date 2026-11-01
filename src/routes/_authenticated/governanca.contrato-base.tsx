@@ -42,7 +42,6 @@ import {
   previaFinalTeste,
 } from "@/lib/contrato-base-previa";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
-import { PerfilInstitucionalAcoes } from "@/components/contrato/perfil-institucional-acoes";
 import {
   ANEXOS_FAMILIARES,
   FONTES_APENAS_APOIO,
@@ -239,9 +238,6 @@ function Pagina() {
           <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
             <div className="mb-3">
               <PerfilInstitucionalBloco campos={perfil.campos} versao={perfil.versao} status={perfil.status} pendencias={perfil.pendencias} />
-            </div>
-            <div className="mb-3">
-              <PerfilInstitucionalAcoes />
             </div>
             <div className="mb-3">
               <MatrizClausulas linhas={clausulas} />
