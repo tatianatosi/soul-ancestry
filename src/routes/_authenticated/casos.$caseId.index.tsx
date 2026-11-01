@@ -113,6 +113,7 @@ import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia, ESTADOS_SALVAMENTO } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
+import { abrirContratoDoCaso } from "@/lib/contratos.functions";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
 import { HistoricoPorFase } from "@/components/caso/historico-por-fase";
 import {
@@ -819,6 +820,16 @@ function FichaCaso() {
   const atualizar = useServerFn(atualizarRegistro);
   const criar = useServerFn(criarRegistro);
   const qc = useQueryClient();
+  const abrirContrato = useServerFn(abrirContratoDoCaso);
+  const navegarContrato = useNavigate();
+  const mAbrirContrato = useMutation({
+    mutationFn: () => abrirContrato({ data: { caseId: id } }),
+    onSuccess: (r) => {
+      toast.success(r.criado ? "Contrato rascunho criado." : "Contrato existente reaberto — nada duplicado.");
+      void navegarContrato({ to: "/contratos/$id", params: { id: r.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const q = useQuery({
     queryKey: ["ficha-caso", id],
@@ -3699,6 +3710,14 @@ function FichaCaso() {
                       descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
                     >
                       <div className="flex flex-wrap gap-3 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => mAbrirContrato.mutate()}
+                          disabled={mAbrirContrato.isPending}
+                          className="rounded-md border border-gold/50 bg-gold/10 px-3 py-1.5 text-navy hover:bg-gold/20 disabled:opacity-50"
+                        >
+                          {mAbrirContrato.isPending ? "Abrindo…" : "Abrir contrato (rascunho)"}
+                        </button>
                         <Link
                           to="/casos/$caseId/contrato/preparar"
                           params={{ caseId: id }}
