@@ -3,6 +3,7 @@ import { Minus, Plus, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PessoaNaArvore } from "@/lib/arvore-publicacao";
 import type { VinculoArvoreCliente } from "@/lib/portal-dados-vivos.functions";
+import { geracaoArvore } from "@/lib/portal-arvore-geracoes";
 import { CARTAO_LARGURA, caminhoFiliacaoDaUniao, enquadramentoGenograma, layoutGenograma } from "./genograma-layout";
 
 /** Only published people and explicit relationships are drawn. */
@@ -73,7 +74,8 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas
                 : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`);
             return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : filiacao}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
-          {layout.rotulos.map((r) => <text key={`g${r.geracao}`} data-genograma-rotulo x={12} y={r.y} className="app-genograma-rotulo">G{r.geracao}{r.geracao === 1 ? " · Você" : ""}</text>)}
+          {/* 01/11/2026: rótulo por extenso aprovado (ex.: "G4 · Bisavós"), da escala canônica. */}
+          {layout.rotulos.map((r) => <text key={`g${r.geracao}`} data-genograma-rotulo x={12} y={r.y} className="app-genograma-rotulo">{geracaoArvore(r.geracao).rotulo}</text>)}
           {layout.nos.map(({ pessoa: p, x, y, linhas, ano, altura }) => (
             <g key={p.chave} transform={`translate(${x} ${y})`} role="button" tabIndex={0} aria-label={`Abrir ${p.nome}`} aria-pressed={p.chave === selecionada} data-genograma-no data-raiz={p.chave === raizId || undefined} data-geracao-um={p.geracao === 1 || undefined} onClick={() => setSelecionada(p.chave)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelecionada(p.chave); } }}>
               <rect x={-CARTAO_LARGURA / 2} y={0} width={CARTAO_LARGURA} height={altura} rx={8} className="app-genograma-cartao" />
