@@ -11,7 +11,7 @@
 - [x] App Cliente da Ana: sete abas 375/1280 sem erro/overflow; Conta 3×R$ 320/10 meses, R$ 3.200/adulto, R$ 9.600; Árvore 8 pessoas/8 ligações.
 - [x] Árvore: filiação publicada Ana Maria → Cleusa (confirmada 13/10) estava desenhada na mesma geração; layout agora põe pai/mãe acima do filho (G7→G1), cada linha cai direto, sem passar sobre outra pessoa. Banco não alterado; números de geração publicados (Ana Maria G3, acima dela G4–G6) seguem divergentes da relação e devem ser corrigidos no Desk pela equipe.
 - [x] Segurança profunda 31/10: 4 achados. Corrigido no código: histórico de acesso ao portal só para gestão e da própria organização. Três abertos aguardam definição de papéis pela Proprietária.
-- [ ] Publicar e conferir no link público.
+- [x] Publicado em 01/11; link público conferido: sete abas 375/1280 sem erro (Árvore G7→G1, 8 pessoas/8 ligações) e nove telas principais do Desk abrindo.
 - [ ] Lançamento — ações da Proprietária (efeito externo, não executadas): liberar o caso da Ana no App (hoje bloqueado, informação ao cliente não liberada) e enviar o convite ao e-mail já aprovado analuizabox@gmail.com em Acessos ao App; Adair e Alice sem e-mail autorizado/convite.
 - Bloqueios conhecidos: três achados de permissão (aprovar preço, pendências de contrato de outra organização, preparar contrato para assinatura) aguardam a Proprietária definir papéis; anos de Heinrich, Lotte, Ana Maria, Cleusa e Adair sem fonte; pedidos documentais e relatórios não registrados.
 
