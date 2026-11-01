@@ -26,7 +26,13 @@ import {
   semDataDeEntrada,
   type LeadComercial,
 } from "@/lib/golive-comercial";
-import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+import {
+  registrarAtendimentoGoLive,
+  registrarCallGoLive,
+  registrarDiscoveryGoLive,
+  registrarLeadGoLive,
+} from "@/lib/golive-escritores.functions";
+import { AcaoCall, AcaoDiscovery } from "@/components/golive/acoes-registro";
 
 
 import { Button } from "@/components/ui/button";
@@ -64,6 +70,8 @@ function ComercialGoLive() {
   const caso = data?.encontrado ? data : null;
   const novoLead = useEscritorGoLive(registrarLeadGoLive);
   const atendimento = useEscritorGoLive(registrarAtendimentoGoLive);
+  const discovery = useEscritorGoLive(registrarDiscoveryGoLive);
+  const call = useEscritorGoLive(registrarCallGoLive);
 
   const [periodo, setPeriodo] = useState<number | null>(90);
   const [escolhido, setEscolhido] = useState<string | null>(null);
@@ -264,6 +272,14 @@ function ComercialGoLive() {
               <AcaoAgenda
                 leadId={leadDoCaso}
                 aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+              <AcaoDiscovery
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => discovery({ data: v as Parameters<typeof discovery>[0]["data"] })}
+              />
+              <AcaoCall
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => call({ data: v as Parameters<typeof call>[0]["data"] })}
               />
             </div>
           ) : (

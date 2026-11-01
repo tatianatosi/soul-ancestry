@@ -104,7 +104,7 @@ describe("Órfãs: inventário classificado, nada apagado em silêncio (04/10/20
     */
     expect(orfasPor("CASCA_DUPLICADA").length).toBeGreaterThan(0);
     expect(orfasPor("APOSENTADA_CLASSIFICADA").length).toBeGreaterThan(0);
-    expect(orfasPor("AGUARDA_DECISAO").length).toBeGreaterThan(0);
+    // 31/10/2026: AGUARDA_DECISAO zerou — as decisões da Proprietária mandaram religar tudo.
     for (const v of ["CASCA_DUPLICADA", "APOSENTADA_CLASSIFICADA", "AGUARDA_DECISAO", "RELIGAR"] as const) {
       expect(orfasPor(v).length, v).toBeLessThan(ORFAS_CLASSIFICADAS.length);
     }

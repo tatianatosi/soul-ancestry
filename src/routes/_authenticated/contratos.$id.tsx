@@ -12,6 +12,7 @@ import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { DocumentoDoInstrumento } from "@/components/contrato/documento-do-instrumento";
+import { HistoricoImportado } from "@/components/contrato/historico-importado";
 import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
@@ -467,7 +468,7 @@ function ContratoDetalhe() {
         <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e ordem de serviço"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
         <div id="contrato-fontes" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details></CaCard></div>
         <div id="contrato-validações" className="scroll-mt-24"><CaCard titulo="Validação jurídica da trilha"><Validacoes dados={d} /></CaCard></div>
-        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details></CaCard></div>
+        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /><HistoricoImportado contratoId={id} /></div></details></CaCard></div>
         <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
       </div>
     </SaasShell>
