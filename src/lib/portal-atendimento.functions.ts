@@ -66,103 +66,141 @@ export const painelAtendimento = createServerFn({ method: "GET" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
 
-    const filtro = <T,>(q: T) => (data.casoId ? (q as any).eq("case_id", data.casoId) : q);
+    const filtro = <T>(q: T) => (data.casoId ? (q as any).eq("case_id", data.casoId) : q);
 
-    const [casos, solicitacoes, envios, entregas, tickets, faturas, equipe, dependentes, acessos, clientes, projecoes] =
-      await Promise.all([
+    const [
+      casos,
+      solicitacoes,
+      envios,
+      entregas,
+      tickets,
+      faturas,
+      equipe,
+      dependentes,
+      acessos,
+      clientes,
+      projecoes,
+      rascunhos,
+    ] = await Promise.all([
+      supabase
+        .from("crm_casos")
+        .select(
+          "id, codigo, titulo, cliente_id, status, ativo, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, data_ativacao, eixo_comercial, eixo_formalizacao, responsavel_id, demo",
+        )
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .order("updated_at", { ascending: false }),
+      filtro(
         supabase
-          .from("crm_casos")
+          .from("portal_document_requests")
           .select(
-            "id, codigo, titulo, cliente_id, status, ativo, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, data_ativacao, eixo_comercial, eixo_formalizacao, responsavel_id, demo",
+            "id, case_id, titulo, descricao, obrigatorio, prazo, status, motivo_recusa, document_id, created_at, finalidade, categoria, participante_nome, responsavel_id",
           )
           .eq("organization_id", organizationId)
           .is("archived_at", null)
-          .order("updated_at", { ascending: false }),
-        filtro(
-          supabase
-            .from("portal_document_requests")
-            .select(
-              "id, case_id, titulo, descricao, obrigatorio, prazo, status, motivo_recusa, document_id, created_at, finalidade, categoria, participante_nome, responsavel_id",
-            )
-            .eq("organization_id", organizationId)
-            .is("archived_at", null)
-            .order("created_at", { ascending: false }),
-        ),
-        filtro(
-          supabase
-            .from("documents")
-            .select("id, case_id, titulo, status, categoria, created_at, solicitacao_id, revisao_motivo, revisado_em")
-            .eq("organization_id", organizationId)
-            .eq("origem", "cliente")
-            .is("archived_at", null)
-            .order("created_at", { ascending: false }),
-        ),
-        filtro(
-          supabase
-            .from("documents")
-            .select(
-              "id, case_id, titulo, status, visibilidade, liberado_cliente, liberado_em, entrega_cliente, entrega_classificacao, entrega_versao, entrega_responsavel_id, recolhido_em, recolhimento_motivo, versao_substituta",
-            )
-            .eq("organization_id", organizationId)
-            .eq("origem", "interno")
-            .is("archived_at", null)
-            .order("created_at", { ascending: false }),
-        ),
-        filtro(
-          supabase
-            .from("portal_tickets")
-            .select("id, case_id, assunto, categoria, status, responsavel_id, ultima_mensagem_em, created_at")
-            .eq("organization_id", organizationId)
-            .is("archived_at", null)
-            .order("ultima_mensagem_em", { ascending: false }),
-        ),
-        filtro(
-          supabase
-            .from("invoices")
-            .select(
-              "id, case_id, client_id, numero, descricao, valor, moeda, vencimento, status, liberada_cliente, liberada_em",
-            )
-            .eq("organization_id", organizationId)
-            .is("archived_at", null)
-            .order("vencimento", { ascending: true }),
-        ),
+          .order("created_at", { ascending: false }),
+      ),
+      filtro(
         supabase
-          .from("staff_access")
-          .select("auth_user_id, full_name, email, role, status")
+          .from("documents")
+          .select(
+            "id, case_id, titulo, status, categoria, created_at, solicitacao_id, revisao_motivo, revisado_em",
+          )
           .eq("organization_id", organizationId)
-          .eq("status", "active")
-          .is("archived_at", null),
+          .eq("origem", "cliente")
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+      ),
+      filtro(
         supabase
-          .from("case_dependents")
-          .select("id, case_id, nome_completo, vinculo_com_titular")
+          .from("documents")
+          .select(
+            "id, case_id, titulo, status, visibilidade, liberado_cliente, liberado_em, entrega_cliente, entrega_classificacao, entrega_versao, entrega_responsavel_id, recolhido_em, recolhimento_motivo, versao_substituta",
+          )
           .eq("organization_id", organizationId)
-          .is("archived_at", null),
+          .eq("origem", "interno")
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+      ),
+      filtro(
         supabase
-          .from("client_portal_access")
-          .select("client_id, access_status, access_level")
+          .from("portal_tickets")
+          .select(
+            "id, case_id, assunto, categoria, status, responsavel_id, ultima_mensagem_em, created_at",
+          )
           .eq("organization_id", organizationId)
-          .is("archived_at", null),
+          .is("archived_at", null)
+          .order("ultima_mensagem_em", { ascending: false }),
+      ),
+      filtro(
         supabase
-          .from("clientes")
-          .select("id, nome")
+          .from("invoices")
+          .select(
+            "id, case_id, client_id, numero, descricao, valor, moeda, vencimento, status, liberada_cliente, liberada_em",
+          )
           .eq("organization_id", organizationId)
-          .is("archived_at", null),
-        /*
-         * Onda 6 dos órfãos (04/10/2026): `despublicarProjecaoApp` existia e
-         * não tinha chamador — despublicar só por SQL. O artefato 007 exige
-         * que o Desk publique E despublique, com autor, data, caso e estado.
-         * Esta leitura é o que faltava para a ação ter onde aparecer.
-         */
-        filtro(
-          supabase
-            .from("app_projections")
-            .select("id, case_id, projection_type, content_sanitized, approval_status, approved_at, created_at, created_by, approved_by")
-            .eq("organization_id", organizationId)
-            .is("archived_at", null)
-            .order("created_at", { ascending: false })
-            .limit(100),
-        ),
-      ]);
+          .is("archived_at", null)
+          .order("vencimento", { ascending: true }),
+      ),
+      supabase
+        .from("staff_access")
+        .select("auth_user_id, full_name, email, role, status")
+        .eq("organization_id", organizationId)
+        .eq("status", "active")
+        .is("archived_at", null),
+      supabase
+        .from("case_dependents")
+        .select("id, case_id, nome_completo, vinculo_com_titular")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null),
+      supabase
+        .from("client_portal_access")
+        .select("client_id, access_status, access_level")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null),
+      supabase
+        .from("clientes")
+        .select("id, nome")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null),
+      /*
+       * Onda 6 dos órfãos (04/10/2026): `despublicarProjecaoApp` existia e
+       * não tinha chamador — despublicar só por SQL. O artefato 007 exige
+       * que o Desk publique E despublique, com autor, data, caso e estado.
+       * Esta leitura é o que faltava para a ação ter onde aparecer.
+       */
+      filtro(
+        supabase
+          .from("app_projections")
+          .select(
+            "id, case_id, projection_type, content_sanitized, approval_status, approved_at, created_at, created_by, approved_by",
+          )
+          .eq("organization_id", organizationId)
+          .is("archived_at", null)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ),
+      /*
+       * UX crítico da auditoria full-spectrum de 01/11/2026 (reviews/audit-as-ux-eng.md):
+       * `tentarEtapaExterna` (contratos.functions.ts) e `criarRascunhoSeNaoHouver`
+       * (rascunho-comunicacao.ts) criam a linha em communication_queue com
+       * status "awaiting_approval"/"rascunho", mas nenhuma tela lia essa tabela —
+       * a equipe não tinha onde achar nem aprovar o rascunho depois de criado.
+       * Esta leitura é o que faltava; `aprovarRascunhoComunicacao` e
+       * `arquivarRascunhoComunicacao` abaixo são as ações que faltavam.
+       */
+      filtro(
+        supabase
+          .from("communication_queue")
+          .select(
+            "id, case_id, acao_codigo, assunto, corpo_rascunho, suggested_channel, target_audience, status, requires_human_approval, observacao_interna, created_at, created_by, approved_at, approved_by",
+          )
+          .eq("organization_id", organizationId)
+          .is("archived_at", null)
+          .is("sent_at", null)
+          .order("created_at", { ascending: false }),
+      ),
+    ]);
 
     const ativos = new Set(
       ((acessos.data ?? []) as any[])
@@ -190,6 +228,8 @@ export const painelAtendimento = createServerFn({ method: "GET" })
       clientes: (clientes.data ?? []) as any[],
       /** Publicações vivas no App Cliente, para a equipe despublicar sem SQL. */
       projecoes: (projecoes.data ?? []) as any[],
+      /** Rascunhos de comunicação (contrato, cadastro…) aguardando aprovação humana. */
+      rascunhosComunicacao: (rascunhos.data ?? []) as any[],
     };
   });
 
@@ -232,7 +272,10 @@ export const criarSolicitacaoDocumento = createServerFn({ method: "POST" })
 
     // 25/10/2026: a Proprietária pede documento antes da ativação (é o onboarding).
     const bloqueio = bloqueioAtendimento(caso.data as any);
-    if (bloqueio.bloqueado && !(await proprietariaOperando(supabase as never, context.userId as string))) {
+    if (
+      bloqueio.bloqueado &&
+      !(await proprietariaOperando(supabase as never, context.userId as string))
+    ) {
       await auditar(
         organizationId,
         context.userId as string,
@@ -290,13 +333,20 @@ export const criarSolicitacaoDocumento = createServerFn({ method: "POST" })
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
 
-    await auditar(organizationId, context.userId as string, "solicitacao_documento_criada", "portal_document_requests", r.data?.id, {
-      case_id: data.casoId,
-      categoria,
-      finalidade,
-      prazo: data.prazo,
-      responsavel_id: data.responsavelId,
-    });
+    await auditar(
+      organizationId,
+      context.userId as string,
+      "solicitacao_documento_criada",
+      "portal_document_requests",
+      r.data?.id,
+      {
+        case_id: data.casoId,
+        categoria,
+        finalidade,
+        prazo: data.prazo,
+        responsavel_id: data.responsavelId,
+      },
+    );
     await registrarTimelineCaso(supabase, {
       organizationId,
       caseId: data.casoId,
@@ -325,9 +375,16 @@ export const cancelarSolicitacaoDocumento = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { status: "cancelado", motivo_recusa: motivo },
     });
-    await auditar(organizationId, context.userId as string, "solicitacao_documento_cancelada", "portal_document_requests", data.solicitacaoId, {
-      motivo,
-    });
+    await auditar(
+      organizationId,
+      context.userId as string,
+      "solicitacao_documento_cancelada",
+      "portal_document_requests",
+      data.solicitacaoId,
+      {
+        motivo,
+      },
+    );
     const caseId = r.registro["case_id"] as string | undefined;
     if (caseId) {
       await registrarTimelineCaso(supabase, {
@@ -350,7 +407,9 @@ export const cancelarSolicitacaoDocumento = createServerFn({ method: "POST" })
  */
 export const revisarEnvioCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { documentoId: string; decisao: "aceito" | "recusado"; motivo?: string }) => data)
+  .inputValidator(
+    (data: { documentoId: string; decisao: "aceito" | "recusado"; motivo?: string }) => data,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
@@ -411,7 +470,8 @@ export const revisarEnvioCliente = createServerFn({ method: "POST" })
       organizationId,
       caseId: doc.data.case_id as string,
       eventType: "caso",
-      title: data.decisao === "aceito" ? "Envio do cliente aceito" : "Reenvio solicitado ao cliente",
+      title:
+        data.decisao === "aceito" ? "Envio do cliente aceito" : "Reenvio solicitado ao cliente",
       summaryInternal: motivo ?? undefined,
       sourceEntityType: "documents",
       sourceEntityId: data.documentoId,
@@ -464,12 +524,19 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
       visibilidade: VISIBILIDADE_ENTREGA_LABEL,
     };
     const negar = async (motivo: string, resultado: "bloqueado" | "recusado") => {
-      await auditar(organizationId, userId, "entrega_cliente_" + resultado, "documents", data.documentoId, {
-        ...base,
-        resultado,
-        motivo,
-        acao: data.liberar ? "liberar" : "recolher",
-      });
+      await auditar(
+        organizationId,
+        userId,
+        "entrega_cliente_" + resultado,
+        "documents",
+        data.documentoId,
+        {
+          ...base,
+          resultado,
+          motivo,
+          acao: data.liberar ? "liberar" : "recolher",
+        },
+      );
       throw new Error(motivo);
     };
 
@@ -502,7 +569,13 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
         entrega_versao: versao,
         entrega_responsavel_id: data.responsavelId,
       };
-      metadados = { ...base, resultado: "liberado", versao, responsavel_id: data.responsavelId, demo: !!caso.data?.demo };
+      metadados = {
+        ...base,
+        resultado: "liberado",
+        versao,
+        responsavel_id: data.responsavelId,
+        demo: !!caso.data?.demo,
+      };
     } else {
       const motivo = texto(data.motivo ?? null, 600);
       if (!motivo) throw new Error("Recolher entrega exige justificativa objetiva.");
@@ -532,9 +605,19 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
         payload: patch,
       });
     } catch (erro) {
-      await negar(erro instanceof Error ? erro.message : "Não foi possível gravar a entrega.", "bloqueado");
+      await negar(
+        erro instanceof Error ? erro.message : "Não foi possível gravar a entrega.",
+        "bloqueado",
+      );
     }
-    await auditar(organizationId, userId, "entrega_cliente_publicacao", "documents", data.documentoId, metadados);
+    await auditar(
+      organizationId,
+      userId,
+      "entrega_cliente_publicacao",
+      "documents",
+      data.documentoId,
+      metadados,
+    );
     await registrarTimelineCaso(supabase, {
       organizationId,
       caseId: doc.data.case_id as string,
@@ -564,12 +647,19 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
       acao: data.liberar ? "liberar" : "recolher",
     };
     const negar = async (motivo: string, resultado: "bloqueado" | "recusado", extra?: any) => {
-      await auditar(organizationId, userId, "fatura_cliente_" + resultado, "invoices", data.faturaId, {
-        ...base,
-        ...extra,
-        resultado,
-        motivo,
-      });
+      await auditar(
+        organizationId,
+        userId,
+        "fatura_cliente_" + resultado,
+        "invoices",
+        data.faturaId,
+        {
+          ...base,
+          ...extra,
+          resultado,
+          motivo,
+        },
+      );
       throw new Error(motivo);
     };
 
@@ -605,10 +695,14 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
           .is("archived_at", null),
       ]);
       if (!caso.data) await negar("Fatura sem caso elegível vinculado.", "bloqueado");
-      const ativo = ((acesso.data ?? []) as any[]).some((a) => a.client_id === caso.data?.cliente_id);
+      const ativo = ((acesso.data ?? []) as any[]).some(
+        (a) => a.client_id === caso.data?.cliente_id,
+      );
       const b = bloqueioFatura({ ...(caso.data as any), acesso_portal_ativo: ativo });
       if (b.bloqueado) {
-        await negar(`Publicação bloqueada: ${b.motivos.join("; ")}.`, "bloqueado", { case_id: fatura.data.case_id });
+        await negar(`Publicação bloqueada: ${b.motivos.join("; ")}.`, "bloqueado", {
+          case_id: fatura.data.case_id,
+        });
       }
     }
 
@@ -622,9 +716,13 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
         payload: { liberada_cliente: data.liberar },
       });
     } catch (erro) {
-      await negar(erro instanceof Error ? erro.message : "Não foi possível gravar a fatura.", "bloqueado", {
-        case_id: fatura.data.case_id,
-      });
+      await negar(
+        erro instanceof Error ? erro.message : "Não foi possível gravar a fatura.",
+        "bloqueado",
+        {
+          case_id: fatura.data.case_id,
+        },
+      );
     }
 
     await auditar(organizationId, userId, "fatura_cliente_publicacao", "invoices", data.faturaId, {
@@ -645,7 +743,6 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
-
 
 /**
  * 05/09/2026 — achado real: `crm_casos.documentos_minimos_ok` é uma das
@@ -689,15 +786,25 @@ export const confirmarDocumentosMinimos = createServerFn({ method: "POST" })
         payload: { documentos_minimos_ok: true },
       });
     } catch (erro) {
-      throw new Error(erro instanceof Error ? erro.message : "Não foi possível confirmar os documentos mínimos.");
+      throw new Error(
+        erro instanceof Error ? erro.message : "Não foi possível confirmar os documentos mínimos.",
+      );
     }
 
-    const motivo = texto(data.motivo ?? null, 600) ?? "Confirmado pela equipe sem observação adicional.";
-    await auditar(organizationId, userId, "documentos_minimos_confirmados", "crm_casos", data.caseId, {
-      quando: new Date().toISOString(),
-      papel,
-      motivo,
-    });
+    const motivo =
+      texto(data.motivo ?? null, 600) ?? "Confirmado pela equipe sem observação adicional.";
+    await auditar(
+      organizationId,
+      userId,
+      "documentos_minimos_confirmados",
+      "crm_casos",
+      data.caseId,
+      {
+        quando: new Date().toISOString(),
+        papel,
+        motivo,
+      },
+    );
     await registrarTimelineCaso(supabase, {
       organizationId,
       caseId: data.caseId,
@@ -724,10 +831,18 @@ export const confirmarDocumentosMinimos = createServerFn({ method: "POST" })
  */
 export const publicarProjecaoApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { caseId: string; tipo: "marco" | "arvore" | "atualizacao"; conteudo: string; motivo?: string }) => ({
-    ...data,
-    motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita).",
-  }))
+  .inputValidator(
+    (data: {
+      caseId: string;
+      tipo: "marco" | "arvore" | "atualizacao";
+      conteudo: string;
+      motivo?: string;
+    }) => ({
+      ...data,
+      motivo:
+        data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita).",
+    }),
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
@@ -739,7 +854,9 @@ export const publicarProjecaoApp = createServerFn({ method: "POST" })
     const conteudo = texto(data.conteudo, 2000);
     if (!conteudo) throw new Error("Escreva o conteúdo a publicar.");
     if (contemConteudoInterno(conteudo)) {
-      throw new Error("O texto contém termo interno que não pode ir ao App Cliente. Reescreva em linguagem de cliente.");
+      throw new Error(
+        "O texto contém termo interno que não pode ir ao App Cliente. Reescreva em linguagem de cliente.",
+      );
     }
 
     const caso = await (supabase as any)
@@ -771,13 +888,20 @@ export const publicarProjecaoApp = createServerFn({ method: "POST" })
       },
     });
 
-    await auditar(organizationId, userId, "projecao_app_publicada", "app_projections", resultado.id, {
-      case_id: data.caseId,
-      tipo: data.tipo,
-      papel,
-      quando: agora,
-      motivo: data.motivo,
-    });
+    await auditar(
+      organizationId,
+      userId,
+      "projecao_app_publicada",
+      "app_projections",
+      resultado.id,
+      {
+        case_id: data.caseId,
+        tipo: data.tipo,
+        papel,
+        quando: agora,
+        motivo: data.motivo,
+      },
+    );
     await registrarTimelineCaso(supabase, {
       organizationId,
       caseId: data.caseId,
@@ -811,10 +935,17 @@ export const despublicarProjecaoApp = createServerFn({ method: "POST" })
       userId,
       payload: { archived_at: new Date().toISOString(), archived_reason: motivo },
     });
-    await auditar(organizationId, userId, "projecao_app_despublicada", "app_projections", data.projecaoId, {
-      papel,
-      quando: new Date().toISOString(),
-    });
+    await auditar(
+      organizationId,
+      userId,
+      "projecao_app_despublicada",
+      "app_projections",
+      data.projecaoId,
+      {
+        papel,
+        quando: new Date().toISOString(),
+      },
+    );
     const caseId = r.registro["case_id"] as string | undefined;
     if (caseId) {
       await registrarTimelineCaso(supabase, {
@@ -825,6 +956,112 @@ export const despublicarProjecaoApp = createServerFn({ method: "POST" })
         summaryInternal: motivo,
         sourceEntityType: "app_projections",
         sourceEntityId: data.projecaoId,
+        userId,
+      });
+    }
+    return { ok: true };
+  });
+
+/**
+ * Aprova um rascunho de communication_queue. Só registra que a equipe revisou
+ * e decidiu seguir — não dispara e-mail, WhatsApp ou qualquer envio externo;
+ * o envio em si continua um ato manual fora do sistema (ver observação do
+ * rascunho criado em contratos.functions.ts#tentarEtapaExterna).
+ */
+export const aprovarRascunhoComunicacao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { rascunhoId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
+    const userId = context.userId as string;
+    if (!PAPEIS_ENTREGA.includes(papel)) {
+      throw new Error("Apenas admin e operações aprovam comunicações.");
+    }
+    const r = await gravarComVerificacao({
+      supabase: supabase as any,
+      tabela: "communication_queue",
+      id: data.rascunhoId,
+      organizationId,
+      userId,
+      payload: { status: "approved", approved_by: userId, approved_at: new Date().toISOString() },
+    });
+    await auditar(
+      organizationId,
+      userId,
+      "rascunho_comunicacao_aprovado",
+      "communication_queue",
+      data.rascunhoId,
+      {
+        papel,
+      },
+    );
+    const caseId = r.registro["case_id"] as string | undefined;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Rascunho de comunicação aprovado",
+        summaryInternal:
+          "Aprovado pela equipe na fila de comunicações. Envio externo continua manual.",
+        sourceEntityType: "communication_queue",
+        sourceEntityId: data.rascunhoId,
+        userId,
+      });
+    }
+    return { ok: true };
+  });
+
+/**
+ * Arquiva (nunca exclui) um rascunho de communication_queue sem aprovar —
+ * o caminho para "isso não deve ser enviado assim".
+ */
+export const arquivarRascunhoComunicacao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { rascunhoId: string; motivo?: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
+    const userId = context.userId as string;
+    if (!PAPEIS_ENTREGA.includes(papel)) {
+      throw new Error("Apenas admin e operações arquivam comunicações.");
+    }
+    const motivo = texto(data.motivo ?? null, 600) ?? "Arquivado pela equipe sem motivo informado.";
+    const r = await gravarComVerificacao({
+      supabase: supabase as any,
+      tabela: "communication_queue",
+      id: data.rascunhoId,
+      organizationId,
+      userId,
+      payload: {
+        status: "archived",
+        archived_at: new Date().toISOString(),
+        archived_by: userId,
+        archive_motivo: motivo,
+      },
+    });
+    await auditar(
+      organizationId,
+      userId,
+      "rascunho_comunicacao_arquivado",
+      "communication_queue",
+      data.rascunhoId,
+      {
+        papel,
+        motivo,
+      },
+    );
+    const caseId = r.registro["case_id"] as string | undefined;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Rascunho de comunicação arquivado",
+        summaryInternal: motivo,
+        sourceEntityType: "communication_queue",
+        sourceEntityId: data.rascunhoId,
         userId,
       });
     }
@@ -893,7 +1130,11 @@ export const responderTicketEquipe = createServerFn({ method: "POST" })
       const b = caso?.data
         ? bloqueioAtendimento(caso.data as any)
         : { bloqueado: true, motivos: ["Ticket sem caso elegível vinculado"] };
-      if (b.bloqueado && caso?.data && (await proprietariaOperando(supabase as never, context.userId as string))) {
+      if (
+        b.bloqueado &&
+        caso?.data &&
+        (await proprietariaOperando(supabase as never, context.userId as string))
+      ) {
         b.bloqueado = false;
       }
       if (b.bloqueado) {
@@ -934,7 +1175,9 @@ export const responderTicketEquipe = createServerFn({ method: "POST" })
         organizationId,
         caseId: ticket.data.case_id as string,
         eventType: "caso",
-        title: data.interna ? "Nota interna registrada no atendimento" : "Resposta enviada ao cliente no atendimento",
+        title: data.interna
+          ? "Nota interna registrada no atendimento"
+          : "Resposta enviada ao cliente no atendimento",
         summaryInternal: corpo,
         sourceEntityType: "portal_tickets",
         sourceEntityId: data.ticketId,
@@ -946,14 +1189,16 @@ export const responderTicketEquipe = createServerFn({ method: "POST" })
 
 export const atualizarStatusTicket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { ticketId: string; status: string; responsavelId?: string | null }) => data)
+  .inputValidator(
+    (data: { ticketId: string; status: string; responsavelId?: string | null }) => data,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoDocumentos(supabase, context.userId as string);
     const permitidos = ["aberto", "em_analise", "respondido", "resolvido", "fechado"];
     if (!permitidos.includes(data.status)) throw new Error("Situação inválida.");
     const patch: Record<string, unknown> = { status: data.status };
-    if (data.responsavelId !== undefined) patch['responsavel_id'] = data.responsavelId || null;
+    if (data.responsavelId !== undefined) patch["responsavel_id"] = data.responsavelId || null;
     const r = await gravarComVerificacao({
       supabase,
       tabela: "portal_tickets",
