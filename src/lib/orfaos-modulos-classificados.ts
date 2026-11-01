@@ -39,14 +39,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "lib/kit-contratual-do-caso.ts e lib/kit-contratual.functions.ts (caso lido do banco pelo caseId da rota)",
   },
   {
-    modulo: "components/biblioteca/motores-primordiais.tsx",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Índice de motores sem nenhuma tela que o monte; MOTORES_TABELAS só alimenta motor-caso.ts e o backfill, e nenhuma rota do Desk mostra o estado dos motores.",
-    destino:
-      "Decisão: o índice dos motores P0–P11 ganha aba em Governança do Desk ou fica só no código (src/lib/motores-tabelas.ts)",
-  },
-  {
     modulo: "components/caso/descobertas-alertas.tsx",
     veredicto: "CASCA_DUPLICADA",
     motivo:
@@ -224,14 +216,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino: "clube-ancestral-kit/base.tsx#KitTable e desk/ui-desk.tsx#Tabela",
   },
   {
-    modulo: "lib/aceite-e2e-passos.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Sem importador em src: quem lê o arquivo é o harness scripts/aceite-operacional-e2e.py (ROTEIRO_TS) e o teste aceite-e2e-passos.test.ts; não é código morto, mas o registro de órfãs não tem veredicto para 'lido só por script externo'.",
-    destino:
-      "Decisão: manter como roteiro lido pelo script de aceite (isento do inventário de órfãs) ou aposentar o harness de aceite E2E",
-  },
-  {
     modulo: "lib/agenda-assistida.ts",
     veredicto: "AGUARDA_DECISAO",
     motivo:
@@ -257,14 +241,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "lib/autoridade.server.ts#assumirOuRecusarComUsuario, em uso nos escritores do Desk; não religar",
   },
   {
-    modulo: "lib/canvas-audit.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Nenhum chamador em src nem em scripts; depende de src/data/casos (ilha de dados de planilha) e instala um hook em console.error no import, então religar teria efeito colateral global sem decisão de quem verifica contraste hoje.",
-    destino:
-      "Decisão: manter a auditoria de fonte/contraste do Canvas como ferramenta de desenvolvimento (e quem a roda) ou aposentá-la",
-  },
-  {
     modulo: "lib/corte-vertical.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
@@ -272,14 +248,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino:
       "Estado vivo no banco e lib/fontes-canonicas-indicadores.ts#INDICADORES_CANONICOS; manter o arquivo como registro histórico, sem apagar",
     riscoVazamento: true,
-  },
-  {
-    modulo: "lib/criterios-aceite.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Sem importador em src nem em testes; CriterioAceite/contarPorEstado/criteriosPendentes vistos em matriz-aceite.ts, matriz-conformidade.ts e crm-desk.functions.ts são tipos e variáveis locais homônimos. O estado por critério é uma foto que envelhece.",
-    destino:
-      "Decisão: o registro de critérios de aceite vira tela de Governança com estado vivo ou é aposentado em favor do dicionário de calls e da matriz de aceite",
   },
   {
     modulo: "lib/debug-cliente-access.ts",
@@ -328,22 +296,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: manter o espelho TypeScript como especificação testada da RLS ou substituí-lo por teste contra as policies reais do banco",
   },
   {
-    modulo: "lib/indicadores-governanca.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Só três testes (ca22, ca23, p1) leem INDICADORES; existe um segundo registro paralelo, INDICADORES_CANONICOS, importado apenas por painel/faixa-historica.tsx, que também é órfão. Escolher qual vale precisa de decisão.",
-    destino:
-      "Decisão: qual dos dois registros de indicadores é o canônico e se ele ganha tela em Governança ou fica verificado só por teste",
-  },
-  {
-    modulo: "lib/inventario-campos-abas.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "É a tabela de campos e rotas do Corte G, concluída em 31/10 e verificada por inventario-campos-abas-2026-10-04.test; nenhuma tela a mostra. Não deve ser apagada, só falta decidir onde ela aparece.",
-    destino:
-      "Decisão: a tabela de campos ganha tela (ex.: Governança → Inventário de campos) ou fica como inventário verificado só por teste",
-  },
-  {
     modulo: "lib/inventario-recuperacao.ts",
     veredicto: "AGUARDA_DECISAO",
     motivo:
@@ -351,30 +303,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino:
       "Decisão: criar a rota /governanca/inventario-recuperacao que desk-modulos.ts já anuncia, ou aposentar o snapshot de 16/08 em favor do inventário de 22/08",
     riscoVazamento: true,
-  },
-  {
-    modulo: "lib/matriz-capacidades-jornada.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Nenhuma tela importa o módulo; só ca-ops-02-matriz-capacidades.test.ts lê CAPACIDADES, MATRIZ_CAPACIDADES, capacidadesDoElo e elosSemCobertura. Rotas e menu vivem em navegacao-desk.ts, mas guardas e elos só existem aqui.",
-    destino:
-      "Decisão: manter a matriz de capacidades CA-OPS-02 como inventário verificado só por teste, ou aposentá-la porque rotas e menu do Desk já vivem em navegacao-desk.ts",
-  },
-  {
-    modulo: "lib/matriz-conformidade.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Sem nenhum importador e sem teste; os rotuloEstado/tomEstado/contarPorEstado usados por studio-devolutivas.tsx e criterios-aceite.ts vêm de lib/estados e de definição própria. É foto de 20/08, anterior a #204 e à casca V4.",
-    destino:
-      "Decisão: a auditoria de paridade visual (J11 do plano de 31/10) parte desta matriz de 20/08 ou é refeita do zero com os mockups atuais",
-  },
-  {
-    modulo: "lib/matriz-equivalencia.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Só navegacao-desk.test.ts usa MATRIZ_EQUIVALENCIA, para checar que cada grupo cai num dos 7 grupos; contarEstados e totalLinhas de outros módulos são homônimos. A navegação viva é GRUPOS_DESK/SETORES_DESK, decidida em 18-19/10.",
-    destino:
-      "Decisão: manter a matriz como guarda do mapeamento mockup→grupos (navegacao-desk.test.ts) ou trocar a guarda por GRUPOS_DESK direto e aposentar a matriz",
   },
   {
     modulo: "lib/saneamento-desk-app-v4.ts",

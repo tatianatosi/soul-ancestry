@@ -73,7 +73,7 @@ src/components/clube-ancestral-kit/primitivos.tsx,components/clube-ancestral-kit
 src/components/clube-ancestral-kit/radar-operacional.tsx,components/clube-ancestral-kit,producao_logica_ou_ui,2,0
 src/components/clube-ancestral-kit/superficies-desk.tsx,components/clube-ancestral-kit,producao_logica_ou_ui,2,0
 src/components/clube-ancestral-kit/visualizacao.tsx,components/clube-ancestral-kit,producao_logica_ou_ui,7,0
-src/components/comercial/base.tsx,components/comercial,producao_viva_banco,35,1
+src/components/comercial/base.tsx,components/comercial,producao_viva_banco,36,1
 src/components/contrato/abrir-documento-contrato.tsx,components/contrato,producao_logica_ou_ui,1,0
 src/components/contrato/anexo-documento.tsx,components/contrato,producao_logica_ou_ui,1,0
 src/components/contrato/anexos-i-v.tsx,components/contrato,producao_logica_ou_ui,2,0
@@ -148,7 +148,7 @@ src/components/crm/registrar-evento-funil.tsx,components/crm,producao_viva_banco
 src/components/crm/regua-jornada-lead.tsx,components/crm,producao_logica_ou_ui,1,0
 src/components/crm/templates-whatsapp.tsx,components/crm,producao_logica_ou_ui,1,0
 src/components/crm/triagem-ancestralscan.tsx,components/crm,producao_viva_banco,1,0
-src/components/crm/varredura-whatsapp.tsx,components/crm,producao_com_dado_real_fixo,1,0
+src/components/crm/varredura-whatsapp.tsx,components/crm,producao_logica_ou_ui,1,0
 src/components/desk/arvore-publicada-desk.tsx,components/desk,producao_viva_banco,1,0
 src/components/desk/assistente-transversal.tsx,components/desk,producao_logica_ou_ui,1,0
 src/components/desk/auditoria-visibilidade-app.tsx,components/desk,producao_logica_ou_ui,1,0
@@ -198,7 +198,7 @@ src/components/ops/fila-sla-operacional.tsx,components/ops,producao_viva_banco,1
 src/components/painel/abertura.tsx,components/painel,producao_logica_ou_ui,1,0
 src/components/painel/acoes-rapidas.tsx,components/painel,producao_viva_banco,1,0
 src/components/painel/ancora-app.tsx,components/painel,producao_logica_ou_ui,3,0
-src/components/painel/botao-testar-cliente.tsx,components/painel,producao_com_dado_real_fixo,0,0
+src/components/painel/botao-testar-cliente.tsx,components/painel,producao_logica_ou_ui,0,0
 src/components/painel/cards-alertas-centrais.tsx,components/painel,producao_viva_banco,0,0
 src/components/painel/caso-destaque.tsx,components/painel,producao_logica_ou_ui,1,0
 src/components/painel/catalogo-saneamento.tsx,components/painel,producao_viva_banco,1,0
@@ -208,7 +208,7 @@ src/components/painel/itens-derivados.tsx,components/painel,producao_logica_ou_u
 src/components/painel/jornada-casos.tsx,components/painel,producao_logica_ou_ui,1,0
 src/components/painel/metricas-jornada.tsx,components/painel,producao_viva_banco,0,0
 src/components/painel/painel-cadencia.tsx,components/painel,producao_viva_banco,0,0
-src/components/painel/painel-catalogo.tsx,components/painel,producao_com_dado_real_fixo,1,0
+src/components/painel/painel-catalogo.tsx,components/painel,producao_viva_banco,1,0
 src/components/painel/painel-desk-hoje.tsx,components/painel,producao_viva_banco,0,0
 src/components/painel/painel-dia.tsx,components/painel,producao_viva_banco,0,0
 src/components/painel/painel-formalizacao.tsx,components/painel,producao_viva_banco,1,0
@@ -238,7 +238,7 @@ src/components/pessoa/composicao-pessoa360-v4.tsx,components/pessoa,producao_viv
 src/components/pessoa/contatos-pessoa.tsx,components/pessoa,producao_viva_banco,1,0
 src/components/pessoa/decisao-apos-salvar.tsx,components/pessoa,producao_viva_banco,2,0
 src/components/pessoas/composicao-linhagem-v4.tsx,components/pessoas,producao_viva_banco,2,3
-src/components/portal/abas-app-cliente.tsx,components/portal,producao_logica_ou_ui,2,1
+src/components/portal/abas-app-cliente.tsx,components/portal,producao_logica_ou_ui,2,2
 src/components/portal/andamento-publicado.tsx,components/portal,producao_logica_ou_ui,1,0
 src/components/portal/atendimento-interno.tsx,components/portal,producao_viva_banco,1,0
 src/components/portal/aviso-falha-conexao.tsx,components/portal,producao_logica_ou_ui,7,0
@@ -263,6 +263,7 @@ src/components/prancha-v4/kit.tsx,components/prancha-v4,producao_viva_banco,50,0
 src/components/privacidade/painel.tsx,components/privacidade,producao_viva_banco,1,0
 src/components/privacidade/registro-consentimentos.tsx,components/privacidade,producao_viva_banco,1,0
 src/components/qualidade/kpis-recomendacoes.tsx,components/qualidade,producao_viva_banco,1,0
+src/components/qualidade/origem-dos-dados.tsx,components/qualidade,producao_logica_ou_ui,1,1
 src/components/qualidade/painel.tsx,components/qualidade,producao_viva_banco,1,1
 src/components/qualidade/radar-matrizes-prancha.tsx,components/qualidade,producao_logica_ou_ui,1,0
 src/components/relatorio-fase02.tsx,components/(raiz),producao_logica_ou_ui,0,0
@@ -284,7 +285,7 @@ src/components/ui/badge.tsx,components/ui,biblioteca_ui,4,0
 src/components/ui/breadcrumb.tsx,components/ui,biblioteca_ui,0,0
 src/components/ui/button.tsx,components/ui,biblioteca_ui,60,0
 src/components/ui/ca-badge.tsx,components/ui,biblioteca_ui,0,0
-src/components/ui/ca-card.tsx,components/ui,biblioteca_ui,91,15
+src/components/ui/ca-card.tsx,components/ui,biblioteca_ui,92,15
 src/components/ui/ca-empty-state.tsx,components/ui,biblioteca_ui,0,0
 src/components/ui/ca-progress.tsx,components/ui,biblioteca_ui,0,0
 src/components/ui/ca-table.tsx,components/ui,biblioteca_ui,0,0
@@ -616,6 +617,7 @@ src/lib/__tests__/desk-pendencia-nao-trava.test.ts,lib,teste,0,0
 src/lib/__tests__/desk-produto-mockup-17.test.ts,lib,teste,0,0
 src/lib/__tests__/desk-tokens-oficiais-2026-10-10.test.ts,lib,teste,0,0
 src/lib/__tests__/desk-v4-telas-faltantes-2026-10-21.test.ts,lib,teste,0,0
+src/lib/__tests__/detectar-regressao-merge-2026-11-01.test.ts,lib,teste,0,0
 src/lib/__tests__/devolutiva-exige-autenticacao-2026-10-27.test.ts,lib,teste,0,0
 src/lib/__tests__/dicionario-calls-crm.test.ts,lib,teste,0,0
 src/lib/__tests__/discovery-roteiro.test.ts,lib,teste,0,0
@@ -904,9 +906,11 @@ src/lib/__tests__/portal-dados-vivos.test.ts,lib,teste,0,0
 src/lib/__tests__/portal-demo-sophia.test.ts,lib,teste,0,0
 src/lib/__tests__/portal-elegibilidade.test.ts,lib,teste,0,0
 src/lib/__tests__/portal-etapa-composicao-do-caso.test.ts,lib,teste,0,0
+src/lib/__tests__/portal-experiencia-por-caso-2026-11-01.test.ts,lib,teste,0,0
 src/lib/__tests__/portal-linguagem-viva.test.ts,lib,teste,0,0
 src/lib/__tests__/portal-marca-copy.test.ts,lib,teste,0,0
 src/lib/__tests__/portal-resiliencia-rede.test.tsx,lib,teste,0,0
+src/lib/__tests__/porteiros-onda0-2026-11-01.test.tsx,lib,teste,0,0
 src/lib/__tests__/portfolio-mestre-cruzamento.test.ts,lib,teste,0,0
 src/lib/__tests__/pr32-partes-cards-mobile-2026-10-09.test.ts,lib,teste,0,0
 src/lib/__tests__/prancha-v4-juridico-contrato-2026-10-19.test.ts,lib,teste,0,0
@@ -924,6 +928,7 @@ src/lib/__tests__/proposta-comercial.test.ts,lib,teste,0,0
 src/lib/__tests__/proposta-saneamento.test.ts,lib,teste,0,0
 src/lib/__tests__/proxima-acao-rpc-sincronia.test.ts,lib,teste,0,0
 src/lib/__tests__/proximas-acoes.test.ts,lib,teste,0,0
+src/lib/__tests__/prs-abertos-executados-2026-11-01.test.ts,lib,teste,0,0
 src/lib/__tests__/qualidade-dsa1-cards.test.ts,lib,teste,0,0
 src/lib/__tests__/r2-conflito-cpf-case-members.test.ts,lib,teste,0,0
 src/lib/__tests__/r2-cpf-canonico-comportamento-2026-09-24.test.ts,lib,teste,0,0
@@ -965,6 +970,7 @@ src/lib/__tests__/saneamento-documentos-ficticios-2026-10-13.test.ts,lib,teste,0
 src/lib/__tests__/saneamento-v4-passo5-hipotese-unica-2026-10-04.test.ts,lib,teste,0,0
 src/lib/__tests__/sequencia-caso-contrato-financeiro-projecao.test.ts,lib,teste,0,0
 src/lib/__tests__/sincronizacao-pessoas-home-jornada-arvore-2026-10-07.test.ts,lib,teste,0,0
+src/lib/__tests__/sitemap-publico.test.ts,lib,teste,0,0
 src/lib/__tests__/sku-produto-pai-nunca-gate.test.ts,lib,teste,0,0
 src/lib/__tests__/sobreposicao-dois-desks-2026-10-03.test.ts,lib,teste,0,0
 src/lib/__tests__/startup-autonomia-proprietaria.test.ts,lib,teste,0,0
@@ -1018,7 +1024,7 @@ src/lib/arvore-cliente-projecao.ts,lib,producao_logica_ou_ui,1,1
 src/lib/arvore-publicacao.functions.ts,lib,producao_viva_banco,1,0
 src/lib/arvore-publicacao.ts,lib,producao_logica_ou_ui,10,6
 src/lib/assinatura-app.functions.ts,lib,producao_viva_banco,1,0
-src/lib/assinatura-app.ts,lib,producao_logica_ou_ui,5,1
+src/lib/assinatura-app.ts,lib,producao_logica_ou_ui,6,1
 src/lib/assistente-transversal.ts,lib,producao_logica_ou_ui,1,1
 src/lib/atendimento.ts,lib,producao_logica_ou_ui,2,0
 src/lib/atos-representacao.functions.ts,lib,producao_viva_banco,1,0
@@ -1084,7 +1090,7 @@ src/lib/catalogo-sku.server.ts,lib,producao_viva_banco,3,0
 src/lib/catalogo-top30.functions.ts,lib,producao_viva_banco,1,0
 src/lib/checklist-juridico.ts,lib,producao_logica_ou_ui,2,1
 src/lib/checks-identidade-startup.ts,lib,producao_viva_banco,3,1
-src/lib/classificacao-dados.ts,lib,producao_com_dado_ficticio_fixo,0,2
+src/lib/classificacao-dados.ts,lib,producao_com_dado_ficticio_fixo,1,3
 src/lib/client-copy.ts,lib,producao_logica_ou_ui,5,0
 src/lib/clientes-lista.ts,lib,producao_logica_ou_ui,2,4
 src/lib/clientes.functions.ts,lib,producao_viva_banco,1,1
@@ -1141,7 +1147,7 @@ src/lib/crm-vivo-metricas.ts,lib,producao_logica_ou_ui,1,2
 src/lib/crm-vivo.ts,lib,producao_logica_ou_ui,3,1
 src/lib/d7-microentrega.server.ts,lib,producao_viva_banco,2,2
 src/lib/d7-microentrega.ts,lib,producao_logica_ou_ui,4,1
-src/lib/debug-cliente-access.ts,lib,producao_com_dado_real_fixo,0,0
+src/lib/debug-cliente-access.ts,lib,producao_viva_banco,0,0
 src/lib/decisao-ana-canonica.ts,lib,producao_com_dado_real_fixo,0,1
 src/lib/decisao-apos-salvar-pessoa.ts,lib,producao_logica_ou_ui,1,1
 src/lib/decisoes-da-proprietaria.ts,lib,producao_com_dado_real_fixo,8,8
@@ -1364,7 +1370,7 @@ src/lib/override-proprietaria-comercial.ts,lib,producao_logica_ou_ui,2,2
 src/lib/painel-abertura.ts,lib,producao_logica_ou_ui,1,1
 src/lib/painel-acoes-rapidas.ts,lib,producao_logica_ou_ui,1,1
 src/lib/painel-cadencia-derivada.ts,lib,producao_logica_ou_ui,1,1
-src/lib/painel-calls.ts,lib,producao_logica_ou_ui,4,1
+src/lib/painel-calls.ts,lib,producao_logica_ou_ui,4,2
 src/lib/painel-caso-destaque.ts,lib,producao_logica_ou_ui,2,1
 src/lib/painel-derivados.ts,lib,producao_logica_ou_ui,2,1
 src/lib/painel-dia.ts,lib,producao_logica_ou_ui,7,4
@@ -1420,17 +1426,17 @@ src/lib/portal-cliente.functions.ts,lib,producao_viva_banco,9,0
 src/lib/portal-cliente.server.ts,lib,producao_viva_banco,18,0
 src/lib/portal-copy.ts,lib,producao_logica_ou_ui,18,5
 src/lib/portal-dados-vivos.functions.ts,lib,producao_com_dado_ficticio_fixo,3,0
-src/lib/portal-dados-vivos.ts,lib,producao_com_dado_ficticio_fixo,15,13
+src/lib/portal-dados-vivos.ts,lib,producao_com_dado_ficticio_fixo,16,13
 src/lib/portal-demo-sophia.ts,lib,producao_com_dado_ficticio_fixo,7,3
 src/lib/portal-elegibilidade.ts,lib,producao_logica_ou_ui,6,3
 src/lib/portal-entregas.ts,lib,producao_logica_ou_ui,2,1
 src/lib/portal-envio-arquivo.ts,lib,producao_logica_ou_ui,2,1
-src/lib/portal-experiencia-integral.ts,lib,producao_com_dado_real_fixo,0,0
-src/lib/portal-fallback-canonico.ts,lib,producao_com_dado_real_fixo,0,0
+src/lib/portal-experiencia-integral.ts,lib,producao_logica_ou_ui,1,1
+src/lib/portal-fallback-canonico.ts,lib,producao_logica_ou_ui,0,1
 src/lib/portal-jornada.functions.ts,lib,producao_viva_banco,1,0
 src/lib/portal-linguagem-viva.ts,lib,producao_logica_ou_ui,7,3
-src/lib/portal-mapa-kit.ts,lib,producao_logica_ou_ui,0,0
-src/lib/portal-navegacao.ts,lib,producao_logica_ou_ui,0,3
+src/lib/portal-mapa-kit.ts,lib,producao_logica_ou_ui,1,1
+src/lib/portal-navegacao.ts,lib,producao_logica_ou_ui,1,4
 src/lib/portal-resiliencia.ts,lib,producao_logica_ou_ui,7,1
 src/lib/portal-resumo-caso.ts,lib,producao_viva_banco,5,0
 src/lib/portal-vinculo.ts,lib,producao_logica_ou_ui,4,0
@@ -1484,11 +1490,12 @@ src/lib/responsavel-institucional.ts,lib,producao_logica_ou_ui,1,2
 src/lib/responsavel-padrao.ts,lib,producao_logica_ou_ui,8,1
 src/lib/rotulo-negocio.ts,lib,producao_logica_ou_ui,10,1
 src/lib/rotulos-golive.ts,lib,producao_logica_ou_ui,25,0
-src/lib/rotulos-humanos.ts,lib,producao_logica_ou_ui,0,1
+src/lib/rotulos-humanos.ts,lib,producao_logica_ou_ui,2,2
 src/lib/saas.functions.ts,lib,producao_viva_banco,18,2
-src/lib/saneamento-desk-app-v4.ts,lib,producao_com_dado_real_fixo,2,0
+src/lib/saneamento-desk-app-v4.ts,lib,producao_com_dado_real_fixo,0,0
 src/lib/selo-caso-cliente.ts,lib,producao_logica_ou_ui,2,1
 src/lib/sessao-persistencia.test.ts,lib,teste,0,0
+src/lib/sitemap.ts,lib,producao_logica_ou_ui,1,1
 src/lib/sku-produto-pai.functions.ts,lib,producao_viva_banco,1,0
 src/lib/sku-produto-pai.ts,lib,producao_logica_ou_ui,2,1
 src/lib/superficie-interna-regras.ts,lib,producao_logica_ou_ui,5,2
@@ -1644,6 +1651,7 @@ src/routes/portal/mensagens.$id.tsx,routes/portal,producao_viva_banco,1,0
 src/routes/portal/proposta.tsx,routes/portal,producao_viva_banco,1,0
 src/routes/portal/radar.tsx,routes/portal,producao_logica_ou_ui,2,0
 src/routes/portal/route.tsx,routes/portal,producao_viva_banco,1,0
+src/routes/sitemap[.]xml.ts,routes/outras,producao_logica_ou_ui,1,0
 src/server.ts,server.ts,producao_logica_ou_ui,0,0
 src/start.ts,start.ts,producao_viva_banco,1,0
 src/types/case.ts,types,producao_logica_ou_ui,15,0

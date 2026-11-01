@@ -23,7 +23,6 @@ src/lib/aceite-e2e-passos.ts
 src/lib/agenda-assistida.ts
 src/lib/app-visibilidade-registro.ts
 src/lib/canvas-audit.ts
-src/lib/classificacao-dados.ts
 src/lib/corte-vertical.ts
 src/lib/criterios-aceite.ts
 src/lib/debug-cliente-access.ts
@@ -39,11 +38,8 @@ src/lib/matriz-capacidades-jornada.ts
 src/lib/matriz-conformidade.ts
 src/lib/matriz-equivalencia.ts
 src/lib/orfaos-modulos-classificados.ts
-src/lib/portal-experiencia-integral.ts
 src/lib/portal-fallback-canonico.ts
-src/lib/portal-mapa-kit.ts
-src/lib/portal-navegacao.ts
 src/lib/rascunhos-comunicacao-governados.ts
-src/lib/rotulos-humanos.ts
+src/lib/saneamento-desk-app-v4.ts
 src/lib/useActiveCase.ts
 src/lib/varredura-completude.ts

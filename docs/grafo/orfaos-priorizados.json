@@ -83,11 +83,11 @@
   "arquivo": "src/components/painel/botao-testar-cliente.tsx",
   "dominio": "components/painel",
   "veredicto": "APOSENTADA_CLASSIFICADA",
-  "risco_vazamento": true,
+  "risco_vazamento": false,
   "aguarda_decisao": false,
-  "linhas": 37,
+  "linhas": 36,
   "importadores_teste": 0,
-  "classe": "producao_com_dado_real_fixo"
+  "classe": "producao_logica_ou_ui"
  },
  {
   "arquivo": "src/components/painel/cards-alertas-centrais.tsx",
@@ -142,9 +142,9 @@
  {
   "arquivo": "src/components/painel/painel-dia.tsx",
   "dominio": "components/painel",
-  "veredicto": "AGUARDA_DECISAO",
+  "veredicto": "APOSENTADA_CLASSIFICADA",
   "risco_vazamento": false,
-  "aguarda_decisao": true,
+  "aguarda_decisao": false,
   "linhas": 1261,
   "importadores_teste": 0,
   "classe": "producao_viva_banco"
@@ -250,16 +250,6 @@
   "classe": "producao_viva_banco"
  },
  {
-  "arquivo": "src/lib/classificacao-dados.ts",
-  "dominio": "lib",
-  "veredicto": "CASCA_DUPLICADA",
-  "risco_vazamento": false,
-  "aguarda_decisao": false,
-  "linhas": 257,
-  "importadores_teste": 2,
-  "classe": "producao_com_dado_ficticio_fixo"
- },
- {
   "arquivo": "src/lib/corte-vertical.ts",
   "dominio": "lib",
   "veredicto": "APOSENTADA_CLASSIFICADA",
@@ -283,11 +273,11 @@
   "arquivo": "src/lib/debug-cliente-access.ts",
   "dominio": "lib",
   "veredicto": "APOSENTADA_CLASSIFICADA",
-  "risco_vazamento": true,
+  "risco_vazamento": false,
   "aguarda_decisao": false,
-  "linhas": 57,
+  "linhas": 44,
   "importadores_teste": 0,
-  "classe": "producao_com_dado_real_fixo"
+  "classe": "producao_viva_banco"
  },
  {
   "arquivo": "src/lib/decisao-ana-canonica.ts",
@@ -405,48 +395,18 @@
   "veredicto": "SEM_VEREDITO",
   "risco_vazamento": false,
   "aguarda_decisao": false,
-  "linhas": 449,
+  "linhas": 415,
   "importadores_teste": 1,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
-  "arquivo": "src/lib/portal-experiencia-integral.ts",
-  "dominio": "lib",
-  "veredicto": "APOSENTADA_CLASSIFICADA",
-  "risco_vazamento": true,
-  "aguarda_decisao": false,
-  "linhas": 90,
-  "importadores_teste": 0,
   "classe": "producao_com_dado_real_fixo"
  },
  {
   "arquivo": "src/lib/portal-fallback-canonico.ts",
   "dominio": "lib",
   "veredicto": "APOSENTADA_CLASSIFICADA",
-  "risco_vazamento": true,
-  "aguarda_decisao": false,
-  "linhas": 46,
-  "importadores_teste": 0,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
-  "arquivo": "src/lib/portal-mapa-kit.ts",
-  "dominio": "lib",
-  "veredicto": "CASCA_DUPLICADA",
   "risco_vazamento": false,
   "aguarda_decisao": false,
-  "linhas": 74,
-  "importadores_teste": 0,
-  "classe": "producao_logica_ou_ui"
- },
- {
-  "arquivo": "src/lib/portal-navegacao.ts",
-  "dominio": "lib",
-  "veredicto": "CASCA_DUPLICADA",
-  "risco_vazamento": false,
-  "aguarda_decisao": false,
-  "linhas": 80,
-  "importadores_teste": 3,
+  "linhas": 17,
+  "importadores_teste": 1,
   "classe": "producao_logica_ou_ui"
  },
  {
@@ -460,14 +420,14 @@
   "classe": "producao_logica_ou_ui"
  },
  {
-  "arquivo": "src/lib/rotulos-humanos.ts",
+  "arquivo": "src/lib/saneamento-desk-app-v4.ts",
   "dominio": "lib",
-  "veredicto": "CASCA_DUPLICADA",
-  "risco_vazamento": false,
+  "veredicto": "APOSENTADA_CLASSIFICADA",
+  "risco_vazamento": true,
   "aguarda_decisao": false,
-  "linhas": 71,
-  "importadores_teste": 1,
-  "classe": "producao_logica_ou_ui"
+  "linhas": 49,
+  "importadores_teste": 0,
+  "classe": "producao_com_dado_real_fixo"
  },
  {
   "arquivo": "src/lib/useActiveCase.ts",
