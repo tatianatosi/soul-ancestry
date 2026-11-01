@@ -23,6 +23,7 @@ import { DECISOES_PILOTO_5A1 } from "@/lib/piloto-5a1-decisoes-pendentes";
 import { BLOQUEIOS_ABERTOS_DA_PROPRIETARIA, DECISOES_DA_PROPRIETARIA } from "@/lib/decisoes-da-proprietaria";
 
 export const Route = createFileRoute("/_authenticated/governanca/decisoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Decisões operacionais aprovadas — Clube Ancestral" },

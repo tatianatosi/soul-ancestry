@@ -21,6 +21,7 @@ import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Validação Jurídica — Clube Ancestral" },

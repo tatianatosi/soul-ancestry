@@ -29,6 +29,7 @@ import { AcaoPagamento, faturasAbertas } from "@/components/golive/acoes-registr
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/financeiro")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

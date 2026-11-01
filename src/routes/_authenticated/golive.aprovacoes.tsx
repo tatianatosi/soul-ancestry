@@ -25,6 +25,7 @@ import { aprovacoesPorGrupo, filaDeAprovacoes, resumoAprovacoes, type ItemAprova
 import { humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/aprovacoes")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

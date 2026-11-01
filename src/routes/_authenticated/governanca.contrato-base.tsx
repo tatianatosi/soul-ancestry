@@ -59,6 +59,7 @@ const DESCRICAO =
   "Fonte canônica do contrato-base MODELO-ESTUDO + BASE-GEN-V2: cláusulas fixas, variáveis permitidas, anexos derivados, bloqueios e prévia TESTE sem dados reais.";
 
 export const Route = createFileRoute("/_authenticated/governanca/contrato-base")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: TITULO },

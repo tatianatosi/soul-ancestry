@@ -17,6 +17,7 @@ const DESCRICAO =
   "Registro mestre por caso: parâmetros com origem rastreável que geram contrato, anexos, assinatura e cobrança sem redigitação.";
 
 export const Route = createFileRoute("/_authenticated/contrato-parametros/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: TITULO },

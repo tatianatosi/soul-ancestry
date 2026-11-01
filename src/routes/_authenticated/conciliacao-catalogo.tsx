@@ -11,6 +11,7 @@ import { Indicador } from "@/components/prancha-v4/kit";
 import { varreduraConciliacaoCatalogo } from "@/lib/conciliacao-catalogo.functions";
 
 export const Route = createFileRoute("/_authenticated/conciliacao-catalogo")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Conciliação de catálogo e bloqueios — Clube Ancestral" },

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 /** Cliente autenticado, porém sem autorização vigente no portal. Nunca envia para telas de equipe. */
 export const Route = createFileRoute("/acesso/sem-permissao")({
+  staticData: { sitemap: false },
   ssr: false,
   head: () => ({
     meta: [

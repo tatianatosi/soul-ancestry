@@ -21,6 +21,7 @@ import {
 } from "@/lib/ca04-crm-mestre";
 
 export const Route = createFileRoute("/_authenticated/crm-mestre")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "CRM Mestre, Discovery e Handoff — Clube Ancestral" },

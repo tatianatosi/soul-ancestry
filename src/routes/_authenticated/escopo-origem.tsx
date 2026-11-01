@@ -19,6 +19,7 @@ import {
 } from "@/lib/escopo-origem";
 
 export const Route = createFileRoute("/_authenticated/escopo-origem")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Origem do escopo contratual — Clube Ancestral" },

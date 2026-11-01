@@ -30,6 +30,7 @@ const TITULO = "Registro mestre do contrato | Clube Ancestral";
 const DESCRICAO = "Parâmetros contratuais do caso com origem, validação, prévia versionada e destinos de reuso.";
 
 export const Route = createFileRoute("/_authenticated/contrato-parametros/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: TITULO },

@@ -28,6 +28,7 @@ import {
 } from "@/lib/nucleo-duplicidade.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos-duplicidades")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Possíveis núcleos duplicados — Clube Ancestral" },

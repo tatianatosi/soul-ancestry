@@ -7,6 +7,7 @@ import type {} from "@tanstack/react-start";
  * relatório em streaming. Nenhuma escrita no banco.
  */
 export const Route = createFileRoute("/api/pesquisa-assistente")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

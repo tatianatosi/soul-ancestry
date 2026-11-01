@@ -26,6 +26,7 @@ declare const __BUILD_SHA__: string | null | undefined;
 const shaDoBuild = typeof __BUILD_SHA__ !== "undefined" ? __BUILD_SHA__ : null;
 
 export const Route = createFileRoute("/api/saude")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       GET: async () => {

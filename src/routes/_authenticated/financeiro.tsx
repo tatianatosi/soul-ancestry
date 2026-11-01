@@ -57,6 +57,7 @@ import {
 } from "@/lib/comercial.functions";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Financeiro — Clube Ancestral" },

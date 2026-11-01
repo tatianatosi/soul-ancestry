@@ -45,6 +45,7 @@ import {
 
 
 export const Route = createFileRoute("/_authenticated/acessos-portal")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Acessos ao portal — Clube Ancestral" },

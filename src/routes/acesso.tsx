@@ -6,5 +6,6 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
  * para que as telas filhas realmente apareçam.
  */
 export const Route = createFileRoute("/acesso")({
+  staticData: { sitemap: false },
   component: () => <Outlet />,
 });

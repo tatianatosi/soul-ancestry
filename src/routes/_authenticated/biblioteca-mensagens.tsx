@@ -35,6 +35,7 @@ import {
 } from "@/lib/message-library.functions";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-mensagens")({
+  staticData: { sitemap: false },
   /** CA-OPS-02: contexto de leitura vindo do alerta de cadência em /ops. Nada é gravado. */
   validateSearch: (search: Record<string, unknown>) => ({
     alerta: typeof search["alerta"] === "string" ? (search["alerta"] as string) : undefined,

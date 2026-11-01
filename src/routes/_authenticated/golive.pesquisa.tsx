@@ -31,6 +31,7 @@ import {
 } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

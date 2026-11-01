@@ -26,6 +26,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { Etiqueta, Indicador, type Tom } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/achados/$caseId")({
+  staticData: { sitemap: false },
   component: Pagina,
   head: () => ({
     meta: [

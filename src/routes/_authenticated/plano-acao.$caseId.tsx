@@ -31,6 +31,7 @@ import { painelPlanoAcao } from "@/lib/plano-acao-pesquisa.functions";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export const Route = createFileRoute("/_authenticated/plano-acao/$caseId")({
+  staticData: { sitemap: false },
   validateSearch: (s: Record<string, unknown>) => ({ foco: s.foco === "criticas" ? "criticas" : undefined }),
   head: () => ({
     meta: [

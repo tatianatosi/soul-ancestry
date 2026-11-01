@@ -53,6 +53,7 @@ function ArvoreInstitucional() {
 }
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Clube Ancestral — Genealogia e história familiar" },

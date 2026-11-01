@@ -13,6 +13,7 @@ import { SessaoDemoAppCliente } from "@/components/portal/sessao-demo-app-client
  */
 
 export const Route = createFileRoute("/_authenticated/app-cliente-demo")({
+  staticData: { sitemap: false },
   /** Mesmo motivo de `previa-app-cliente.tsx`: `aba` via Router evita mismatch de hidratação. */
   validateSearch: (search: Record<string, unknown>): { aba?: string } => ({
     aba: typeof search.aba === "string" ? search.aba : undefined,

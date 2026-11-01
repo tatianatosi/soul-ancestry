@@ -33,6 +33,7 @@ import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/calls")({
+  staticData: { sitemap: false },
   validateSearch: (s: Record<string, unknown>): { lead?: string } => ({
     lead: typeof s.lead === "string" && s.lead.length > 0 ? s.lead : undefined,
   }),

@@ -82,6 +82,7 @@ import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
 import { FichaSecao, FichaSecoes } from "@/components/crm/ficha-secoes";
 
 export const Route = createFileRoute("/_authenticated/leads")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "CRM de leads — Clube Ancestral" },

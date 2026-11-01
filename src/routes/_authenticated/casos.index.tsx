@@ -35,6 +35,7 @@ import { AlertaDesk, CardIndicador, CarregandoDesk, PageHeader } from "@/compone
 import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
+  staticData: { sitemap: false },
   /**
    * `fase` chega da Jornada dos casos no Painel. Sem isto, o cartão da etapa
    * seria um link decorativo — levaria à lista inteira, não à etapa clicada.

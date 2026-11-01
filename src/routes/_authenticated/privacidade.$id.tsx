@@ -4,6 +4,7 @@ import { SaasShell } from "@/components/saas/shell";
 import { PrivacidadeCaso } from "@/components/privacidade/painel";
 
 export const Route = createFileRoute("/_authenticated/privacidade/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Privacidade e acesso — Clube Ancestral" },

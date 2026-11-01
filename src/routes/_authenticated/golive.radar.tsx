@@ -30,6 +30,7 @@ import { impactoNaArvore } from "@/lib/golive-pesquisa";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/radar")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
