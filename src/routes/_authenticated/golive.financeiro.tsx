@@ -33,9 +33,9 @@ export const Route = createFileRoute("/_authenticated/golive/financeiro")({
   head: () => ({
     meta: [
       { title: "Financeiro — Go-live Clube Ancestral" },
-      { name: "description", content: "Valores, recebimentos confirmados e situação das faturas do caso do piloto." },
+      { name: "description", content: "Valores, recebimentos confirmados e situação das faturas do caso escolhido." },
       { property: "og:title", content: "Financeiro — Go-live Clube Ancestral" },
-      { property: "og:description", content: "Faturas, pagamentos e recebimento mensal do caso do piloto." },
+      { property: "og:description", content: "Faturas, pagamentos e recebimento mensal do caso escolhido." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

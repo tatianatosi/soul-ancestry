@@ -60,7 +60,9 @@ describe("pente-fino visual — legado fora da face do produto", () => {
     expect(COPY_TELAS.home.navegacao).toBe("Home");
     expect(COPY_TELAS.home.navegacao).not.toBe("Início");
     const shell = readFileSync("src/components/portal/portal-shell.tsx", "utf8");
-    expect(shell).toContain("COPY_TELAS.home.navegacao");
+    // 01/11/2026: o rótulo da barra vem de `portal-navegacao.ts`, igual ao COPY_TELAS (Home).
+    expect(shell).toContain("abasCanonicasDoPortal()");
+    expect(readFileSync("src/lib/portal-navegacao.ts", "utf8")).toContain('rotulo: "Home"');
     expect(shell).not.toContain("/portal/entregas");
     expect(shell).not.toContain("/portal/fase-01");
     expect(shell).not.toContain("/portal/fase-02");

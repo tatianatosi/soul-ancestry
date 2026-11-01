@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/golive/pessoas")({
   head: () => ({
     meta: [
       { title: "Pessoas & Famílias — Go-live Clube Ancestral" },
-      { name: "description", content: "Núcleo familiar e pessoas vinculadas ao caso canônico do piloto." },
+      { name: "description", content: "Núcleo familiar e pessoas vinculadas ao caso escolhido." },
       { property: "og:title", content: "Pessoas & Famílias — Go-live Clube Ancestral" },
       { property: "og:description", content: "Núcleo familiar e pessoas vinculadas ao caso canônico." },
       { property: "og:type", content: "website" },

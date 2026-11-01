@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/golive/prontidao")({
       { title: "Prontidão para o App — Clube Ancestral" },
       {
         name: "description",
-        content: "O que já está liberado para a família e o que ainda aguarda aprovação interna no caso do piloto.",
+        content: "O que já está liberado para a família e o que ainda aguarda aprovação interna no caso escolhido.",
       },
       { property: "og:title", content: "Prontidão para o App — Clube Ancestral" },
       { property: "og:description", content: "Contratos, documentos, propostas e publicações prontos ou pendentes." },

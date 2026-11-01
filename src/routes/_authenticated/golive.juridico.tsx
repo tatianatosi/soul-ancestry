@@ -32,9 +32,9 @@ export const Route = createFileRoute("/_authenticated/golive/juridico")({
   head: () => ({
     meta: [
       { title: "Validação jurídica da trilha — Go-live Clube Ancestral" },
-      { name: "description", content: "Completude formal, riscos e pipeline de contrato do caso do piloto." },
+      { name: "description", content: "Completude formal, riscos e pipeline de contrato do caso escolhido." },
       { property: "og:title", content: "Validação jurídica da trilha — Go-live Clube Ancestral" },
-      { property: "og:description", content: "Proposta, escopo, contrato, anexos e OS do caso do piloto." },
+      { property: "og:description", content: "Proposta, escopo, contrato, anexos e OS do caso escolhido." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

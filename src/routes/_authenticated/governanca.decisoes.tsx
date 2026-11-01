@@ -232,7 +232,7 @@ function DecisoesPage() {
           </ul>
         </Bloco>
 
-        <Bloco titulo="Caso Ana Luiza — estado consolidado e gates">
+        <Bloco titulo="Registro de decisão do caso piloto (Ana Luiza) — gates, não é leitura ao vivo">
           <Tabela
             cabecalho={["Dimensão", "Estado conhecido", "Ação/gate"]}
             linhas={ESTADO_CASO_ANA.map((e) => [e.dimensao, e.estado, e.gate])}

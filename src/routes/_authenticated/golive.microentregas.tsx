@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/golive/microentregas")({
   head: () => ({
     meta: [
       { title: "Microentregas — Go-live Clube Ancestral" },
-      { name: "description", content: "Prazo, revisão e publicação das microentregas do caso do piloto." },
+      { name: "description", content: "Prazo, revisão e publicação das microentregas do caso escolhido." },
       { property: "og:title", content: "Microentregas — Go-live Clube Ancestral" },
       { property: "og:description", content: "Prazo, revisão e publicação das microentregas do caso." },
       { property: "og:type", content: "website" },
