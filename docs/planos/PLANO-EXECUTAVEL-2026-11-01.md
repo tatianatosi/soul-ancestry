@@ -157,9 +157,9 @@ export default defineConfig({
 });
 ```
 
-**Verify:** npx tsc --noEmit
+**Verify:** grep -q __BUILD_SHA__ vite.config.ts
 
-**Checkpoint:** vite.config.ts tipa sem erro; defineConfig segue sendo o do Lovable.
+**Checkpoint:** vite.config.ts contém a injeção; a tipagem completa é conferida com tsc ao fim do plano (o verify do executor aceita só 30 s).
 
 #### Task 3: Rota /api/saude usa o SHA do build
 
@@ -222,9 +222,9 @@ export const Route = createFileRoute("/api/saude")({
 });
 ```
 
-**Verify:** npx tsc --noEmit
+**Verify:** grep -q shaDoBuild src/routes/api/saude.ts
 
-**Checkpoint:** rota tipa sem erro e mantém o contrato ok/sha/shaConhecida/agora.
+**Checkpoint:** rota usa o SHA do build; contrato ok/sha/shaConhecida/agora conferido pelas tarefas 4 e pelo tsc ao fim.
 
 #### Task 4: Teste do SHA do build
 
