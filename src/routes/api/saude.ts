@@ -21,11 +21,15 @@ const VARIAVEIS_SHA = [
   "RENDER_GIT_COMMIT",
 ] as const;
 
+declare const __BUILD_SHA__: string | null | undefined;
+
+const shaDoBuild = typeof __BUILD_SHA__ !== "undefined" ? __BUILD_SHA__ : null;
+
 export const Route = createFileRoute("/api/saude")({
   server: {
     handlers: {
       GET: async () => {
-        const sha = VARIAVEIS_SHA.map((v) => process.env[v]).find((v) => Boolean(v)) ?? null;
+        const sha = VARIAVEIS_SHA.map((v) => process.env[v]).find((v) => Boolean(v)) ?? shaDoBuild ?? null;
         return new Response(
           JSON.stringify({
             ok: true,

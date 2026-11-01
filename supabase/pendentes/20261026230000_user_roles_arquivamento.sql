@@ -1,4 +1,5 @@
--- ESTADO: NÃO APLICADO; AGUARDA AUTORIZAÇÃO EXPLÍCITA
+-- ESTADO: JÁ APLICADO em 27/10/2026 (conferido no banco em 31/10: coluna `user_roles.archived_at` existe) — ver supabase/pendentes/README.md.
+-- (cabeçalho original: NÃO APLICADO; AGUARDA AUTORIZAÇÃO EXPLÍCITA)
 -- Auditoria pré-lançamento (25/10/2026), item 2 do "Ainda pendente":
 -- "Remover papel apaga a linha de `user_roles`: a tabela não tem coluna de
 -- arquivo; mudar exige migration. Hoje a remoção fica registrada em

@@ -37,3 +37,4 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - Years under tree-card names come only from the person's own profile with `client_visibility='aprovada'` and a registered date; timeline text or names never establish a year, and "c." marks approximate dates — why: no invented genealogy on the client.
 - Case-specific authorized commercial presentation is resolved by canonical case identity, never by person name or matching price — why: prevent terms from leaking into another family's account.
 - Explicit dossier identification takes precedence in the shared collection classifier — why: mentions of family or records must not move a dossier into notebooks or memories.
+- The Desk published-tree view reuses pessoasDaArvore on published, non-archived projections; generation connectors never infer person-to-person parentage — why: restore the approved presentation without manufacturing genealogy or writing live data.

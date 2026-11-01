@@ -559,6 +559,18 @@ function LeadsPage() {
               .join(", ")}`}
             rodape="Pipeline atual · sem recorte de período"
           />
+          {pipelineLeads.length ? (
+            <>
+              <p className="mt-3 text-xs text-navy/60" data-leads-funil-total>
+                {pipelineLeads.length} leads válidos no funil (demonstrações e arquivados ficam fora).
+              </p>
+              {funilItens.some((item) => item.apoio === "0 leads") ? (
+                <p className="mt-1 text-xs text-navy/60" data-leads-funil-etapas-vazias>
+                  Etapas sem lead registrado: {funilItens.filter((item) => item.apoio === "0 leads").map((item) => item.rotulo).join(", ")}.
+                </p>
+              ) : null}
+            </>
+          ) : null}
           {pipelineLeads.length ? null : (
             <p className="mt-2 text-xs text-navy/60" data-leads-funil-vazio>
               Sem dados suficientes

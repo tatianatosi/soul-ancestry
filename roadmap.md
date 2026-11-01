@@ -1,5 +1,10 @@
 # Roadmap
 
+## 20/10 — Desk V4 c4d3bef9, corte aprovado neste rascunho
+- [ ] Reconciliar apresentação do corte anterior sem App, rotas novas, golive-* ou painel-dia; matriz vazia = Dados insuficientes.
+- [x] Executar testes relevantes e classificar sete falhas: todas preexistentes em origin/HEAD 03ecf78c, por comparação das fontes/assertivas com a610de15; testes do App/Pesquisa preservados. Compilação automática OK em 20/10 às 13:26 UTC.
+- [ ] Capturar produto principal e rascunho autenticados em 375/1440, abas/subabas seguras; contrato autorizado, demais escritas não.
+- [ ] Comparar com prancha aprovada por página/elemento e entregar PDF com QA integral, arquivos/SHA/pendências. Sem publicar, aceitar, merge ou deploy.
 ## 31/10 — Prontidão para o lançamento do fim de semana
 - [ ] Suíte completa de testes: corrigir falhas reais; atualizar só testes que conferem textos já substituídos por decisão aprovada.
 - [ ] Desk diário: abrir cada setor da lateral (`SETORES_DESK`) e Caso 360 da Ana em 1280/375; corrigir telas quebradas, erros de página e HTTP >=400.

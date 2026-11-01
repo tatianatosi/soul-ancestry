@@ -994,43 +994,20 @@ export const verificarCondicoesCaso = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Religação 31/10/2026 — `ativarCaso` era uma segunda regra de ativação, mais
+ * fraca (só quatro flags do próprio caso, sem papel nem as trilhas reais de
+ * trava). Agora é só a entrada por `{ id }` do caminho único
+ * `ativarCasoComChecks`: papel admin/operações, bloqueios reais
+ * (`case_ativacao_bloqueios_reais`), override da proprietária e auditoria.
+ * Nenhum gate foi afrouxado; a regra antiga deixou de existir.
+ */
 export const ativarCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string }) => data)
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const caso = await supabase
-      .from("crm_casos")
-      .select("*")
-      .eq("id", data.id)
-      .eq("organization_id", organizationId)
-      .maybeSingle();
-    if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
-    const c = caso.data as Record<string, unknown>;
-
-    const pendencias: string[] = [];
-    if (!c["contrato_assinado"]) pendencias.push("Contrato assinado");
-    if (!c["pagamento_confirmado"]) pendencias.push("Pagamento confirmado");
-    if (!c["documentos_minimos_ok"]) pendencias.push("Documentos mínimos conferidos");
-    if (!c["condicoes_verificadas_em"]) pendencias.push("Verificação formal das condições");
-    if (pendencias.length > 0) {
-      return { ok: false, pendencias };
-    }
-
-    try {
-      await gravarComVerificacao({
-        supabase: supabase as never,
-        tabela: "crm_casos",
-        id: data.id,
-        organizationId,
-        userId: context.userId as string,
-        payload: { ativo: true, status: "ativo" },
-      });
-    } catch (erro) {
-      return { ok: false, pendencias: [erro instanceof Error ? erro.message : "Não foi possível ativar o caso."] };
-    }
-    return { ok: true, pendencias: [] as string[] };
+  .inputValidator((data: { id: string; motivoOverride?: string | null }) => data)
+  .handler(async ({ data }) => {
+    const { ativarCasoComChecks } = await import("@/lib/onboarding.functions");
+    return ativarCasoComChecks({ data: { casoId: data.id, motivoOverride: data.motivoOverride ?? null } });
   });
 
 export const registrarAcessoEvidencia = createServerFn({ method: "POST" })
