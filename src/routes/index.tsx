@@ -101,7 +101,11 @@ function Home() {
       const { data } = await supabase.auth.getUser();
       const usuario = data.user;
       if (!ativo || !usuario) return;
-      const { data: papeis, error } = await supabase.from("user_roles").select("role").eq("user_id", usuario.id);
+      const { data: papeis, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", usuario.id)
+        .is("archived_at", null);
       if (!ativo) return;
       const decisao = decidirAcessoDesk({
         autenticado: true,

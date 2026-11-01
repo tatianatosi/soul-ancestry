@@ -78,12 +78,13 @@ function RegistroVersionado() {
       toast.success("Modelo familiar (casal) registrado.");
       queryClient.invalidateQueries({ queryKey: ["modelo-familiar-casal-registro"] });
     },
+    // Laudo #189, primeiro corte (27/10/2026): sem onError, uma recusa do
+    // banco ficava indistinguível de "nada salva".
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const modelo = data?.modelo as
-    | { versao: string; status: string; autor: string | null; criado_em: string }
-    | null
-    | undefined;
+    { versao: string; status: string; autor: string | null; criado_em: string } | null | undefined;
 
   return (
     <CaCard titulo="Registro versionado (organização)">
@@ -99,8 +100,8 @@ function RegistroVersionado() {
           </div>
         ) : (
           <p className="text-navy/65">
-            Modelo ainda não registrado nesta organização. O registro é apenas de governança
-            interna e não libera contrato, assinatura ou cobrança.
+            Modelo ainda não registrado nesta organização. O registro é apenas de governança interna
+            e não libera contrato, assinatura ou cobrança.
           </p>
         )}
         {!modelo && (
@@ -176,15 +177,11 @@ function ModeloFamiliarCasalPage() {
             <Badge variant="outline">{MODELO_FAMILIAR_CASAL_AUTOR}</Badge>
             <Badge variant="outline">Base: {MODELO_FAMILIAR_CASAL_BASE}</Badge>
           </div>
-          <p className="max-w-3xl text-sm text-navy/65">
-            {MODELO_FAMILIAR_CASAL_FINALIDADE}
-          </p>
+          <p className="max-w-3xl text-sm text-navy/65">{MODELO_FAMILIAR_CASAL_FINALIDADE}</p>
           <p className="max-w-3xl rounded-md border border-terracotta/40 bg-terracotta/5 p-3 text-xs text-terracotta">
             {MODELO_FAMILIAR_CASAL_AVISO}
           </p>
-          <p className="text-xs text-navy/65">
-            Fonte canônica: {MODELO_FAMILIAR_CASAL_FONTE}
-          </p>
+          <p className="text-xs text-navy/65">Fonte canônica: {MODELO_FAMILIAR_CASAL_FONTE}</p>
         </header>
 
         <RegistroVersionado />
@@ -204,9 +201,7 @@ function ModeloFamiliarCasalPage() {
                 Um caso familiar · um contrato-base familiar · dois requerentes individuais · dois
                 anexos individuais · assinatura individual de cada adulto parte contratante.
               </p>
-              <p className="text-xs text-navy/65">
-                Nunca inferido: {NAO_INFERIDOS.join(", ")}.
-              </p>
+              <p className="text-xs text-navy/65">Nunca inferido: {NAO_INFERIDOS.join(", ")}.</p>
             </div>
           </CaCard>
 
@@ -274,9 +269,7 @@ function ModeloFamiliarCasalPage() {
                 <Badge variant="outline">{previa.marca}</Badge>
                 {previa.blocos.map((bloco) => (
                   <div key={bloco.titulo} className="rounded-md border bg-cream/40 p-3">
-                    <p className="text-xs uppercase tracking-wide text-navy/65">
-                      {bloco.titulo}
-                    </p>
+                    <p className="text-xs uppercase tracking-wide text-navy/65">{bloco.titulo}</p>
                     <p className="font-mono text-sm text-navy">{bloco.conteudo}</p>
                   </div>
                 ))}

@@ -178,7 +178,7 @@ export function MatrizPrioridadesConectada({
             className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-[11px] text-navy/60"
             data-radar-chip-sem-dados
           >
-            Sem dados reais
+            Dados insuficientes
           </span>
         ) : (
           ordem.map((sinal) => (
@@ -204,7 +204,7 @@ export function MatrizPrioridadesConectada({
       <section data-radar-lista-situacao className="rounded-xl border border-navy/10 bg-cream/40 p-4">
         <p className="mb-2 text-sm font-medium text-navy">Lista de situação</p>
         {casos.length === 0 ? (
-          <p className="text-xs text-navy/50">Nenhum caso com posição calculada.</p>
+          <p className="text-xs text-navy/50">Dados insuficientes</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">

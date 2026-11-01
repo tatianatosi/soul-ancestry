@@ -16,7 +16,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 import { GenogramaFamiliar } from "@/components/portal/genograma-familiar";
-import { raizAutorizada } from "@/components/portal/genograma-layout";
+import { geracoesCoerentes, raizAutorizada } from "@/components/portal/genograma-layout";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
@@ -69,7 +69,11 @@ export function PortalArvore() {
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
-            const pessoas = pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null);
+            // 31/10/2026: filiação explícita publicada prevalece sobre número de geração contraditório.
+            const pessoas = geracoesCoerentes(
+              pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null),
+              "vinculosArvore" in vivo ? vivo.vinculosArvore : [],
+            );
             const idsComPessoa = new Set(vivo.projecoes.filter((p) => p.pessoa_id).map((p) => String(p.id)));
             const itens = arvoreSanitizada(vivo.projecoes).filter((p) => !idsComPessoa.has(p.id));
             const painel = painelArvoreGeracoes(itens);

@@ -41,7 +41,7 @@ function OverrideGateInterno({ caseId, acao, onFeito }: { caseId: string; acao: 
   useAvisoEdicaoNaoSalva(motivo.trim() !== "");
   const registrar = useServerFn(registrarOverrideGateInterno);
   const m = useMutation({
-    mutationFn: () => registrar({ data: { caseId, acao, motivo } }),
+    mutationFn: () => registrar({ data: { caseId, acao, motivo: motivo.trim().length >= 10 ? motivo : "Decisão da Proprietária (sem motivo escrito)" } }),
     onSuccess: () => {
       toast.success(`Decisão registrada: "${ROTULO_ACAO[acao] ?? acao}" liberada por decisão da Proprietária.`);
       setAberto(false);
@@ -58,7 +58,6 @@ function OverrideGateInterno({ caseId, acao, onFeito }: { caseId: string; acao: 
       </button>
     );
   }
-  const faltam = Math.max(0, 10 - motivo.trim().length);
   return (
     <div className="mt-1 flex flex-wrap items-center gap-2">
       <input
@@ -71,10 +70,6 @@ function OverrideGateInterno({ caseId, acao, onFeito }: { caseId: string; acao: 
       <button
         type="button"
         onClick={() => {
-          if (motivo.trim().length < 10) {
-            toast.error(`Escreva o motivo da decisão antes de confirmar — faltam ${faltam} caractere(s).`);
-            return;
-          }
           m.mutate();
         }}
         disabled={m.isPending}
@@ -85,9 +80,6 @@ function OverrideGateInterno({ caseId, acao, onFeito }: { caseId: string; acao: 
       <button type="button" onClick={() => setAberto(false)} className="text-[11px] text-navy/50 underline">
         Cancelar
       </button>
-      {motivo.length > 0 && faltam > 0 ? (
-        <span className="w-full text-[11px] text-terracotta">Faltam {faltam} caractere(s) no motivo.</span>
-      ) : null}
     </div>
   );
 }

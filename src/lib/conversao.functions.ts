@@ -7,6 +7,13 @@ import { EVENTO_DO_ESTADO, validarTransicaoAceite, type EstadoAceite } from "@/l
 import { validarTransicaoEvento } from "@/lib/conversao-funil";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 
+const UUID = /^[0-9a-f-]{36}$/i;
+/** Só aceita um valor que parece UUID — nunca interpola texto livre num filtro `.or()`. */
+function comoUuidOuNulo(v: unknown): string | null {
+  const s = String(v ?? "").trim();
+  return UUID.test(s) ? s : null;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /** Conversão, marketing e Painel Hoje. Nenhuma ação externa é disparada aqui. */
@@ -22,25 +29,36 @@ const seguro = async (p: any) => {
 
 export const carregarConversao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data?: { incluirDemo?: boolean }) => ({ incluirDemo: data?.incluirDemo === true }))
+  .inputValidator((data?: { incluirDemo?: boolean }) => ({
+    incluirDemo: data?.incluirDemo === true,
+  }))
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
-    const [eventosBrutos, investimentos, campanhas, fontes, atribuicoes, leads, casos] = await Promise.all([
-      seguro(eq("conversion_events").order("occurred_at", { ascending: false }).limit(2000)),
-      seguro(eq("marketing_investments").is("archived_at", null).order("competencia", { ascending: false })),
-      seguro(eq("marketing_campaigns").is("archived_at", null).order("nome")),
-      seguro(eq("lead_sources").is("archived_at", null).order("nome")),
-      seguro(eq("attribution_records").is("archived_at", null).limit(500)),
-      seguro(eq("leads").is("archived_at", null).limit(1000)),
-      seguro(eq("crm_casos").is("archived_at", null).limit(1000)),
-    ]);
+    const [eventosBrutos, investimentos, campanhas, fontes, atribuicoes, leads, casos] =
+      await Promise.all([
+        seguro(eq("conversion_events").order("occurred_at", { ascending: false }).limit(2000)),
+        seguro(
+          eq("marketing_investments")
+            .is("archived_at", null)
+            .order("competencia", { ascending: false }),
+        ),
+        seguro(eq("marketing_campaigns").is("archived_at", null).order("nome")),
+        seguro(eq("lead_sources").is("archived_at", null).order("nome")),
+        seguro(eq("attribution_records").is("archived_at", null).limit(500)),
+        seguro(eq("leads").is("archived_at", null).limit(1000)),
+        seguro(eq("crm_casos").is("archived_at", null).limit(1000)),
+      ]);
 
     // Demonstração fica fora do recorte padrão; só entra com inclusão explícita.
-    const leadsDemo = new Set(leads.filter((l: any) => ehFixtureLinha(l as never)).map((l: any) => String(l.id)));
-    const casosDemo = new Set(casos.filter((c: any) => ehFixtureLinha(c as never)).map((c: any) => String(c.id)));
+    const leadsDemo = new Set(
+      leads.filter((l: any) => ehFixtureLinha(l as never)).map((l: any) => String(l.id)),
+    );
+    const casosDemo = new Set(
+      casos.filter((c: any) => ehFixtureLinha(c as never)).map((c: any) => String(c.id)),
+    );
     const eventoEhDemo = (e: any) =>
       e.is_demo === true ||
       (e.lead_id ? leadsDemo.has(String(e.lead_id)) : false) ||
@@ -103,7 +121,6 @@ export const carregarConversao = createServerFn({ method: "GET" })
     };
   });
 
-
 export const registrarEventoConversao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -128,12 +145,19 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
 
     // Máquina de estados no servidor: nenhuma chamada direta salta etapa obrigatória.
     if (!data.lead_id && !data.case_id) throw new Error("Evento exige vínculo com lead ou caso.");
+    // 26/10/2026 (auditoria): case_id/lead_id vêm do cliente e iam direto para
+    // dentro de uma string de filtro `.or()` do PostgREST — um valor com vírgula
+    // ou operador podia acrescentar cláusulas não pretendidas ao filtro.
+    const caseIdSeguro = comoUuidOuNulo(data.case_id);
+    const leadIdSeguro = comoUuidOuNulo(data.lead_id);
+    if (data.case_id && !caseIdSeguro) throw new Error("case_id inválido.");
+    if (data.lead_id && !leadIdSeguro) throw new Error("lead_id inválido.");
     const anteriores = await seguro(
       supabase
         .from("conversion_events")
         .select("event_type")
         .eq("organization_id", organizationId)
-        .or(data.case_id ? `case_id.eq.${data.case_id}` : `lead_id.eq.${data.lead_id}`),
+        .or(caseIdSeguro ? `case_id.eq.${caseIdSeguro}` : `lead_id.eq.${leadIdSeguro}`),
     );
     const transicao = validarTransicaoEvento(
       data.event_type,
@@ -141,19 +165,24 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
     );
     if (!transicao.permitido) throw new Error(transicao.motivos.join(" "));
 
+    // 26/10/2026: payload explícito — `{ ...data, ... }` deixava qualquer
+    // campo extra que o cliente mandasse (o inputValidator aqui é identidade,
+    // não filtra chaves) atravessar direto para o INSERT.
     const { error } = await supabase.from("conversion_events").insert({
       event_type: data.event_type,
+      lead_id: leadIdSeguro,
+      case_id: caseIdSeguro,
+      cliente_id: comoUuidOuNulo(data.cliente_id),
+      campaign_id: comoUuidOuNulo(data.campaign_id),
+      lead_source_id: comoUuidOuNulo(data.lead_source_id),
       responsavel: data.responsavel ?? null,
-      origem: data.origem ?? null,
-      canal: data.canal ?? null,
       evidencia_referencia: data.evidencia_referencia ?? null,
       observacao: data.observacao ?? null,
-      lead_id: data.lead_id || null,
-      case_id: data.case_id || null,
-      cliente_id: data.cliente_id || null,
-      campaign_id: data.campaign_id || null,
-      lead_source_id: data.lead_source_id || null,
-      occurred_at: data.occurred_at ? new Date(data.occurred_at).toISOString() : new Date().toISOString(),
+      origem: data.origem ?? null,
+      canal: data.canal ?? null,
+      occurred_at: data.occurred_at
+        ? new Date(data.occurred_at).toISOString()
+        : new Date().toISOString(),
       organization_id: organizationId,
       responsavel_id: context.userId,
       created_by: context.userId,
@@ -165,7 +194,10 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
 /** Avança o estado de aceite do caso aplicando a regra padrão e gerando evento imutável. */
 export const avancarEstadoAceite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { caseId: string; destino: EstadoAceite; observacao?: string; evidencia?: string }) => data)
+  .inputValidator(
+    (data: { caseId: string; destino: EstadoAceite; observacao?: string; evidencia?: string }) =>
+      data,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
@@ -179,19 +211,33 @@ export const avancarEstadoAceite = createServerFn({ method: "POST" })
     if (erroCaso || !caso) throw new Error("Caso não encontrado nesta organização.");
 
     const [nucleos, onboarding] = await Promise.all([
-      seguro(supabase.from("nucleos_familiares").select("id").eq("case_id", data.caseId).is("archived_at", null)),
+      seguro(
+        supabase
+          .from("nucleos_familiares")
+          .select("id")
+          .eq("case_id", data.caseId)
+          .is("archived_at", null),
+      ),
       seguro(supabase.from("onboarding_checklist").select("*").eq("case_id", data.caseId)),
     ]);
     const obrigatorios = onboarding.filter((o) => o.obrigatorio !== false);
     const validacao = validarTransicaoAceite(data.destino, {
       confirmacaoFormalRecebida:
         Boolean(caso.data_confirmacao_formal_proposta) ||
-        ["confirmacao_formal_recebida", "formalizacao_em_preparacao", "contrato_enviado", "contrato_assinado", "pagamento_inicial_confirmado", "onboarding_iniciado", "caso_ativo"].includes(
-          String(caso.eixo_comercial ?? caso.eixo_formalizacao ?? ""),
-        ),
+        [
+          "confirmacao_formal_recebida",
+          "formalizacao_em_preparacao",
+          "contrato_enviado",
+          "contrato_assinado",
+          "pagamento_inicial_confirmado",
+          "onboarding_iniciado",
+          "caso_ativo",
+        ].includes(String(caso.eixo_comercial ?? caso.eixo_formalizacao ?? "")),
       contratoAssinado: Boolean(caso.contrato_assinado),
       pagamentoInicialConfirmado: Boolean(caso.pagamento_confirmado),
-      onboardingMinimoConcluido: obrigatorios.length > 0 && obrigatorios.every((o) => Boolean(o.concluido_em ?? o.concluido)),
+      onboardingMinimoConcluido:
+        obrigatorios.length > 0 &&
+        obrigatorios.every((o) => Boolean(o.concluido_em ?? o.concluido)),
       temNucleoOuDossie: nucleos.length > 0,
       temResponsavel: Boolean(caso.responsavel_principal || caso.responsavel_id),
     });
@@ -199,7 +245,12 @@ export const avancarEstadoAceite = createServerFn({ method: "POST" })
       throw new Error(validacao.motivos.join(" "));
     }
 
-    const campo = ["proposta_enviada", "aceite_verbal_confirmado", "confirmacao_formal_pendente", "confirmacao_formal_recebida"].includes(data.destino)
+    const campo = [
+      "proposta_enviada",
+      "aceite_verbal_confirmado",
+      "confirmacao_formal_pendente",
+      "confirmacao_formal_recebida",
+    ].includes(data.destino)
       ? "eixo_comercial"
       : "eixo_formalizacao";
     await gravarComVerificacao({
@@ -238,16 +289,17 @@ export const painelHoje = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [casos, entregas, nucleos, lotes, excecoes, eventos, investimentos, campanhas] = await Promise.all([
-      seguro(eq("crm_casos").is("archived_at", null)),
-      seguro(eq("client_deliverables").is("archived_at", null)),
-      seguro(eq("nucleos_familiares").is("archived_at", null)),
-      seguro(eq("import_batches").order("started_at", { ascending: false }).limit(30)),
-      seguro(eq("migration_exceptions").eq("status", "aberta")),
-      seguro(eq("conversion_events").order("occurred_at", { ascending: false }).limit(2000)),
-      seguro(eq("marketing_investments").is("archived_at", null)),
-      seguro(eq("marketing_campaigns").is("archived_at", null)),
-    ]);
+    const [casos, entregas, nucleos, lotes, excecoes, eventos, investimentos, campanhas] =
+      await Promise.all([
+        seguro(eq("crm_casos").is("archived_at", null)),
+        seguro(eq("client_deliverables").is("archived_at", null)),
+        seguro(eq("nucleos_familiares").is("archived_at", null)),
+        seguro(eq("import_batches").order("started_at", { ascending: false }).limit(30)),
+        seguro(eq("migration_exceptions").eq("status", "aberta")),
+        seguro(eq("conversion_events").order("occurred_at", { ascending: false }).limit(2000)),
+        seguro(eq("marketing_investments").is("archived_at", null)),
+        seguro(eq("marketing_campaigns").is("archived_at", null)),
+      ]);
 
     const ultimaEntrega = new Map<string, number>();
     for (const e of entregas) {
@@ -278,22 +330,41 @@ export const painelHoje = createServerFn({ method: "GET" })
 
     return {
       filas: {
-        aceite_verbal_aguardando_formal: filtro((c) => c.eixo_comercial === "aceite_verbal_confirmado"),
+        aceite_verbal_aguardando_formal: filtro(
+          (c) => c.eixo_comercial === "aceite_verbal_confirmado",
+        ),
         formal_aguardando_contrato: filtro(
-          (c) => c.eixo_comercial === "confirmacao_formal_recebida" && !["contrato_enviado", "contrato_assinado", "pagamento_inicial_confirmado", "onboarding_iniciado", "caso_ativo"].includes(String(c.eixo_formalizacao)),
+          (c) =>
+            c.eixo_comercial === "confirmacao_formal_recebida" &&
+            ![
+              "contrato_enviado",
+              "contrato_assinado",
+              "pagamento_inicial_confirmado",
+              "onboarding_iniciado",
+              "caso_ativo",
+            ].includes(String(c.eixo_formalizacao)),
         ),
         contratos_aguardando_assinatura: filtro((c) => c.eixo_formalizacao === "contrato_enviado"),
         pagamentos_aguardados: filtro((c) => c.eixo_formalizacao === "contrato_assinado"),
-        onboardings_bloqueados: filtro((c) => c.eixo_formalizacao === "onboarding_iniciado" && !c.temNucleoOuDossie),
+        onboardings_bloqueados: filtro(
+          (c) => c.eixo_formalizacao === "onboarding_iniciado" && !c.temNucleoOuDossie,
+        ),
         casos_sem_responsavel: filtro((c) => !c.responsavel),
         casos_sem_proxima_acao: filtro((c) => !c.proxima_acao),
         casos_sem_dossie: filtro((c) => !c.temNucleoOuDossie),
-        sem_atualizacao_10: filtro((c) => (c.diasSemAtualizacaoCliente ?? 999) >= 10 && (c.diasSemAtualizacaoCliente ?? 999) < 14),
+        sem_atualizacao_10: filtro(
+          (c) =>
+            (c.diasSemAtualizacaoCliente ?? 999) >= 10 && (c.diasSemAtualizacaoCliente ?? 999) < 14,
+        ),
         sem_atualizacao_14: filtro((c) => (c.diasSemAtualizacaoCliente ?? 999) >= 14),
-        followups_vencidos: filtro((c) => Boolean(c.prazo_proxima_acao) && new Date(c.prazo_proxima_acao).getTime() < hoje),
+        followups_vencidos: filtro(
+          (c) => Boolean(c.prazo_proxima_acao) && new Date(c.prazo_proxima_acao).getTime() < hoje,
+        ),
       },
       importacoes: {
-        comErro: lotes.filter((l) => (l.rejected_records ?? 0) > 0 || l.status === "concluido_com_erros"),
+        comErro: lotes.filter(
+          (l) => (l.rejected_records ?? 0) > 0 || l.status === "concluido_com_erros",
+        ),
         duplicidades: lotes.filter((l) => (l.duplicated_records ?? 0) > 0),
         excecoesAbertas: excecoes.length,
       },
@@ -308,7 +379,8 @@ export const painelHoje = createServerFn({ method: "GET" })
 export const garantirTemplateOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { CHECKLIST_ONBOARDING, TEMPLATE_ONBOARDING_CODIGO, TEMPLATE_ONBOARDING_VERSAO } = await import("@/lib/onboarding-padrao");
+    const { CHECKLIST_ONBOARDING, TEMPLATE_ONBOARDING_CODIGO, TEMPLATE_ONBOARDING_VERSAO } =
+      await import("@/lib/onboarding-padrao");
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
 
@@ -337,7 +409,10 @@ export const garantirTemplateOnboarding = createServerFn({ method: "POST" })
       templateId = data.id as string;
     }
 
-    const { data: itens } = await supabase.from("onboarding_template_items").select("item").eq("template_id", templateId);
+    const { data: itens } = await supabase
+      .from("onboarding_template_items")
+      .select("item")
+      .eq("template_id", templateId);
     const existentes = new Set(((itens ?? []) as Linha[]).map((i) => String(i.item)));
     const novos = CHECKLIST_ONBOARDING.filter((i) => !existentes.has(i.item)).map((i) => ({
       organization_id: organizationId,

@@ -288,7 +288,7 @@ export function bloqueiosAprovacaoProposta(p: PropostaEstruturada, sku: SkuCanon
 
 export type CondicaoDerivada = {
   proposal_id: string;
-  product_catalog_id: string;
+  product_catalog_id: string | null;
   valor_total_referencia: number;
   moeda: string;
   forma_pagamento: string | null;
@@ -302,8 +302,16 @@ export type CondicaoDerivada = {
  * Deriva a condição comercial da proposta aprovada. Parcelas e vencimentos
  * só existem quando declarados; ausência vira pendência, nunca inferência.
  */
-export function derivarCondicaoComercial(p: PropostaEstruturada, sku: SkuCanonicoProposta): CondicaoDerivada {
+export function derivarCondicaoComercial(
+  p: PropostaEstruturada,
+  sku: SkuCanonicoProposta | null | undefined,
+): CondicaoDerivada {
   const pendencias: string[] = [];
+  // 25/10/2026: proposta sem SKU é aceita desde 10/10; antes isto lançava
+  // TypeError (sku.id) e a condição nunca era gravada, travando a OS.
+  if (!sku) {
+    pendencias.push("Proposta sem SKU do catálogo — valor tomado da própria proposta.");
+  }
   if (!p.forma_pagamento) pendencias.push("Modalidade de pagamento não declarada na proposta.");
   if (!p.parcelas_declaradas) pendencias.push("Parcelas não declaradas na proposta — o motor não infere.");
   if (!p.primeiro_vencimento_declarado)
@@ -311,13 +319,13 @@ export function derivarCondicaoComercial(p: PropostaEstruturada, sku: SkuCanonic
 
   return {
     proposal_id: String(p.id),
-    product_catalog_id: sku.id,
-    valor_total_referencia: Number(sku.preco_sugerido),
-    moeda: sku.moeda ?? "BRL",
+    product_catalog_id: sku?.id ?? null,
+    valor_total_referencia: sku ? Number(sku.preco_sugerido) : Number(p.valor ?? 0),
+    moeda: sku?.moeda ?? "BRL",
     forma_pagamento: p.forma_pagamento,
     parcelas: p.parcelas_declaradas,
     primeiro_vencimento: p.primeiro_vencimento_declarado,
-    origem: sku.fonte_referencia ?? "planilha_mestre",
+    origem: sku?.fonte_referencia ?? (sku ? "planilha_mestre" : "proposta_sem_sku"),
     pendencias,
   };
 }

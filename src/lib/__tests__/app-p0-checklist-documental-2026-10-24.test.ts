@@ -43,30 +43,49 @@ describe("checklistDocumentalCliente", () => {
   });
 
   it("contador: só pedidos aceitos contam como concluídos", () => {
-    const c = checklistDocumentalCliente([pedido("a", "aceito"), pedido("b", "aceito"), pedido("c", "recebido"), pedido("d", "aguardando")]);
+    const c = checklistDocumentalCliente([
+      pedido("a", "aceito"),
+      pedido("b", "aceito"),
+      pedido("c", "recebido"),
+      pedido("d", "aguardando"),
+    ]);
     expect(c.total).toBe(4);
     expect(c.concluidos).toBe(2);
   });
 
   it("pedidos cancelados e sem título não entram na conta", () => {
-    const c = checklistDocumentalCliente([pedido("a", "aceito"), pedido("x", "cancelado"), pedido("y", "aguardando", { titulo: "   " })]);
+    const c = checklistDocumentalCliente([
+      pedido("a", "aceito"),
+      pedido("x", "cancelado"),
+      pedido("y", "aguardando", { titulo: "   " }),
+    ]);
     expect(c.total).toBe(1);
     expect(c.itens.map((i) => i.id)).toEqual(["a"]);
   });
 
   it("prazo só aparece para o que ainda está pendente, só a data", () => {
-    const c = checklistDocumentalCliente([pedido("a", "aceito", { prazo: "2026-11-30" }), pedido("b", "aguardando", { prazo: "2026-11-30T10:00:00Z" })]);
+    const c = checklistDocumentalCliente([
+      pedido("a", "aceito", { prazo: "2026-11-30" }),
+      pedido("b", "aguardando", { prazo: "2026-11-30T10:00:00Z" }),
+    ]);
     expect(c.itens.find((i) => i.id === "a")!.prazo).toBeNull();
     expect(c.itens.find((i) => i.id === "b")!.prazo).toBe("2026-11-30");
   });
 
   it("cada título vem do pedido da equipe, não de lista pronta", () => {
-    const c = checklistDocumentalCliente([pedido("a", "aguardando", { titulo: "Certidão de casamento de Adair" })]);
+    const c = checklistDocumentalCliente([
+      pedido("a", "aguardando", { titulo: "Certidão de casamento de Adair" }),
+    ]);
     expect(c.itens[0].titulo).toBe("Certidão de casamento de Adair");
   });
 
   it("os pedidos abertos (seção Solicitados) continuam só aguardando/recusado", () => {
-    const linhas = [pedido("a", "aceito"), pedido("b", "aguardando"), pedido("c", "recusado"), pedido("d", "em_revisao")];
+    const linhas = [
+      pedido("a", "aceito"),
+      pedido("b", "aguardando"),
+      pedido("c", "recusado"),
+      pedido("d", "em_revisao"),
+    ];
     expect(solicitacoesAbertasCliente(linhas).map((s) => s.id)).toEqual(["b", "c"]);
   });
 });
@@ -80,7 +99,9 @@ describe("tela de Documentos da família", () => {
     // 26/10/2026 — Lovable (mockup17) removeu a caixa "Entregas → atalho para
     // Legado" (e o CTA "Conhecer o Legado" que vivia nela). O botão de envio
     // "catch-all" segue sempre visível no fim de Solicitados.
-    expect(real).toMatch(/A lista de documentos será apresentada quando for compartilhada com você[\s\S]*?<EnviarDocumento casoId=\{casoAtivo\} \/>/); // estado vazio
+    // Prettier pode quebrar a frase em mais de uma linha; checar o início e o botão separadamente.
+    expect(real).toMatch(/A lista de documentos será apresentada quando for compartilhada com/);
+    expect(real).toMatch(/A lista de documentos[\s\S]*?<EnviarDocumento casoId=\{casoAtivo\} \/>/); // estado vazio
     expect(real).toMatch(/<EnviarDocumento casoId=\{casoAtivo\} solicitacaoId=\{s\.id\} \/>/); // em cada pedido
     expect((real.match(/<EnviarDocumento /g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
@@ -88,11 +109,16 @@ describe("tela de Documentos da família", () => {
   it("o checklist consolidado existe no login real, acima das seções, e na prévia da equipe", () => {
     const real = tela.slice(tela.indexOf("data-aba-documentos-vivo"));
     expect(real).toMatch(/<ChecklistDocumental checklist=\{vivo\.data\?\.checklist\} \/>/);
-    expect(tela).toMatch(/\{comItens \? \(\s*<span className="app-chip" data-tom="ok" data-checklist-contador>/);
+    expect(tela).toMatch(
+      /\{comItens \? \(\s*<span className="app-chip" data-tom="ok" data-checklist-contador>/,
+    );
   });
 
   it("sem pedidos continua 'Em preparação' e o checklist não tem nenhum título fixo", () => {
-    const comp = tela.slice(tela.indexOf("function ChecklistDocumental("), tela.indexOf("function ChecklistDocumental(") + 2600);
+    const comp = tela.slice(
+      tela.indexOf("function ChecklistDocumental("),
+      tela.indexOf("function ChecklistDocumental(") + 2600,
+    );
     expect(comp).toContain("Em preparação");
     // Só rótulos de estado; nenhum nome de documento escrito no código do checklist.
     expect(comp).not.toMatch(/Certid[ãa]o|Graz|Dossiê|Registro da|Passaporte|Naturaliza/);

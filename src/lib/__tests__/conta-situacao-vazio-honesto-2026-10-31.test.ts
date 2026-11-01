@@ -10,6 +10,6 @@ describe("Conta: a linha de situação não some quando falta o dado (31/10/2026
   });
 
   it("a linha é sempre renderizada", () => {
-    expect(fonte).toMatch(/<p data-conta-situacao[^>]*>Situação do acompanhamento:/);
+    expect(fonte).toMatch(/<p\s+data-conta-situacao[\s\S]*?Situação do acompanhamento:/);
   });
 });

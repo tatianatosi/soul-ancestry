@@ -4,6 +4,9 @@ import shutil
 import subprocess
 import sys
 
+BRANCHES_PROIBIDAS = {"main", "master"}
+
+
 def executar(comando, mensagem_erro):
     try:
         resultado = subprocess.run(
@@ -21,10 +24,12 @@ def executar(comando, mensagem_erro):
         print(f"Detalhes técnicos:\n{detalhe}")
         sys.exit(1)
 
+
 def ferramenta():
     if shutil.which("bun") and (os.path.exists("bun.lock") or os.path.exists("bunfig.toml")):
         return "bun"
     return "npm"
+
 
 SKIP_DIRS = {
     "node_modules", ".git", ".next", "dist", "build", "venv",
@@ -42,6 +47,7 @@ PADROES = (
     re.compile(r"código restante", re.IGNORECASE),
 )
 
+
 def linha_incompleta(linha):
     texto = linha.strip()
     if not texto:
@@ -51,6 +57,7 @@ def linha_incompleta(linha):
         return False
     return any(padrao.search(texto) for padrao in PADROES)
 
+
 def sensivel(linha_status):
     caminho = linha_status[3:].strip().strip('"')
     nome = os.path.basename(caminho.split(" -> ")[-1])
@@ -58,7 +65,8 @@ def sensivel(linha_status):
         return False
     return nome == ".env" or nome.startswith(".env.")
 
-print("INICIANDO PIPELINE (build + typecheck -> main -> Lovable)\n")
+
+print("INICIANDO PIPELINE (build + typecheck -> branch atual; o merge é aprovado por humano no GitHub)\n")
 
 print("1/5 Varrendo código por tarefas incompletas...")
 achados = []
@@ -100,21 +108,36 @@ print("Build concluído.")
 executar(f"{cmd} run typecheck", "O typecheck FALHOU. Front e server TypeScript compartilham o mesmo tsc.")
 print("Typecheck concluído.")
 
-print("\n4/5 Preparando a branch main...")
+print("\n4/5 Preparando a branch atual...")
 branch_atual = executar("git branch --show-current", "Falha ao detectar a branch atual.")
-guardou = False
-if branch_atual != "main":
-    print(f"Branch atual: {branch_atual}. Mudando para main.")
-    status_local = executar("git status --porcelain", "Falha ao ler o status do Git.")
-    if any(sensivel(l) for l in status_local.splitlines() if l.strip()):
-        print("ERRO: há arquivo .env no status. Não vou trocar de branch nem commitar.")
+if not branch_atual or branch_atual in BRANCHES_PROIBIDAS:
+    print(
+        "ERRO: rode o pipeline numa branch de trabalho (não em "
+        f"{' ou '.join(sorted(BRANCHES_PROIBIDAS))} nem em HEAD solto). "
+        "O merge na main é feito por aprovação humana no GitHub."
+    )
+    sys.exit(1)
+print(f"Branch atual: {branch_atual}. Sem troca de branch.")
+
+# Merge em andamento com conflito não resolvido: `git add .` marcaria o
+# arquivo como resolvido sem checar o conteúdo, e os marcadores de conflito
+# (<<<<<<<, =======, >>>>>>>) poderiam ser commitados literalmente.
+resultado_merge = subprocess.run(
+    ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+    capture_output=True, text=True,
+)
+if resultado_merge.returncode == 0:
+    saida_conflitos = executar(
+        "git diff --name-only --diff-filter=U", "Falha ao checar conflitos de merge."
+    )
+    arquivos_em_conflito = [l for l in saida_conflitos.splitlines() if l.strip()]
+    if arquivos_em_conflito:
+        print("ERRO: há conflitos de merge não resolvidos:")
+        for item in arquivos_em_conflito:
+            print(f"  - {item}")
+        print("\nResolva os conflitos antes de rodar o pipeline. Ele não resolve, nem comita, nem aborta o merge.")
         sys.exit(1)
-    if status_local.strip():
-        executar('git stash push -u -m "pipeline-lovable"', "Falha ao guardar alterações antes do checkout.")
-        guardou = True
-    executar("git checkout main", "Falha ao alternar para a branch main.")
-    if guardou:
-        executar("git stash pop", "Falha ao reaplicar alterações na main. Resolva o conflito e rode de novo.")
+    print("Merge em andamento (MERGE_HEAD presente), sem arquivos não resolvidos. Seguindo.")
 
 status = executar("git status --porcelain", "Falha ao ler o status do Git.")
 if any(sensivel(l) for l in status.splitlines() if l.strip()):
@@ -124,11 +147,11 @@ if not status.strip():
     print("Nenhuma alteração local pendente.")
 else:
     executar("git add .", "Falha ao adicionar arquivos ao staging.")
-    msg = sys.argv[1] if len(sys.argv) > 1 else "auto: entrega sincronizada na main"
+    msg = sys.argv[1] if len(sys.argv) > 1 else f"auto: entrega na branch {branch_atual}"
     msg = msg.replace('"', "'")
     executar(f'git commit -m "{msg}"', "Falha ao realizar o commit.")
-    print(f"Commit na main: {msg}")
+    print(f"Commit em {branch_atual}: {msg}")
 
-print("\n5/5 Push para origin main...")
-executar("git push origin main", "Falha ao enviar para origin main.")
-print("\nPublicado na branch main.")
+print(f"\n5/5 Push para origin {branch_atual}...")
+executar(f"git push -u origin {branch_atual}", f"Falha ao enviar para origin {branch_atual}.")
+print(f"\nPublicado em {branch_atual}. Abra/atualize a PR no GitHub para aprovação e merge.")

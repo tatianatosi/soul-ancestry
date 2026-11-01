@@ -6,7 +6,11 @@
  * Nada aqui envia mensagem, cria contrato, cobrança ou pesquisa externa.
  */
 
-import { compararPersistencia, mensagemDivergencia } from "@/lib/verificacao-persistencia";
+import {
+  compararPersistencia,
+  mensagemDivergencia,
+  type Divergencia,
+} from "@/lib/verificacao-persistencia";
 import { CODIGOS_PERSISTENCIA } from "@/lib/persistencia-erros";
 import { mascararParaLog } from "@/lib/persistencia-mascara";
 import { traduzirRecusa } from "@/lib/recusa-traducao.server";
@@ -18,6 +22,8 @@ export type ResultadoGravacao = {
   ok: true;
   registro: Record<string, unknown>;
   alterados: string[];
+  /** Campos que o banco não guardou como enviados (trigger normalizou ou recusou em silêncio). */
+  divergencias: Divergencia[];
   salvoEm: string;
 };
 
@@ -130,20 +136,26 @@ export async function gravarComVerificacao(opcoes: {
   const relido = await releitura.maybeSingle();
   const registro = (relido.data ?? null) as Record<string, unknown> | null;
 
-  // Releitura efetuada: não aborta com erro fatal divergências cosméticas se o banco gravou
+  // Releitura efetuada: divergência não aborta a gravação (triggers podem
+  // normalizar valores), mas é devolvida à tela para ela não dizer "conferido"
+  // sobre um campo que o banco não guardou como enviado.
+  let divergencias: Divergencia[] = [];
   try {
-    const divergencias = compararPersistencia({ ...payload, ...derivados }, registro);
+    divergencias = compararPersistencia({ ...payload, ...derivados }, registro);
     if (divergencias.length > 0) {
-      console.warn(`[persistencia] Divergência tolerada em ${tabela}:${id}`, divergencias.map((d: any) => d?.campo ?? "?"));
+      const campos = divergencias.map((d) => d.campo);
+      console.warn(`[persistencia] Divergência em ${tabela}:${id}`, campos);
     }
   } catch {
     console.warn(`[persistencia] Falha na comparação pós-gravação em ${tabela}:${id}`);
   }
+  const divergentes = new Set(divergencias.map((d) => d.campo));
 
   return {
     ok: true,
     registro: registro ?? {},
-    alterados: Object.keys(payload),
+    alterados: Object.keys(payload).filter((k) => !divergentes.has(k)),
+    divergencias,
     salvoEm: new Date().toISOString(),
   };
 }
@@ -173,7 +185,10 @@ export async function inserirComVerificacao(opcoes: {
   try {
     const divergencias = compararPersistencia(payload, registro);
     if (divergencias.length > 0) {
-      console.warn(`[persistencia] Divergência tolerada na inserção em ${tabela}:${linha.id}`, divergencias.map((d: any) => d?.campo ?? "?"));
+      console.warn(
+        `[persistencia] Divergência tolerada na inserção em ${tabela}:${linha.id}`,
+        divergencias,
+      );
     }
   } catch {
     console.warn(`[persistencia] Falha na comparação pós-inserção em ${tabela}:${linha.id}`);

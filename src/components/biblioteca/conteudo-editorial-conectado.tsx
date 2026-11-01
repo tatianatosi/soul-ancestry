@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { CardIndicador, CarregandoDesk, VazioDesk } from "@/components/desk/ui-desk";
@@ -52,25 +53,36 @@ export function ConteudoEditorialConectado() {
   const despublicarProj = useServerFn(despublicarProjecao);
   const arquivar = useServerFn(arquivarRegistroG03);
 
+  // Laudo #189, primeiro corte (27/10/2026): as 3 mutations abaixo não
+  // tinham onError — uma recusa do banco (ex.: trigger de app_projections)
+  // ficava indistinguível de "nada salva".
+  const onErro = (e: Error) => toast.error(e.message);
   const invalidar = () => qc.invalidateQueries({ queryKey: ["fila-microentregas"] });
   const mAprovar = useMutation({
     mutationFn: (v: { id: string; publicar: boolean; motivo?: string }) => aprovarProj({ data: v }),
     onSuccess: invalidar,
+    onError: onErro,
   });
   const mDespublicar = useMutation({
     mutationFn: (v: { id: string; motivo?: string }) => despublicarProj({ data: v }),
     onSuccess: invalidar,
+    onError: onErro,
   });
   const mArquivar = useMutation({
     mutationFn: (v: { id: string; motivo: string }) =>
       arquivar({ data: { tabela: "app_projections" as const, id: v.id, motivo: v.motivo } }),
     onSuccess: invalidar,
+    onError: onErro,
   });
 
   const itens = useMemo(() => {
     return (q.data ?? []).map((item) => {
       const tipoRotulo = rotuloTipoProjecao(item.tipo);
-      return { ...item, tipoRotulo, prateleira: prateleiraDe({ conteudo: item.descricao, tipoRotulo }) };
+      return {
+        ...item,
+        tipoRotulo,
+        prateleira: prateleiraDe({ conteudo: item.descricao, tipoRotulo }),
+      };
     });
   }, [q.data]);
 
@@ -85,19 +97,29 @@ export function ConteudoEditorialConectado() {
     prateleiraAtiva === "todas" ? itens : itens.filter((i) => i.prateleira === prateleiraAtiva);
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-cream/50 p-4" aria-label="Conteúdo editorial do App Cliente" data-biblioteca-conteudo-editorial>
+    <section
+      className="rounded-xl border border-navy/10 bg-cream/50 p-4"
+      aria-label="Conteúdo editorial do App Cliente"
+      data-biblioteca-conteudo-editorial
+    >
       <div className="mb-3">
         <h2 className="font-serif text-lg text-navy">Conteúdo editorial (App Cliente)</h2>
         <p className="mt-1 text-sm text-navy/65">
-          Coleções, itens e ações reais sobre o que pode ser publicado no App — distinto das referências internas
-          abaixo.
+          Coleções, itens e ações reais sobre o que pode ser publicado no App — distinto das
+          referências internas abaixo.
         </p>
       </div>
 
       {q.isLoading ? <CarregandoDesk linhas={1} rotulo="Carregando conteúdo editorial" /> : null}
       {q.isError ? (
-        <div role="alert" className="rounded-lg border border-terracotta/40 bg-terracotta/5 p-3 text-sm text-terracotta">
-          <p>Não foi possível ler o conteúdo editorial. Isto é falha de leitura, não ausência de conteúdo.</p>
+        <div
+          role="alert"
+          className="rounded-lg border border-terracotta/40 bg-terracotta/5 p-3 text-sm text-terracotta"
+        >
+          <p>
+            Não foi possível ler o conteúdo editorial. Isto é falha de leitura, não ausência de
+            conteúdo.
+          </p>
           <Button variant="outline" size="sm" className="mt-3" onClick={() => void q.refetch()}>
             Tentar novamente
           </Button>
@@ -114,7 +136,12 @@ export function ConteudoEditorialConectado() {
           <>
             <div data-biblioteca-colecoes className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {PRATELEIRAS.map((p) => (
-                <button key={p.id} type="button" onClick={() => setPrateleiraAtiva(p.id)} className="text-left">
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPrateleiraAtiva(p.id)}
+                  className="text-left"
+                >
                   <CardIndicador
                     rotulo={p.rotulo}
                     valor={contagemPorColecao.get(p.id) ?? 0}
@@ -136,14 +163,18 @@ export function ConteudoEditorialConectado() {
 
             <ul className="mt-4 space-y-2" data-biblioteca-lista-conteudo>
               {itensFiltrados.map((item) => (
-                <li key={item.id} className="rounded-lg border border-navy/10 bg-cream/25 p-3 text-xs text-navy/75">
+                <li
+                  key={item.id}
+                  className="rounded-lg border border-navy/10 bg-cream/25 p-3 text-xs text-navy/75"
+                >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium text-navy">{item.tipoRotulo}</p>
                       <p className="text-navy/55">
                         {PRATELEIRAS.find((p) => p.id === item.prateleira)?.rotulo} ·{" "}
                         {item.casoCodigo ?? item.casoTitulo ?? "Sem caso vinculado"}
-                        {item.responsavel ? ` · ${item.responsavel}` : ""} · {dataBr(item.atualizadoEm)}
+                        {item.responsavel ? ` · ${item.responsavel}` : ""} ·{" "}
+                        {dataBr(item.atualizadoEm)}
                       </p>
                     </div>
                     <span className="shrink-0 rounded-md border border-navy/15 bg-cream px-2 py-0.5 text-[11px] text-navy/70">
@@ -167,7 +198,9 @@ export function ConteudoEditorialConectado() {
                         capacidade="aprovar_projecao_app_cliente"
                         acaoExterna="publicar_no_app_cliente"
                         efeito="Aprova e publica esta projeção no App Cliente. Ação voltada ao cliente: exige confirmação com motivo registrado."
-                        onConfirmar={(motivo) => mAprovar.mutate({ id: item.id, publicar: true, motivo })}
+                        onConfirmar={(motivo) =>
+                          mAprovar.mutate({ id: item.id, publicar: true, motivo })
+                        }
                       />
                     ) : null}
                     {item.status === "published" ? (

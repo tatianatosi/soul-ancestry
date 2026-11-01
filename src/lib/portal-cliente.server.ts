@@ -9,6 +9,7 @@
  * - linguagem simples: nada de jargão interno, nenhuma promessa de resultado.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { comoUnico } from "@/lib/portal-vinculo";
 import { erroDoArquivoCliente } from "@/lib/portal-envio-arquivo";
 
 export type Sb = any;
@@ -102,10 +103,12 @@ export function caminhoEnvioCliente(organizationId: string, casoId: string, nome
 export async function acessoDoCliente(supabase: Sb, userId: string) {
   const { data } = await supabase
     .from("client_portal_access")
-    .select("id, organization_id, client_id, access_level, access_status")
+    .select("id, organization_id, client_id, access_level, access_status, updated_at")
     .eq("auth_user_id", userId)
     .is("archived_at", null)
-    .maybeSingle();
+    .order("updated_at", { ascending: false })
+      .limit(10)
+      .then(comoUnico);
   if (!data || data.access_status !== "active") throw new Error("Acesso não autorizado.");
   return data as {
     id: string;

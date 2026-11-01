@@ -7,6 +7,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import {
   aceitarSugestaoDeTrilha,
@@ -50,11 +51,16 @@ export function TriagemAncestralScanDoLead({
       void qc.invalidateQueries({ queryKey: ["sugestoes-trilha-scan", leadId] });
       void qc.invalidateQueries({ queryKey: ["lead-desk", leadId] });
     },
+    // Laudo #189, primeiro corte (27/10/2026): mutation sem onError era
+    // indistinguível de "nada salva" — o clique recusava em silêncio.
+    onError: (e: Error) => toast.error(e.message),
   });
   const rejeitarFn = useServerFn(rejeitarSugestaoDeTrilha);
   const rejeitar = useMutation({
-    mutationFn: (input: { trackId: string; motivo: string }) => rejeitarFn({ data: { leadId, ...input } }),
+    mutationFn: (input: { trackId: string; motivo: string }) =>
+      rejeitarFn({ data: { leadId, ...input } }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["sugestoes-trilha-scan", leadId] }),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (qTriagem.isLoading) return null;
@@ -98,14 +104,19 @@ export function TriagemAncestralScanDoLead({
           {qSugestoes.data.sugestoes.map((s) => (
             <div key={s.trackId} className="rounded-lg border border-navy/10 bg-white p-2 text-xs">
               <p className="font-medium text-navy">
-                {s.pais} {s.via ? `· ${s.via}` : ""} — <span className="text-navy/60">{s.estado}</span>
+                {s.pais} {s.via ? `· ${s.via}` : ""} —{" "}
+                <span className="text-navy/60">{s.estado}</span>
               </p>
               <p className="mt-1 text-navy/70">Sinais: {s.sinais.join("; ")}</p>
               {s.perguntasFaltantes.length ? (
-                <p className="mt-1 text-navy/70">Perguntas ainda em aberto: {s.perguntasFaltantes.join("; ")}</p>
+                <p className="mt-1 text-navy/70">
+                  Perguntas ainda em aberto: {s.perguntasFaltantes.join("; ")}
+                </p>
               ) : null}
               {trilhaJaEscolhida ? (
-                <p className="mt-2 text-navy/50">Lead já tem trilha escolhida — sugestão não sobrescreve.</p>
+                <p className="mt-2 text-navy/50">
+                  Lead já tem trilha escolhida — sugestão não sobrescreve.
+                </p>
               ) : (
                 <div className="mt-2 flex gap-2">
                   <button
@@ -120,7 +131,8 @@ export function TriagemAncestralScanDoLead({
                     type="button"
                     onClick={() => {
                       const motivo = window.prompt("Motivo da rejeição:") ?? "";
-                      if (motivo.trim()) rejeitar.mutate({ trackId: s.trackId, motivo: motivo.trim() });
+                      if (motivo.trim())
+                        rejeitar.mutate({ trackId: s.trackId, motivo: motivo.trim() });
                     }}
                     disabled={rejeitar.isPending}
                     className="rounded border border-navy/30 px-2 py-1 text-navy"

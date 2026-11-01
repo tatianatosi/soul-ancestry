@@ -87,6 +87,57 @@ export const ROTULO_CATEGORIA_ESCOPO: Record<string, string> = {
   external_expense: "Despesa de terceiros",
 };
 
+/*
+ * 26/10/2026 — os valores destas quatro colunas chegavam crus à tela do
+ * instrumento (`included`, `annex`, `blocking`, `open`, `financial_gate`),
+ * em inglês, para a operadora ler. O dicionário já existia para a coluna
+ * "Categoria", ao lado, na mesma linha de tabela; faltava para estas.
+ *
+ * Cada mapa cobre TODOS os valores do CHECK vigente, lidos do banco em
+ * 26/10/2026 — nenhum valor novo é inventado aqui:
+ *  - contract_scope_items.status .......... included, excluded, pending, conditional, not_applicable
+ *  - contract_scope_items.source_type ..... proposal, case, manual_review, template, annex
+ *  - contract_validation_results.severity . blocking, high, medium, low
+ *  - contract_validation_results.status ... open, passed, waived, resolved
+ *  - contract_exceptions.scope ............ financial_gate, activation_gate, validation_waiver, other
+ */
+export const ROTULO_STATUS_ESCOPO: Record<string, string> = {
+  included: "Incluído",
+  excluded: "Excluído",
+  pending: "Pendente",
+  conditional: "Condicional",
+  not_applicable: "Não aplicável",
+};
+
+export const ROTULO_ORIGEM_ESCOPO: Record<string, string> = {
+  proposal: "Proposta",
+  case: "Caso",
+  manual_review: "Revisão manual",
+  template: "Modelo",
+  annex: "Anexo",
+};
+
+export const ROTULO_SEVERIDADE_VALIDACAO: Record<string, string> = {
+  blocking: "Bloqueante",
+  high: "Alta",
+  medium: "Revisar",
+  low: "Baixa",
+};
+
+export const ROTULO_SITUACAO_VALIDACAO: Record<string, string> = {
+  open: "Aberta",
+  passed: "Aprovada",
+  waived: "Dispensada",
+  resolved: "Resolvida",
+};
+
+export const ROTULO_ESCOPO_EXCECAO: Record<string, string> = {
+  financial_gate: "Gate financeiro",
+  activation_gate: "Gate de ativação",
+  validation_waiver: "Dispensa de validação",
+  other: "Outro",
+};
+
 export const ROTULO_TIPO_ANEXO: Record<string, string> = {
   scope: "Escopo e entregas",
   service_order: "Ordem de serviço",

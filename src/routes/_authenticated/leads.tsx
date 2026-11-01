@@ -149,6 +149,23 @@ function LeadsPage() {
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(Object.keys(rascunho).length > 0);
   const [leadPendente, setLeadPendente] = useState<string | null>(null);
+  /*
+   * 26/10/2026 — achado da auditoria pré-lançamento: trocar de lead pelo
+   * Kanban ou por "Abrir ficha" descartava rascunho sem aviso; só o clique na
+   * lista (abaixo) tinha a confirmação do Corte 1. `window.confirm` é
+   * proibido no projeto — reaproveita o MESMO banner inline já desenhado
+   * para a lista, em vez de inventar um segundo mecanismo.
+   */
+  const trocarDeLead = (id: string | null) => {
+    if (id === selecionado) return;
+    if (Object.keys(rascunho).length > 0) {
+      setLeadPendente(id);
+      return;
+    }
+    setSelecionado(id);
+    setRascunho({});
+    setMsg(null);
+  };
   const [filtroEixo, setFiltroEixo] = useState("");
   const [mostrarConvertidos, setMostrarConvertidos] = useState(false);
   const [indicadorAtivo, setIndicadorAtivo] = useState<IndicadorLeads | null>(null);
@@ -164,7 +181,15 @@ function LeadsPage() {
   const leads = (q.data ?? []) as LeadComPendencias[];
   const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
   const editado = useMemo(() => ({ ...(atual ?? { nome: "" }), ...rascunho }) as LeadDesk, [atual, rascunho]);
-  const erros = useMemo(() => (atual || Object.keys(rascunho).length ? validarLead(editado) : []), [editado, atual, rascunho]);
+  // 26/10/2026 (auditoria): sem o segundo argumento, a validação do cliente
+  // sempre rodava em modo estrito, mesmo para a proprietária — o servidor já
+  // libera pendência de processo para ela (`proprietariaOperando`); a tela
+  // mostrava "Pendências que impedem esta gravação" para regras que o
+  // servidor ia aceitar.
+  const erros = useMemo(
+    () => (atual || Object.keys(rascunho).length ? validarLead(editado, autoridade.proprietaria) : []),
+    [editado, atual, rascunho, autoridade.proprietaria],
+  );
   const errosBloqueantes = useMemo(
     () => errosBloqueantesAlteracao(atual, editado, Object.keys(rascunho)),
     [atual, editado, rascunho],
@@ -534,6 +559,18 @@ function LeadsPage() {
               .join(", ")}`}
             rodape="Pipeline atual · sem recorte de período"
           />
+          {pipelineLeads.length ? (
+            <>
+              <p className="mt-3 text-xs text-navy/60" data-leads-funil-total>
+                {pipelineLeads.length} leads válidos no funil (demonstrações e arquivados ficam fora).
+              </p>
+              {funilItens.some((item) => item.apoio === "0 leads") ? (
+                <p className="mt-1 text-xs text-navy/60" data-leads-funil-etapas-vazias>
+                  Etapas sem lead registrado: {funilItens.filter((item) => item.apoio === "0 leads").map((item) => item.rotulo).join(", ")}.
+                </p>
+              ) : null}
+            </>
+          ) : null}
           {pipelineLeads.length ? null : (
             <p className="mt-2 text-xs text-navy/60" data-leads-funil-vazio>
               Sem dados suficientes
@@ -608,10 +645,7 @@ function LeadsPage() {
                       <button
                         key={l.id}
                         type="button"
-                        onClick={() => {
-                          setSelecionado(l.id ?? null);
-                          setRascunho({});
-                        }}
+                        onClick={() => trocarDeLead(l.id ?? null)}
                         className="block w-full rounded-xl border border-navy/10 bg-card p-3 text-left shadow-sm hover:border-gold"
                       >
                         <span className="block truncate text-sm font-semibold text-navy">{l.nome}</span>
@@ -809,10 +843,7 @@ function LeadsPage() {
                   <button
                     type="button"
                     className="rounded-full border border-navy/15 px-2 py-1 text-[11px] text-navy/70 hover:bg-navy/5"
-                    onClick={() => {
-                      setSelecionado(l.id ?? null);
-                      setRascunho({});
-                    }}
+                    onClick={() => trocarDeLead(l.id ?? null)}
                   >
                     Abrir ficha
                   </button>
@@ -882,17 +913,7 @@ function LeadsPage() {
                 <li key={l.id}>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (l.id === selecionado) return;
-                      // Corte 1: trocar de lead com edição pendente pede confirmação.
-                      if (Object.keys(rascunho).length > 0) {
-                        setLeadPendente(l.id ?? null);
-                        return;
-                      }
-                      setSelecionado(l.id ?? null);
-                      setRascunho({});
-                      setMsg(null);
-                    }}
+                    onClick={() => trocarDeLead(l.id ?? null)}
                     className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${
                       selecionado === l.id ? "border-gold bg-cream/60" : "border-navy/10 bg-cream/40"
                     }`}
