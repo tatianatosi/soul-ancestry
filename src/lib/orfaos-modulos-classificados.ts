@@ -266,14 +266,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: manter a auditoria de fonte/contraste do Canvas como ferramenta de desenvolvimento (e quem a roda) ou aposentá-la",
   },
   {
-    modulo: "lib/classificacao-dados.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "O corte de dado de demonstração no App vive em fixtures.ts#ehFixtureLinha e nos filtros do portal; as demais menções a filtrarParaCliente/CLASSIFICACOES em src são comentários ou definições próprias, e este módulo só é exercitado por classificacao-dados.test.ts.",
-    destino:
-      "lib/fixtures.ts#ehFixtureLinha mais os filtros do portal em portal-cliente.functions.ts; INVENTARIO_FONTES segue verificado só por teste",
-  },
-  {
     modulo: "lib/corte-vertical.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
@@ -405,22 +397,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     riscoVazamento: true,
   },
   {
-    modulo: "lib/portal-mapa-kit.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "O cabeçalho diz que a barra é montada daqui, mas portal-shell.tsx monta as 7 abas com lista própria e COPY_TELAS (linhas ~133-141). Religar criaria a terceira fonte de navegação do App, que o AGENTS.md proíbe.",
-    destino:
-      "Não religar: a barra do App é a lista de 7 abas em src/components/portal/portal-shell.tsx",
-  },
-  {
-    modulo: "lib/portal-navegacao.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "Só testes leem PORTAL_ABAS_CANONICAS, PORTAL_ROTAS_SPEC, PORTAL_ROTAS_PROFUNDAS e abasCanonicasDoPortal (enterprise-prd-portal-canonicos e app-cliente-contrato-experiencia). A barra viva é a lista de 7 abas de portal-shell.tsx.",
-    destino:
-      "Não religar: segunda lista das 7 abas; a barra viva está em src/components/portal/portal-shell.tsx",
-  },
-  {
     modulo: "lib/rascunhos-comunicacao-governados.ts",
     veredicto: "CASCA_DUPLICADA",
     motivo:
@@ -428,14 +404,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino:
       "Não religar: usar src/lib/message-library.functions.ts e a rota biblioteca-mensagens, que já governam templates vigentes",
     riscoVazamento: true,
-  },
-  {
-    modulo: "lib/rotulos-humanos.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "Faz o mesmo trabalho de rotulo-negocio.ts#rotuloTabela (nome técnico de tabela → rótulo de negócio). O rotuloHumano que aparece em descoberta-desk.ts:22 é outra função, de rotas. Só rotulos-humanos.test.ts usa este módulo.",
-    destino:
-      "Não religar: rotuloTabela em src/lib/rotulo-negocio.ts já é o rótulo de negócio das tabelas (hoje chamado por motores-primordiais.tsx, também órfão)",
   },
   {
     modulo: "lib/varredura-completude.ts",

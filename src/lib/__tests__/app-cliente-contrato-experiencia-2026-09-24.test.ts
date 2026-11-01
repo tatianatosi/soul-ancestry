@@ -30,7 +30,9 @@ describe("A — sete abas e somente sete", () => {
     expect(PORTAL_ROTAS_SPEC.filter((r) => r.abaPrimeiroNivel).length).toBe(7);
   });
   it("a barra do shell lista exatamente as 7 rotas", () => {
-    const rotasNav = [...shell.matchAll(/\{ to: "(\/portal[^"]*)", label:/g)].map((m) => m[1]);
+    // 01/11/2026: a barra deixou de ter lista própria; vem de `portal-navegacao.ts` (fonte única).
+    expect(shell).toContain("abasCanonicasDoPortal()");
+    const rotasNav = PORTAL_ROTAS_SPEC.filter((r) => r.abaPrimeiroNivel).map((r) => r.rota);
     expect(rotasNav).toEqual(ABAS_APP_CLIENTE.map((a) => a.rota));
   });
   it("rotas profundas existentes não entram na barra", () => {
