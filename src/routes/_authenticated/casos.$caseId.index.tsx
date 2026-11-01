@@ -171,6 +171,7 @@ import {
 } from "@/lib/caso-ficha";
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
+  staticData: { sitemap: false },
   // URL com código canônico (ex.: CA-CID-AT-FAM-2026-001) → resolve para o UUID
   // persistido em crm_casos.codigo (leitura sob RLS) antes de qualquer consulta.
   beforeLoad: async ({ params }) => {

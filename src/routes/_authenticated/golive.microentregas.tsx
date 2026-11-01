@@ -33,6 +33,7 @@ import { AcaoPublicarNoApp } from "@/components/golive/acoes-registro";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/microentregas")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

@@ -11,6 +11,7 @@ import { listarClientesECasos } from "@/lib/documentos.functions";
 import { RegistroConsentimentos } from "@/components/privacidade/registro-consentimentos";
 
 export const Route = createFileRoute("/_authenticated/privacidade/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Privacidade e documentos — Clube Ancestral" },

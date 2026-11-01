@@ -28,6 +28,7 @@ import {
 } from "@/lib/homologacao-revisao";
 
 export const Route = createFileRoute("/_authenticated/homologacao-skus")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Revisão de SKUs para homologação — Clube Ancestral Desk" },

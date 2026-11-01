@@ -10,6 +10,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { carregarMapaEtiquetas } from "@/lib/caso-canonico.functions";
 
 export const Route = createFileRoute("/_authenticated/etiquetas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Taxonomia de etiquetas — Clube Ancestral" },

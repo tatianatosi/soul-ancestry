@@ -15,6 +15,7 @@ import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
@@ -162,6 +163,11 @@ const DevolutivaRoute = DevolutivaRouteImport.update({
 const PortalRouteRoute = PortalRouteRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcessosPortalRoute =
@@ -832,6 +838,7 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -956,6 +963,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -1084,6 +1092,7 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -1212,6 +1221,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/sitemap.xml'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1336,6 +1346,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/devolutiva'
+    | '/sitemap.xml'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1463,6 +1474,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/sitemap.xml'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
@@ -1591,6 +1603,7 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiErroRoute: typeof ApiErroRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   ApiSaudeRoute: typeof ApiSaudeRoute
@@ -1647,6 +1660,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/acessos-portal': {
@@ -2751,6 +2771,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiErroRoute: ApiErroRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   ApiSaudeRoute: ApiSaudeRoute,

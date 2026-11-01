@@ -16,6 +16,7 @@ import { prontidaoDoApp, prontidaoPorGrupo, resumoProntidao } from "@/lib/golive
 import { humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/prontidao")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

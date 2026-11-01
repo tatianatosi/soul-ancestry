@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { concluirRedefinicaoSenha } from "@/lib/equipe.functions";
 
 export const Route = createFileRoute("/equipe/redefinir-senha")({
+  staticData: { sitemap: false },
   ssr: false,
   head: () => ({
     meta: [

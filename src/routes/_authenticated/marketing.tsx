@@ -45,6 +45,7 @@ import {
 } from "@/lib/marketing-filtros-csv";
 
 export const Route = createFileRoute("/_authenticated/marketing")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Marketing e aquisição — canais e atribuição | Clube Ancestral" },

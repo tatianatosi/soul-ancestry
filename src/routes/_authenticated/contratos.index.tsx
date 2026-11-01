@@ -30,6 +30,7 @@ import { semFixtures } from "@/lib/fixtures";
 import { baixarCsvInventario } from "@/lib/inventario-csv";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Contratos — Clube Ancestral" },

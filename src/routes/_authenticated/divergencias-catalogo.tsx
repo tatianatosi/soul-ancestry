@@ -18,6 +18,7 @@ import {
 } from "@/lib/divergencias-catalogo.functions";
 
 export const Route = createFileRoute("/_authenticated/divergencias-catalogo")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Divergências de catálogo — Clube Ancestral" },

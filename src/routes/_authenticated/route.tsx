@@ -4,6 +4,7 @@ import { decidirAcessoDesk } from "@/lib/superficie-interna-regras";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 
 export const Route = createFileRoute("/_authenticated")({
+  staticData: { sitemap: "exclude-subtree" },
   ssr: false,
   errorComponent: ({ error, reset }) => <ErroSuperficieDesk error={error as Error} reset={reset} />,
   beforeLoad: async () => {

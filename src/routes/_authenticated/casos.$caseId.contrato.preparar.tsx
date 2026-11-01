@@ -107,6 +107,7 @@ function listaOpcional<T>(valor: T[] | null | undefined): T[] {
 }
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/preparar")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: TITULO },

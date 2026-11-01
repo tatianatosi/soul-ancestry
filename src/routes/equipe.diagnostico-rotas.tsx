@@ -10,6 +10,7 @@ import { decidirAcessoDesk } from "@/lib/superficie-interna-regras";
  * organização, e-mail ou token é lido ou exibido aqui.
  */
 export const Route = createFileRoute("/equipe/diagnostico-rotas")({
+  staticData: { sitemap: false },
   // 26/10/2026 (auditoria pré-lançamento, M2): só a equipe vê o mapa de rotas.
   ssr: false,
   beforeLoad: async () => {

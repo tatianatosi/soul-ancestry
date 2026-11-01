@@ -43,6 +43,7 @@ const ROTULOS_KPI_BIBLIOTECA = [
 ];
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Biblioteca Mestre — Clube Ancestral" },

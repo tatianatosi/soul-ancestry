@@ -66,6 +66,7 @@ const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
  * continua dizendo de qual caso veio.
  */
 export const Route = createFileRoute("/_authenticated/pessoas/$clienteId")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Pessoa — Clube Ancestral" },

@@ -60,6 +60,7 @@ function rotuloDe(lista: readonly { id: string; rotulo: string }[], id?: string 
 }
 
 export const Route = createFileRoute("/_authenticated/pesquisa-evidencias/$caseId")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Pesquisa Genealógica e Evidências — Clube Ancestral" },

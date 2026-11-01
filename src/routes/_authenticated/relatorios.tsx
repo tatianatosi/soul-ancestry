@@ -9,6 +9,7 @@ import { Indicador, Linha } from "@/components/prancha-v4/kit";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Relatórios — Clube Ancestral" },

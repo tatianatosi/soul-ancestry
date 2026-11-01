@@ -18,6 +18,7 @@ import { acessoAoPortal, coberturaDoApp, publicacaoPorEstado } from "@/lib/goliv
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/portal")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

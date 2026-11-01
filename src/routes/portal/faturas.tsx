@@ -9,6 +9,7 @@ import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { comTimeout, MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/faturas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Faturas — Portal Clube Ancestral" },

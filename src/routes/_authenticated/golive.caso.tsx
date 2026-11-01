@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { GoLiveDesk } from "@/components/desk-go-live";
 
 export const Route = createFileRoute("/_authenticated/golive/caso")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

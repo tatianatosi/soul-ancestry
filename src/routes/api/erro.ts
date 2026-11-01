@@ -17,6 +17,7 @@ import { capturarErroProducao } from "@/lib/producao-erros.server";
 const TAMANHO_MAXIMO_CORPO = 32_000;
 
 export const Route = createFileRoute("/api/erro")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

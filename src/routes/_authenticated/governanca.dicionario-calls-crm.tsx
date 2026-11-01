@@ -27,6 +27,7 @@ import {
 } from "@/lib/glossario-oficial";
 
 export const Route = createFileRoute("/_authenticated/governanca/dicionario-calls-crm")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Dicionário de validações Calls → CRM — Clube Ancestral" },

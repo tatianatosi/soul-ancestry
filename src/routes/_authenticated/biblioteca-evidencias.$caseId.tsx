@@ -42,6 +42,7 @@ import { Etiqueta, Indicador, type Tom } from "@/components/prancha-v4/kit";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$caseId")({
+  staticData: { sitemap: false },
   component: Pagina,
   head: () => ({
     meta: [

@@ -33,6 +33,7 @@ import {
 } from "@/lib/modelo-individual-acompanhante";
 
 export const Route = createFileRoute("/_authenticated/governanca/modelo-individual")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Modelo individual com acompanhante | Clube Ancestral" },

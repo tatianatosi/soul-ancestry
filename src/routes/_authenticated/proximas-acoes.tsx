@@ -4,6 +4,7 @@ import { ProximasAcoes } from "@/components/crm/proximas-acoes";
 import { SaasShell } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/proximas-acoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Próximas ações dos leads — Clube Ancestral" },
