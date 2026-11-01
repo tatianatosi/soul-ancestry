@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { PainelQualidade } from "@/components/qualidade/painel";
+import { OrigemDosDados } from "@/components/qualidade/origem-dos-dados";
 import {
   KpisQualidadeV4,
   PanoramaQualidadeV4,
@@ -87,6 +88,7 @@ function QualidadePage() {
         </summary>
         <div className="mt-4">
           <EixosCanonicosInternos />
+          <OrigemDosDados />
           <PainelQualidade />
         </div>
       </details>

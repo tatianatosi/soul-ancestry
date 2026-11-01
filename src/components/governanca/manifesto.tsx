@@ -29,6 +29,7 @@ import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { rotuloHumano } from "@/lib/rotulos-humanos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -275,7 +276,7 @@ export function ManifestoResgate() {
                     </span>
                   </div>
                   <p className="mt-1 text-navy/70">{h.resumo}</p>
-                  <p className="text-xs text-navy/40">{h.entidade}</p>
+                  <p className="text-xs text-navy/40">{rotuloHumano(h.entidade)}</p>
                 </li>
               ))}
             </ul>

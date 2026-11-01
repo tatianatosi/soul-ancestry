@@ -92,8 +92,11 @@ describe("regressão das distorções P0/P1 no código", () => {
     expect(src).not.toContain("/portal/entregas");
     expect(src).not.toContain("/portal/fase-01");
     expect(src).not.toContain("/portal/fase-02");
-    expect(src).toContain("/portal/jornada");
-    expect(src).toContain("/portal/conta");
+    // 01/11/2026: rotas vêm de `portal-navegacao.ts` (fonte única), não de lista no shell.
+    expect(src).toContain("abasCanonicasDoPortal()");
+    const nav = readFileSync("src/lib/portal-navegacao.ts", "utf8");
+    expect(nav).toContain("/portal/jornada");
+    expect(nav).toContain("/portal/conta");
   });
 
   it("Comercial não usa o título técnico de funil na casca", () => {

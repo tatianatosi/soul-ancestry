@@ -588,6 +588,9 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
       <Campo rotulo="Resumo de escopo" tipo="textarea" valor={c.scope_summary} onSalvar={(v) => salvar({ scope_summary: v })} />
       <Campo rotulo="Exclusões" tipo="textarea" valor={c.exclusions_summary} onSalvar={(v) => salvar({ exclusions_summary: v })} />
       <Campo rotulo="Confirmo ausência de exclusões" tipo="check" valor={c.no_exclusions_confirmed} onSalvar={(v) => salvar({ no_exclusions_confirmed: v })} />
+      <div className="sm:col-span-2">
+        <Campo rotulo="Observações internas" tipo="textarea" valor={c.internal_notes} onSalvar={(v) => salvar({ internal_notes: v })} />
+      </div>
       <Campo rotulo="Início da vigência" tipo="date" valor={c.effective_start_date} onSalvar={(v) => salvar({ effective_start_date: v || null })} />
       <Campo rotulo="Regra de vigência" valor={c.effective_rule} onSalvar={(v) => salvar({ effective_rule: v })} />
       <Campo

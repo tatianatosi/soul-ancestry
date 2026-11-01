@@ -61,7 +61,10 @@ describe("CA24 — paleta de marca é única (tokens em styles.css, sem hex nem 
 describe("CA24 — navegação do App Cliente não tem link morto", () => {
   it("toda rota citada em portal-shell.tsx existe como arquivo de rota real", () => {
     const shell = readFileSync("src/components/portal/portal-shell.tsx", "utf8");
-    const rotas = [...shell.matchAll(/to:\s*"(\/portal[^"]*)"/g)].map((m) => m[1]);
+    // 01/11/2026: as rotas da barra vêm de `portal-navegacao.ts`; o shell só as consome.
+    expect(shell).toContain("abasCanonicasDoPortal()");
+    const nav = readFileSync("src/lib/portal-navegacao.ts", "utf8");
+    const rotas = [...nav.matchAll(/rota:\s*"(\/portal[^"]*)"/g)].map((m) => m[1]);
     expect(rotas.length).toBeGreaterThan(0);
     for (const rota of rotas) {
       const nomeArquivo = rota === "/portal" ? "index.tsx" : `${rota.split("/").pop()}.tsx`;

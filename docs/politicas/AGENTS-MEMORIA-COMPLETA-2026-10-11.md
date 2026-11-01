@@ -203,6 +203,9 @@ arquivo):
   `PAINEIS_HISTORICOS`, **não apagar**), `painel-dia.tsx` não tem decisão registrada nenhuma —
   aguardando a Proprietária escolher qual é a fonte de verdade antes de qualquer agente tocar
   nos dois arquivos.
+  **Decidido em 01/11/2026 (N7):** a Proprietária confirmou que o Painel Hoje segue o mockup Desk V4
+  aprovado e já aplicado em `/painel`; `painel-dia.tsx` é desenho anterior superado, não é religado, e não
+  foi apagado (seus 13 testes seguem como registro de requisito).
 
 ### Proteções (todos os artefatos)
 

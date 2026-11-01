@@ -105,10 +105,9 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     modulo: "components/painel/botao-testar-cliente.tsx",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "A regra do AGENTS.md é ver o App só por /app-cliente-como-pessoa?casoId=; este botão aponta para um id fixo de cliente real e para uma rota fora das 7 abas.",
+      "Reescrito por caso em 01/11/2026: recebe o casoId e abre /app-cliente-como-pessoa?casoId=, sem id fixo e sem TODO (o pipeline.py deixa de abortar nele). Segue sem chamador porque Caso 360 e Pessoa 360 já têm o link oficial; um botão a mais seria CTA duplicado.",
     destino:
-      "src/routes/_authenticated/app-cliente-como-pessoa.tsx (preview administrativo por casoId), já ligado em casos.$caseId.index.tsx",
-    riscoVazamento: true,
+      "src/routes/_authenticated/app-cliente-como-pessoa.tsx (mecanismo oficial, ligado no Caso 360 e na Pessoa 360)",
   },
   {
     modulo: "components/painel/cards-alertas-centrais.tsx",
@@ -149,10 +148,11 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
   },
   {
     modulo: "components/painel/painel-dia.tsx",
-    veredicto: "AGUARDA_DECISAO",
+    veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "O AGENTS.md mantém painel-dia.tsx aguardando decisão e proíbe tocá-lo; /painel já é a grade da Prancha V4, mas a Proprietária ainda não declarou qual é a fonte viva do Hoje.",
-    destino: "Decisão: painel-dia.tsx × /painel: qual é a fonte viva do Painel Hoje",
+      "Decidido pela Proprietária em 01/11/2026 (N7): o Painel Hoje segue o mockup Desk V4 aprovado e já aplicado em /painel; painel-dia.tsx é o desenho anterior, superado, e não é religado. Não foi apagado e seus testes ficam como registro de requisito.",
+    destino:
+      "src/routes/_authenticated/painel.tsx (Painel Hoje da Prancha V4, fonte viva)",
   },
   {
     modulo: "components/painel/painel-hoje.tsx",
@@ -265,14 +265,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: manter a auditoria de fonte/contraste do Canvas como ferramenta de desenvolvimento (e quem a roda) ou aposentá-la",
   },
   {
-    modulo: "lib/classificacao-dados.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "O corte de dado de demonstração no App vive em fixtures.ts#ehFixtureLinha e nos filtros do portal; as demais menções a filtrarParaCliente/CLASSIFICACOES em src são comentários ou definições próprias, e este módulo só é exercitado por classificacao-dados.test.ts.",
-    destino:
-      "lib/fixtures.ts#ehFixtureLinha mais os filtros do portal em portal-cliente.functions.ts; INVENTARIO_FONTES segue verificado só por teste",
-  },
-  {
     modulo: "lib/corte-vertical.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
@@ -293,10 +285,9 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     modulo: "lib/debug-cliente-access.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "O mecanismo oficial para o admin ver o App do cliente é app-cliente-como-pessoa (por casoId, com preview isolado); este link aponta para /portal/casos/$id, rota fora das 7 abas, e só é citado num TODO de botao-testar-cliente.tsx.",
+      "Reescrito por caso em 01/11/2026: o link aponta para /app-cliente-como-pessoa?casoId= e a lista de clientes de teste com id fixo saiu do código. Segue sem chamador porque o link oficial já está ligado no Caso 360 e na Pessoa 360.",
     destino:
-      "lib/app-cliente-como-pessoa.functions.ts#dadosVivosDoPortalComoAdmin; não religar (expõe dado real de cliente fora do preview)",
-    riscoVazamento: true,
+      "src/lib/app-cliente-como-pessoa.functions.ts (mecanismo oficial por casoId)",
   },
   {
     modulo: "lib/decisao-ana-canonica.ts",
@@ -386,38 +377,21 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: manter a matriz como guarda do mapeamento mockup→grupos (navegacao-desk.test.ts) ou trocar a guarda por GRUPOS_DESK direto e aposentar a matriz",
   },
   {
-    modulo: "lib/portal-experiencia-integral.ts",
+    modulo: "lib/saneamento-desk-app-v4.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "Fixture de família real (inclui Felipe, menor, e valores do contrato) contrária à regra do vazio honesto: o App lê dado vivo e sanitizado por portal-dados-vivos via usePortalVivo. Só rateio-igualitario-ana-2026-10-23.test.ts lê o arquivo, como texto.",
+      "Retrato fixo do caso da Ana (nomes, valores, fase, prazo) que só era importado por portal-experiencia-integral e portal-fallback-canonico, reescritos por caso em 01/11/2026. Fica no repositório porque o teste de rateio ainda lê o texto; nenhuma tela deve voltar a importá-lo.",
     destino:
-      "Manter no repositório sem religar: o App usa src/lib/portal-dados-vivos.ts (usePortalVivo em routes/portal/index.tsx)",
+      "src/lib/portal-dados-vivos.ts (o caso real chega por dadosVivosDoPortal, via usePortalVivo)",
     riscoVazamento: true,
   },
   {
     modulo: "lib/portal-fallback-canonico.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
-      "Régua de 10 etapas com 'Linhagem Friedmann-Reimer mapeada' fixa; o AGENTS.md manda as 5 etapas do caso virem só de etapas-caso.ts, e o App mostra vazio honesto em vez de fallback inventado.",
+      "Reescrito em 01/11/2026: o fallback agora é o vazio honesto (tudo 'Não registrado'), sem régua nem contrato fixos. Segue sem chamador porque a falha de rede é tratada por portal-resiliencia e as abas já mostram vazio honesto.",
     destino:
       "Manter sem religar: as etapas vêm de src/lib/etapas-caso.ts e a Home lê portal-dados-vivos (ROTULOS_ETAPA_CLIENTE)",
-    riscoVazamento: true,
-  },
-  {
-    modulo: "lib/portal-mapa-kit.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "O cabeçalho diz que a barra é montada daqui, mas portal-shell.tsx monta as 7 abas com lista própria e COPY_TELAS (linhas ~133-141). Religar criaria a terceira fonte de navegação do App, que o AGENTS.md proíbe.",
-    destino:
-      "Não religar: a barra do App é a lista de 7 abas em src/components/portal/portal-shell.tsx",
-  },
-  {
-    modulo: "lib/portal-navegacao.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "Só testes leem PORTAL_ABAS_CANONICAS, PORTAL_ROTAS_SPEC, PORTAL_ROTAS_PROFUNDAS e abasCanonicasDoPortal (enterprise-prd-portal-canonicos e app-cliente-contrato-experiencia). A barra viva é a lista de 7 abas de portal-shell.tsx.",
-    destino:
-      "Não religar: segunda lista das 7 abas; a barra viva está em src/components/portal/portal-shell.tsx",
   },
   {
     modulo: "lib/rascunhos-comunicacao-governados.ts",
@@ -427,14 +401,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     destino:
       "Não religar: usar src/lib/message-library.functions.ts e a rota biblioteca-mensagens, que já governam templates vigentes",
     riscoVazamento: true,
-  },
-  {
-    modulo: "lib/rotulos-humanos.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "Faz o mesmo trabalho de rotulo-negocio.ts#rotuloTabela (nome técnico de tabela → rótulo de negócio). O rotuloHumano que aparece em descoberta-desk.ts:22 é outra função, de rotas. Só rotulos-humanos.test.ts usa este módulo.",
-    destino:
-      "Não religar: rotuloTabela em src/lib/rotulo-negocio.ts já é o rótulo de negócio das tabelas (hoje chamado por motores-primordiais.tsx, também órfão)",
   },
   {
     modulo: "lib/varredura-completude.ts",
