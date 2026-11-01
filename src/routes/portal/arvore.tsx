@@ -117,8 +117,9 @@ export function PortalArvore() {
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
                         <div key={geracao.id} className="grid min-w-0 gap-3 py-4 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
+                          {/* Rótulo por extenso da escala aprovada (01/11/2026). */}
                           <p className="text-xs font-medium leading-relaxed text-navy/70">
-                            {geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}
+                            {geracao.rotulo}
                           </p>
                           <div className="grid min-w-0 gap-2">
                             {geracao.id === "G1" ? (
