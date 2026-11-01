@@ -41,7 +41,10 @@ describe("Jurídico & Contrato V4", () => {
   it("/contratos mostra no máximo 4 indicadores no topo (sem o painel de 7 contadores)", () => {
     const rota = readFileSync("src/routes/_authenticated/contratos.index.tsx", "utf8");
     const comp = readFileSync("src/components/contratos/juridico-contrato-v4.tsx", "utf8");
-    expect(rota).not.toContain("<PainelEstadoContratual");
+    // 31/10/2026: religado por ordem da Proprietária, mas só dentro do bloco recolhido (não no topo).
+    const antesDoBloco = rota.slice(0, rota.indexOf("Abrir instrumentos, inventário e gestão contratual"));
+    expect(antesDoBloco).not.toContain("<PainelEstadoContratual");
+    expect(rota).toContain("<PainelEstadoContratual");
     expect(rota).not.toContain("<FormalizacaoConectada");
     expect((comp.match(/<KpiCard /g) ?? []).length).toBeLessThanOrEqual(4);
   });

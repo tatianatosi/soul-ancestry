@@ -1,3 +1,4 @@
+import { PainelEstadoContratual } from "@/components/contratos/painel-estado-contratual";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { PainelCatalogo } from "@/components/painel/painel-catalogo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -26,6 +27,7 @@ import {
 } from "@/components/contratos/rotulos";
 import { INVENTARIO_DATA, ROTULO_DOMINIO, itensPorDominio } from "@/lib/inventario-patrimonial";
 import { semFixtures } from "@/lib/fixtures";
+import { baixarCsvInventario } from "@/lib/inventario-csv";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
   head: () => ({
@@ -161,6 +163,10 @@ function ContratosPage() {
       <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4" open={novo}>
         <summary className="cursor-pointer font-medium text-navy">Abrir instrumentos, inventário e gestão contratual</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
+      {/* 31/10/2026 — a Proprietária mandou religar o estado contratual; fica dentro do bloco recolhido para manter o topo V4 com 4 indicadores. */}
+      <div className="mb-6" data-contratos-estado-contratual>
+        <PainelEstadoContratual />
+      </div>
       <CaCard
         className="mb-6"
         eyebrow="Inventário patrimonial"
@@ -199,6 +205,16 @@ function ContratosPage() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => baixarCsvInventario()}
+            className="rounded border border-navy/20 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+            data-exportar-inventario-csv
+          >
+            Exportar inventário (CSV)
+          </button>
         </div>
       </CaCard>
 

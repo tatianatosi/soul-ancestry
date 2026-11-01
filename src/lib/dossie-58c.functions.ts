@@ -44,6 +44,7 @@ import {
   totalDeInstancias,
   type ItemChecklist58c,
 } from "@/lib/dossie-58c";
+import { calcularTetoDespesas, paisIsoDoCaso } from "@/lib/teto-despesas-produto-pai";
 
 /** Pessoas do caso, pelos papéis que o checklist precisa distinguir. */
 type ComposicaoDoCaso = {
@@ -215,6 +216,48 @@ export const dossieConsolidadoDoCaso = createServerFn({ method: "GET" })
       String(a.titulo ?? "").startsWith(MARCA_CHECKLIST_58C),
     );
 
+    /*
+     * Teto de despesas do produto-pai (Corte C, 31/10/2026): as planilhas de
+     * produtos-pai já estão em `price_catalog_rescued` como teto por país.
+     * Só leitura; o teto nunca é repartido entre os itens.
+     */
+    const { data: casoPais } = await supabase
+      .from("crm_casos")
+      .select("pais,pais_linha_prioritaria")
+      .eq("organization_id", organizationId)
+      .eq("id", data.caseId)
+      .maybeSingle();
+    const paisDoCaso = paisIsoDoCaso({
+      linhaPrioritaria: (casoPais as any)?.pais_linha_prioritaria ?? null,
+      pais: (casoPais as any)?.pais ?? null,
+      contextoPesquisa: (pesquisa as any)?.country_context ?? null,
+    });
+    let linhasPreco: any[] = [];
+    if (paisDoCaso) {
+      const { data: precos } = await supabase
+        .from("price_catalog_rescued")
+        .select("country_code,price_component,amount,currency,price_status,archived_at")
+        .eq("organization_id", organizationId)
+        .eq("country_code", paisDoCaso.iso)
+        .in("price_component", ["despesas", "taxas"])
+        .eq("price_status", "VIGENTE")
+        .is("archived_at", null);
+      linhasPreco = (precos ?? []) as any[];
+    }
+    const tetoDespesas = calcularTetoDespesas({
+      pais: paisDoCaso,
+      linhasPreco,
+      acoes: acoesDoChecklist.map((a) => ({
+        titulo: String(a.titulo ?? ""),
+        custo:
+          a.estimated_cost_amount === null || a.estimated_cost_amount === undefined
+            ? null
+            : Number(a.estimated_cost_amount),
+        moeda: (a.estimated_cost_currency as string | null) ?? null,
+        aprovacaoDespesa: String(a.expense_approval_status ?? ""),
+      })),
+    });
+
     /* Histórico: a timeline do caso é o histórico consolidado, não um doc. */
     const { data: eventos } = await supabase
       .from("case_timeline_events")
@@ -292,6 +335,8 @@ export const dossieConsolidadoDoCaso = createServerFn({ method: "GET" })
         canal: String(a.suggested_channel ?? ""),
         arquivo: (a.internal_evidence_link as string | null) ?? null,
       })),
+      /** Teto de despesas do produto-pai para o país do caso (leitura). */
+      tetoDespesas,
       /** Quantos itens do template geram ação de terceiro e quantos são internos. */
       acoesPrevistas: itensComAcao().length,
       itensInternos: itensSemAcaoDeTerceiro().length,
