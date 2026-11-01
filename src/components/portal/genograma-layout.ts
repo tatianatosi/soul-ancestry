@@ -53,9 +53,12 @@ export function geracoesCoerentes<T extends PessoaNaArvore>(pessoas: readonly T[
 /** Rectangular cards (mockup p.6): y is the card top; altura is the card height. */
 export const CARTAO_LARGURA = 170;
 /** 29/10/2026: rótulo de ano autorizado por pessoa (ex.: "n. 1873"); ausente = sem linha. */
-export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPessoa?: Readonly<Record<string, string>>, vinculos: readonly VinculoLayout[] = []) {
+export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPessoa?: Readonly<Record<string, string>>, vinculos: readonly VinculoLayout[] = [], compacto = false) {
   const geracoes = [...new Set(pessoas.map((p) => p.geracao ?? 1))].sort((a, b) => b - a);
-  const largura = Math.max(540, ...geracoes.map((g) => pessoas.filter((p) => (p.geracao ?? 1) === g).length * 200 + 80));
+  const cartaoLargura = compacto ? 140 : CARTAO_LARGURA;
+  const passoLinha = compacto ? 20 : 16;
+  const distancia = compacto ? 156 : 186;
+  const largura = Math.max(compacto ? 320 : 540, ...geracoes.map((g) => pessoas.filter((p) => (p.geracao ?? 1) === g).length * (compacto ? 156 : 200) + (compacto ? 8 : 80)));
   let y = 44;
   const rotulos: { geracao: number; y: number }[] = [];
   // Children sit under their published parents: order each row by the mean column of its parents.
@@ -70,18 +73,18 @@ export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPesso
       .sort((a, b) => (a.peso === b.peso ? a.i - b.i : a.peso - b.peso))
       .map(({ p }) => p);
     const linhaY = y;
-    const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome), ano: anosPorPessoa?.[pessoa.chave] ?? null }));
+    const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome, compacto ? 120 : 150), ano: anosPorPessoa?.[pessoa.chave] ?? null }));
     const temAno = preparados.some((p) => p.ano);
-    const altura = 22 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * 16 + (temAno ? 16 : 0) + 8;
+    const altura = 22 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * passoLinha + (temAno ? 20 : 0) + 8;
     rotulos.push({ geracao: g, y: linhaY - 10 });
     y += altura + 64;
     return preparados.map((p, indice) => {
-      const x = largura / 2 + (indice - (grupo.length - 1) / 2) * 186;
+      const x = largura / 2 + (indice - (grupo.length - 1) / 2) * distancia;
       coluna.set(p.pessoa.chave, x);
       return { ...p, altura, x, y: linhaY };
     });
   });
-  return { nos, rotulos, largura, altura: Math.max(240, y - 44) };
+  return { nos, rotulos, largura, cartaoLargura, passoLinha, altura: Math.max(240, y - 44) };
 }
 
 /** A shared child descends from the union only when both filiations are published. */

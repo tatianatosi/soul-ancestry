@@ -1,8 +1,8 @@
 /**
  * Apresentação visual G1–G10 da aba Árvore.
  *
- * G1–G5 são o mockup aprovado de 17 páginas (contrato visual normativo,
- * intocado). G6–G10 são ampliação explícita da Proprietária em 05/10/2026
+ * Rótulos aprovados em 01/11/2026 seguem o parentesco real em relação a Você.
+ * A escala antiga do mockup não estabelece parentesco. G6–G10 são ampliação explícita da Proprietária em 05/10/2026
  * ("expandir a árvore até a 10a geração"), depois de medir ascendentes
  * documentados em geração 6 e 7 que o modelo de 5 gerações não comportava.
  * Sem página de mockup para G6–G10, o rótulo fica neutro (geração numerada,
@@ -30,9 +30,9 @@ export type GeracaoArvore = {
 /** Escala canônica — G1 (você) … G10 (ascendentes mais distantes). */
 export const GERACOES_ARVORE: readonly GeracaoArvore[] = [
   { id: "G1", rotulo: "G1 · Você", slots: 1 },
-  { id: "G2", rotulo: "G2 · Avós", slots: 2 },
-  { id: "G3", rotulo: "G3 · Bisavós", slots: 4 },
-  { id: "G4", rotulo: "G4 · Bisavós de bisavós", slots: 4 },
+  { id: "G2", rotulo: "G2 · Pais", slots: 2 },
+  { id: "G3", rotulo: "G3 · Avós", slots: 4 },
+  { id: "G4", rotulo: "G4 · Bisavós", slots: 4 },
   { id: "G5", rotulo: "G5 · Ancestrais", slots: 3 },
   { id: "G6", rotulo: "G6 · 6ª geração", slots: 1 },
   { id: "G7", rotulo: "G7 · 7ª geração", slots: 1 },

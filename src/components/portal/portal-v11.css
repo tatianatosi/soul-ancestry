@@ -3102,6 +3102,26 @@
   gap: 0.75rem;
   margin-block: 1rem;
 }
+[data-app-cliente] .app-genograma-faixa {
+  background: var(--ca-navy);
+  color: var(--ca-white);
+  padding: 0.875rem 1rem;
+  font: 600 24px var(--ca-font-title);
+  border-radius: 8px 8px 0 0;
+}
+[data-app-cliente] [data-genograma-familiar][data-compacto] .app-genograma-viewport {
+  max-height: none;
+  touch-action: pan-y;
+}
+[data-app-cliente] [data-genograma-familiar][data-compacto] .app-genograma-nome {
+  font-size: 16px;
+}
+[data-app-cliente] [data-genograma-familiar][data-compacto] .app-genograma-ano {
+  font-size: 14px;
+}
+[data-app-cliente] [data-genograma-familiar][data-compacto] .app-genograma-rotulo {
+  font-size: 14px;
+}
 [data-app-cliente] .app-genograma-toolbar label {
   display: flex;
   align-items: center;
@@ -3148,7 +3168,7 @@
 [data-app-cliente] .app-genograma-rotulo {
   fill: var(--app-brand-gold);
   font: 600 10px var(--ca-font-body);
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 [data-app-cliente] [data-genograma-no] {
