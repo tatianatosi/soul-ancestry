@@ -1,46 +1,41 @@
-# Pendências de lançamento — conferência de 01/11/2026
+# Pendências de lançamento — conferência de 01/11/2026 (noite)
 
-Gerado pela skill `/understand`. **Verificado agora** = medido nesta execução (Git, GitHub, arquivos).
-**Do plano** = copiado de `docs/PLANO-MESTRE-LANCAMENTO-2026-10-30.md` e `docs/PLANO-TAREFAS-2026-10-31.md`, sem remedir.
-Nada foi consultado no banco: a ferramenta do Lovable não estava autenticada nesta sessão.
+Gerado pela skill `/understand`. **Verificado agora** = medido nesta execução. **Do plano** = copiado de
+`docs/PLANO-MESTRE-LANCAMENTO-2026-10-30.md` e `docs/PLANO-TAREFAS-2026-10-31.md`, sem remedir (são de 30/31 de outubro).
+Banco: **não consultado** (a ferramenta do Lovable não faz `SELECT` de banco nesta sessão sem autorização).
 
-## Grafo (verificado agora)
-
-- 1.648 arquivos em `src/`, 4.455 dependências, 41 domínios. Mapa por domínio: `docs/grafo/grafo-dominios.mmd`.
-- 49 módulos sem importador de produção (`orfaos-sem-importador.txt`). 47 aparecem nos registros de órfãos. Os 2 restantes são o próprio registro (`orfaos-modulos-classificados.ts`, esperado) e `src/data/saneamento.ts`, que o plano diz estar com veredicto antigo em `classificacao-dados.ts` (item O10/N2, não religado ainda).
-
-## Estado do repositório (verificado agora)
+## Verificado agora
 
 | Item | Estado |
 | --- | --- |
-| `main` | `27359eb`; CI do `ci.yml` nesse SHA: `completed/success`. |
-| PRs do plano | #201, #203, #205, #207 e #209 já não estão abertas (o #203 foi mesclado em 01/11). Restam abertas #202 (rascunho) e #212 (CI/bun, rascunho). |
-| PRs antigas | 12 abertas de agosto/setembro: #32, #97, #102, #104, #105, #108, #110, #114, #117, #118, #120, #121, #125. Decisão da Proprietária (R4). |
-| `supabase/pendentes/` | Cabeçalhos `NÃO APLICADO`: `20261020150000` (o README diz aplicado em 30/10: contradição, E4), `20261024120000` (README diz dados já no banco) e `20261030180000` (despublicar documentos da Ana, bloqueado por guard; só pelo Desk). Nenhum bloqueia o código segundo o plano. |
-| `TODO:` em produção | 10 arquivos, incluindo `components/painel/botao-testar-cliente.tsx` (faz o `pipeline.py` abortar; O7). |
+| `main` | `e3766a6`; CI do `ci.yml` nesse SHA: **success**. O run anterior (`66c85d5`) falhou, por causa do teste de `noindex` da vitrine, já corrigido; o `2f51736` aparece **cancelado**, que é o problema que o S2 resolve |
+| No ar | `https://soul-ancestry.lovable.app/api/saude` → `ok: true`, `sha: e3766a6f…`, igual à `main` |
+| Painel de sincronia (#208) | Último Publish registrado `e3766a6`; 0 commits depois |
+| Grafo | 1.658 arquivos, 4.494 dependências, 41 domínios |
+| Órfãos sem importador de produção | **36** (eram 49 em 01/11 de manhã): 11 casca duplicada, 17 aposentada, 6 aguardam decisão, 2 sem veredito (o próprio registro e `data/saneamento.ts`) |
+| PRs abertos | **20** |
+| `supabase/pendentes/` | 3 arquivos com `ESTADO: NÃO APLICADO` (abaixo) |
 
-## Pendências abertas (do plano, por dono)
+### PRs abertos (20)
+- **#219 (meu, rascunho):** Onda 3 (9 órfãos religados) e relatório dos PRs antigos. CI em andamento. Falta sua autorização para mesclar e publicar.
+- **#214, #215, #216, #217, #218 (de outras sessões, hoje):** a11y da matriz, teste da vitrine, performance do Caso 360, tela de aprovação da fila de comunicação, limpeza de `eslint-disable`. O #215 repete a correção do teste de indexação que já está na `main` e está em conflito (`dirty`): pode ser fechado como duplicado. Não toquei em nenhum.
+- **#202 e #212:** o conteúdo já está na `main` (via #213); os PRs seguem abertos.
+- **Antigos (#32, #97, #102, #104, #105, #108, #110, #114, #117, #118, #120, #121, #125):** classificados em `docs/grafo/EXECUCAO-PRS-E-ORFAOS-2026-11-01.md`: 6 já na `main` em outra forma, 4 superados, 2 não executados de propósito (arquivam telas sem prova de uso), 1 parcial (#110).
 
-**Proprietária (P) — destravam o resto**
-1. J1: 3 documentos da Ana liberados ao cliente (manter, sanitizar ou retirar). Antes de J2.
-2. J5: nome do pai ("Adair Gomes Silveira" × "Adair Pinto Silveira Júnior"). Antes de H5.
-3. H5, H6, H7: aprovar parâmetros do contrato (95%, `rascunho`), gerar a prévia **final**, registrar a revisão. H9: assinatura.
-4. J2, J3, J4, J10: acesso da Ana ao portal (hoje 0), consentimento do lead, representação do Felipe, publicar `resumo_caso`.
-5. J9: custo e prazo dos 76 itens do §58c (hoje 0 e 0).
-6. J12 e `COMPROVADO_EM_USO`: prints autenticados por motor.
-7. Decisões: O1 (pessoa e pagamento no GoLive), O2 (pilotos), O3 (radar), O8 (4 funções do `painel-preparacao`), N5, N6, N7, E1, E3, R4.
+### Banco (cabeçalhos, não confirmado no banco)
+- `20261020150000_ana_luiza_historico…`: diz "NÃO APLICADO; BLOQUEADO_POR_TAMANHO", mas o README e o plano dizem aplicado em 30/10. **Contradição** (E4): precisa de um `SELECT` em `contract_history_imports` para fechar.
+- `20261024120000_documentos_reais_ana_liberados`: "NÃO APLICADO"; o README diz que os dados já estão no banco por outro caminho.
+- `20261030180000_despublica_documentos_ana…`: "NÃO APLICADO; BLOQUEADO_POR_GUARD". Só pelo Desk, por decisão da Proprietária.
+- Nenhuma proposta bloqueia o código da `main`, segundo o plano (não remedido).
 
-**Claude Code (C)**
-- N1, N2: Painel Hoje (W4a), Governança (W4b) e saneamento (W5): trabalho parcial parou no limite de uso.
-- N3, N4: navegação única do portal e retirada de dado fixo da Ana (`anexos-tres-camadas.ts`).
-- N8: teste que renderiza as telas religadas. N9: `sha` em `/api/saude` (hoje `null`). N10: trava do hook Prettier.
-- O6, O11: classificar `src/data/*` e estender o teste de órfãos a todo o `src`.
-- P2, P3: auditoria e endurecimento de gravação (releitura estrita).
-- E4: alinhar cabeçalhos `ESTADO:` ao README.
-- R6/P1: fechar a #32 com motivo, depois de conferir as 3 peças.
+## Do plano, sem remedir (dependem da Proprietária)
+J1 documentos da Ana (3 liberados ao cliente); J5 nome do pai; H5 a H7 e H9 (aprovar parâmetros do contrato, gerar a prévia final, revisar, assinar); J2, J3, J4, J10 (acesso da Ana ao portal, consentimento, representação do Felipe, `resumo_caso`); J9 custo e prazo dos 76 itens do §58c; J12 e `COMPROVADO_EM_USO` com prints autenticados; E1 (journal do Drizzle).
 
-**Lovable (L):** aplicar qualquer proposta de banco que a Proprietária aprovar.
+## Do Claude Code
+- Mesclar e publicar o #219 (aguarda autorização).
+- Atualizar o *knowledge* do projeto no Lovable (S3): ele descreve 6 grupos de menu, o código tem 8; a ferramenta recusa texto acima de 10.000 caracteres e o conteúdo atual já ocupa quase tudo.
+- Onda 2 do Painel Hoje: 7 painéis duplicam o `/painel` V4 e não foram ligados; 7 módulos com dado de família no código precisam virar dado de cada caso antes.
+- N2 (saneamento com contagens ao vivo na Governança), N8 (render das telas religadas), N10, O6/O11.
 
 ## Não verificado
-
-Contagens do banco (itens do §58c, acessos, prévias, `lineage_encounters`), estado do Lovable (`latest_commit_sha`, `agentFinished`), `/api/saude` no ar, `tsc` e suíte de testes locais (sem `node_modules`). A `/lancar` cobre os três primeiros, com autorização.
+Contagens do banco, comportamento no navegador (desktop e 375 px), estado das demais telas campo a campo.
