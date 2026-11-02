@@ -64,7 +64,7 @@ export const listarIntegracoes = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
       supabase
         .from("staff_access")
-        .select("auth_user_id, nome, email, role, status")
+        .select("auth_user_id, nome:full_name, email, role, status")
         .eq("organization_id", organizationId)
         .eq("status", "active")
         .is("archived_at", null),

@@ -1,0 +1,75 @@
+{
+ "tabelas": 195,
+ "views": 5,
+ "funcoes": 68,
+ "achados": [
+  {
+   "tipo": "coluna_inexistente",
+   "arq": "src/lib/documentos.functions.ts",
+   "linha": 530,
+   "detalhe": "client_portal_case_access.status (select)",
+   "ocorrencias": [
+    "src/lib/documentos.functions.ts:530"
+   ]
+  },
+  {
+   "tipo": "coluna_inexistente",
+   "arq": "src/lib/pessoas-linhagens.functions.ts",
+   "linha": 383,
+   "detalhe": "name_variants.case_id (filtro eq)",
+   "ocorrencias": [
+    "src/lib/pessoas-linhagens.functions.ts:383",
+    "src/lib/pessoas-linhagens.functions.ts:383",
+    "src/lib/pessoas-linhagens.functions.ts:383"
+   ]
+  },
+  {
+   "tipo": "coluna_inexistente",
+   "arq": "src/lib/pessoas-linhagens.functions.ts",
+   "linha": 383,
+   "detalhe": "name_variants.start_date (order)",
+   "ocorrencias": [
+    "src/lib/pessoas-linhagens.functions.ts:383"
+   ]
+  },
+  {
+   "tipo": "coluna_inexistente",
+   "arq": "src/lib/achados-genealogicos.functions.ts",
+   "linha": 97,
+   "detalhe": "research_sources.case_id (filtro eq)",
+   "ocorrencias": [
+    "src/lib/achados-genealogicos.functions.ts:97",
+    "src/lib/achados-genealogicos.functions.ts:97",
+    "src/lib/pessoas-linhagens.functions.ts:420"
+   ]
+  },
+  {
+   "tipo": "coluna_inexistente",
+   "arq": "src/lib/integracoes.functions.ts",
+   "linha": 66,
+   "detalhe": "staff_access.nome (select)",
+   "ocorrencias": [
+    "src/lib/integracoes.functions.ts:66"
+   ]
+  },
+  {
+   "tipo": "tabela_inexistente",
+   "arq": "src/components/pesquisa/fontes-documentos.tsx",
+   "linha": 166,
+   "detalhe": "documentos",
+   "ocorrencias": [
+    "src/components/pesquisa/fontes-documentos.tsx:166",
+    "src/components/privacidade/painel.tsx:167"
+   ]
+  },
+  {
+   "tipo": "tabela_inexistente",
+   "arq": "src/lib/pesquisa.functions.ts",
+   "linha": 296,
+   "detalhe": "pesquisa",
+   "ocorrencias": [
+    "src/lib/pesquisa.functions.ts:296"
+   ]
+  }
+ ]
+}
