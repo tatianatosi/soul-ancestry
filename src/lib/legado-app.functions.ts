@@ -51,7 +51,8 @@ export const listarEncontrosLinhagemApp = createServerFn({ method: "GET" })
 
     if (error) {
       console.warn("[legado] Falha ao ler lineage_encounters para o App:", error.message);
-      return [];
+      // C3 (02/11/2026): falha de leitura não vira "sem encontros".
+      throw new Error("Falha ao carregar os encontros de linhagem.");
     }
 
     return ((encontros ?? []) as any[]).map((e) => ({
