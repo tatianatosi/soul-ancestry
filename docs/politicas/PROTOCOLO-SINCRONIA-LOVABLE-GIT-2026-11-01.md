@@ -16,6 +16,16 @@ editor do Lovable mesclou sobre uma base antiga e derrubou 101 arquivos; a resta
 
 ## S4: janela de edição
 
+### Complemento aprovado em 02/11 — evidências por PR
+
+- O modelo de PR declara responsável, base, SHA testado, arquivos reservados e matriz requisito/teste/evidência. Arquivos declarados em duas PRs abertas produzem falha de sobreposição; a transferência exige retirar a reserva da tarefa anterior.
+- `scripts/pr-evidence.mjs` valida a declaração pelo SHA exato, mantendo PASSOU separado de pendências. Links presentes não provam autenticidade, aceite da Proprietária ou execução integral.
+- `sync-guard.yml` usa o validador da base confiável, não código fornecido pela PR. O primeiro corte instala esse validador na base; até sua integração autorizada não existe proteção remota nova em operação.
+- `sync-report.yml` audita retrospectivamente todas as PRs integradas, com paginação e artefato completo; CI, integração, declaração de evidências e publicação são campos distintos. PRs históricas sem matriz ficam não verificadas, nunca automaticamente concluídas.
+- O SHA de publicação do painel é declaração manual, não verificação independente do endereço público.
+- Verificação em 02/11: API retornou `Branch not protected` e nenhuma regra adicional aplicável à main. Os workflows não impedem merge enquanto seus checks não forem exigidos por proteção/ruleset configurado pela Proprietária com autorização específica.
+- Não há integração MCP nem envio automático de instruções ao Claude: os agentes compartilham o protocolo e as verificações do GitHub. Branches isolam código; a prévia e o publicado deste projeto compartilham dados.
+
 1. Quando a Proprietária edita no Lovable, o Claude Code **não empurra na `main`** e só trabalha em branch
    `claude/*`, com PR em rascunho.
 2. Merge de PR do Claude só com o editor parado: nenhum commit de `gpt-engineer-app[bot]` nos últimos 10 minutos

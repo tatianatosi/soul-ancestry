@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { decidirClienteDoHandoff } from "../handoff-discovery";
+import { sinaisDuplicidade } from "../duplicidade-comparacao";
 
 /**
  * Ordem P1 (21/09/2026) — "Identidade única do Lead ao Caso".
@@ -36,9 +37,10 @@ describe("duplicidade preventiva — e-mail, telefone e CPF", () => {
   });
 
   it("mantém os três sinais anteriores — CPF é adição, não troca", () => {
-    expect(clientesFn).toContain('motivos.push("mesmo e-mail")');
-    expect(clientesFn).toContain('motivos.push("mesmo telefone")');
-    expect(clientesFn).toContain('motivos.push("mesmo nome")');
+    expect(sinaisDuplicidade(
+      { nome: "José Silva", email: "JOSE@EXAMPLE.ORG", telefone: "(11) 99999-1234" },
+      { nome: "jose silva", email: "jose@example.org", telefone: "11999991234" },
+    )).toEqual(["mesmo e-mail", "mesmo telefone", "mesmo nome"]);
   });
 
   it("isola por organização e ignora arquivados", () => {

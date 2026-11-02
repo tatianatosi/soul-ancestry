@@ -1,8 +1,12 @@
 # Roadmap
 
 ## 02/11 — v6 e seleção de branch
-- [x] Plano ampliado com automação de critérios/evidências por SHA e estados separados por PR; implementação e execução remota aguardam aprovação e acesso confirmado.
-- [x] Solução rápida preparada para aprovação: responsável por arquivo, janela de integração e comparação canônica antes de novos cadastros; alarmes existentes não são bloqueio técnico. Sem merge, acesso ou limpeza de dados.
+- [x] Automação implementada: template PR, validador puro e CLI, reservas de arquivos, guard por SHA, resumo CI e auditoria retrospectiva paginada no painel existente; sem merge/deploy.
+- [x] Comparação de duplicidade compartilhada em Clientes/Leads, preservando CPF, fixtures, queries e erros; 48 testes focais passaram, 3 workflows com sintaxe válida e compilação automática OK; consulta autenticada da Ana pediu decisão humana sem criar registro.
+- [x] GitHub lido via conexão Tati: 201 PRs fechadas, 187 integradas; integração confirmada não prova execução nem publicação.
+- [ ] Ativar checks obrigatórios na main: API confirmou ausência de proteção e regras adicionais; mudança de proteção exige autorização específica.
+- [ ] Rodar a nova auditoria remota integral: arquivos ainda não integrados à base confiável; precisa da integração autorizada e workflow em operação. PRs antigas sem evidência não serão marcadas como concluídas.
+- [ ] Teste antigo detectar-regressao-merge: execução bloqueada pelo sandbox ao usar git add; executar no CI externo, sem contornar restrições.
 - [x] Revisados os três dossiês anexados, histórico recuperado, 40 PDFs e imagens candidatas: Heinrich 15/05/1837 e Lotte 16/05/1902 na Auditoria-Mãe seção 10.4; PDF confirma Lotte 1902. Originais citados não estão nos anexos disponíveis. Nenhuma data gravada nesta revisão.
 - [x] Gerar v6 pelo botão existente, autenticada como Proprietária; seis versões confirmadas após F5, rascunho interno sem envio/assinatura.
 - [x] Prévia interna da v6 conferida: R$ 3.200 e R$ 9.600 e parcelas R$ 320 presentes; rateios antigos R$ 4.800/R$ 2.400 ausentes no documento renderizado.
