@@ -1,6 +1,7 @@
 # Roadmap
 
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
+- [ ] Configurar papéis existentes admin/operações/comercial/financeiro e restringir aprovação de preços e contratos ao admin; corte separado de RLS/permissões, sem criar usuários nem promover contas não identificadas.
 - [ ] Publicar contrato autorizado em 02/11 14:46: conferir pré-condições reais, sem assinatura/envio presumido e sem contornar revisão independente da PR #222.
 - [ ] Integrar GitHub/Lovable existente e publicar exclusivamente versão aprovada; conferir proteção remota e PR autorizada sem reconectar/recriar repositório. Seleção do branch no editor exige ação da Proprietária.
 - [ ] Registrar Heinrich 15/05/1837 e Lotte 16/05/1902 segundo Auditoria-Mãe §10.4, preservar verificação pendente, conferir histórico contratual v1–v6 e publicação autorizada.
