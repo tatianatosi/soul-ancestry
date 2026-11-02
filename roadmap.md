@@ -2,7 +2,7 @@
 
 ## 02/11 — v6 e seleção de branch
 - [x] Automação implementada: template PR, validador puro e CLI, reservas de arquivos, guard por SHA, resumo CI e auditoria retrospectiva paginada no painel existente; sem merge/deploy.
-- [x] Comparação de duplicidade compartilhada em Clientes/Leads, preservando CPF, fixtures, queries e erros; 47 testes focais passaram e consulta autenticada da Ana pediu decisão humana sem criar registro.
+- [x] Comparação de duplicidade compartilhada em Clientes/Leads, preservando CPF, fixtures, queries e erros; 48 testes focais passaram, 3 workflows com sintaxe válida e compilação automática OK; consulta autenticada da Ana pediu decisão humana sem criar registro.
 - [x] GitHub lido via conexão Tati: 201 PRs fechadas, 187 integradas; integração confirmada não prova execução nem publicação.
 - [ ] Ativar checks obrigatórios na main: API confirmou ausência de proteção e regras adicionais; mudança de proteção exige autorização específica.
 - [ ] Rodar a nova auditoria remota integral: arquivos ainda não integrados à base confiável; precisa da integração autorizada e workflow em operação. PRs antigas sem evidência não serão marcadas como concluídas.
