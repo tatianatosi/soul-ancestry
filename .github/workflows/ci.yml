@@ -38,3 +38,10 @@ jobs:
         run: bun run test
       - name: Build
         run: bun run build
+      - name: Registrar revisão testada
+        if: always()
+        run: |
+          echo "## Código verificado" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit executado: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo "PR head: ${{ github.event.pull_request.head.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Resultado do job: ${{ job.status }}. CI não comprova uso autenticado nem publicação." >> "$GITHUB_STEP_SUMMARY"
