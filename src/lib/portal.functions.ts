@@ -199,6 +199,8 @@ export const portalContexto = createServerFn({ method: "GET" })
       .limit(10)
       .then(comoUnico);
 
+    // C3 (02/11/2026): erro de leitura não vira "sem permissão".
+    if (acesso.error) throw new Error("Falha ao carregar o contexto do portal.");
     if (!acesso.data || acesso.data.access_status !== "active") {
       return { autorizado: false as const, cliente: null, casos: [], nivel: null };
     }
@@ -211,6 +213,7 @@ export const portalContexto = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
     ]);
 
+    if (cliente.error || casos.error) throw new Error("Falha ao carregar o contexto do portal.");
     return {
       autorizado: true as const,
       nivel: acesso.data.access_level as "proposal_portal" | "client_workspace",

@@ -130,6 +130,9 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     if (casos.error && new RegExp(COL_ENTREGA).test(String(casos.error.message ?? ""))) {
       casos = await supabase.from("portal_casos").select(COLUNAS);
     }
+    // C3 (02/11/2026): erro de leitura nunca vira "sem caso/vazio". Os
+    // fallbacks de coluna ausente acima já rodaram; o que sobra é falha real.
+    if (casos.error) throw new Error("Falha ao carregar os casos do portal.");
     const permitidos = ((casos.data ?? []) as {
       id: string;
       status?: string;
@@ -202,6 +205,11 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         .order("occurred_at", { ascending: false })
         .limit(3),
     ]);
+
+    // C3: nenhuma das cinco leituras pode falhar em silêncio e virar "vazio".
+    for (const r of [proj, docs, pendencias, faturas, timeline]) {
+      if (r.error) throw new Error("Falha ao carregar os dados do portal.");
+    }
 
     const pedidos = (pendencias.data ?? []) as Array<SolicitacaoChecklistBruta & { case_id: string }>;
     const documentosPendentes = pedidos.filter((p) => p.status === "aguardando" || p.status === "recusado").length;

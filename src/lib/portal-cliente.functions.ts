@@ -524,6 +524,8 @@ export const minhasEntregas = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
+    // C3 (02/11/2026): falha de leitura nunca vira "nenhuma entrega".
+    if (docs.error || casos.error) throw new Error("Falha ao carregar as entregas.");
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
     const lista = semFixtures((docs.data ?? []) as any[]);
     return {
