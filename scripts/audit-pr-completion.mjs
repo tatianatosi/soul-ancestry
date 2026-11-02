@@ -14,15 +14,18 @@ export async function auditPullRequests(api, owner, repo) {
       }
       const evidence = validateEvidence(pr.body, pr.head.sha, files);
       const runs = [];
+      let checkError = null;
       for (let n = 1; ; n++) {
-        const checks = await api(`/repos/${owner}/${repo}/commits/${pr.head.sha}/check-runs?per_page=100&page=${n}`);
+        let checks;
+        try { checks = await api(`/repos/${owner}/${repo}/commits/${pr.head.sha}/check-runs?per_page=100&page=${n}`); }
+        catch { checkError = 'Checks indisponíveis para o SHA histórico'; break; }
         const batch = checks.check_runs ?? [];
         runs.push(...batch);
         if (batch.length < 100) break;
       }
       const relevant = runs.filter(c => c.name === 'typecheck-test-build');
-      const ci = relevant.length > 0 && relevant.every(c => c.head_sha === pr.head.sha && c.status === 'completed' && c.conclusion === 'success');
-      rows.push({ number:pr.number, sha:pr.head.sha, merge_sha:pr.merge_commit_sha, integrated:true, code_checks:ci ? 'PASSOU' : 'NAO_VERIFICADO', evidence:evidence.state, pending:[...evidence.errors,...evidence.pending], execution:'EVIDENCIA_EXIGE_REVISAO_HUMANA', publication:'NAO_VERIFICADA' });
+      const ci = !checkError && relevant.length > 0 && relevant.every(c => c.head_sha === pr.head.sha && c.status === 'completed' && c.conclusion === 'success');
+      rows.push({ number:pr.number, sha:pr.head.sha, merge_sha:pr.merge_commit_sha, integrated:true, code_checks:ci ? 'PASSOU' : 'NAO_VERIFICADO', evidence:evidence.state, pending:[...evidence.errors,...evidence.pending,...(checkError ? [checkError] : [])], execution:'EVIDENCIA_EXIGE_REVISAO_HUMANA', publication:'NAO_VERIFICADA' });
     }
     if (prs.length < 100) break;
   }
