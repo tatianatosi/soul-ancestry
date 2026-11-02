@@ -1,6 +1,7 @@
 # Roadmap
 
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
+- [x] Pedido 18:34: SELECT atual confirma contrato e v6 approved_for_send desde 18:19:11 UTC; não há bloqueio de aprovação para remover. Nenhum documento marcado recebido por dedução, nenhuma nova versão, envio ou assinatura. Disponibilização à Ana continua distinta da aprovação.
 - [ ] Pedido 18:32: Proprietária escolheu somente funcionamento das telas, sem gerar versões ou alterar dados familiares. GitHub main já contém sync-guard/sync-report; última execução do Painel de sincronização concluída com success em 18:13 UTC, após PR #224. Git sync automático depende de main selecionada em Configurações → Git; agente não consegue inspecionar/trocar branch sincronizada. Não recriar conexão nem automação paralela. Publicação continua ato separado.
 - [ ] Pedido 18:30: publicação do site solicitada após aceite explícito do alerta grave; v6 approved_for_send confirmada. Contrato no App não disponibilizado: ação Enviar ao cliente só prepara comunicação, sem envio automático; convite Ana válido e caso liberado, login/entrega não comprovados. Recomendada nova verificação antes de compartilhar; URL Lovable pode ser renomeada.
 - [x] Pedido 18:29: PATCH GitHub e GET posterior confirmam approvals 0 e last-push approval false; checks guard/typecheck-test-build e strict true preservados, demais configurações idênticas. AGENTS.md com linha exata solicitada; decisão permanente registrada. Sem publicação, produto, banco ou migrations.
