@@ -3,7 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoDocumentos, type Sb } from "@/lib/documentos.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
-import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { registrarTimelineCaso as registrarTimelineCasoOriginal } from "@/lib/timeline-operacional.server";
+import { capturarErroProducao } from "@/lib/producao-erros.server";
 import { contemConteudoInterno } from "@/lib/onboarding-jornada";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import {
@@ -28,6 +29,22 @@ import {
  * documento, token, link mágico ou conteúdo de arquivo).
  */
 
+/**
+ * Passo posterior à gravação principal: se a linha já foi gravada, falha de linha do tempo não pode virar
+ * toast de erro (a pessoa acharia que nada salvou). A falha vai ao log e ao coletor de erros.
+ */
+async function registrarTimelineCaso(
+  supabase: Parameters<typeof registrarTimelineCasoOriginal>[0],
+  input: Parameters<typeof registrarTimelineCasoOriginal>[1],
+) {
+  try {
+    await registrarTimelineCasoOriginal(supabase, input);
+  } catch (e) {
+    console.error("[pos-gravacao] linha do tempo não gravou", e);
+    await capturarErroProducao(e, { origem: "servidor", mecanismo: "pos_gravacao_timeline" });
+  }
+}
+
 function texto(valor: unknown, max = 2000) {
   if (typeof valor !== "string") return null;
   const t = valor.trim();
@@ -47,15 +64,22 @@ async function auditar(
   for (const [k, v] of Object.entries(metadados ?? {})) {
     limpos[k] = typeof v === "string" ? sanitizarParaLog(v, 600) : v;
   }
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin.from("audit_logs").insert({
-    organization_id: organizationId,
-    user_id: userId,
-    acao,
-    entidade,
-    entidade_id: entidadeId,
-    metadados: limpos,
-  });
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("audit_logs").insert({
+      organization_id: organizationId,
+      user_id: userId,
+      acao,
+      entidade,
+      entidade_id: entidadeId,
+      metadados: limpos,
+    });
+    // Auditoria depois da gravação principal: nunca derruba a ação, mas nunca falha calada.
+    if (error) throw new Error(error.message);
+  } catch (e) {
+    console.error("[pos-gravacao] auditoria não gravou", acao, e);
+    await capturarErroProducao(e, { origem: "servidor", mecanismo: "pos_gravacao_auditoria" });
+  }
 }
 
 export const painelAtendimento = createServerFn({ method: "GET" })

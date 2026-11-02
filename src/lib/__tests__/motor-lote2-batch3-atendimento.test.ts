@@ -16,7 +16,12 @@ function trechoDe(nomeFn: string, proximaFn: string) {
 
 describe("portal-atendimento.functions.ts — histórico em todos os escritores case-scoped", () => {
   it("import de registrarTimelineCaso presente", () => {
-    expect(fn).toContain('import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";');
+    // Desde 02/11/2026 o import é renomeado e embrulhado: falha da linha do tempo depois da gravação
+    // principal não vira toast de erro (ver `registrarTimelineCaso` local do arquivo).
+    expect(fn).toContain(
+      'import { registrarTimelineCaso as registrarTimelineCasoOriginal } from "@/lib/timeline-operacional.server";',
+    );
+    expect(fn).toContain("async function registrarTimelineCaso(");
   });
 
   it("criarSolicitacaoDocumento registra histórico", () => {

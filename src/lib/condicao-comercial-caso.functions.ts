@@ -141,8 +141,8 @@ export const condicaoComercialDoCaso = createServerFn({ method: "GET" })
   });
 
 /**
- * Nova versão da condição. Nunca reescreve a anterior: a vigente passa a
- * `substituida` e a nova nasce em `rascunho`, para revisão humana.
+ * Nova versão da condição. Nunca reescreve a anterior: a vigente continua vigente
+ * e a nova nasce em `rascunho`; só a aprovação da nova substitui a anterior.
  */
 export const registrarVersaoCondicaoComercial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -200,17 +200,8 @@ export const registrarVersaoCondicaoComercial = createServerFn({ method: "POST" 
       },
     });
 
-    for (const a of ((atuais ?? []) as any[]).filter((x) => x.approval_status === "aprovada")) {
-      exigirLinhaGravada(
-        await supabase
-          .from("case_commercial_condition")
-          .update({ approval_status: "substituida", updated_by: userId, updated_at: new Date().toISOString() })
-          .eq("id", a.id)
-          .eq("organization_id", organizationId)
-          .select("id"),
-        "case_commercial_condition",
-      );
-    }
+    // A versão aprovada continua vigente até a nova ser aprovada (`aprovarVersaoCondicaoComercial`).
+    // Antes ela virava `substituida` já na criação do rascunho e o caso ficava sem condição vigente.
 
     await supabase.from("audit_logs").insert({
       organization_id: organizationId,
@@ -234,4 +225,81 @@ export const registrarVersaoCondicaoComercial = createServerFn({ method: "POST" 
     });
 
     return { id: (criada as any)?.id ?? null, versao: proximaVersao };
+  });
+
+/**
+ * Aprova uma versão em rascunho ou em revisão e só então marca a(s) aprovada(s) anterior(es) do mesmo caso
+ * como `substituida`. O banco só deixa admin ativo aprovar (fn_admin_approval_boundary).
+ */
+export const aprovarVersaoCondicaoComercial = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; versaoId: string }) => {
+    if (!data?.caseId) throw new Error("Caso é obrigatório.");
+    if (!data?.versaoId) throw new Error("Versão é obrigatória.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = context.userId as string;
+    const organizationId = await organizacaoDo(supabase, userId);
+
+    const { data: alvo, error: erroAlvo } = await supabase
+      .from("case_commercial_condition")
+      .select("id,versao,approval_status")
+      .eq("id", data.versaoId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (erroAlvo) throw new Error(erroAlvo.message);
+    if (!alvo) throw new Error("Versão da condição não encontrada neste caso.");
+    if (!["rascunho", "em_revisao"].includes(String(alvo.approval_status))) {
+      throw new Error("Só uma versão em rascunho ou em revisão pode ser aprovada.");
+    }
+
+    const agora = new Date().toISOString();
+    // A anterior só sai de vigência depois que a nova foi gravada como aprovada.
+    exigirLinhaGravada(
+      await supabase
+        .from("case_commercial_condition")
+        .update({ approval_status: "aprovada", aprovado_por: userId, aprovado_em: agora, updated_by: userId, updated_at: agora })
+        .eq("id", data.versaoId)
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "case_commercial_condition",
+    );
+
+    const { data: anteriores, error: erroAnt } = await supabase
+      .from("case_commercial_condition")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .eq("approval_status", "aprovada")
+      .neq("id", data.versaoId)
+      .is("archived_at", null);
+    if (erroAnt) throw new Error(erroAnt.message);
+    for (const a of (anteriores ?? []) as any[]) {
+      exigirLinhaGravada(
+        await supabase
+          .from("case_commercial_condition")
+          .update({ approval_status: "substituida", updated_by: userId, updated_at: agora })
+          .eq("id", a.id)
+          .eq("organization_id", organizationId)
+          .select("id"),
+        "case_commercial_condition",
+      );
+    }
+
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: `Condição comercial versão ${alvo.versao} aprovada`,
+      summaryInternal: "Aprovada por admin; a versão anterior passou a substituída.",
+      sourceEntityType: "case_commercial_condition",
+      sourceEntityId: data.versaoId,
+      userId,
+    });
+
+    return { id: data.versaoId, versao: Number(alvo.versao) };
   });
