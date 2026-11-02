@@ -2,9 +2,9 @@
 
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
 - [ ] Configurar papéis existentes admin/operações/comercial/financeiro e restringir aprovação de preços e contratos ao admin; corte separado de RLS/permissões, sem criar usuários nem promover contas não identificadas.
-- [ ] Publicar contrato autorizado em 02/11 14:46: conferir pré-condições reais, sem assinatura/envio presumido e sem contornar revisão independente da PR #222.
+- [ ] Publicar contrato autorizado em 02/11 14:46: bloqueado por revisão humana pendente, qualificação/escopo/proposta sinalizados incompletos na UI. Nenhum envio/assinatura/status fabricado nem revisão independente da PR #222 contornada.
 - [ ] Integrar GitHub/Lovable existente e publicar exclusivamente versão aprovada; conferir proteção remota e PR autorizada sem reconectar/recriar repositório. Seleção do branch no editor exige ação da Proprietária.
-- [ ] Registrar Heinrich 15/05/1837 e Lotte 16/05/1902 segundo Auditoria-Mãe §10.4, preservar verificação pendente, conferir histórico contratual v1–v6 e publicação autorizada.
+- [x] Heinrich 15/05/1837 e Lotte 16/05/1902 salvos pelo editor autenticado com fonte declarada e citação Auditoria-Mãe §10.4; F5/SELECT confirmam precisão exata e verificação pendente. Árvore mostra n.1837/n.1902. Histórico v1–v6 já existente conferido com geração/autoria, sem duplicar versões.
 - [ ] Registrar anos reais/estimados de Ana Maria, Cleusa e Adair: bloqueado por ausência de ano/idade com fonte nos perfis, pesquisa, eventos, Dossiê Consolidado p.2 e Registro Unificado p.2–3. Adair 1961 é fallback sem fonte e não foi usado. Aceita relato familiar identificado sem certidão original; aguarda anos e origem.
 - [x] Robots.txt, sitemap sem lastmod artificial e título institucional conferidos; publicação solicitada com aviso de segurança aceito pela Proprietária. Link público retornou 200 nos três destinos, sitemap só / e título correto.
 - [x] Liberar caso da Ana pela gestão de acessos existente, confirmado após recarga e SELECT app_access_status=liberado. Convite continua invited; login independente da Ana não exercitado. Adair/Alice sem e-mails autorizados.
