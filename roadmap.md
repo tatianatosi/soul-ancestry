@@ -1,6 +1,9 @@
 # Roadmap
 
 ## 02/11 — v6 e seleção de branch
+- [x] Plano ampliado com automação de critérios/evidências por SHA e estados separados por PR; implementação e execução remota aguardam aprovação e acesso confirmado.
+- [x] Solução rápida preparada para aprovação: responsável por arquivo, janela de integração e comparação canônica antes de novos cadastros; alarmes existentes não são bloqueio técnico. Sem merge, acesso ou limpeza de dados.
+- [x] Revisados os três dossiês anexados, histórico recuperado, 40 PDFs e imagens candidatas: Heinrich 15/05/1837 e Lotte 16/05/1902 na Auditoria-Mãe seção 10.4; PDF confirma Lotte 1902. Originais citados não estão nos anexos disponíveis. Nenhuma data gravada nesta revisão.
 - [x] Gerar v6 pelo botão existente, autenticada como Proprietária; seis versões confirmadas após F5, rascunho interno sem envio/assinatura.
 - [x] Prévia interna da v6 conferida: R$ 3.200 e R$ 9.600 e parcelas R$ 320 presentes; rateios antigos R$ 4.800/R$ 2.400 ausentes no documento renderizado.
 - [x] Consultar documentação oficial sobre selecionar/criar branches e requisitos do seletor.
@@ -11,7 +14,8 @@
 - [x] Histórico existente do contrato v1–v5 com botão de abertura, geração/última atualização em São Paulo, autoria e apresentação 375/1280 conferidas; sem criar versão contratual.
 - [x] Editor existente do perfil recebe fonte e precisão no payload; botão no contrato abre a ficha contextual.
 - [x] Lotte: 1902, Registro Unificado p. 2, fonte vinculada e citação interna; salvo pelo editor, relido após F5 e exibido como n. c. 1902 em 375/1280. Sem mês/dia fabricados.
-- [ ] Heinrich, Ana Maria, Cleusa e Adair: documentos enviados relidos não informam ano; bloqueado por ausência de fonte/valor.
+- [ ] Heinrich/Lotte: datas completas localizadas na Auditoria-Mãe, mas sem original disponível nem citação individual; registro com esse grau de evidência aguarda decisão da Proprietária. Não tratar como certidão verificada.
+- [ ] Ana Maria, Cleusa e Adair: ainda sem datas nas fontes textuais inspecionadas; 1961 de Adair pertence a fallback rejeitado, não usar.
 - [ ] Publicar a Árvore: aguardando decisão explícita sobre o achado grave de permissões contratuais ainda aberto; não publicar datas inventadas.
 
 ## 20/10 — Desk V4 c4d3bef9, corte aprovado neste rascunho
