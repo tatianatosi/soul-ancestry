@@ -78,3 +78,17 @@ describe("contract_review_events: todo evento gravado tem tipo aceito pelo banco
     expect(src).toContain('.eq("metadata->>tipo_original", "conflito_mantido_com_motivo")');
   });
 });
+
+describe("Outros dois escritores que o CHECK recusava para qualquer papel (relatório persistencia-banco)", () => {
+  it("override do Painel Hoje grava categoria aceita por owner_override_events", () => {
+    const src = readFileSync("src/lib/painel-hoje-acoes.functions.ts", "utf8");
+    expect(src).not.toContain('"override_gate_interno"');
+    expect(src).toContain('categoria: "override_interno"');
+  });
+
+  it("condição comercial do caso grava data_origin 'real'", () => {
+    const src = readFileSync("src/lib/case-service-consolidacao.functions.ts", "utf8");
+    expect(src).not.toContain('data_origin: "decisao_humana_interna"');
+    expect(src).toContain('data_origin: "real"');
+  });
+});

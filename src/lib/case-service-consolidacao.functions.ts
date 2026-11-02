@@ -341,7 +341,7 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
       condicao_aplicavel: data.condicao_aplicavel?.trim() || null,
       observacao_interna: data.observacao_interna?.trim() || null,
       origem: "decisao_humana_interna",
-      data_origin: "decisao_humana_interna",
+      data_origin: "real", // commercial_conditions_origin_chk: real | fixture_demo | importado | migrado
       status: data.homologar ? "homologada" : "rascunho",
       // Decisão 5 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — quem homologou
       // é sempre resolvido da sessão real, nunca um nome enviado pelo
