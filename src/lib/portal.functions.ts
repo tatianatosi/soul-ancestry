@@ -389,7 +389,7 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       leitorProjecoes
         .from("app_projections")
         .select(
-          "id, case_id, approval_status, archived_at, projection_type, source_entity_type, created_by, updated_by, effective_from, created_at, destination, is_demo",
+          "id, case_id, approval_status, archived_at, projection_type, source_entity_type, created_by, updated_by, effective_from, created_at, destination, approved_at, approved_by, titular_client_id",
         )
         .eq("organization_id", organizationId),
     ]);
