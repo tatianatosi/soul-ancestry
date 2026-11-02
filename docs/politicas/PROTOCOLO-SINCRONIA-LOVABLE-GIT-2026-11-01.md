@@ -24,6 +24,7 @@ editor do Lovable mesclou sobre uma base antiga e derrubou 101 arquivos; a resta
 - `sync-report.yml` audita retrospectivamente todas as PRs integradas, com paginação e artefato completo; CI, integração, declaração de evidências e publicação são campos distintos. PRs históricas sem matriz ficam não verificadas, nunca automaticamente concluídas.
 - O SHA de publicação do painel é declaração manual, não verificação independente do endereço público.
 - Verificação em 02/11: API retornou `Branch not protected` e nenhuma regra adicional aplicável à main. Os workflows não impedem merge enquanto seus checks não forem exigidos por proteção/ruleset configurado pela Proprietária com autorização específica.
+- Atualização 02/11 14:12 UTC: autorização recebida, proteção clássica aplicada e relida HTTP 200. Exige `guard` e `typecheck-test-build`, base atualizada, uma revisão e aprovação do último push, inclusive administradores, conversas resolvidas; sem force push/exclusão. Isso bloqueia integração inadequada, não o botão Publicar no Lovable. PR #222 registra prova real e mantém integração/publicação pendentes.
 - Não há integração MCP nem envio automático de instruções ao Claude: os agentes compartilham o protocolo e as verificações do GitHub. Branches isolam código; a prévia e o publicado deste projeto compartilham dados.
 
 1. Quando a Proprietária edita no Lovable, o Claude Code **não empurra na `main`** e só trabalha em branch
