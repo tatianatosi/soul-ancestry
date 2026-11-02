@@ -1,6 +1,7 @@
 # Roadmap
 
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
+- [ ] Pedido 18:30: publicar link/contrato aprovado para Ana; v6 approved_for_send confirmada; verificar entrega ao App sem confundir aprovação com disponibilização ou assinatura.
 - [x] Pedido 18:29: PATCH GitHub e GET posterior confirmam approvals 0 e last-push approval false; checks guard/typecheck-test-build e strict true preservados, demais configurações idênticas. AGENTS.md com linha exata solicitada; decisão permanente registrada. Sem publicação, produto, banco ou migrations.
 - [ ] Pedido 18:21: publicar fluxo contratual com preparação dos quatro papéis e aprovação admin; conferir/liberar acesso da Ana no e-mail já autorizado sem duplicar convite.
 - [x] Pedido 18:18: publicação solicitada para soul-ancestry.lovable.app após aceite explícito do alerta grave; conclusão da implantação não comprovada. Versão salva ea8004af; validação automática OK. Lista/contrato continuam restritos aos acessos autorizados. Recomendada nova verificação antes de compartilhar amplamente.
