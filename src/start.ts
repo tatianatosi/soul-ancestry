@@ -14,7 +14,7 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
       throw error;
     }
     console.error(error);
-    capturarErroProducao(error, {
+    await capturarErroProducao(error, {
       origem: "servidor",
       mecanismo: "request_middleware",
       rota: new URL(request.url).pathname,

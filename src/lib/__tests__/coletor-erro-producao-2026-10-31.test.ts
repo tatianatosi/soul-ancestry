@@ -18,11 +18,22 @@ import { reportarFalhaDeTela, zerarRelatosDaAba } from "../producao-erros-navega
 describe("Coletor de erro em produção (grava no banco do app)", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("nunca lança e nunca bloqueia quem chamou", () => {
+  it("nunca lança nem rejeita, e devolve uma promessa que quem pode esperar aguarda", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => capturarErroProducao(new Error("falha de teste"))).not.toThrow();
-    expect(() => capturarErroProducao("texto solto", { mecanismo: "manual" })).not.toThrow();
-    expect(() => capturarErroProducao(undefined)).not.toThrow();
+    const p = capturarErroProducao(new Error("falha de teste"));
+    expect(p).toBeInstanceOf(Promise);
+    await expect(p).resolves.toBeUndefined();
+    await expect(
+      capturarErroProducao("texto solto", { mecanismo: "manual" }),
+    ).resolves.toBeUndefined();
+    await expect(capturarErroProducao(undefined)).resolves.toBeUndefined();
+  });
+
+  it("a rota /api/erro e os middlewares ESPERAM a gravação antes de responder (em produção o que ficava pendente se perdia)", () => {
+    expect(readFileSync("src/routes/api/erro.ts", "utf8")).toContain("await capturarErroProducao(");
+    expect(readFileSync("src/start.ts", "utf8")).toContain("await capturarErroProducao(");
+    const servidor = readFileSync("src/server.ts", "utf8");
+    expect(servidor.split("await capturarErroProducao(").length - 1).toBeGreaterThanOrEqual(2);
   });
 
   it("registra a ação 'erro_app' com mecanismo, origem e a mensagem do erro", () => {
