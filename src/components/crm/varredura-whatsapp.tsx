@@ -174,7 +174,7 @@ export function VarreduraWhatsApp({
             value={bruto}
             onChange={(e) => setBruto(e.target.value)}
             rows={8}
-            placeholder={"[10/08/2026, 14:35] Ana Luiza: meu bisavô era italiano…"}
+            placeholder={"[10/08/2026, 14:35] Nome da pessoa: meu bisavô era italiano…"}
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 font-mono text-xs text-navy outline-none focus:border-gold"
           />
         </label>

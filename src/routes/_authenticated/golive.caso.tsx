@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { GoLiveDesk } from "@/components/desk-go-live";
 
 export const Route = createFileRoute("/_authenticated/golive/caso")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
@@ -184,7 +185,7 @@ function CasoGoLive() {
 
           {lote === "A" ? (
             <>
-              <Bloco titulo="Identidade do piloto">
+              <Bloco titulo="Identidade da pessoa do caso">
                 <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <Campo rotulo="Pessoa principal" valor={caso.identidade.pessoaPrincipal} />
                   <Campo rotulo="Núcleo familiar" valor={caso.identidade.nucleo} />
@@ -202,7 +203,7 @@ function CasoGoLive() {
                     <p className="mt-1 text-xs text-navy/55">Nada foi escolhido ou mesclado automaticamente.</p>
                   </div>
                 ) : (
-                  <p className="text-xs text-navy/55">Identidade única confirmada para este piloto.</p>
+                  <p className="text-xs text-navy/55">Identidade única confirmada para este caso.</p>
                 )}
                 <div className="flex flex-wrap items-center gap-3 pt-1">
                   <Link search={true} to="/golive/pessoa" className="text-sm text-navy underline decoration-gold underline-offset-4">

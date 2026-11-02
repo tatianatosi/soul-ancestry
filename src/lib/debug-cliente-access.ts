@@ -1,8 +1,9 @@
 /**
  * Debug: Permitir staff testar como cliente de verdade.
  *
- * Staff pode gerar um link que a leva diretamente ao portal do cliente
- * com dados reais de qualquer cliente/caso — sem precisar de senha.
+ * Reescrito por caso em 01/11/2026: o link aponta para o mecanismo oficial
+ * `/app-cliente-como-pessoa?casoId=` (o admin vê o App do caso sem virar cliente),
+ * e não para uma rota com id fixo. Não há mais lista de clientes de teste no código.
  *
  * Útil para:
  * - Testar a experiência do cliente
@@ -17,40 +18,26 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
- * Gera um link de acesso como cliente (para staff testar).
- * O link redireciona diretamente ao portal com dados do cliente.
+ * Gera o link para a equipe ver o App Cliente de um caso (para conferência).
+ * Só staff. O caso vem do chamador; nada é assumido por padrão.
  */
 export const gerarLinkAcessoClienteDebug = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { clienteId: string }) => data)
+  .inputValidator((data: { casoId: string }) => data)
   .handler(async ({ data, context }) => {
     const h = await import("./equipe.server");
 
-    // Verificar se quem está chamando é staff
     const staff = await h.staffPorUsuario(context.userId as string).catch(() => null);
     if (!staff) {
       throw new Error("Apenas staff pode acessar clientes para teste");
     }
+    const casoId = String(data.casoId ?? "").trim();
+    if (!casoId) throw new Error("Informe o caso.");
 
-    // Para agora, retornar URL direta
-    // Depois: gerar um token de curta duração e usar SSO
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://soul-ancestry.lovable.app";
-
     return {
-      link: `${baseUrl}/portal/casos/${data.clienteId}`,
-      clienteId: data.clienteId,
-      aviso: "Este link é para teste de staff. Dados reais do cliente serão mostrados.",
+      link: `${baseUrl}/app-cliente-como-pessoa?casoId=${encodeURIComponent(casoId)}`,
+      casoId,
+      aviso: "Link de conferência da equipe: mostra o App como o cliente vê, sem criar acesso.",
     };
   });
-
-/**
- * Lista de clientes comuns para teste (para staff).
- * Permite quick-access para testar diferentes cenários.
- */
-export const CLIENTES_TESTE_STAFF = [
-  {
-    nome: "Ana Luiza",
-    clienteId: "ana-luiza-demo", // ou ID real do banco
-    rotulo: "Caso de exemplo — genealogia",
-  },
-] as const;

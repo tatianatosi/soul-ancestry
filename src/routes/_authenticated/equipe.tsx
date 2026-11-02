@@ -24,6 +24,7 @@ import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-propriet
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/_authenticated/equipe")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Usuários e papéis — Clube Ancestral" },

@@ -21,6 +21,7 @@ import { createFileRoute } from "@tanstack/react-router";
  * `head: true`, que não traz linha nenhuma.
  */
 export const Route = createFileRoute("/equipe/diagnostico-conexao")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       GET: async ({ request }) => {

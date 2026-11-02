@@ -26,6 +26,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/catalogo")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Catálogo homologado — Clube Ancestral Desk" },

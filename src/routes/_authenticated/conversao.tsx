@@ -22,6 +22,7 @@ import {
 
 
 export const Route = createFileRoute("/_authenticated/conversao")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Comercial | Clube Ancestral" },

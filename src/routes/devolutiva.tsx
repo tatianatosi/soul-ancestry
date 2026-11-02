@@ -5,6 +5,7 @@ import { CLIENT_ONE_PAGES, onePageByCaso, ONE_PAGE_GUILHERME } from "@/data/clie
 import { ClientResearchOnePageModal } from "@/components/client-research-one-page";
 
 export const Route = createFileRoute("/devolutiva")({
+  staticData: { sitemap: false },
   // 25/10/2026 (auditoria pré-lançamento): a página mostra one-pages com nomes
   // de clientes e estava aberta sem login. Mesmo portão do Desk (_authenticated).
   ssr: false,

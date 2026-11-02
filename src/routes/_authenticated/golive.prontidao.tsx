@@ -16,13 +16,14 @@ import { prontidaoDoApp, prontidaoPorGrupo, resumoProntidao } from "@/lib/golive
 import { humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/prontidao")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Prontidão para o App — Clube Ancestral" },
       {
         name: "description",
-        content: "O que já está liberado para a família e o que ainda aguarda aprovação interna no caso do piloto.",
+        content: "O que já está liberado para a família e o que ainda aguarda aprovação interna no caso escolhido.",
       },
       { property: "og:title", content: "Prontidão para o App — Clube Ancestral" },
       { property: "og:description", content: "Contratos, documentos, propostas e publicações prontos ou pendentes." },

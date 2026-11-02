@@ -22,6 +22,7 @@ export const DISCLAIMER_ENCONTROS =
   "Este conteúdo é histórico, cultural e narrativo. Não substitui acompanhamento terapêutico, psicológico ou médico.";
 
 export const Route = createFileRoute("/portal/legado")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Legado — Portal Clube Ancestral" },

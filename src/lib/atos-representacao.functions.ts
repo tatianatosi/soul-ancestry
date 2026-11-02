@@ -12,8 +12,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { orgDoUsuario } from "@/lib/cadeia-formalizacao.server";
 import { exigirAnexosDeAcaoExterna } from "@/lib/anexos-persistidos.server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export const verificarAtoEmNomeDoCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string; descricao: string }) => {
@@ -24,7 +22,7 @@ export const verificarAtoEmNomeDoCliente = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data, context }) => {
-    const supabase = context.supabase as any;
+    const supabase = context.supabase;
     const org = await orgDoUsuario(supabase, context.userId as string);
     await exigirAnexosDeAcaoExterna(supabase, {
       organizationId: org,

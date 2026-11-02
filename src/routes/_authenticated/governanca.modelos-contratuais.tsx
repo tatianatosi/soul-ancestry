@@ -14,6 +14,7 @@ import {
 import { qualificacaoInstitucionalRenderizada } from "@/lib/qualificacao-institucional";
 
 export const Route = createFileRoute("/_authenticated/governanca/modelos-contratuais")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Matriz de modelos contratuais | Clube Ancestral" },

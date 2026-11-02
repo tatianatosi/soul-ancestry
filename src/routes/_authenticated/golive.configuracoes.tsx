@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/configuracoes")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

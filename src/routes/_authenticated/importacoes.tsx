@@ -22,6 +22,7 @@ import {
 } from "@/lib/migracao.functions";
 
 export const Route = createFileRoute("/_authenticated/importacoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Importações e migração — Clube Ancestral" },

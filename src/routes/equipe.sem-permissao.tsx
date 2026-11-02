@@ -5,6 +5,7 @@ import { EquipeMoldura } from "@/components/equipe/moldura";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/equipe/sem-permissao")({
+  staticData: { sitemap: false },
   ssr: false,
   head: () => ({
     meta: [

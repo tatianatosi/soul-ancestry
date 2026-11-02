@@ -88,9 +88,9 @@ describe("marca: logo servido pelo próprio domínio", () => {
     expect(brand).toContain("data-brand-logo-fallback");
   });
 
-  it("a vitrine pública declara noindex e usa a variante legível no fundo creme", () => {
+  it("a vitrine pública é indexável (decisão da Proprietária, 01/11/2026) e usa a variante legível no fundo creme", () => {
     const home = ler("src/routes/index.tsx");
-    expect(home).toContain('{ name: "robots", content: "noindex" }');
+    expect(home).toContain('{ name: "robots", content: "index, follow" }');
     expect(home).toContain('variant="client-light"');
   });
 });

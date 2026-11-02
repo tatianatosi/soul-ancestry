@@ -19,7 +19,8 @@ import { portalContexto } from "@/lib/portal.functions";
 import { registrarTempoNaAba, type AbaComTelemetria } from "@/lib/portal-cliente.functions";
 import { cn } from "@/lib/utils";
 import { TIPO_CLIENTE } from "@/lib/marca";
-import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
+import { COPY_GERAL } from "@/lib/portal-copy";
+import { abasCanonicasDoPortal } from "@/lib/portal-navegacao";
 
 /*
   Telemetria de permanência (11/10/2026) — pedido cobre onde achados e
@@ -127,16 +128,22 @@ export function PortalShell({
      barra alguma (é uma leitura única), e a barra, quando existe, é sempre
      igual às sete abas aprovadas.
   */
+  // Fonte única das 7 abas (rota, ordem e rótulo): `portal-navegacao.ts`. Aqui só entra o ícone.
+  const ICONE_DA_TELA = {
+    home: Home,
+    jornada: Route,
+    radar: Radar,
+    arvore: Trees,
+    docs: FileText,
+    biblio: BookOpen,
+    conta: UserRound,
+  } as const;
   const nav = acessoCompleto
-    ? [
-        { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
-        { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
-        { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
-        { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
-        { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
-        { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
-        { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-      ]
+    ? abasCanonicasDoPortal().map((aba) => ({
+        to: aba.rota,
+        label: aba.rotulo,
+        icon: ICONE_DA_TELA[aba.tela as keyof typeof ICONE_DA_TELA],
+      }))
     : [];
 
   return (

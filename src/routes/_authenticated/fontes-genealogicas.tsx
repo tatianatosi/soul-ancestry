@@ -46,6 +46,7 @@ import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export const Route = createFileRoute("/_authenticated/fontes-genealogicas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Fontes e Integrações Genealógicas — Clube Ancestral" },

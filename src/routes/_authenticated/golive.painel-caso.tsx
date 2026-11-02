@@ -25,6 +25,7 @@ import {
 } from "@/lib/golive-app";
 
 export const Route = createFileRoute("/_authenticated/golive/painel-caso")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [

@@ -17,6 +17,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { Etiqueta } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Papéis e Modo Proprietária — Clube Ancestral" },

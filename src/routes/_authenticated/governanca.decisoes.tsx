@@ -23,6 +23,7 @@ import { DECISOES_PILOTO_5A1 } from "@/lib/piloto-5a1-decisoes-pendentes";
 import { BLOQUEIOS_ABERTOS_DA_PROPRIETARIA, DECISOES_DA_PROPRIETARIA } from "@/lib/decisoes-da-proprietaria";
 
 export const Route = createFileRoute("/_authenticated/governanca/decisoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Decisões operacionais aprovadas — Clube Ancestral" },
@@ -232,7 +233,7 @@ function DecisoesPage() {
           </ul>
         </Bloco>
 
-        <Bloco titulo="Caso Ana Luiza — estado consolidado e gates">
+        <Bloco titulo="Registro de decisão do caso piloto (Ana Luiza) — gates, não é leitura ao vivo">
           <Tabela
             cabecalho={["Dimensão", "Estado conhecido", "Ação/gate"]}
             linhas={ESTADO_CASO_ANA.map((e) => [e.dimensao, e.estado, e.gate])}

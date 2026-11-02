@@ -36,6 +36,7 @@ import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import { ComposicaoLinhagemV4 } from "@/components/pessoas/composicao-linhagem-v4";
 import { Indicador } from "@/components/prancha-v4/kit";
 export const Route = createFileRoute("/_authenticated/nucleos")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Núcleos familiares — Clube Ancestral" },

@@ -1,72 +1,124 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { capturarErroProducao } from "../producao-erros.server";
+import {
+  ACAO_ERRO_APP,
+  devoRegistrar,
+  higienizarTextoDeErro,
+  montarRegistroErro,
+} from "../erro-no-banco.server";
+import { reportarFalhaDeTela, zerarRelatosDaAba } from "../producao-erros-navegador";
 
 /**
- * Item 16 da prontidão #176 (31/10/2026): "coletor de erro em produção".
- *
- * Antes deste arquivo o único caminho de erro em produção era
- * `console.error` e, no navegador, `window.__lovableEvents` — que só existe
- * dentro do ambiente do Lovable, nunca para um visitante real em produção.
- *
- * `capturarErroProducao` nunca lança e nunca bloqueia quem chamou: DSN
- * ausente (ainda não configurado) é um estado válido, não uma falha.
+ * Coletor de erro em produção. Desde 02/11/2026 os erros vão para o PRÓPRIO banco do app
+ * (`audit_logs`, `acao = 'erro_app'`), e não mais ao serviço externo, que exigia uma conta que a
+ * Proprietária não consegue criar.
  */
-describe("Coletor de erro em produção (Sentry, envelope manual)", () => {
-  const dsnOriginal = process.env.SENTRY_DSN;
+describe("Coletor de erro em produção (grava no banco do app)", () => {
+  afterEach(() => vi.restoreAllMocks());
 
-  beforeEach(() => {
-    delete process.env.SENTRY_DSN;
-  });
-
-  afterEach(() => {
-    if (dsnOriginal === undefined) delete process.env.SENTRY_DSN;
-    else process.env.SENTRY_DSN = dsnOriginal;
-    vi.unstubAllGlobals();
-  });
-
-  it("sem SENTRY_DSN configurado, não lança e não tenta enviar nada", () => {
-    const fetchEspiao = vi.fn();
-    vi.stubGlobal("fetch", fetchEspiao);
+  it("nunca lança e nunca bloqueia quem chamou", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     expect(() => capturarErroProducao(new Error("falha de teste"))).not.toThrow();
-    expect(fetchEspiao).not.toHaveBeenCalled();
+    expect(() => capturarErroProducao("texto solto", { mecanismo: "manual" })).not.toThrow();
+    expect(() => capturarErroProducao(undefined)).not.toThrow();
   });
 
-  it("com SENTRY_DSN configurado, envia um envelope para a URL de ingestão correta", () => {
-    process.env.SENTRY_DSN = "https://chavepublica@o123.ingest.sentry.io/456";
-    const fetchEspiao = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
-    vi.stubGlobal("fetch", fetchEspiao);
+  it("registra a ação 'erro_app' com mecanismo, origem e a mensagem do erro", () => {
+    const r = montarRegistroErro(new Error("Unauthorized: No authorization header provided"), {
+      origem: "navegador",
+      mecanismo: "acao",
+      rota: "/casos/abc",
+    });
+    expect(r.acao).toBe(ACAO_ERRO_APP);
+    expect(r.entidade).toBe("/casos/abc");
+    expect(r.metadados).toMatchObject({
+      origem: "navegador",
+      mecanismo: "acao",
+      mensagem: "Unauthorized: No authorization header provided",
+    });
+  });
 
-    capturarErroProducao(new Error("falha real"), { origem: "servidor" });
+  it("não grava e-mail, token de sessão nem número longo (CPF, telefone)", () => {
+    // O token de exemplo é montado aqui para não existir como texto no arquivo.
+    const tokenDeExemplo = [
+      "eyJ" + "hbGciOiJIUzI1NiJ9",
+      "eyJ" + "zdWIiOiIxMjMifQ",
+      "assinaturaabcdef",
+    ].join(".");
+    const sujo = `falhou para ana@exemplo.com com ${tokenDeExemplo} e CPF 123.456.789-09`;
+    const limpo = higienizarTextoDeErro(sujo);
+    expect(limpo).not.toContain("ana@exemplo.com");
+    expect(limpo).not.toContain(tokenDeExemplo);
+    expect(limpo).not.toContain("123.456.789-09");
+    expect(limpo).toContain("«e-mail»");
+    expect(limpo).toContain("«token»");
+  });
 
-    expect(fetchEspiao).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchEspiao.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe(
-      "https://o123.ingest.sentry.io/api/456/envelope/?sentry_key=chavepublica&sentry_version=7",
+  it("o mesmo erro só entra uma vez por minuto e há teto por minuto", () => {
+    const s = { inicio: 0, usados: 0, vistos: new Map<string, number>() };
+    expect(devoRegistrar("a|erro", 1_000, s)).toBe(true);
+    expect(devoRegistrar("a|erro", 2_000, s)).toBe(false);
+    expect(devoRegistrar("a|erro", 62_000, s)).toBe(true);
+    for (let i = 0; i < 40; i++) devoRegistrar(`b|${i}`, 70_000, s);
+    expect(s.usados).toBeLessThanOrEqual(30);
+  });
+
+  it("o texto do erro fica limitado (mensagem 500, pilha 800)", () => {
+    const r = montarRegistroErro(
+      Object.assign(new Error("x".repeat(5000)), { stack: "y".repeat(5000) }),
+      {},
     );
-    expect(init.method).toBe("POST");
-    expect(String(init.body)).toContain("falha real");
-    expect(String(init.body)).toContain("servidor");
-  });
-
-  it("uma falha de rede ao enviar nunca escapa como rejeição não tratada", async () => {
-    process.env.SENTRY_DSN = "https://chavepublica@o123.ingest.sentry.io/456";
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("rede fora")));
-    expect(() => capturarErroProducao(new Error("x"))).not.toThrow();
-    // dá um tick para a promise rejeitada (já tratada com .catch) assentar
-    await new Promise((r) => setTimeout(r, 0));
-  });
-
-  it("DSN malformado é tratado como ausente, não como exceção", () => {
-    process.env.SENTRY_DSN = "não é uma url";
-    const fetchEspiao = vi.fn();
-    vi.stubGlobal("fetch", fetchEspiao);
-    expect(() => capturarErroProducao(new Error("x"))).not.toThrow();
-    expect(fetchEspiao).not.toHaveBeenCalled();
+    expect(String(r.metadados.mensagem).length).toBeLessThanOrEqual(500);
+    expect(String(r.metadados.pilha).length).toBeLessThanOrEqual(800);
   });
 });
 
-describe("Rota pública /api/erro — recebe o relato do navegador sem exigir sessão", () => {
+describe("Falhas do dia a dia no navegador são relatadas", () => {
+  afterEach(() => {
+    zerarRelatosDaAba();
+    vi.unstubAllGlobals();
+  });
+
+  it("uma falha de ação vai para /api/erro uma vez, e a repetição imediata é ignorada", () => {
+    const enviar = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("window", { location: { pathname: "/casos/abc" } });
+    vi.stubGlobal("fetch", enviar);
+    expect(reportarFalhaDeTela(new Error("nada foi gravado em crm_casos"), "acao", 1_000)).toBe(
+      true,
+    );
+    expect(reportarFalhaDeTela(new Error("nada foi gravado em crm_casos"), "acao", 2_000)).toBe(
+      false,
+    );
+    expect(enviar).toHaveBeenCalledTimes(1);
+    const corpo = JSON.parse(String((enviar.mock.calls[0] as [string, RequestInit])[1].body));
+    expect(corpo).toMatchObject({
+      mensagem: "nada foi gravado em crm_casos",
+      rota: "/casos/abc",
+      mecanismo: "acao",
+    });
+  });
+
+  it("cancelamento de requisição não é falha do app", () => {
+    vi.stubGlobal("window", { location: { pathname: "/painel" } });
+    vi.stubGlobal("fetch", vi.fn());
+    const cancelado = Object.assign(new Error("The user aborted a request"), {
+      name: "AbortError",
+    });
+    expect(reportarFalhaDeTela(cancelado, "leitura")).toBe(false);
+  });
+
+  it("o roteador relata ação, leitura e promessa rejeitada", () => {
+    const src = readFileSync("src/router.tsx", "utf8");
+    expect(src).toContain("new MutationCache");
+    expect(src).toContain("new QueryCache");
+    expect(src).toContain('"unhandledrejection"');
+    expect(src).toContain("reportarFalhaDeTela");
+  });
+});
+
+describe("Rota pública /api/erro: recebe o relato do navegador sem exigir sessão", () => {
   const src = readFileSync("src/routes/api/erro.ts", "utf8");
 
   it("é uma rota POST pública, sem exigir Authorization", () => {
@@ -76,7 +128,7 @@ describe("Rota pública /api/erro — recebe o relato do navegador sem exigir se
     expect(src).not.toContain("requireSupabaseAuth");
   });
 
-  it("repassa ao coletor de produção, nunca ao DSN direto no cliente", () => {
+  it("repassa ao coletor de produção", () => {
     expect(src).toContain("capturarErroProducao");
   });
 
@@ -85,38 +137,36 @@ describe("Rota pública /api/erro — recebe o relato do navegador sem exigir se
   });
 
   it("a rota está registrada no roteiro gerado", () => {
-    const routeTree = readFileSync("src/routeTree.gen.ts", "utf8");
-    expect(routeTree).toContain("/api/erro");
+    expect(readFileSync("src/routeTree.gen.ts", "utf8")).toContain("/api/erro");
   });
 });
 
-describe("Pontos de captura existentes passam a reportar ao coletor de produção", () => {
-  it("error-capture.ts (listeners globais do servidor) chama capturarErroProducao", () => {
-    const src = readFileSync("src/lib/error-capture.ts", "utf8");
-    expect(src).toContain("capturarErroProducao");
-  });
-
-  it("start.ts (middleware de requisição) chama capturarErroProducao", () => {
-    const src = readFileSync("src/start.ts", "utf8");
-    expect(src).toContain("capturarErroProducao");
-  });
-
-  it("server.ts (fetch handler e caminho h3_swallowed) chama capturarErroProducao", () => {
-    const src = readFileSync("src/server.ts", "utf8");
-    const ocorrencias = src.split("capturarErroProducao").length - 1;
-    expect(ocorrencias).toBeGreaterThanOrEqual(2);
+describe("Pontos de captura existentes reportam ao coletor", () => {
+  it("error-capture.ts, start.ts e server.ts chamam capturarErroProducao", () => {
+    expect(readFileSync("src/lib/error-capture.ts", "utf8")).toContain("capturarErroProducao");
+    expect(readFileSync("src/start.ts", "utf8")).toContain("capturarErroProducao");
+    expect(
+      readFileSync("src/server.ts", "utf8").split("capturarErroProducao").length - 1,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it("__root.tsx (ErrorComponent do cliente) chama reportarErroCliente", () => {
-    const src = readFileSync("src/routes/__root.tsx", "utf8");
-    expect(src).toContain("reportarErroCliente");
+    expect(readFileSync("src/routes/__root.tsx", "utf8")).toContain("reportarErroCliente");
   });
 });
 
-describe("SENTRY_DSN documentado no .env.example, sem prefixo VITE_", () => {
-  it("existe a variável, e nenhuma variante exposta ao navegador", () => {
-    const env = readFileSync(".env.example", "utf8");
-    expect(env).toContain("SENTRY_DSN");
-    expect(env).not.toContain("VITE_SENTRY_DSN");
+describe("O serviço externo de erros saiu do projeto", () => {
+  it("nenhum arquivo de código nem o .env.example depende dele", () => {
+    const termo = ["SEN", "TRY_DSN"].join("");
+    for (const f of [
+      "src/lib/producao-erros.server.ts",
+      "src/lib/producao-erros-navegador.ts",
+      "src/lib/erro-no-banco.server.ts",
+      "src/routes/api/erro.ts",
+      ".env.example",
+    ]) {
+      expect(readFileSync(f, "utf8"), f).not.toContain(termo);
+    }
+    expect(readFileSync("package.json", "utf8")).not.toMatch(/@sen[t]ry/);
   });
 });

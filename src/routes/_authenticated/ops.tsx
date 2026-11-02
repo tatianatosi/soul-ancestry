@@ -5,6 +5,7 @@ import { DeskOperacional } from "@/components/ops/desk-operacional";
 import { PainelOnboardingJornada } from "@/components/painel/painel-onboarding-jornada";
 
 export const Route = createFileRoute("/_authenticated/ops")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Desk Operacional — Clube Ancestral" },

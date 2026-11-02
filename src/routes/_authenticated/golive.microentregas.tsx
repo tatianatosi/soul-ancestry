@@ -33,11 +33,12 @@ import { AcaoPublicarNoApp } from "@/components/golive/acoes-registro";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/microentregas")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Microentregas — Go-live Clube Ancestral" },
-      { name: "description", content: "Prazo, revisão e publicação das microentregas do caso do piloto." },
+      { name: "description", content: "Prazo, revisão e publicação das microentregas do caso escolhido." },
       { property: "og:title", content: "Microentregas — Go-live Clube Ancestral" },
       { property: "og:description", content: "Prazo, revisão e publicação das microentregas do caso." },
       { property: "og:type", content: "website" },

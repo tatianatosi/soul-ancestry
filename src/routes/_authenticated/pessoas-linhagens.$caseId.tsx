@@ -64,6 +64,7 @@ import {
 import { Linha as LinhaV4 } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId")({
+  staticData: { sitemap: false },
   component: Pagina,
   head: () => ({
     meta: [

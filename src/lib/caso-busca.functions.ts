@@ -2,8 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { normalizarCodigo, type ResultadoBuscaCaso } from "@/lib/caso-busca";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * Localiza o caso canônico a partir do código canônico OU de um identificador
  * histórico registrado em case_aliases. Somente leitura: nenhum registro é criado.
@@ -12,7 +10,7 @@ export const resolverCasoPorCodigo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { termo: string }) => data)
   .handler(async ({ data, context }): Promise<ResultadoBuscaCaso | null> => {
-    const supabase = context.supabase as any;
+    const supabase = context.supabase;
     const termo = normalizarCodigo(data.termo ?? "");
     if (!termo) return null;
 

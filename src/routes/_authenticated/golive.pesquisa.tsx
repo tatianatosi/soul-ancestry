@@ -31,11 +31,12 @@ import {
 } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Pesquisa — Go-live Clube Ancestral" },
-      { name: "description", content: "Pergunta, fonte, evidência, achado e proposta de entrega do caso do piloto." },
+      { name: "description", content: "Pergunta, fonte, evidência, achado e proposta de entrega do caso escolhido." },
       { property: "og:title", content: "Pesquisa — Go-live Clube Ancestral" },
       { property: "og:description", content: "Pergunta, fonte, evidência, achado e proposta de entrega." },
       { property: "og:type", content: "website" },

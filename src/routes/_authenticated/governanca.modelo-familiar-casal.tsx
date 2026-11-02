@@ -34,6 +34,7 @@ import {
 } from "@/lib/modelo-familiar-casal.functions";
 
 export const Route = createFileRoute("/_authenticated/governanca/modelo-familiar-casal")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Modelo familiar casal (dois adultos) | Clube Ancestral" },

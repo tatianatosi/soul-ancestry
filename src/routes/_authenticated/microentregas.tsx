@@ -16,6 +16,7 @@ import { buscaGoLive, useCasoGoLive } from "@/components/golive/dados";
 import { listarRegistros } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/microentregas")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
