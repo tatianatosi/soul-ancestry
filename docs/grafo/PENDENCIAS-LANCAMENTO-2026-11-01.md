@@ -39,3 +39,25 @@ J1 documentos da Ana (3 liberados ao cliente); J5 nome do pai; H5 a H7 e H9 (apr
 
 ## Não verificado
 Contagens do banco, comportamento no navegador (desktop e 375 px), estado das demais telas campo a campo.
+
+## Lançamento com um cliente: situação medida no banco em 02/11/2026
+
+Leitura por `SELECT`, só contagens e estados, sem dado pessoal. Caso `CA-CID-AT-FAM-2026-001`.
+
+| Condição para o convite ao portal (`revalidarElegibilidade`, nível `client_workspace`) | Situação |
+| --- | --- |
+| E-mail autorizado e aprovado (`authorized_portal_emails`, nível `client_workspace`, "autorizado pela Proprietária em 24/10/2026") | **sim** |
+| `contrato_assinado` | **sim** |
+| `pagamento_confirmado` | **sim** |
+| `documentos_minimos_ok` | **sim** |
+| Ativação (`ativado_em`) | **sim** |
+| Cliente com e-mail cadastrado | **sim** |
+| **Acesso ao portal criado** (`client_portal_case_access` do caso) | **não: 0**; é a única etapa que falta para o cliente entrar |
+
+Outros números do caso: 1 contrato ativo (status `pending_data`), 3 documentos todos liberados ao cliente, 25 projeções para o App.
+
+**Atenção antes do convite:**
+1. O campo `crm_casos.contrato_assinado` está `true`, mas o contrato do caso está `pending_data`. O convite passa pelo gate, mas o dado do caso e o do contrato divergem.
+2. Os 3 documentos liberados serão vistos pelo cliente no primeiro acesso. O plano registra que o conteúdo não tem curadoria comprovada (J1).
+
+**Como criar o acesso:** pelo Desk (Acessos do portal → convidar), numa sessão autenticada da Proprietária, que passa pela revalidação e pela auditoria do servidor. O convite envia o link mágico ao cliente (efeito externo).
