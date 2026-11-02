@@ -14,18 +14,18 @@
 | Cartographer onda 1      | 2 de 5 relatórios prontos (documentos, infra)                                                         |
 | Cartographer ondas 2 e 3 | 7 especialistas retomados às 14:40 UTC após o limite de uso                                           |
 
-## Fase 1 — Cartographer, ondas 2 e 3 (em andamento)
+## Fase 1 — Cartographer, ondas 2 e 3 (CONCLUÍDA em 02/11/2026: 7 de 7 relatórios)
 
 - **Entrada:** 7 especialistas: contrato-comercial, crm-leads-calls, pesquisa-genealogia, jornada-planejador-motores, golive-casos, app-cliente-portal, desk-telas.
 - **Saída:** `.cartographer/reports/<segmento>.md` com tabela escritor→leitor→tela→estado, achados P0/P1/P2 e órfãos com ponto de religação.
 - **Pronto quando:** os 7 arquivos existem e cada um tem a tabela e a lista de correções.
 - **Se parar por limite:** reenviar só o que parou, por mensagem.
 
-## Fase 2 — Cartographer, onda 1 que faltou
+## Fase 2 — Cartographer, onda 1 que faltou (CONCLUÍDA em 02/11/2026: os 3 relatórios foram entregues)
 
 - **Segmentos:** auth-sessao, persistencia-banco, banco-esquema-rls.
 - **Quando:** só depois da fase 1 terminar, para não estourar o limite de novo.
-- **Pronto quando:** os 3 relatórios existem. O de autenticação/sessão responde se a causa de "nada salva" está na camada do app.
+- **Pronto quando:** os 3 relatórios existem. ✅ Entregues: `auth-sessao`, `persistencia-banco`, `banco-esquema-rls`. O de autenticação/sessão mostrou que o banco aceita a conta da Proprietária; a causa provável é a diferença entre a prévia do editor e a versão publicada, mais o vínculo de acesso que não era refeito.
 
 ## Fase 3 — Síntese e triagem
 
@@ -64,3 +64,18 @@ Cada PR: teste novo que falha antes e passa depois, `tsc` e vitest limpos, CI ve
 - Proteger a `main` no GitHub (configuração do repositório).
 - Mudanças no banco: só pelo Lovable e com autorização.
 - Texto do conhecimento do projeto no Lovable (limite de 10.000 caracteres; decidir o que cortar).
+
+## Revisão de 02/11/2026 (pedido da Proprietária: "ainda faltou os relatórios pendentes")
+
+**Os 12 relatórios do Cartographer existem** em `.cartographer/reports/` (pasta local da sessão, fora do git): documentos-storage-privacidade, infra-ci-sync, auth-sessao, persistencia-banco, banco-esquema-rls, contrato-comercial, crm-leads-calls, pesquisa-genealogia, jornada-planejador-motores, golive-casos, app-cliente-portal, desk-telas.
+
+**O que de fato continua pendente nas auditorias**
+1. **Síntese oficial (fase 3):** `synthesize.py` e o `FINAL_REPORT` do Cartographer não rodaram. O backlog em `BACKLOG-TAREFAS-AUDITORIAS-2026-11-02.md` é a síntese feita à mão.
+2. **Understand de novo (fase 4):** grafo, classificação e a matriz das 195 tabelas não foram refeitos hoje.
+3. **Áreas que os especialistas disseram não ter lido a fundo** (limite declarado nos próprios relatórios):
+   - `crm-leads-calls`: `leads.tsx` (1.783 linhas), `painel-calls.tsx` (1.323), crm-mestre/ca04, varredura/templates-whatsapp, `portal-atendimento.functions.ts` inteiro.
+   - `contrato-comercial`: rotas `contratos.*`, `financeiro.tsx`, `propostas.tsx`, `golive.comercial/financeiro`, `portal/faturas` e `portal/proposta`, `conciliacao-catalogo.server.ts`, eventos financeiros em `saas.functions.ts`.
+   - `golive-casos`: Caso 360 (`casos.$caseId.index.tsx`, 5.226 linhas) e cerca de 25 funções de servidor do Caso 360, só varridas por coluna.
+   - `jornada-planejador-motores`, `app-cliente-portal`, `desk-telas`, `pesquisa-genealogia`: banco vivo e navegador não consultados; CHECKs lidos das migrations.
+4. **Achados dos 3 últimos relatórios que ainda não viraram tarefa:** ver a seção "Achados sem tarefa" do backlog.
+
