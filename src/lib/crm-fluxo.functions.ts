@@ -282,6 +282,10 @@ export const registrarInteracao = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
+    if (!(data["case_id"] as string)) {
+      // crm_interactions.case_id é NOT NULL: sem caso a gravação falhava no banco e a tela engolia o erro.
+      throw new Error("Informe o caso: toda conversa fica registrada dentro de um caso.");
+    }
     const organization_id = await orgDoUsuario(supabase, userId);
     const { data: row, error } = await supabase
       .from("crm_interactions")

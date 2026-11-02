@@ -188,7 +188,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         // já os entrega à família, sem arquivados) para montar o checklist com
         // contador. As contagens de pendência abaixo continuam só com aguardando/recusado.
         .is("archived_at", null),
-      supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["aberta", "vencida"]),
+      supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["emitida", "pendente", "vencida"]),
       // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): "Histórico (3 marcos)"
       // da Ficha Piloto. RLS (`cte_select_portal`) já restringe a leitura a
       // `visibility = 'cliente_aprovado'` do próprio caso; o filtro explícito

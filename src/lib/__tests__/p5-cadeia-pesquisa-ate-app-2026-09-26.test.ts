@@ -76,7 +76,7 @@ describe("P5 — Estágio 5 (Relatório): gap crítico fechado — publicado_no_
   it("projetarRelatorioParaApp dedupa por origem — um relatório nunca gera duas projeções", () => {
     const inicio = arquivo.indexOf("export const projetarRelatorioParaApp");
     const trecho = arquivo.slice(inicio, inicio + 3000);
-    expect(trecho).toContain('.eq("source_entity_type", "case_report")');
+    expect(trecho).toContain('.eq("source_entity_type", "case")');
     expect(trecho).toContain('.eq("source_entity_id", data.reportId)');
     expect(trecho).toContain(
       "if (existente.data?.id) return { id: existente.data.id as string, criado: false };",

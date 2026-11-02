@@ -25,3 +25,22 @@ describe("Privacidade do caso: hooks antes dos retornos antecipados", () => {
     );
   });
 });
+
+import { decidirAcao } from "@/lib/autoridade-operacional";
+
+describe("Autoridade: falha ao ler o contexto não vira 'sem papel'", () => {
+  it("com erro de contexto o motivo mostra o erro real", () => {
+    const r = decidirAcao(
+      { papeis: [], organizationId: null, carregando: false, erroContexto: "Unauthorized" },
+      {},
+    );
+    expect(r.decisao).toBe("bloquear");
+    expect(r.motivo).toContain("Unauthorized");
+    expect(r.motivo).not.toContain("Nenhum papel de equipe");
+  });
+
+  it("sem erro e sem papel, a mensagem continua a de falta de papel", () => {
+    const r = decidirAcao({ papeis: [], organizationId: null, carregando: false }, {});
+    expect(r.motivo).toContain("Nenhum papel de equipe");
+  });
+});

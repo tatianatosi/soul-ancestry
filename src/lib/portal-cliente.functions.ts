@@ -46,7 +46,7 @@ export const meusCasos = createServerFn({ method: "GET" })
         .from("invoices")
         .select("case_id, status")
         .eq("client_id", acesso.client_id)
-        .in("status", ["aberta", "vencida"]),
+        .in("status", ["emitida", "pendente", "vencida"]),
     ]);
 
     const porCaso = new Map<string, number>();
@@ -151,7 +151,7 @@ export const meuCaso = createServerFn({ method: "GET" })
     const listaSolicitacoes = (solicitacoes.data ?? []) as any[];
     const listaFaturas = semFixtures((faturas.data ?? []) as any[]);
     const pendentes = listaSolicitacoes.filter((s) => ["aguardando", "recusado"].includes(s.status)).length;
-    const pagamentoPendente = listaFaturas.some((f) => ["aberta", "vencida"].includes(String(f.status)));
+    const pagamentoPendente = listaFaturas.some((f) => ["emitida", "pendente", "vencida"].includes(String(f.status)));
     const s = h.statusSimples(caso, pendentes);
     const proxima = projetarProximaAcaoCliente(
       sinaisDoCasoPortal({

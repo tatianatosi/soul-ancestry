@@ -143,7 +143,7 @@ export const publicarUniaoDeRamos = createServerFn({ method: "POST" })
             case_id: data.caseId,
             projection_type: TIPO_UNIAO_RAMOS,
             destination: "app",
-            source_entity_type: "app_projections",
+            source_entity_type: "lineage",
             source_entity_id: data.historiaProjecaoId,
             vinculo_projecao_id: data.casoProjecaoId,
             visibility_scope: "titular",

@@ -164,7 +164,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .from("invoices")
         .select("id,case_id,numero,valor,moeda,vencimento,status")
         .eq("organization_id", organizationId)
-        .in("status", ["aberta", "vencida"])
+        .in("status", ["emitida", "pendente", "vencida"])
         .is("archived_at", null)
         .order("vencimento", { ascending: true })
         .limit(50),
