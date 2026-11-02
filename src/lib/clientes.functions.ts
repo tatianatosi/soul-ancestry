@@ -9,6 +9,7 @@ import { semCache } from "@/lib/no-store";
 import { semFixtures } from "@/lib/fixtures";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { normalizarCpf } from "@/lib/pessoa-identidade";
+import { sinaisDuplicidade } from "@/lib/duplicidade-comparacao";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -133,15 +134,6 @@ export const ativarCliente = createServerFn({ method: "POST" })
     return { ok: true, salvoEm: r.salvoEm };
   });
 
-const soDigitos = (v: string) => v.replace(/\D+/g, "");
-const normalizarNome = (v: string) =>
-  v
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-
 export type PossivelDuplicidadeCliente = {
   id: string;
   nome: string;
@@ -188,10 +180,6 @@ export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
       .is("archived_at", null)
       .limit(2000);
 
-    const email = (data.email ?? "").trim().toLowerCase();
-    const tel = soDigitos(data.telefone ?? "");
-    const telChave = tel.length >= 8 ? tel.slice(-8) : "";
-    const nome = normalizarNome(data.nome ?? "");
     const cpf = normalizarCpf(data.cpf ?? null);
 
     const achados: PossivelDuplicidadeCliente[] = [];
@@ -203,10 +191,7 @@ export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
     for (const l of semFixtures((linhas ?? []) as PossivelDuplicidadeCliente[]) as PossivelDuplicidadeCliente[]) {
       const motivos: string[] = [];
       if (cpf && normalizarCpf(l.cpf) === cpf) motivos.push("mesmo CPF");
-      if (email && (l.email ?? "").trim().toLowerCase() === email) motivos.push("mesmo e-mail");
-      const lTel = soDigitos(l.telefone ?? "");
-      if (telChave && lTel.length >= 8 && lTel.slice(-8) === telChave) motivos.push("mesmo telefone");
-      if (nome && normalizarNome(l.nome ?? "") === nome) motivos.push("mesmo nome");
+      motivos.push(...sinaisDuplicidade(data, l));
       if (motivos.length) achados.push({ ...l, motivo: motivos.join(" + ") });
     }
     return { duplicidades: achados };
