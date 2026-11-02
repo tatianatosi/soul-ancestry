@@ -1,13 +1,13 @@
 # Roadmap
 
 ## 01/11 — Histórico contratual e anos dos familiares
-- [ ] Revisão de código solicitada: diagnosticar padrões confirmados e propor cortes, sem executar refatorações.
+- [x] Revisão de código: seis padrões confirmados com referências e sequência incremental; nenhuma refatoração executada.
 - [x] Esclarecido: publicar captura a versão atual do projeto Lovable, sincronizada com o branch selecionado, não necessariamente main; troca de branch não republica.
 - [x] Histórico existente do contrato v1–v5 com botão de abertura, geração/última atualização em São Paulo, autoria e apresentação 375/1280 conferidas; sem criar versão contratual.
 - [x] Editor existente do perfil recebe fonte e precisão no payload; botão no contrato abre a ficha contextual.
 - [x] Lotte: 1902, Registro Unificado p. 2, fonte vinculada e citação interna; salvo pelo editor, relido após F5 e exibido como n. c. 1902 em 375/1280. Sem mês/dia fabricados.
 - [ ] Heinrich, Ana Maria, Cleusa e Adair: documentos enviados relidos não informam ano; bloqueado por ausência de fonte/valor.
-- [ ] Publicar a Árvore após a conferência autorizada; não publicar datas inventadas.
+- [ ] Publicar a Árvore: aguardando decisão explícita sobre o achado grave de permissões contratuais ainda aberto; não publicar datas inventadas.
 
 ## 20/10 — Desk V4 c4d3bef9, corte aprovado neste rascunho
 - [ ] Reconciliar apresentação do corte anterior sem App, rotas novas, golive-* ou painel-dia; matriz vazia = Dados insuficientes.
