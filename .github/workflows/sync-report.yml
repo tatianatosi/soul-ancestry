@@ -169,7 +169,9 @@ jobs:
             await core.summary.addRaw(table).write();
             const issue_number = Number('${{ steps.report.outputs.issue_number }}');
             const issue = await github.rest.issues.get({owner,repo,issue_number});
-            await github.rest.issues.update({owner,repo,issue_number,body: issue.data.body + '\n\n' + table.slice(0, 45000)});
+            const allowance = Math.max(0, 64000 - (issue.data.body?.length ?? 0));
+            const displayed = table.slice(0, allowance);
+            await github.rest.issues.update({owner,repo,issue_number,body: issue.data.body + '\n\n' + displayed + (displayed.length < table.length ? '\nRelatório abreviado: todas as PRs constam no artefato JSON deste run.' : '')});
       - uses: actions/upload-artifact@v4
         with:
           name: pr-completion-${{ github.sha }}
