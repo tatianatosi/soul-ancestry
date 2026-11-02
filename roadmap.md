@@ -1,8 +1,8 @@
 # Roadmap
 
 ## 02/11 — v6 e seleção de branch
-- [ ] Enviar convite autorizado para analuizabox@gmail.com pelo fluxo real; confirmar transporte e releitura sem confundir evento com entrega.
-- [ ] Aprovar PR #222 e publicar solicitado em 02/11 14:23: conferir revisão independente e CI, sem contornar proteção.
+- [ ] Convite Ana criado pelo botão e confirmação autenticada: acesso 820b628e-685d-406e-83c2-d6aa8690db42 invited, auth vinculado, validade 03/11 14:25 UTC, relido UI após F5. Entrega de e-mail não comprovada; evento não localizado. App do caso ainda bloqueado, não alterado.
+- [ ] Aprovar PR #222 e publicar solicitado em 02/11 14:23: tentativa de APPROVE retornou 422 Cannot approve your own pull request; precisa revisor distinto da conexão Tati e CI aprovado. Nenhuma proteção contornada nem publicação da PR.
 - [ ] Publicar contrato solicitado em 02/11 14:23: bloqueios de documentos/anexos/revisão ainda abertos; verificar integração existente sem reconectar ou duplicar repositório.
 - [ ] Preparar contrato da Ana: validade persistida 30/11/2026; v6 ainda pending review, prévia desatualizada, duas partes sem documento e anexos I–V ausentes segundo tela autenticada; não marcar prontidão nem inventar dados.
 - [x] Proteção clássica main aplicada PUT 200 e relida GET 200: guard/typecheck-test-build strict, revisão 1/último push, admins sujeitos, conversas resolvidas, sem force/exclusão. Não bloqueia Publicar no Lovable.
