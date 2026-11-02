@@ -1,6 +1,10 @@
 # Roadmap
 
 ## 02/11 — v6 e seleção de branch
+- [ ] Preparar contrato da Ana com condição aprovada e validade atual: conferir bloqueios reais; sem assinatura/envio.
+- [ ] Ativar proteção clássica main autorizada, conferir diferença entre bloquear merge e publicar pelo Lovable.
+- [ ] Criar PR real de exemplo com critérios/testes/evidências; acompanhar integração/publicação sem presumir estados.
+- [ ] Executar sequência incremental do code review: caracterização → comparação compartilhada → leituras tipadas → separação por responsabilidade; coordenar territórios Claude/Lovable.
 - [x] Automação implementada: template PR, validador puro e CLI, reservas de arquivos, guard por SHA, resumo CI e auditoria retrospectiva paginada no painel existente; sem merge/deploy.
 - [x] Comparação de duplicidade compartilhada em Clientes/Leads, preservando CPF, fixtures, queries e erros; 48 testes focais passaram, 3 workflows com sintaxe válida e compilação automática OK; consulta autenticada da Ana pediu decisão humana sem criar registro.
 - [x] GitHub lido via conexão Tati: 201 PRs fechadas, 187 integradas; integração confirmada não prova execução nem publicação.
