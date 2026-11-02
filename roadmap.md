@@ -1,7 +1,7 @@
 # Roadmap
 
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
-- [ ] Registrar anos reais/estimados de Ana Maria, Cleusa e Adair com fonte secundária identificável; perfis/pesquisa sem datas, busca documental em andamento. Não inferir de gerações.
+- [ ] Registrar anos reais/estimados de Ana Maria, Cleusa e Adair: bloqueado por ausência de ano/idade com fonte nos perfis, pesquisa, eventos, Dossiê Consolidado p.2 e Registro Unificado p.2–3. Adair 1961 é fallback sem fonte e não foi usado. Aceita relato familiar identificado sem certidão original; aguarda anos e origem.
 - [x] Robots.txt, sitemap sem lastmod artificial e título institucional conferidos; publicação solicitada com aviso de segurança aceito pela Proprietária. Link público retornou 200 nos três destinos, sitemap só / e título correto.
 - [x] Liberar caso da Ana pela gestão de acessos existente, confirmado após recarga e SELECT app_access_status=liberado. Convite continua invited; login independente da Ana não exercitado. Adair/Alice sem e-mails autorizados.
 - [x] Revisão de banco/código e solução de sincronização apresentada: reservas declaradas não travam edição; base SHA não comparada; publicação é separada. Banco 195 tabelas/35 MB, estatísticas acessíveis em extensions; sem evidência suficiente para criar índices ou alterar schema. Skill database-optimization não disponível no catálogo ativo. Sem novas alterações de permissões, integração ou schema.
