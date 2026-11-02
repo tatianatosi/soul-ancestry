@@ -1,5 +1,10 @@
 # Roadmap
 
+## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
+- [x] Robots.txt, sitemap sem lastmod artificial e título institucional conferidos; publicação solicitada com aviso de segurança aceito pela Proprietária.
+- [ ] Liberar caso da Ana pela gestão de acessos existente, confirmar persistência após recarga; não criar acessos de familiares sem e-mails autorizados.
+- [ ] Revisar banco e código em leitura e apresentar solução Claude Code/GitHub/Lovable; sem novas alterações de permissões, integração ou schema.
+
 ## 02/11 — v6 e seleção de branch
 - [ ] Convite Ana criado pelo botão e confirmação autenticada: acesso 820b628e-685d-406e-83c2-d6aa8690db42 invited, auth vinculado, validade 03/11 14:25 UTC, relido UI após F5. Entrega de e-mail não comprovada; evento não localizado. App do caso ainda bloqueado, não alterado.
 - [ ] Aprovar PR #222 e publicar solicitado em 02/11 14:23: tentativa de APPROVE retornou 422 Cannot approve your own pull request; precisa revisor distinto da conexão Tati e CI aprovado. Nenhuma proteção contornada nem publicação da PR.
