@@ -61,9 +61,9 @@ describe("P27 — resumoVisaoClienteCaso ganha proximaAcao (dado já computado, 
     expect(trecho).toContain("proximaAcao,");
   });
 
-  it("bug de vocabulário corrigido: invoices.status usa 'aberta' (CHECK real), nunca 'pendente' (valor inexistente)", () => {
-    expect(fn).not.toContain('"pendente", "vencida"');
-    expect(fn).toContain('"aberta", "vencida"');
+  it("vocabulário: invoices.status usa emitida/pendente/vencida (CHECK real, lido do banco em 02/11/2026), nunca 'aberta'", () => {
+    expect(fn).not.toContain('"aberta"');
+    expect(fn).toContain('"emitida", "pendente", "vencida"');
   });
 });
 
@@ -71,8 +71,8 @@ describe("P27 — mesmo bug de vocabulário corrigido nas outras 2 fontes do sin
   it("portal-cliente.functions.ts e portal-dados-vivos.functions.ts não filtram mais por 'pendente'", () => {
     for (const arquivo of ["src/lib/portal-cliente.functions.ts", "src/lib/portal-dados-vivos.functions.ts"]) {
       const conteudo = readFileSync(arquivo, "utf8");
-      expect(conteudo).not.toContain('"pendente", "vencida"');
-      expect(conteudo).toContain('"aberta", "vencida"');
+      expect(conteudo).not.toContain('"aberta"');
+      expect(conteudo).toContain('"emitida", "pendente", "vencida"');
     }
   });
 });
@@ -149,9 +149,9 @@ describe("P27 — golive.functions.ts: contratos/faturas por organização, sem 
     expect(fn).toContain("contratosAguardandoAssinatura:");
   });
 
-  it("pagamentosPendentes lê invoices com status aberta/vencida", () => {
+  it("pagamentosPendentes lê invoices com status emitida/pendente/vencida", () => {
     expect(fn).toContain('pagamentosPendentes: faturasPendentesOrg.map(');
-    expect(fn).toMatch(/faturasPendentesResp[\s\S]{0,500}\["aberta", "vencida"\]/);
+    expect(fn).toMatch(/faturasPendentesResp[\s\S]{0,500}\["emitida", "pendente", "vencida"\]/);
   });
 
   it("carteira agora carrega eixo_comercial (mesma tabela crm_casos, nenhuma query nova)", () => {

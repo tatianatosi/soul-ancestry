@@ -45,10 +45,11 @@ export function useAutoridade(): Autoridade {
   const papeis = (saas.papeis ?? []) as readonly string[];
   const organizationId = (saas.contexto?.organizationId ?? null) as string | null;
   const carregando = Boolean(saas.isLoading);
+  const erroContexto = saas.isError ? ((saas.error as Error | null)?.message ?? "erro desconhecido") : null;
 
   const decidir = useCallback(
-    (pedido: PedidoAcao) => decidirAcao({ papeis, organizationId, carregando }, pedido),
-    [papeis, organizationId, carregando],
+    (pedido: PedidoAcao) => decidirAcao({ papeis, organizationId, carregando, erroContexto }, pedido),
+    [papeis, organizationId, carregando, erroContexto],
   );
 
   const valor = useMemo<Autoridade>(

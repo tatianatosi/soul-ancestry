@@ -21,7 +21,16 @@ export type ContextoErro = Record<string, unknown>;
 
 const LIMITE_ESPERA_MS = 3_000;
 
+/** Requisição cancelada (aba fechada, navegação, recarga): não é falha do app e enchia o coletor de ruído. */
+export function ehCancelamentoDeRequisicao(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { name?: unknown; message?: unknown };
+  const msg = String(e.message ?? "").trim().toLowerCase();
+  return e.name === "AbortError" || /^(this operation was )?aborted$/.test(msg);
+}
+
 export function capturarErroProducao(error: unknown, contexto: ContextoErro = {}): Promise<void> {
+  if (ehCancelamentoDeRequisicao(error)) return Promise.resolve();
   const erroReal = error instanceof Error ? error : new Error(String(error));
   try {
     console.error("[erro_app]", String(contexto.mecanismo ?? "manual"), erroReal.message);

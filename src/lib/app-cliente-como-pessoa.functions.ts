@@ -117,7 +117,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .select("id, status")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
-        .in("status", ["aberta", "vencida"]),
+        .in("status", ["emitida", "pendente", "vencida"]),
       supabase
         .from("genealogical_person_profiles")
         .select("id", { count: "exact", head: true })
@@ -324,7 +324,7 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
         .select("id", { count: "exact", head: true })
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
-        .in("status", ["aberta", "vencida"]),
+        .in("status", ["emitida", "pendente", "vencida"]),
     ]);
 
     const listaProjecoes = (projecoes.data ?? []) as Record<string, any>[];

@@ -25,10 +25,10 @@ export const ROTULO_TAREFA: Record<string, string> = {
   cancelada: "Cancelada",
 };
 
-export const PRIORIDADES = ["urgente", "alta", "media", "baixa"] as const;
+export const PRIORIDADES = ["critica", "alta", "media", "baixa"] as const;
 
 export const ROTULO_PRIORIDADE: Record<string, string> = {
-  urgente: "Urgente",
+  critica: "Crítica",
   alta: "Alta",
   media: "Média",
   baixa: "Baixa",

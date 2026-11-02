@@ -203,7 +203,7 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
     const projecoes = (projecoesRes.data ?? []) as Record<string, any>[];
     const caseIds = [...new Set(projecoes.map((p) => p["case_id"] as string).filter(Boolean))];
     const evidenciaIds = projecoes.filter((p) => p["source_entity_type"] === "evidence").map((p) => p["source_entity_id"] as string);
-    const entregaIds = projecoes.filter((p) => p["source_entity_type"] === "client_deliverable").map((p) => p["source_entity_id"] as string);
+    const entregaIds = projecoes.filter((p) => p["source_entity_type"] === "finding").map((p) => p["source_entity_id"] as string);
     const userIds = [...new Set(projecoes.flatMap((p) => [p["approved_by"], p["created_by"]]).filter(Boolean) as string[])];
 
     const [casosRes, evidenciasRes, entregasRes, equipeRes, achadosRes] = await Promise.all([
@@ -267,7 +267,7 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
       const evidencia = p["source_entity_type"] === "evidence"
         ? evidenciasPorId.get(String(p["source_entity_id"])) as Record<string, any> | undefined
         : undefined;
-      const entrega = p["source_entity_type"] === "client_deliverable"
+      const entrega = p["source_entity_type"] === "finding"
         ? entregas.get(String(p["source_entity_id"])) as Record<string, any> | undefined
         : undefined;
       const fonte = evidencia?.["source_id"] ? fontes.get(String(evidencia["source_id"])) as Record<string, any> | undefined : undefined;
@@ -491,7 +491,7 @@ export const projetarMicroentregaParaApp = createServerFn({ method: "POST" })
       .from("app_projections")
       .select("id")
       .eq("organization_id", organizationId)
-      .eq("source_entity_type", "client_deliverable")
+      .eq("source_entity_type", "finding")
       .eq("source_entity_id", data.entregaId)
       .is("archived_at", null)
       .maybeSingle();
@@ -505,7 +505,7 @@ export const projetarMicroentregaParaApp = createServerFn({ method: "POST" })
       .from("app_projections")
       .insert({
         organization_id: organizationId,
-        source_entity_type: "client_deliverable",
+        source_entity_type: "finding",
         source_entity_id: data.entregaId,
         case_id: entrega.data["case_id"],
         projection_type: entrega.data["deliverable_type"],

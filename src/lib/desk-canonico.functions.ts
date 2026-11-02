@@ -127,6 +127,8 @@ export const registrarConversa = createServerFn({ method: "POST" })
     const userId = (context as any).userId as string;
 
     const erros = validarConversa({ ...data, responsavel_user_id: userId });
+    // crm_interactions.case_id é NOT NULL: sem caso a gravação falhava no banco.
+    if (!opcionalUuid(data.case_id)) erros.push({ campo: "case_id", mensagem: "Informe o caso: toda conversa fica registrada dentro de um caso." });
     if (erros.length) return { ok: false as const, erros };
 
     const organization_id = await orgDoUsuario(supabase, userId);

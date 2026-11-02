@@ -52,6 +52,8 @@ export type ContextoAutoridade = {
   organizationId?: string | null;
   /** Leitura de contexto ainda em andamento. */
   carregando?: boolean;
+  /** Mensagem do erro ao ler o contexto de acesso (a leitura falhou, não "não há papel"). */
+  erroContexto?: string | null;
 };
 
 export type PedidoAcao = {
@@ -93,6 +95,16 @@ export function decidirAcao(
     return {
       decisao: "bloquear",
       motivo: "Carregando seu contexto de acesso. Aguarde um instante e tente de novo.",
+      pendencia,
+      porDecisaoDaProprietaria: false,
+      exigeMotivo: false,
+    };
+  }
+
+  if (contexto.papeis.length === 0 && contexto.erroContexto) {
+    return {
+      decisao: "bloquear",
+      motivo: `Não foi possível carregar seu contexto de acesso (${contexto.erroContexto}). Recarregue a página; se continuar, o erro fica registrado em Qualidade.`,
       pendencia,
       porDecisaoDaProprietaria: false,
       exigeMotivo: false,
