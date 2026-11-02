@@ -1,6 +1,8 @@
 # Roadmap
 
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
+- [ ] Integrar GitHub/Lovable existente e publicar exclusivamente versão aprovada; conferir proteção remota e PR autorizada sem reconectar/recriar repositório. Seleção do branch no editor exige ação da Proprietária.
+- [ ] Registrar Heinrich 15/05/1837 e Lotte 16/05/1902 segundo Auditoria-Mãe §10.4, preservar verificação pendente, conferir histórico contratual v1–v6 e publicação autorizada.
 - [ ] Registrar anos reais/estimados de Ana Maria, Cleusa e Adair: bloqueado por ausência de ano/idade com fonte nos perfis, pesquisa, eventos, Dossiê Consolidado p.2 e Registro Unificado p.2–3. Adair 1961 é fallback sem fonte e não foi usado. Aceita relato familiar identificado sem certidão original; aguarda anos e origem.
 - [x] Robots.txt, sitemap sem lastmod artificial e título institucional conferidos; publicação solicitada com aviso de segurança aceito pela Proprietária. Link público retornou 200 nos três destinos, sitemap só / e título correto.
 - [x] Liberar caso da Ana pela gestão de acessos existente, confirmado após recarga e SELECT app_access_status=liberado. Convite continua invited; login independente da Ana não exercitado. Adair/Alice sem e-mails autorizados.
