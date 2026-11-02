@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import {
   PROXIMA_ACAO_ABERTURA,
   TITULO_PRIMEIRA_TAREFA_CASO,
@@ -12,8 +13,6 @@ import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
 import { autoSatisfazerChecksIdentidade } from "@/lib/checks-identidade-startup";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Abre um caso operacional no eixo canônico `crm_casos`.
@@ -35,7 +34,7 @@ export const abrirCasoOperacional = createServerFn({ method: "POST" })
     },
   )
   .handler(async ({ data, context }) => {
-    const supabase = (context as any).supabase;
+    const supabase = context.supabase;
     const userId = context.userId as string;
     const organizationId = await organizacaoDo(supabase, userId);
     const responsavelNome = nomeResponsavelPadrao(
@@ -78,7 +77,12 @@ export const abrirCasoOperacional = createServerFn({ method: "POST" })
         responsavel_principal: responsavelNome,
         created_by: userId,
         updated_by: userId,
-      })
+        // `codigo` é gerado por trigger no banco (mesmo padrão de
+        // crm-fluxo.functions.ts#materializarCasoDaOportunidade e
+        // handoff-discovery.functions.ts, que também nunca o fornecem): o
+        // tipo gerado marca a coluna como obrigatória porque reflete só
+        // default/nullability de coluna, não trigger.
+      } as unknown as Database["public"]["Tables"]["crm_casos"]["Insert"])
       .select("id,codigo,titulo,cliente_id,tipo_servico,proxima_acao")
       .single();
     if (error) throw new Error(error.message);

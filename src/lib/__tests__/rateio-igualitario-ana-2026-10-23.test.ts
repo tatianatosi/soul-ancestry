@@ -60,11 +60,16 @@ describe("o App do cliente já declarava a regra igualitária — segue declaran
    * rodada futura não reintroduza rateio desigual na vista do cliente.
    */
   it("as três superfícies canônicas do App falam em R$ 320 por pessoa e nunca em 4.800/2.400", () => {
-    for (const caminho of [
-      "src/lib/portal-fallback-canonico.ts",
-      "src/lib/portal-experiencia-integral.ts",
-      "src/lib/saneamento-desk-app-v4.ts",
-    ]) {
+    // 01/11/2026: portal-fallback-canonico e portal-experiencia-integral deixaram de ter valor escrito no código
+    // (a condição vem do caso, por `condicaoComercial`). Seguem proibidos de citar 4.800/2.400; o valor fixo
+    // de rateio continua conferido só em saneamento-desk-app-v4.
+    for (const caminho of ["src/lib/portal-fallback-canonico.ts", "src/lib/portal-experiencia-integral.ts"]) {
+      const arquivo = readFileSync(caminho, "utf8");
+      expect(arquivo, caminho).not.toContain("4.800");
+      expect(arquivo, caminho).not.toContain("2.400");
+    }
+    {
+      const caminho = "src/lib/saneamento-desk-app-v4.ts";
       const arquivo = readFileSync(caminho, "utf8");
       expect(arquivo, caminho).toContain("R$ 9.600,00");
       expect(arquivo, caminho).toMatch(/R\$ ?320/);

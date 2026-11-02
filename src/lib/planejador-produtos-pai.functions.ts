@@ -3,8 +3,6 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export type ItemPlannerCatalogFeed = {
   item_id: string;
   prefix: string;
@@ -35,7 +33,7 @@ export const listarPlanejadorProdutosPai = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
-    const supabase = (context as any).supabase;
+    const supabase = context.supabase;
 
     const { data, error } = await supabase
       .from("planner_catalog_feed")

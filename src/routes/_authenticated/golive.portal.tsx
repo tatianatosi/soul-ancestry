@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/golive/portal")({
   head: () => ({
     meta: [
       { title: "Portal do cliente — Go-live Clube Ancestral" },
-      { name: "description", content: "Acesso do cliente, equipe e conteúdo publicado do caso do piloto." },
+      { name: "description", content: "Acesso do cliente, equipe e conteúdo publicado do caso escolhido." },
       { property: "og:title", content: "Portal do cliente — Go-live Clube Ancestral" },
       { property: "og:description", content: "Acesso do cliente, equipe e conteúdo publicado do caso." },
       { property: "og:type", content: "website" },

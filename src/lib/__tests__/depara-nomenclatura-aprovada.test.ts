@@ -85,8 +85,11 @@ describe("De-para de nomenclatura — App Cliente segue com os 7 nomes aprovados
     for (const nomeProibido of ["Hoje", "Comercial", "Pessoas & Famílias", "Marketing", "Configuração"]) {
       expect(shell).not.toContain(`label: "${nomeProibido}"`);
     }
+    // 01/11/2026: as rotas da barra vêm de `portal-navegacao.ts` (fonte única); o shell as consome.
+    expect(shell).toContain("abasCanonicasDoPortal()");
+    const navegacao = readFileSync("src/lib/portal-navegacao.ts", "utf8");
     for (const aprovado of ["/portal/jornada", "/portal/radar", "/portal/arvore", "/portal/documentos", "/portal/legado", "/portal/conta"]) {
-      expect(shell).toContain(aprovado);
+      expect(navegacao).toContain(aprovado);
     }
   });
 

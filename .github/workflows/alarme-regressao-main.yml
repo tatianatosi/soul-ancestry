@@ -1,0 +1,80 @@
+name: Alarme de regressão na main
+
+# S1 (01/11/2026). Depois de cada push na main, confere se algum commit perdeu ou reverteu
+# trabalho (caso 00ab0cc5, 31/10/2026: merge do editor do Lovable sobre base antiga derrubou
+# 101 arquivos e ninguém viu por horas). Só lê o repositório e abre uma issue; não altera código.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: alarme-regressao-main
+  cancel-in-progress: false
+
+env:
+  LIMITE_ARQUIVOS: "10"
+
+jobs:
+  alarme:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ANTES: ${{ github.event.before }}
+      DEPOIS: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Conferir os commits da linha principal deste push
+        run: |
+          set -uo pipefail
+          if [ -z "$ANTES" ] || echo "$ANTES" | grep -qE '^0+$' || ! git cat-file -e "$ANTES^{commit}" 2>/dev/null; then
+            COMMITS="$DEPOIS"
+          else
+            COMMITS=$(git rev-list --first-parent "$ANTES..$DEPOIS")
+          fi
+          gh label create alerta-sync --color B42318 --description "Commit na main perdeu ou reverteu trabalho" 2>/dev/null || true
+          ALERTAS=0
+          for SHA in $COMMITS; do
+            CURTO=$(git rev-parse --short=8 "$SHA")
+            AUTOR=$(git log -1 --format='%an' "$SHA")
+            PAIS=$(git rev-list --parents -n1 "$SHA" | wc -w)
+            # Commit simples só importa se veio do editor do Lovable; merge importa sempre.
+            if [ "$PAIS" -lt 3 ] && ! echo "$AUTOR" | grep -qi 'gpt-engineer'; then continue; fi
+            SAIDA=$(scripts/detectar-regressao-merge.sh "$SHA" "$LIMITE_ARQUIVOS"); COD=$?
+            echo "$CURTO ($AUTOR): $(echo "$SAIDA" | head -1)"
+            [ "$COD" -eq 3 ] || continue
+            ALERTAS=$((ALERTAS+1))
+            if [ -n "$(gh issue list --state all --search "$CURTO in:title" --label alerta-sync --json number --jq '.[0].number')" ]; then
+              echo "Já existe alerta para $CURTO"; continue
+            fi
+            TOTAL=$(echo "$SAIDA" | head -1 | cut -d= -f2)
+            ASSUNTO=$(git log -1 --format='%s' "$SHA")
+            {
+              echo "O commit \`$CURTO\` (autor: **$AUTOR**) na main perdeu ou reverteu **$TOTAL** arquivo(s): uma alteração feita em uma das linhas do merge não está no resultado."
+              echo
+              echo "Assunto: $ASSUNTO"
+              echo
+              echo "Pode ser legítimo (limpeza de propósito). Se não foi, restaure com um merge corretivo, **sem reescrever histórico**:"
+              echo
+              echo '```bash'
+              echo "git fetch origin && git checkout -b fix/restaura-$CURTO origin/main"
+              echo "scripts/detectar-regressao-merge.sh $CURTO 1   # lista os arquivos"
+              echo '```'
+              echo
+              echo "Arquivos (até 40):"
+              echo '```'
+              echo "$SAIDA" | tail -n +2 | head -40
+              echo '```'
+              echo
+              echo "Gerado por .github/workflows/alarme-regressao-main.yml (S1 do plano de sincronia)."
+            } > corpo.md
+            gh issue create --title "Alerta: $CURTO perdeu $TOTAL arquivo(s) na main" --label alerta-sync --body-file corpo.md
+          done
+          echo "alertas=$ALERTAS"

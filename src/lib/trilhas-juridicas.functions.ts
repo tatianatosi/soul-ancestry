@@ -4,8 +4,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * Trilhas jurídicas internas e marcos de referência (Biblioteca Mestre).
  * Conteúdo interno: nunca projetado no App Cliente e nunca apresentado como
@@ -50,7 +48,7 @@ export const listarTrilhasJuridicas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
-    const supabase = (context as any).supabase;
+    const supabase = context.supabase;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const [trilhas, marcos] = await Promise.all([
       supabase
@@ -63,7 +61,9 @@ export const listarTrilhasJuridicas = createServerFn({ method: "GET" })
         .order("pais"),
       supabase
         .from("legal_reference_milestones")
-        .select("id,track_id,label,reference_type,summary_internal,official_source_url,status,review_required,verified_at,versao,lifecycle_status")
+        .select(
+          "id,track_id,label,reference_type,summary_internal,official_source_url,status,review_required,verified_at,versao,lifecycle_status",
+        )
         .eq("organization_id", organizationId)
         .is("archived_at", null)
         .order("label"),

@@ -9,6 +9,7 @@ import { EstadoVazio, PAPEL_LABEL } from "@/components/saas/shell";
 import { listarAcessosPortal } from "@/lib/portal.functions";
 import type { Papel } from "@/lib/saas.functions";
 import { cn } from "@/lib/utils";
+import { rotuloHumano } from "@/lib/rotulos-humanos";
 
 /*
  * 19/10/2026 — Configuração & Acesso com a composição da Prancha V4:
@@ -232,7 +233,7 @@ export function ConfiguracaoAcessoV4({
                       </td>
                       <td className="py-1.5 pr-3 text-navy/80">
                         {rotuloAcao(String(e["acao"]))}
-                        {e["entidade"] ? <span className="text-navy/50"> · {String(e["entidade"])}</span> : null}
+                        {e["entidade"] ? <span className="text-navy/50"> · {rotuloHumano(String(e["entidade"]))}</span> : null}
                       </td>
                       <td className="py-1.5 pr-3 text-navy/70">
                         {String(e["autorNome"] ?? e["autorEmail"] ?? "Não identificado")}

@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/golive/formalizacao")({
   head: () => ({
     meta: [
       { title: "Formalização — Go-live Clube Ancestral" },
-      { name: "description", content: "Proposta, escopo, contrato, ordem de serviço e publicação do caso do piloto." },
+      { name: "description", content: "Proposta, escopo, contrato, ordem de serviço e publicação do caso escolhido." },
       { property: "og:title", content: "Formalização — Go-live Clube Ancestral" },
       { property: "og:description", content: "Da proposta aprovada até a publicação para a família." },
       { property: "og:type", content: "website" },
