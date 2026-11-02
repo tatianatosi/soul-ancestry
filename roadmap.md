@@ -1,7 +1,8 @@
 # Roadmap
 
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
-- [ ] Configurar papéis existentes admin/operações/comercial/financeiro e restringir aprovação de preços e contratos ao admin; corte separado de RLS/permissões, sem criar usuários nem promover contas não identificadas.
+- [x] Reutilizar papéis existentes: preparação admin/operações/comercial/financeiro preservada; aprovações protegidas no servidor e em nove tabelas por triggers INSERT/UPDATE, negando autorização nula. Migrations Drizzle 0003/0004 aplicadas; 14 testes passam; Proprietária autenticada confirma preparar/aprovar=true e organização alheia=false; contrato continua pending_data. Nenhuma conta criada/promovida; nenhum contrato aprovado/enviado/publicado.
+- [ ] Atribuir papéis a novas contas: aguarda nomes/e-mails e papéis escolhidos pela Proprietária; não criar identidades não identificadas. Teste de escrita direta por contas não-admin não exercitado; testes focais usam autorização simulada, não sessões reais desses papéis.
 - [ ] Publicar contrato autorizado em 02/11 14:46: bloqueado por revisão humana pendente, qualificação/escopo/proposta sinalizados incompletos na UI. Nenhum envio/assinatura/status fabricado nem revisão independente da PR #222 contornada.
 - [ ] Integrar GitHub/Lovable existente e publicar exclusivamente versão aprovada; conferir proteção remota e PR autorizada sem reconectar/recriar repositório. Seleção do branch no editor exige ação da Proprietária.
 - [x] Heinrich 15/05/1837 e Lotte 16/05/1902 salvos pelo editor autenticado com fonte declarada e citação Auditoria-Mãe §10.4; F5/SELECT confirmam precisão exata e verificação pendente. Árvore mostra n.1837/n.1902. Histórico v1–v6 já existente conferido com geração/autoria, sem duplicar versões.
