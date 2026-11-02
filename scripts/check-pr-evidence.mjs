@@ -1,0 +1,13 @@
+import { readFileSync, appendFileSync } from 'node:fs';
+import { validateEvidence, parseReservation } from './pr-evidence.mjs';
+const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+const pr = event.pull_request;
+if (!pr) throw new Error('Evento sem PR.');
+const files = JSON.parse(readFileSync(process.argv[2], 'utf8')).map(f => f.filename);
+const others = JSON.parse(readFileSync(process.argv[3], 'utf8'));
+const reservations = others.filter(p => p.number !== pr.number).map(p => parseReservation(p.body, p.number));
+const result = validateEvidence(pr.body, pr.head.sha, files, reservations);
+const text = [`PR #${pr.number} · SHA ${pr.head.sha}`, `Estado: ${result.state}`, ...result.errors, ...result.pending, 'Links declarados não comprovam conteúdo, uso real ou publicação.'].join('\n');
+console.log(text);
+if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, text + '\n');
+if (result.errors.length || result.pending.length) process.exitCode = 1;
