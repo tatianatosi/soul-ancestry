@@ -264,6 +264,10 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
     const c = await caso(supabase, data.caseId);
+    if (data.homologar) {
+      const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+      await exigirAdminAprovador(supabase, c.organization_id);
+    }
 
     const { data: servicos } = await supabase
       .from("case_services")

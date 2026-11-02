@@ -517,6 +517,8 @@ export const aprovarEscopoPropostaGoLive = createServerFn({ method: "POST" })
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     const propostaId = texto(data.propostaId);
     if (!propostaId) throw new Error("Escolha a proposta que teve o escopo aprovado.");
+    const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+    await exigirAdminAprovador(s, organizationId);
 
     const atual = await s
       .from("proposals")

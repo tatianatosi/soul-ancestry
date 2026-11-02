@@ -1815,6 +1815,8 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       tipo as any,
     );
     if (tipo === "final") {
+      const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+      await exigirAdminAprovador(supabase, registro.organization_id);
       await exigirCoerencia(supabase, registro, {
         userId: context.userId as string,
         organizationId: registro.organization_id,
@@ -2050,6 +2052,8 @@ export const aprovarParametros = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!previa) throw new Error("Prévia não encontrada.");
     if (previa.tipo !== "final") throw new Error("Somente a prévia final pode ser aprovada.");
+    const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+    await exigirAdminAprovador(supabase, previa.organization_id);
 
     // Autoridade operacional (05/09/2026): pendência informa, não impede.
     // Antes, a aprovação da prévia era recusada por placeholder pendente mesmo

@@ -20274,6 +20274,13 @@ export type Database = {
         Args: { _org: string; _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       is_staff_ativo: { Args: { _org: string }; Returns: boolean }
       matriz_juridica_deduplicar: {

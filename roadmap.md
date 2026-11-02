@@ -1,14 +1,32 @@
 # Roadmap
 
+## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
+- [ ] Pedido 18:07: automatizar coordenação de PRs Lovable/Claude, reutilizando verificações existentes; sem merge/publicação automática e sem remover aprovação independente.
+- [ ] Pedido 18:06: verificar se regra de aprovação admin/exceção contratual e integração autorizada já está sincronizada com Claude; distinguir código local, GitHub e sessão Claude.
+- [ ] Pedido 15:27: tentativa autenticada pela ação real Aprovar para envio devolveu erro `column reference "status" is ambiguous` na validação; contrato permanece pending_data e v6 pending. Exceção atual registra gate de ativação, não dispensa a validação de envio. Bloqueado por correção da função de validação no banco (mudança exige autorização específica); nenhum envio/assinatura/liberação executado. Git sync não é verificável/controlável pelo agente; integração existente deve ser conferida em Configurações → Git, preservando revisão independente e sem criar repositório paralelo. Conector GitHub API acessível não está ligado ao projeto e não equivale ao Git sync.
+- [ ] Completar datas dos quatro familiares (02/11 15:16): conferidas as 12 páginas dos dois PDFs disponíveis e Auditoria-Mãe recuperada §10.4. Histórico confirma os três anexos enviados em 13/10 12:54 (#2634); documentos/evidências do caso contêm os mesmos dois PDFs e texto. Busca ampliada em PDFs do projeto/Arquivos/uploads e PDFs dentro de ZIPs não localizou PDF Auditoria-Mãe nem datas familiares adicionais; referências de mockup rejeitadas. Heinrich/Lotte/Rudolf/Otto já têm datas/anos no perfil; Ana Maria/Cleusa/Adair seguem sem data nas fontes; quarto familiar não identificado. Proprietária recusou reenvio: não solicitar novamente. Bloqueado por fonte não acessível no acervo atual; nenhum dado gravado/inferido nem publicação executada.
+- [x] Reutilizar papéis existentes: preparação admin/operações/comercial/financeiro preservada; aprovações protegidas no servidor e em nove tabelas por triggers INSERT/UPDATE, negando autorização nula. Migrations Drizzle 0003/0004 aplicadas; 14 testes passam; Proprietária autenticada confirma preparar/aprovar=true e organização alheia=false; contrato continua pending_data. Nenhuma conta criada/promovida; nenhum contrato aprovado/enviado/publicado.
+- [ ] Atribuir papéis a novas contas: aguarda nomes/e-mails e papéis escolhidos pela Proprietária; não criar identidades não identificadas. Teste de escrita direta por contas não-admin não exercitado; testes focais usam autorização simulada, não sessões reais desses papéis.
+- [ ] Publicar contrato autorizado em 02/11 14:46 e reiterado 15:13: v6 autenticada confirma R$3.200/adulto, ausência de rateio antigo, R$9.600 e proposta válida até 30/11/2026; permanece working/pending_data/review pending. UI confirma prévia desatualizada, qualificação incompleta, fonte Canva de escopo inválida e case service não configurado. Liberação aguarda correção desses dados e aprovação humana; nenhum envio/assinatura/status fabricado. “Enviar ao cliente” apenas cria rascunho na fila, não envia e-mail automaticamente.
+- [ ] Integrar GitHub/Lovable existente e publicar exclusivamente versão aprovada; conferir proteção remota e PR autorizada sem reconectar/recriar repositório. Seleção do branch no editor exige ação da Proprietária.
+- [x] Heinrich 15/05/1837 e Lotte 16/05/1902 salvos pelo editor autenticado com fonte declarada e citação Auditoria-Mãe §10.4; F5/SELECT confirmam precisão exata e verificação pendente. Árvore mostra n.1837/n.1902. Histórico v1–v6 já existente conferido com geração/autoria, sem duplicar versões.
+- [ ] Registrar anos reais/estimados de Ana Maria, Cleusa e Adair: bloqueado por ausência de ano/idade com fonte nos perfis, pesquisa, eventos, Dossiê Consolidado p.2 e Registro Unificado p.2–3. Adair 1961 é fallback sem fonte e não foi usado. Aceita relato familiar identificado sem certidão original; aguarda anos e origem.
+- [x] Robots.txt, sitemap sem lastmod artificial e título institucional conferidos; publicação solicitada com aviso de segurança aceito pela Proprietária. Link público retornou 200 nos três destinos, sitemap só / e título correto.
+- [x] Liberar caso da Ana pela gestão de acessos existente, confirmado após recarga e SELECT app_access_status=liberado. Convite continua invited; login independente da Ana não exercitado. Adair/Alice sem e-mails autorizados.
+- [x] Revisão de banco/código e solução de sincronização apresentada: reservas declaradas não travam edição; base SHA não comparada; publicação é separada. Banco 195 tabelas/35 MB, estatísticas acessíveis em extensions; sem evidência suficiente para criar índices ou alterar schema. Skill database-optimization não disponível no catálogo ativo. Sem novas alterações de permissões, integração ou schema.
+
 ## 02/11 — v6 e seleção de branch
-- [ ] Preparar contrato da Ana com condição aprovada e validade atual: conferir bloqueios reais; sem assinatura/envio.
-- [ ] Ativar proteção clássica main autorizada, conferir diferença entre bloquear merge e publicar pelo Lovable.
-- [ ] Criar PR real de exemplo com critérios/testes/evidências; acompanhar integração/publicação sem presumir estados.
-- [ ] Executar sequência incremental do code review: caracterização → comparação compartilhada → leituras tipadas → separação por responsabilidade; coordenar territórios Claude/Lovable.
+- [ ] Convite Ana criado pelo botão e confirmação autenticada: acesso 820b628e-685d-406e-83c2-d6aa8690db42 invited, auth vinculado, validade 03/11 14:25 UTC, relido UI após F5. Entrega de e-mail não comprovada; evento não localizado. App do caso ainda bloqueado, não alterado.
+- [ ] Aprovar PR #222 e publicar solicitado em 02/11 14:23: tentativa de APPROVE retornou 422 Cannot approve your own pull request; precisa revisor distinto da conexão Tati e CI aprovado. Nenhuma proteção contornada nem publicação da PR.
+- [ ] Publicar contrato solicitado em 02/11 14:23: bloqueios de documentos/anexos/revisão ainda abertos; verificar integração existente sem reconectar ou duplicar repositório.
+- [ ] Preparar contrato da Ana: validade persistida 30/11/2026; v6 ainda pending review, prévia desatualizada, duas partes sem documento e anexos I–V ausentes segundo tela autenticada; não marcar prontidão nem inventar dados.
+- [x] Proteção clássica main aplicada PUT 200 e relida GET 200: guard/typecheck-test-build strict, revisão 1/último push, admins sujeitos, conversas resolvidas, sem force/exclusão. Não bloqueia Publicar no Lovable.
+- [ ] PR real #222 aberta no branch claude/exemplo-integracao-evidencias-2026-11-02, commit 7c806a805db04e9dda6d9a7c6fcf2c83754a736d; atrás da main, sem revisão e sem evidências de CI aprovado/publicação. Não integrada.
+- [ ] Corte de leitura tipada iniciado no draft Revisão incremental — leitura de clientes e integração protegida; código isolado, nenhum writer/dado/contrato alterado; aguarda resultado do draft e revisão humana independente.
 - [x] Automação implementada: template PR, validador puro e CLI, reservas de arquivos, guard por SHA, resumo CI e auditoria retrospectiva paginada no painel existente; sem merge/deploy.
 - [x] Comparação de duplicidade compartilhada em Clientes/Leads, preservando CPF, fixtures, queries e erros; 48 testes focais passaram, 3 workflows com sintaxe válida e compilação automática OK; consulta autenticada da Ana pediu decisão humana sem criar registro.
 - [x] GitHub lido via conexão Tati: 201 PRs fechadas, 187 integradas; integração confirmada não prova execução nem publicação.
-- [ ] Ativar checks obrigatórios na main: API confirmou ausência de proteção e regras adicionais; mudança de proteção exige autorização específica.
+- [x] Ativar checks obrigatórios na main: autorizado e aplicado em 02/11, conferido por releitura REST.
 - [ ] Rodar a nova auditoria remota integral: arquivos ainda não integrados à base confiável; precisa da integração autorizada e workflow em operação. PRs antigas sem evidência não serão marcadas como concluídas.
 - [ ] Teste antigo detectar-regressao-merge: execução bloqueada pelo sandbox ao usar git add; executar no CI externo, sem contornar restrições.
 - [x] Revisados os três dossiês anexados, histórico recuperado, 40 PDFs e imagens candidatas: Heinrich 15/05/1837 e Lotte 16/05/1902 na Auditoria-Mãe seção 10.4; PDF confirma Lotte 1902. Originais citados não estão nos anexos disponíveis. Nenhuma data gravada nesta revisão.
@@ -517,3 +535,8 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [x] 30/10: Rascunho interno v3 do contrato da Ana gerado pelo botão Salvar rascunho. Aberto: itens de escopo ainda trazem o rateio antigo 4.800/2.400 (aguarda decisão da Proprietária).
 - [x] 30/10: Trocar o rateio do escopo (3 linhas → R$ 3.200 com nome completo) e gerar a v4
 - [x] 30/10: Árvore inteira no celular + publicar
+
+## Corte code review 02/11 — GET listarPessoasCliente
+- [x] Consulta + projeção extraídas para `clientes-lista-projecao.ts` (mesmo resultado, org/auth/cache/erros preservados); 3 testes novos + 20 existentes verdes; /clientes autenticado 1280/375 conferido só leitura.
+- [ ] CI base e44d0e6 falha (#202 "Observações internas" ausente) — tarefa separada; não tocada.
+- [ ] Integração/merge/publicação — aguardam a Proprietária.
