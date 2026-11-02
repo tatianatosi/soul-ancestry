@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       marcar_publicado:
-        description: "Registrar o HEAD atual da main como já publicado no Lovable"
+        description: "Registrar declaração manual de publicação; não verifica o site"
         type: boolean
         default: false
 
@@ -16,6 +16,7 @@ permissions:
   contents: read
   issues: write
   pull-requests: read
+  checks: read
 
 # S6 (01/11/2026): também roda a cada push na main. A espera de 90 s e o cancelamento do run
 # anterior fazem a rajada de commits do editor virar uma única atualização do painel.
@@ -31,6 +32,9 @@ jobs:
         if: github.event_name == 'push'
         run: sleep 90
       - uses: actions/github-script@v7
+        # Checkout trusted main scripts for the read-only retrospective audit.
+        # No PR code is executed here.
+        id: report
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -95,7 +99,7 @@ jobs:
             } catch (e) {}
 
             const alerts = [];
-            if (typeof unpublished === "number" && unpublished > 0) alerts.push(`${unpublished} commit(s) na main ainda não publicados no Lovable`);
+            if (typeof unpublished === "number" && unpublished > 0) alerts.push(`${unpublished} commit(s) depois da declaração manual de publicação; site não verificado`);
             if (!published) alerts.push("nenhum Publish registrado: rode este workflow com marcar_publicado depois do próximo Publish");
             if (conflicting.length) alerts.push(`${conflicting.length} PR(s) prontas, mas em conflito com a main`);
             if (stale.length) alerts.push(`${stale.length} branch(es) lovable-sync com mais de 24 h sem merge`);
@@ -110,11 +114,11 @@ jobs:
               `Atualizado em ${new Date().toISOString()}. Gerado por .github/workflows/sync-report.yml.`,
               ``,
               `## Situação`,
-              alerts.length ? alerts.map(a => `- ${a}`).join("\n") : "- Nada pendente de sincronização.",
+              alerts.length ? alerts.map(a => `- ${a}`).join("\n") : "- Sem alertas nesta heurística; execução integral e publicação não comprovadas.",
               ``,
               `## Main e Lovable`,
               `- HEAD da main: \`${head.slice(0,7)}\` (${headDate}).`,
-              `- Último Publish registrado: ${published && published !== "0".repeat(40) ? "`" + published.slice(0,7) + "`" : "não registrado"}.`,
+              `- Último Publish declarado manualmente (não verificado no site): ${published && published !== "0".repeat(40) ? "`" + published.slice(0,7) + "`" : "não registrado"}.`,
               `- Commits na main depois do último Publish: ${unpublished === null ? "desconhecido" : unpublished}.`,
               ...recent,
               ``,
@@ -147,3 +151,26 @@ jobs:
             if (alerts.length && !marcar && context.eventName !== "push") {
               await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: "Atenção hoje:\n" + alerts.map(a => `- ${a}`).join("\n") });
             }
+            core.setOutput('issue_number', issue.number);
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Conferir evidências de cada PR integrada
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { auditPullRequests } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/audit-pr-completion.mjs`);
+            const { owner, repo } = context.repo;
+            const results = await auditPullRequests(async path => (await github.request(`GET ${path}`)).data, owner, repo);
+            const fs = require('node:fs');
+            fs.writeFileSync('pr-completion.json', JSON.stringify(results, null, 2));
+            const rows = results.map(r => `| #${r.number} | ${r.sha.slice(0,7)} | integrado | ${r.code_checks} | ${r.evidence} | ${r.pending.join('; ').replace(/\|/g,'/')} | não verificada |`);
+            const table = ['## Conferência por PR aplicada', 'Evidências declaradas precisam de revisão humana. Merge e CI não comprovam uso ou publicação.', '| PR | SHA | Código | CI do head | Evidências | Pendências | Publicação |', '|---|---|---|---|---|---|---|', ...rows].join('\n');
+            await core.summary.addRaw(table).write();
+            const issue_number = Number('${{ steps.report.outputs.issue_number }}');
+            const issue = await github.rest.issues.get({owner,repo,issue_number});
+            await github.rest.issues.update({owner,repo,issue_number,body: issue.data.body + '\n\n' + table.slice(0, 45000)});
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr-completion-${{ github.sha }}
+          path: pr-completion.json
