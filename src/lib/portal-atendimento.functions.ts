@@ -827,31 +827,16 @@ export const despublicarProjecaoApp = createServerFn({ method: "POST" })
       throw new Error("Apenas admin e operações despublicam conteúdo do App Cliente.");
     }
     const motivo = texto(data.motivo ?? null, 600) ?? "Despublicado pela equipe.";
-    const r = await gravarComVerificacao({
+    const { despublicarProjecaoPorId } = await import("@/lib/projecao-app-despublicar.server");
+    await despublicarProjecaoPorId({
       supabase,
-      tabela: "app_projections",
-      id: data.projecaoId,
       organizationId,
       userId,
-      payload: { archived_at: new Date().toISOString(), archived_reason: motivo },
-    });
-    await auditar(organizationId, userId, "projecao_app_despublicada", "app_projections", data.projecaoId, {
       papel,
-      quando: new Date().toISOString(),
+      projecaoId: data.projecaoId,
+      motivo,
+      auditar,
     });
-    const caseId = r.registro["case_id"] as string | undefined;
-    if (caseId) {
-      await registrarTimelineCaso(supabase, {
-        organizationId,
-        caseId,
-        eventType: "caso",
-        title: "Conteúdo despublicado do App Cliente",
-        summaryInternal: motivo,
-        sourceEntityType: "app_projections",
-        sourceEntityId: data.projecaoId,
-        userId,
-      });
-    }
     return { ok: true };
   });
 

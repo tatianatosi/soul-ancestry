@@ -289,6 +289,8 @@ describe("App: só a data sanitizada da próxima entrega", () => {
     expect(mig).not.toMatch(/m\.titulo|m\.descricao|m\.responsavel_id/);
     const vivo = readFileSync("src/lib/portal-dados-vivos.functions.ts", "utf8");
     expect(vivo).not.toContain('from("ops_microentregas")');
-    expect(vivo).toContain("proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em)");
+    // 02/11/2026 (C5): a chamada migrou para o recorte comum `estadoDocumentalEPlanoDoCaso`.
+    expect(vivo).toContain("proximaEntregaPrevistaEm: casoAtivo.proxima_entrega_prevista_em");
+    expect(vivo).toContain("proximaEntrega: estado.proximaEntrega");
   });
 });

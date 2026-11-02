@@ -1086,8 +1086,11 @@ function AbaRelacoes({
     evidence_id: "",
     source_id: "",
     internal_notes: "",
+    // C6: padrão seguro = não publicado. Publicar é escolha humana explícita.
+    client_visibility: "interna",
   };
   const [nova, setNova] = useState(vazia);
+  const [editando, setEditando] = useState<{ id: string; relation_type: string; client_visibility: string; confirmar?: boolean } | null>(null);
   const nome = (id: string) => pessoas.find((p) => p.id === id)?.rotulo ?? "—";
 
   return (
@@ -1120,6 +1123,13 @@ function AbaRelacoes({
         <Campo label="Fonte">
           <Selecao valor={nova.source_id} onChange={(v) => setNova({ ...nova, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
         </Campo>
+        <Campo label="Visibilidade no App Cliente">
+          <Selecao
+            valor={nova.client_visibility}
+            onChange={(v) => setNova({ ...nova, client_visibility: v })}
+            opcoes={VISIBILIDADE_CLIENTE}
+          />
+        </Campo>
         <div className="md:col-span-3">
           <button
             type="button"
@@ -1146,7 +1156,49 @@ function AbaRelacoes({
             texto={rotuloDe(STATUS_PESQUISA_RELACAO, r.status_pesquisa)}
             tom={r.status_pesquisa === "confirmado" ? "ok" : "alerta"}
           />
+          <Selo
+            texto={rotuloDe(VISIBILIDADE_CLIENTE, r.client_visibility ?? "interna")}
+            tom={r.client_visibility === "aprovada" ? "ok" : "neutro"}
+          />
           {r.locality ? <span className="text-xs text-navy/60">{r.locality}</span> : null}
+          {editando?.id === r.id ? (
+            <span className="flex w-full flex-wrap items-end gap-2">
+              <Campo label="Tipo de relação">
+                <Selecao valor={editando.relation_type} onChange={(v) => setEditando({ ...editando, relation_type: v })} opcoes={TIPOS_RELACAO} />
+              </Campo>
+              <Campo label="Visibilidade no App Cliente">
+                <Selecao valor={editando.client_visibility} onChange={(v) => setEditando({ ...editando, client_visibility: v })} opcoes={VISIBILIDADE_CLIENTE} />
+              </Campo>
+              <button
+                type="button"
+                className={btnCls}
+                onClick={() => {
+                  // Publicar é decisão humana explícita: segundo clique confirma.
+                  if (editando.client_visibility === "aprovada" && r.client_visibility !== "aprovada" && !editando.confirmar) {
+                    setEditando({ ...editando, confirmar: true });
+                    return;
+                  }
+                  onSalvar(r.id, { relation_type: editando.relation_type, client_visibility: editando.client_visibility });
+                  setEditando(null);
+                }}
+              >
+                {editando.confirmar ? "Confirmar publicação no App Cliente" : "Salvar alteração"}
+              </button>
+              <button type="button" className="text-xs text-navy/60 underline" onClick={() => setEditando(null)}>
+                Cancelar
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="text-xs text-navy underline"
+              onClick={() =>
+                setEditando({ id: r.id, relation_type: r.relation_type, client_visibility: r.client_visibility ?? "interna" })
+              }
+            >
+              Editar
+            </button>
+          )}
           <AcaoOperacional
             rotulo="Arquivar"
             className="ml-auto text-xs text-terracotta underline"

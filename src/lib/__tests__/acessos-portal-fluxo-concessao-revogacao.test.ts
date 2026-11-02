@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -62,8 +63,13 @@ describe("Acessos ao portal — concessão (Novo convite → criarConvitePortal)
     expect(t).toMatch(/if \(auth\.nivel_pretendido !== data\.nivel\)/);
     expect(t).toMatch(/if \(auth\.client_id !== data\.clientId\)/);
     expect(t).toContain("helpers.revalidarElegibilidade(supabase, organizationId, {");
-    expect(t).toMatch(/\.insert\(\{\s*organization_id: organizationId,\s*client_id: data\.clientId,/);
-    expect(t).toContain('access_status: "invited"');
+    // 02/11/2026 (C2): a gravação em duas tabelas saiu do handler para
+    // `gravarConvitePortal` (portal-convite.ts), que arquiva a linha órfã se o
+    // vínculo de caso falhar e reaproveita órfã no reconvite.
+    expect(t).toContain("gravarConvitePortal(supabase, {");
+    const m = readFileSync(resolve(__dirname, "../portal-convite.ts"), "utf8");
+    expect(m).toMatch(/\.insert\(\{\s*organization_id: p\.organizationId,\s*client_id: p\.clientId,/);
+    expect(m).toContain('access_status: "invited"');
   });
 });
 

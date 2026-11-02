@@ -13,13 +13,8 @@ import type {
   SolicitacaoDocumentoCliente,
 } from "@/lib/portal-dados-vivos";
 import {
-  checklistDocumentalCliente,
-  composicaoDoCasoCliente,
   condicaoComercialCliente,
-  etapaDoCasoCliente,
-  historicoSanitizado,
-  proximaEntregaCliente,
-  solicitacoesAbertasCliente,
+  estadoDocumentalEPlanoDoCaso,
   type CondicaoComercialCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
@@ -212,7 +207,15 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     }
 
     const pedidos = (pendencias.data ?? []) as Array<SolicitacaoChecklistBruta & { case_id: string }>;
-    const documentosPendentes = pedidos.filter((p) => p.status === "aguardando" || p.status === "recusado").length;
+    // C5: recorte comum com a prévia do admin (`dadosVivosDoPortalComoAdmin`).
+    const estado = estadoDocumentalEPlanoDoCaso({
+      pedidos,
+      faseJornada: casoAtivo.fase_jornada,
+      composicao: casoAtivo.composicao,
+      proximaEntregaPrevistaEm: casoAtivo.proxima_entrega_prevista_em,
+      eventosTimeline: (timeline.data ?? []) as EventoTimelinePortal[],
+    });
+    const documentosPendentes = estado.documentosPendentes;
     const pagamentoPendente = ((faturas.data ?? []) as { case_id: string }[]).length > 0;
     // Mesma origem do conteúdo. Antes era `permitidos.find(...) ?? permitidos[0]`,
     // que com o alvo agregado devolvia o PRIMEIRO caso — a próxima ação de um
@@ -348,12 +351,12 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,
       casoAtivoId: String(casoAtivo.id),
-      etapa: etapaDoCasoCliente(casoAtivo.fase_jornada),
-      composicao: composicaoDoCasoCliente(casoAtivo.composicao),
-      proximaEntrega: proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em),
-      historico: historicoSanitizado((timeline.data ?? []) as EventoTimelinePortal[]),
-      solicitacoes: solicitacoesAbertasCliente(pedidos),
-      checklist: checklistDocumentalCliente(pedidos),
+      etapa: estado.etapa,
+      composicao: estado.composicao,
+      proximaEntrega: estado.proximaEntrega,
+      historico: estado.historico,
+      solicitacoes: estado.solicitacoes,
+      checklist: estado.checklist,
       pessoasMapeadas: Math.max(0, Number(casoAtivo.pessoas_mapeadas ?? 0)),
     };
   });

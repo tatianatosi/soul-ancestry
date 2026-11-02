@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA — Lote 2, batch 3 (histórico
 // sistêmico + confirmação). portal-atendimento.functions.ts é a tela
@@ -57,7 +58,10 @@ describe("portal-atendimento.functions.ts — histórico em todos os escritores 
   });
 
   it("despublicarProjecaoApp registra histórico", () => {
-    expect(trechoDe("despublicarProjecaoApp", "ticketInterno")).toContain("registrarTimelineCaso(");
+    // 02/11/2026 (C7): o corpo da despublicação (gravação, auditoria e histórico) foi
+    // para `despublicarProjecaoPorId`, caminho único também usado ao arquivar/rebaixar perfil.
+    expect(trechoDe("despublicarProjecaoApp", "ticketInterno")).toContain("despublicarProjecaoPorId(");
+    expect(readFileSync(resolve(__dirname, "../projecao-app-despublicar.server.ts"), "utf8")).toContain("registrarTimelineCaso(");
   });
 
   it("responderTicketEquipe registra histórico", () => {

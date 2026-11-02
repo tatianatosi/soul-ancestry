@@ -624,3 +624,27 @@ export function condicaoComercialCliente(
     moeda: linha.moeda || "BRL",
   };
 }
+
+/**
+ * 02/11/2026 (C5) — recorte comum entre `dadosVivosDoPortal` (cliente real) e
+ * `dadosVivosDoPortalComoAdmin` (prévia): checklist, solicitações, etapa,
+ * composição, próxima entrega e histórico saem das MESMAS funções
+ * sanitizadoras, só mudando quem lê as linhas. Puro: não lê banco.
+ */
+export function estadoDocumentalEPlanoDoCaso(entrada: {
+  pedidos: SolicitacaoChecklistBruta[];
+  faseJornada?: string | null;
+  composicao?: string | null;
+  proximaEntregaPrevistaEm?: string | null;
+  eventosTimeline: EventoTimelinePortal[];
+}) {
+  return {
+    etapa: etapaDoCasoCliente(entrada.faseJornada),
+    composicao: composicaoDoCasoCliente(entrada.composicao),
+    proximaEntrega: proximaEntregaCliente(entrada.proximaEntregaPrevistaEm),
+    historico: historicoSanitizado(entrada.eventosTimeline),
+    solicitacoes: solicitacoesAbertasCliente(entrada.pedidos),
+    checklist: checklistDocumentalCliente(entrada.pedidos),
+    documentosPendentes: entrada.pedidos.filter((p) => p.status === "aguardando" || p.status === "recusado").length,
+  };
+}
