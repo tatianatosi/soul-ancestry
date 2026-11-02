@@ -173,6 +173,58 @@ function filtrar(tabela: TabelaG02, entrada: Record<string, unknown>) {
   return out;
 }
 
+/**
+ * C7 — auditoria da despublicação em cascata (mesmo formato do `auditar` de
+ * portal-atendimento). Falha de auditoria não derruba a ação, mas é registrada.
+ */
+async function auditarCascata(
+  supabase: Sb,
+  organizationId: string,
+  userId: string,
+  acao: string,
+  entidade: string,
+  entidadeId: string,
+  metadados: any,
+) {
+  const { error } = await (supabase as any).from("audit_logs").insert({
+    organization_id: organizationId,
+    user_id: userId,
+    acao,
+    entidade,
+    entidade_id: entidadeId,
+    metadados,
+  });
+  if (error) console.error("[pos-gravacao] auditoria não gravou", acao, error.message);
+}
+
+/** Retira do App a projeção publicada da pessoa deste perfil, pelo caminho oficial de despublicação. */
+async function despublicarPessoaDoPerfil(
+  supabase: Sb,
+  organizationId: string,
+  userId: string,
+  perfilId: string,
+  motivo: string,
+): Promise<number> {
+  const { data: perfil } = await (supabase as any)
+    .from("genealogical_person_profiles")
+    .select("case_id, research_person_id")
+    .eq("id", perfilId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  const p = perfil as { case_id?: string | null; research_person_id?: string | null } | null;
+  if (!p?.case_id || !p.research_person_id) return 0;
+  const { despublicarProjecoesDaPessoa } = await import("@/lib/projecao-app-despublicar.server");
+  return despublicarProjecoesDaPessoa({
+    supabase,
+    organizationId,
+    userId,
+    caseId: p.case_id,
+    pessoaId: p.research_person_id,
+    motivo,
+    auditar: (o, u, a, e, id, m) => auditarCascata(supabase, o, u, a, e, id, m),
+  });
+}
+
 async function autorizarLeitura(supabase: Sb, userId: string) {
   const { organizationId, papel } = await contextoRg(supabase, userId);
   if (!PAPEIS_LE_DETALHE.includes(papel))
@@ -785,6 +837,24 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       relacaoAnterior = (atual as any) ?? null;
     }
 
+    // C7: rebaixar a visibilidade do perfil (qualquer valor diferente de 'aprovada')
+    // retira a pessoa do App ANTES de gravar — fail-closed: se a despublicação
+    // falhar, o erro propaga e a visibilidade não muda.
+    if (
+      data.id &&
+      data.tabela === "genealogical_person_profiles" &&
+      "client_visibility" in valores &&
+      valores["client_visibility"] !== "aprovada"
+    ) {
+      await despublicarPessoaDoPerfil(
+        supabase,
+        organizationId,
+        context.userId as string,
+        data.id,
+        `Visibilidade do perfil rebaixada para "${String(valores["client_visibility"] ?? "interna")}".`,
+      );
+    }
+
     if (data.id) {
       const r = await gravarComVerificacao({
         supabase,
@@ -823,6 +893,17 @@ export const arquivarRegistroG02 = createServerFn({ method: "POST" })
     if (!TABELAS[data.tabela]) throw new Error("Entidade não reconhecida na ficha genealógica.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const temCaseId = (TABELAS[data.tabela] as string[]).includes("case_id");
+    // C7: arquivar o perfil de uma pessoa retira a pessoa do App (despublica a
+    // projeção, com motivo e auditoria) antes de arquivar; falha propaga.
+    if (data.tabela === "genealogical_person_profiles") {
+      await despublicarPessoaDoPerfil(
+        supabase,
+        organizationId,
+        context.userId as string,
+        data.id,
+        `Perfil arquivado: ${motivo}`,
+      );
+    }
     const r = await supabase
       .from(data.tabela)
       .update({ archived_at: new Date().toISOString(), archive_reason: motivo })
