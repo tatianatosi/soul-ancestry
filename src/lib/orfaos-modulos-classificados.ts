@@ -224,15 +224,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: a agenda assistida (sugestão de reunião com confirmação da Proprietária) ganha tela ou fica só como especificação testada",
   },
   {
-    modulo: "lib/app-visibilidade-registro.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "Deriva o escopo do App de CaseRecord, o registro fixo de src/data/case-registry (demo). O escopo real do cliente vem de escopoAPartirDePublicacoes, lido por caso no banco; não existe outra fonte de fase 1/fase 2 por caso para alimentar esta função sem inventar dado.",
-    destino:
-      "src/lib/app-visibilidade.ts (escopoAPartirDePublicacoes, por caso, usado pelo portal e por app-cliente-como-pessoa)",
-    riscoVazamento: true,
-  },
-  {
     modulo: "lib/campos-obrigatorios.server.ts",
     veredicto: "CASCA_DUPLICADA",
     motivo:
@@ -287,29 +278,11 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: manter o espelho TypeScript como especificação testada da RLS ou substituí-lo por teste contra as policies reais do banco",
   },
   {
-    modulo: "lib/saneamento-desk-app-v4.ts",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "Retrato fixo do caso da Ana (nomes, valores, fase, prazo) que só era importado por portal-experiencia-integral e portal-fallback-canonico, reescritos por caso em 01/11/2026. Fica no repositório porque o teste de rateio ainda lê o texto; nenhuma tela deve voltar a importá-lo.",
-    destino:
-      "src/lib/portal-dados-vivos.ts (o caso real chega por dadosVivosDoPortal, via usePortalVivo)",
-    riscoVazamento: true,
-  },
-  {
     modulo: "lib/portal-fallback-canonico.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
       "Reescrito em 01/11/2026: o fallback agora é o vazio honesto (tudo 'Não registrado'), sem régua nem contrato fixos. Segue sem chamador porque a falha de rede é tratada por portal-resiliencia e as abas já mostram vazio honesto.",
     destino:
       "Manter sem religar: as etapas vêm de src/lib/etapas-caso.ts e a Home lê portal-dados-vivos (ROTULOS_ETAPA_CLIENTE)",
-  },
-  {
-    modulo: "lib/rascunhos-comunicacao-governados.ts",
-    veredicto: "CASCA_DUPLICADA",
-    motivo:
-      "Lógica de template vigente e bloqueio de rascunho sem destinatário, contexto ou fase. Os modelos governados já existem em message-library e orquestracao-jornada (templateVigente, estados vigente/suspenso/substituido), e o rascunho do envio de contrato já nasce em communication_queue com aprovação humana. Religar criaria um terceiro sistema de templates na comunicação com o cliente.",
-    destino:
-      "src/lib/message-library.functions.ts e src/lib/orquestracao-jornada.ts (modelos governados) com src/lib/rascunho-comunicacao.ts (fila com aprovação humana)",
-    riscoVazamento: true,
   },
 ];

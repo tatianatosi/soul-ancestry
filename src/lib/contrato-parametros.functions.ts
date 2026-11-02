@@ -2173,7 +2173,8 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
           client_id: caso?.cliente_id ?? null,
           proposal_id: registro.proposal_id,
           template_id: registro.contract_template_id,
-          status: "in_review",
+          // CHECK contracts_status_check + fn_contracts_guard: novo instrumento começa em rascunho.
+          status: "draft",
           purpose_summary: pegar("objeto_contrato"),
           scope_summary: pegar("escopo_resumo"),
           exclusions_summary: pegar("servicos_excluidos"),
@@ -2206,12 +2207,12 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
 
       const escopo = [
         {
-          category: "included",
+          category: "contracted_scope",
           title: "Serviços incluídos",
           description: pegar("servicos_incluidos"),
         },
         {
-          category: "excluded",
+          category: "exclusion",
           title: "Serviços excluídos",
           description: pegar("servicos_excluidos"),
         },
@@ -2229,8 +2230,10 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
             category: s.category,
             title: s.title,
             description: s.description,
-            status: "approved",
-            source_type: "contract_parameters",
+            // contract_scope_items: status só aceita included/excluded/pending/conditional/not_applicable;
+            // source_type só aceita proposal/case/manual_review/template/annex.
+            status: s.category === "exclusion" ? "excluded" : "included",
+            source_type: "case",
             source_reference: data.id,
             display_order: i,
             created_by: context.userId,
