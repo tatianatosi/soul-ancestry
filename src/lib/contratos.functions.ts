@@ -1505,9 +1505,15 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!versao) throw new Error("Versão não encontrada.");
 
-    const impedimentos: string[] = ((linhas ?? []) as any[])
-      .filter((r) => r.status === "open" && ["blocking", "high"].includes(r.severity))
-      .map((r) => r.label as string);
+    const { data: dispensas, error: erroDispensa } = await supabase.from("contract_exceptions")
+      .select("id,reason,impact,expires_at")
+      .eq("organization_id", organizationId).eq("contract_id", data.contract_id)
+      .eq("scope", "validation_waiver").is("archived_at", null).is("revoked_at", null);
+    if (erroDispensa) throw new Error(erroDispensa.message);
+    const dispensa = (dispensas ?? []).find((d: { reason: string; impact: string; expires_at: string | null }) =>
+      d.reason?.trim() && d.impact?.trim() && (!d.expires_at || new Date(d.expires_at).getTime() > Date.now()));
+    const { impedimentosContratuais } = await import("@/lib/contrato-dispensa-documental");
+    const impedimentos = impedimentosContratuais(linhas ?? [], Boolean(dispensa));
     if (versao.review_decision !== "approved") impedimentos.push("Revisão humana ainda não aprovada");
     if (!versao.rendered_file_path || !versao.rendered_file_hash)
       impedimentos.push("Arquivo privado renderizado e hash registrado");
@@ -1554,7 +1560,11 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora },
     });
-    await evento(supabase, organizationId, data.contract_id, "approved_for_send", {}, data.version_id);
+    await evento(supabase, organizationId, data.contract_id, "approved_for_send", {
+      dispensa_documental_id: dispensa?.id ?? null,
+      pendencias_documentais_preservadas: (linhas ?? []).filter((r: { validation_key: string; status: string }) =>
+        r.status === "open" && ["annexes_required", "party_documents"].includes(r.validation_key)),
+    }, data.version_id);
     if (r.registro["case_id"]) {
       await registrarTimelineCaso(supabase, {
         organizationId,
