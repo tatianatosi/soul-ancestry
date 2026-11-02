@@ -12,12 +12,14 @@ Preservar o trabalho dos dois agentes, usando o protocolo de sincronia já exist
 
 ## Corte 1A — Automação e comprovação integral de cada PR
 - Ampliar os workflows existentes, sem criar integração MCP ou outro painel: registrar PR, responsável, SHA-base/final, arquivos e critérios de aceite verificáveis.
+- Ampliar o modelo de PR existente com a matriz de critérios; preservar seus estados oficiais. Adiamentos devem ter motivo e responsável, sem virar aceite. Extrair a validação das evidências para um pequeno script testável usado pelo `sync-guard.yml`.
 - Validar automaticamente conflitos, perdas de arquivos, sobreposição declarada de tarefas e resultados de testes vinculados ao SHA exato. Falta de evidência deixa o critério pendente, nunca aprovado por suposição.
 - Cada PR mantém uma matriz requisito → alteração → teste → evidência real. O relatório existente distingue preparado, integrado, testes aprovados, fluxo executado e publicado.
 - Para mudanças de tela, exigir capturas 375/1280; para escrita, prova de salvar e reler após F5. Para acesso, contrato, pagamento ou publicação, exigir a conferência específica do fluxo autorizado, sem executar efeitos externos automaticamente.
 - Em cada merge autorizado, recalcular a matriz da PR e sinalizar critérios não cobertos ou testes de base antiga. Não fechar tarefas nem declarar `COMPROVADO_EM_USO` sem aceite autenticado da Proprietária.
 - A automação verifica evidências registradas, não garante por si só que cada requisito foi corretamente especificado. Publicação só fica comprovada após conferir a revisão que o endereço público realmente serve.
 - Preparar primeiro os arquivos e testes locais; configurar verificações obrigatórias e executar a conferência remota das PRs somente com acesso GitHub confirmado e autorização. Nenhum merge ou deploy automático.
+- Testar SHA correto/incorreto, evidência ausente, critério sem estado e critérios bloqueados. A conferência retrospectiva das PRs aplicadas produz resultado individual: comprovada, parcial ou não verificada, com a pendência concreta de cada uma.
 
 ## Corte 2 — Evitar novos registros duplicados
 - Reutilizar as verificações existentes de duplicidade e os identificadores persistidos da pessoa e do caso antes de criar um cadastro.
