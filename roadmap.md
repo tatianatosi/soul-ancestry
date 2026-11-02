@@ -1,6 +1,7 @@
 # Roadmap
 
 ## 01/11 — Histórico contratual e anos dos familiares
+- [ ] Esclarecer qual branch/versão é implantada ao publicar, antes de decidir a produção.
 - [ ] Reutilizar Versões e histórico do contrato, com botão de abertura, data de geração e autoria registrada.
 - [ ] Reutilizar o editor existente de perfil para registro de anos reais/estimados com fonte.
 - [ ] Registrar os cinco anos: bloqueado enquanto anos e fontes não forem fornecidos ou localizados.

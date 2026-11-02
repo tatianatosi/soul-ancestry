@@ -257,11 +257,11 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const prof = await (supabaseAdmin as any)
           .from("genealogical_person_profiles")
-          .select("id, research_person_id, nascimento_data, nascimento_precisao, morte_data, morte_precisao")
+          .select("id, research_person_id, nascimento_data, nascimento_data_aproximada, nascimento_precisao, morte_data, morte_precisao")
           .eq("case_id", String(casoAtivo.id))
           .eq("client_visibility", "aprovada")
           .is("archived_at", null)
-          .or("nascimento_data.not.is.null,morte_data.not.is.null")
+          .or("nascimento_data.not.is.null,nascimento_data_aproximada.not.is.null,morte_data.not.is.null")
           // O nó da Árvore é publicado por pessoa da pesquisa (pessoa_id =
           // research_person_id do perfil), nunca pelo id interno do perfil.
           .in("research_person_id", [...publicados]);

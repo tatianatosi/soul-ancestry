@@ -533,6 +533,7 @@ function Pagina() {
             eventos={eventos}
             relacoes={relacoes}
             evidencias={evidenciaOpcoes}
+            fontes={fonteOpcoes}
             clientesDoCaso={clientesDoCaso}
             pendenciaGate={pendenciaPerfis}
             onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
@@ -750,6 +751,7 @@ function AbaPerfis({
   eventos,
   relacoes,
   evidencias,
+  fontes,
   clientesDoCaso,
   pendenciaGate,
   onCriar,
@@ -762,6 +764,7 @@ function AbaPerfis({
   eventos: Evento[];
   relacoes: Relacao[];
   evidencias: { id: string; rotulo: string }[];
+  fontes: { id: string; rotulo: string }[];
   /** Candidatos ao vínculo de pessoa (Corte U2) — só clientes já ligados a este caso. */
   clientesDoCaso: { id: string; nome: string }[];
   /** Pendência de domínio: fica visível e pede motivo, nunca desabilita. */
@@ -865,14 +868,17 @@ function AbaPerfis({
             sexo: e.sexo,
             nascimento_data: e.nascimento_data,
             nascimento_data_aproximada: e.nascimento_data_aproximada,
+            nascimento_precisao: e.nascimento_precisao,
             nascimento_localidade: e.nascimento_localidade,
             morte_data: e.morte_data,
             morte_data_aproximada: e.morte_data_aproximada,
+            morte_precisao: e.morte_precisao,
             morte_localidade: e.morte_localidade,
             causa_morte: e.causa_morte,
             sepultamento_localidade: e.sepultamento_localidade,
             status_verificacao: e.status_verificacao,
             evidence_id: e.evidence_id,
+            source_id: e.source_id,
             /*
              * 09/10/2026 — bug medido e reportado pela Proprietária: "não
              * consigo mudar a visibilidade de nenhum parente da Ana para
@@ -930,6 +936,8 @@ function AbaPerfis({
               <Campo label="Nascimento (aproximado)" ajuda="Ex.: 'entre 1890 e 1893'.">
                 <input className={inputCls} value={e.nascimento_data_aproximada ?? ""} onChange={(x) => set("nascimento_data_aproximada", x.target.value)} />
               </Campo>
+              <Campo label="Precisão do nascimento"><Selecao valor={e.nascimento_precisao ?? "desconhecida"} onChange={(v) => set("nascimento_precisao", v)} opcoes={PRECISAO_DATA} /></Campo>
+              <Campo label="Fonte do nascimento"><Selecao valor={e.source_id ?? ""} onChange={(v) => set("source_id", v || null)} opcoes={fontes} vazio="Sem fonte vinculada" /></Campo>
               <Campo label="Nascimento (localidade)">
                 <input className={inputCls} value={e.nascimento_localidade ?? ""} onChange={(x) => set("nascimento_localidade", x.target.value)} />
               </Campo>
