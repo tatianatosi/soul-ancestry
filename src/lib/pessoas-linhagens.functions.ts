@@ -9,6 +9,7 @@ import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.
 import { normalizarNome } from "@/lib/pessoa-identidade";
 import {
   arestasFiliacao,
+  auditoriaDaRelacao,
   GERACAO_MAXIMA_LINHAGEM,
   geracaoAscendente,
   validarAderenciaPercentual,
@@ -751,6 +752,39 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
      * a ser estrita: releitura vazia ou valor diferente do enviado é erro,
      * antes de propagar vínculo, auditoria ou linha do tempo.
      */
+    // C6: relação — leitura do estado anterior para auditar publicação/tipo.
+    const ehRelacao = data.tabela === "genealogical_relationships";
+    const auditarRelacao = async (
+      relacaoId: string,
+      anterior: { relation_type?: string | null; client_visibility?: string | null } | null,
+      caseDaRelacao: string | null,
+    ) => {
+      if (!ehRelacao) return;
+      for (const m of auditoriaDaRelacao(anterior, valores as any)) {
+        await supabase.from("audit_logs").insert({
+          organization_id: organizationId,
+          user_id: context.userId as string,
+          entidade: "genealogical_relationships",
+          entidade_id: relacaoId,
+          acao: m.acao,
+          valores_anteriores: { valor: m.de },
+          valores_posteriores: { valor: m.para },
+          metadados: { case_id: caseDaRelacao },
+        });
+      }
+    };
+
+    let relacaoAnterior: any = null;
+    if (ehRelacao && data.id) {
+      const { data: atual } = await supabase
+        .from("genealogical_relationships")
+        .select("relation_type, client_visibility, case_id")
+        .eq("id", data.id)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      relacaoAnterior = (atual as any) ?? null;
+    }
+
     if (data.id) {
       const r = await gravarComVerificacao({
         supabase,
@@ -762,6 +796,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       });
       exigirPersistenciaConferida(valores, r.registro);
       await registrarVinculo(data.id);
+      await auditarRelacao(data.id, relacaoAnterior, relacaoAnterior?.case_id ?? data.caseId ?? null);
       return { registro: r.registro } as any;
     }
 
@@ -774,6 +809,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
     });
     exigirPersistenciaConferida(valores, r.registro);
     await registrarVinculo(r.id);
+    await auditarRelacao(r.id, null, (valores["case_id"] as string | null) ?? data.caseId ?? null);
     return { registro: r.registro } as any;
   });
 
