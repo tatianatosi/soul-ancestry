@@ -535,3 +535,8 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [x] 30/10: Rascunho interno v3 do contrato da Ana gerado pelo botão Salvar rascunho. Aberto: itens de escopo ainda trazem o rateio antigo 4.800/2.400 (aguarda decisão da Proprietária).
 - [x] 30/10: Trocar o rateio do escopo (3 linhas → R$ 3.200 com nome completo) e gerar a v4
 - [x] 30/10: Árvore inteira no celular + publicar
+
+## Corte code review 02/11 — GET listarPessoasCliente
+- [x] Consulta + projeção extraídas para `clientes-lista-projecao.ts` (mesmo resultado, org/auth/cache/erros preservados); 3 testes novos + 20 existentes verdes; /clientes autenticado 1280/375 conferido só leitura.
+- [ ] CI base e44d0e6 falha (#202 "Observações internas" ausente) — tarefa separada; não tocada.
+- [ ] Integração/merge/publicação — aguardam a Proprietária.
