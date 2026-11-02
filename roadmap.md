@@ -1,5 +1,10 @@
 # Roadmap
 
+## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
+- [x] Robots.txt, sitemap sem lastmod artificial e título institucional conferidos; publicação solicitada com aviso de segurança aceito pela Proprietária. Link público retornou 200 nos três destinos, sitemap só / e título correto.
+- [x] Liberar caso da Ana pela gestão de acessos existente, confirmado após recarga e SELECT app_access_status=liberado. Convite continua invited; login independente da Ana não exercitado. Adair/Alice sem e-mails autorizados.
+- [x] Revisão de banco/código e solução de sincronização apresentada: reservas declaradas não travam edição; base SHA não comparada; publicação é separada. Banco 195 tabelas/35 MB, estatísticas acessíveis em extensions; sem evidência suficiente para criar índices ou alterar schema. Skill database-optimization não disponível no catálogo ativo. Sem novas alterações de permissões, integração ou schema.
+
 ## 02/11 — v6 e seleção de branch
 - [ ] Convite Ana criado pelo botão e confirmação autenticada: acesso 820b628e-685d-406e-83c2-d6aa8690db42 invited, auth vinculado, validade 03/11 14:25 UTC, relido UI após F5. Entrega de e-mail não comprovada; evento não localizado. App do caso ainda bloqueado, não alterado.
 - [ ] Aprovar PR #222 e publicar solicitado em 02/11 14:23: tentativa de APPROVE retornou 422 Cannot approve your own pull request; precisa revisor distinto da conexão Tati e CI aprovado. Nenhuma proteção contornada nem publicação da PR.
