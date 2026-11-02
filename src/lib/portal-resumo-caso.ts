@@ -16,10 +16,26 @@ export type ResumoCasoCliente = {
   /** Data de entrada do caso (ISO), ou nula quando não registrada. */
   membroDesde: string | null;
   etapas: { id: string; rotulo: string; estado: EstadoEtapa }[];
-  perfil: { nome: string | null; email: string | null; telefone: string | null };
+  perfil: {
+    nome: string | null;
+    email: string | null;
+    telefone: string | null;
+    /** C4: falso quando o visualizador não é o titular — a tela oculta as linhas de contato. */
+    contatoVisivel?: boolean;
+  };
 };
 
-export async function lerResumoCaso(db: any, casoId: string): Promise<ResumoCasoCliente | null> {
+export async function lerResumoCaso(
+  db: any,
+  casoId: string,
+  /**
+   * C4 (02/11/2026) — contato (e-mail/telefone) é dado pessoal do titular do
+   * caso. Quando `visualizadorClienteId` é informado (mesmo nulo), só o próprio
+   * titular (cliente_id do caso === visualizador) recebe o contato; membro não
+   * titular recebe só o nome. Omitido = leitura administrativa (prévia do Desk).
+   */
+  opcoes?: { visualizadorClienteId: string | null },
+): Promise<ResumoCasoCliente | null> {
   const [casoR, checksR] = await Promise.all([
     db
       .from("crm_casos")
@@ -35,10 +51,13 @@ export async function lerResumoCaso(db: any, casoId: string): Promise<ResumoCaso
     const cli = await db.from("clientes").select("nome, email, telefone").eq("id", caso.cliente_id).maybeSingle();
     const c = cli?.data as any;
     if (c) {
+      const veContato =
+        !opcoes || (opcoes.visualizadorClienteId != null && String(opcoes.visualizadorClienteId) === String(caso.cliente_id));
       perfil = {
         nome: (c.nome as string | null)?.trim() || null,
-        email: (c.email as string | null)?.trim() || null,
-        telefone: (c.telefone as string | null)?.trim() || null,
+        email: veContato ? (c.email as string | null)?.trim() || null : null,
+        telefone: veContato ? (c.telefone as string | null)?.trim() || null : null,
+        contatoVisivel: veContato,
       };
     }
   }

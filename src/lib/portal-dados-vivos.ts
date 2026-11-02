@@ -159,7 +159,8 @@ export function radarSanitizado(entrada: {
 }): EixoVivo[] {
   const publicacoes = publicacoesParaCliente(entrada.projecoes);
   const pessoas = publicacoes.filter((p) => p.tipo === "arvore" || p.tipo === "achado");
-  const docs = entrada.documentos.filter((d) => d.is_demo !== true);
+  // C4 (02/11/2026): `documents.is_demo` não existe no banco — filtro inerte removido.
+  const docs = entrada.documentos;
   const liberados = docs.filter((d) => d.liberado_cliente === true).length;
   const enviados = docs.filter((d) => d.origem === "cliente").length;
   const jornada = jornadaSanitizada(entrada.projecoes);

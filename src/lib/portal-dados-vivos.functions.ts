@@ -286,7 +286,26 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     let resumoCaso: ResumoCasoCliente | null = null;
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      resumoCaso = await lerResumoCaso(supabaseAdmin, String(casoAtivo.id));
+      // C4 (02/11/2026): contato do titular só para o próprio titular. O vínculo
+      // do visualizador vem da RLS (linhas dele); falha = sem contato (fail-closed).
+      let visualizadorClienteId: string | null = null;
+      try {
+        const vin = await supabase
+          .from("client_portal_access")
+          .select("client_id, access_status, updated_at")
+          .eq("auth_user_id", context.userId)
+          .eq("access_status", "active")
+          .is("archived_at", null)
+          .order("updated_at", { ascending: false })
+          .limit(10);
+        if (!vin.error) {
+          const ids = new Set(((vin.data ?? []) as { client_id: string | null }[]).map((v) => v.client_id).filter(Boolean));
+          visualizadorClienteId = ids.size === 1 ? String([...ids][0]) : null;
+        }
+      } catch {
+        visualizadorClienteId = null;
+      }
+      resumoCaso = await lerResumoCaso(supabaseAdmin, String(casoAtivo.id), { visualizadorClienteId });
     } catch {
       resumoCaso = null;
     }
