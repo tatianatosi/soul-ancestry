@@ -10,6 +10,7 @@ export function ConferenciaMembro({ membro, papeis }: { membro: MembroConferenci
     <details className="mt-4 border-t border-border pt-3" data-conferencia-membro>
       <summary className="cursor-pointer text-sm font-medium text-foreground">Conferir acesso deste membro</summary>
       <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+        <div><dt className="text-muted-foreground">Status do vínculo</dt><dd>{({ active: "Ativo", invited: "Convidado", suspended: "Suspenso", revoked: "Revogado" } as Record<string, string>)[membro.status] ?? membro.status}</dd></div>
         <div><dt className="text-muted-foreground">Papel cadastrado</dt><dd>{papel(membro.role)}</dd></div>
         <div><dt className="text-muted-foreground">Papéis registrados na organização</dt><dd>{c.registrados.map(papel).join(" · ") || "Nenhum registrado"}</dd></div>
         <div><dt className="text-muted-foreground">Identidade de entrada</dt><dd>{membro.auth_user_id ? "Vinculada" : "Não vinculada"}</dd></div>
@@ -17,9 +18,9 @@ export function ConferenciaMembro({ membro, papeis }: { membro: MembroConferenci
       </dl>
       <p className="mt-3 text-xs text-muted-foreground">Conferência operacional da própria organização, sem entrar como este membro. A autorização de cada leitura e gravação continua sendo validada no servidor e nas políticas de acesso.</p>
       <ul className="mt-3 divide-y divide-border text-xs">
-        {c.operacoes.map(o => <li key={o.capacidade} className="flex flex-wrap justify-between gap-2 py-2">
-          <span className="min-w-0 flex-1">{ROTULO_CAPACIDADE[o.capacidade]}</span>
-          <span>{o.decisao === "permitir" ? "Permitida no avaliador operacional" : o.decisao === "confirmar" ? "Exige confirmação" : "Indisponível no avaliador operacional"}</span>
+        {c.operacoes.map(o => <li key={o.capacidade} className="grid gap-1 py-2 sm:grid-cols-2">
+          <span className="min-w-0">{ROTULO_CAPACIDADE[o.capacidade]}</span>
+          <span className="min-w-0 text-muted-foreground sm:text-right">{o.decisao === "permitir" ? "Permitida no avaliador operacional" : o.decisao === "confirmar" ? "Exige confirmação" : "Indisponível no avaliador operacional"}</span>
         </li>)}
       </ul>
       <details className="mt-3 text-xs text-muted-foreground"><summary className="cursor-pointer">Detalhes técnicos da identidade</summary>

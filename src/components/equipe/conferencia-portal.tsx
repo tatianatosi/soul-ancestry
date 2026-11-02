@@ -31,11 +31,11 @@ export function ConferenciaPortal({ acesso, pessoa, vinculos, casos, autorizacoe
       {vinculos.length === 0 ? <li className="py-2 text-sm">Nenhum vínculo de caso registrado.</li> : vinculos.map(v => {
         const caso = casos.find(c => c.id === v.case_id && !c.demo);
         const c = conferirCasoDoAcesso(acesso, v, caso);
-        const publicadas = projecoes.filter(p => p.case_id === v.case_id && p.approval_status === "published" && !p.archived_at && p.destination === "app" && p.approved_at && p.approved_by && (!p.effective_from || new Date(p.effective_from).getTime() <= Date.now()) && (!p.titular_client_id || p.titular_client_id === acesso.client_id) && !["contrato", "proposta"].includes(p.projection_type ?? ""));
+        const publicadas = caso ? projecoes.filter(p => p.case_id === v.case_id && p.approval_status === "published" && !p.archived_at && p.destination === "app" && p.approved_at && p.approved_by && p.effective_from && new Date(p.effective_from).getTime() <= Date.now() && (!p.titular_client_id || p.titular_client_id === acesso.client_id) && !["contrato", "proposta"].includes(p.projection_type ?? "")) : [];
         return <li key={v.id ?? v.case_id} className="py-3 text-sm">
           <p className="font-medium">{caso ? `${caso.codigo ?? ""} — ${caso.titulo ?? "Caso"}` : "Caso ausente nesta leitura"}</p>
           <p className="mt-1 text-muted-foreground">{c.escopoAtivo ? "Vínculo e liberação registrados; leitura do cliente ainda exige validação de acesso." : c.motivos.join(" · ")}</p>
-          <p className="mt-2 text-xs text-muted-foreground">Conteúdo aprovado e publicado para este contexto: {publicadas.length} item(ns).</p>
+          <p className="mt-2 text-xs text-muted-foreground">Itens aprovados e publicados no caso para este titular: {publicadas.length}. Acesso e sanitização são revalidados pelo leitor do App.</p>
           <ul className="mt-1 space-y-1 text-xs">{publicadas.map(p => <li key={p.id}>{rotuloTipoProjecao(p.projection_type)} · {data(p.effective_from ?? p.approved_at)}</li>)}</ul>
         </li>;
       })}
