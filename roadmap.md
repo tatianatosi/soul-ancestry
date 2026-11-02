@@ -1,5 +1,10 @@
 # Roadmap
 
+## 02/11 — v6 e seleção de branch
+- [x] Gerar v6 pelo botão existente, autenticada como Proprietária; seis versões confirmadas após F5, rascunho interno sem envio/assinatura.
+- [x] Prévia interna da v6 conferida: R$ 3.200 e R$ 9.600 e parcelas R$ 320 presentes; rateios antigos R$ 4.800/R$ 2.400 ausentes no documento renderizado.
+- [x] Consultar documentação oficial sobre selecionar/criar branches e requisitos do seletor.
+
 ## 01/11 — Histórico contratual e anos dos familiares
 - [x] Revisão de código: seis padrões confirmados com referências e sequência incremental; nenhuma refatoração executada.
 - [x] Esclarecido: publicar captura a versão atual do projeto Lovable, sincronizada com o branch selecionado, não necessariamente main; troca de branch não republica.
