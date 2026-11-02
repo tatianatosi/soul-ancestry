@@ -1,6 +1,9 @@
 # Roadmap
 
 ## 02/11 — v6 e seleção de branch
+- [ ] Enviar convite autorizado para analuizabox@gmail.com pelo fluxo real; confirmar transporte e releitura sem confundir evento com entrega.
+- [ ] Aprovar PR #222 e publicar solicitado em 02/11 14:23: conferir revisão independente e CI, sem contornar proteção.
+- [ ] Publicar contrato solicitado em 02/11 14:23: bloqueios de documentos/anexos/revisão ainda abertos; verificar integração existente sem reconectar ou duplicar repositório.
 - [ ] Preparar contrato da Ana: validade persistida 30/11/2026; v6 ainda pending review, prévia desatualizada, duas partes sem documento e anexos I–V ausentes segundo tela autenticada; não marcar prontidão nem inventar dados.
 - [x] Proteção clássica main aplicada PUT 200 e relida GET 200: guard/typecheck-test-build strict, revisão 1/último push, admins sujeitos, conversas resolvidas, sem force/exclusão. Não bloqueia Publicar no Lovable.
 - [ ] PR real #222 aberta no branch claude/exemplo-integracao-evidencias-2026-11-02, commit 7c806a805db04e9dda6d9a7c6fcf2c83754a736d; atrás da main, sem revisão e sem evidências de CI aprovado/publicação. Não integrada.
