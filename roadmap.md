@@ -1,6 +1,7 @@
 # Roadmap
 
 ## 02/11 — v6 e seleção de branch
+- [ ] Preparar solução rápida de coordenação Claude/Lovable e prevenção de novos duplicados, reutilizando o protocolo existente; sem merge, acesso ou limpeza de dados.
 - [ ] Revisar todas as versões disponíveis dos dossiês enviados e histórico das datas de Heinrich, Lotte, Ana Maria, Cleusa e Adair, com fonte/página e divergências.
 - [x] Gerar v6 pelo botão existente, autenticada como Proprietária; seis versões confirmadas após F5, rascunho interno sem envio/assinatura.
 - [x] Prévia interna da v6 conferida: R$ 3.200 e R$ 9.600 e parcelas R$ 320 presentes; rateios antigos R$ 4.800/R$ 2.400 ausentes no documento renderizado.
