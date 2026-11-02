@@ -8,6 +8,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { CompartilharAchadoCliente } from "@/components/portal/compartilhar-achado-cliente";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos";
 import {
   PRATELEIRAS,
@@ -51,7 +52,12 @@ export function PortalLegado() {
   const { visibilidade, carregando } = useVisibilidade("biblio");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
   const casoId = data?.casoAtivoId ?? null;
-  const { data: encontros, isLoading: carregandoEncontros } = useQuery({
+  const {
+    data: encontros,
+    isLoading: carregandoEncontros,
+    isError: falhaEncontros,
+    refetch: recarregarEncontros,
+  } = useQuery({
     queryKey: ["portal-encontros-linhagem", casoId],
     queryFn: () => listarEncontrosLinhagemApp({ data: { caseId: casoId as string } }),
     enabled: Boolean(casoId),
@@ -163,7 +169,13 @@ export function PortalLegado() {
                   {casoId && !carregandoEncontros ? (
                     <section data-legado-encontros className="space-y-3">
                       <h2 className="font-serif text-xl text-navy">Encontros de linhagem</h2>
-                      {encontros && encontros.length > 0 ? (
+                      {falhaEncontros ? (
+                        // C3 (02/11/2026): falha de carga nunca vira "encontros em preparação".
+                        <AvisoFalhaConexao
+                          mensagem="Não conseguimos carregar agora. Tente de novo."
+                          aoTentar={() => void recarregarEncontros()}
+                        />
+                      ) : encontros && encontros.length > 0 ? (
                         <>
                           <ul className="space-y-3">
                             {encontros.map((e) => (

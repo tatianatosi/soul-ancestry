@@ -76,6 +76,7 @@ export function PortalRadar() {
               projecoes: vivo.projecoes,
               documentos: vivo.documentos,
               pessoasMapeadas: vivo.pessoasMapeadas ?? 0,
+              checklist: vivo.checklist,
             });
             const porId = new Map(base.map((d) => [d.id, d]));
             const dimensoes = [

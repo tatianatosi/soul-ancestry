@@ -159,7 +159,8 @@ export function radarSanitizado(entrada: {
 }): EixoVivo[] {
   const publicacoes = publicacoesParaCliente(entrada.projecoes);
   const pessoas = publicacoes.filter((p) => p.tipo === "arvore" || p.tipo === "achado");
-  const docs = entrada.documentos.filter((d) => d.is_demo !== true);
+  // C4 (02/11/2026): `documents.is_demo` não existe no banco — filtro inerte removido.
+  const docs = entrada.documentos;
   const liberados = docs.filter((d) => d.liberado_cliente === true).length;
   const enviados = docs.filter((d) => d.origem === "cliente").length;
   const jornada = jornadaSanitizada(entrada.projecoes);
@@ -621,5 +622,29 @@ export function condicaoComercialCliente(
     adultoCentavos,
     totalCentavos,
     moeda: linha.moeda || "BRL",
+  };
+}
+
+/**
+ * 02/11/2026 (C5) — recorte comum entre `dadosVivosDoPortal` (cliente real) e
+ * `dadosVivosDoPortalComoAdmin` (prévia): checklist, solicitações, etapa,
+ * composição, próxima entrega e histórico saem das MESMAS funções
+ * sanitizadoras, só mudando quem lê as linhas. Puro: não lê banco.
+ */
+export function estadoDocumentalEPlanoDoCaso(entrada: {
+  pedidos: SolicitacaoChecklistBruta[];
+  faseJornada?: string | null;
+  composicao?: string | null;
+  proximaEntregaPrevistaEm?: string | null;
+  eventosTimeline: EventoTimelinePortal[];
+}) {
+  return {
+    etapa: etapaDoCasoCliente(entrada.faseJornada),
+    composicao: composicaoDoCasoCliente(entrada.composicao),
+    proximaEntrega: proximaEntregaCliente(entrada.proximaEntregaPrevistaEm),
+    historico: historicoSanitizado(entrada.eventosTimeline),
+    solicitacoes: solicitacoesAbertasCliente(entrada.pedidos),
+    checklist: checklistDocumentalCliente(entrada.pedidos),
+    documentosPendentes: entrada.pedidos.filter((p) => p.status === "aguardando" || p.status === "recusado").length,
   };
 }

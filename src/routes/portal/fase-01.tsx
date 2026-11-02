@@ -6,6 +6,7 @@ import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { publicacoesDeFase01 } from "@/lib/portal-dados-vivos";
 
 
@@ -37,13 +38,16 @@ export const Route = createFileRoute("/portal/fase-01")({
 export function PortalFase01() {
   const { visibilidade, carregando } = useVisibilidade("relatorio");
   const previa = usePreviaPortal();
-  const { data, isLoading } = usePortalVivo();
+  const { data, isLoading, isError, refetch } = usePortalVivo();
   const itens = publicacoesDeFase01(data?.projecoes ?? []);
 
   return (
     <PortalShell titulo={COPY_TELAS.fase01.titulo} descricao={COPY_TELAS.fase01.descricao}>
       {carregando || isLoading ? (
         <PortalCarregando />
+      ) : isError ? (
+        // C3 (02/11/2026): falha de carga nunca vira "em preparação".
+        <AvisoFalhaConexao mensagem="Não conseguimos carregar agora. Tente de novo." aoTentar={() => void refetch()} />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
 

@@ -5218,7 +5218,10 @@ function manterSo(f: Record<string, unknown>, campos: string[]): Record<string, 
 }
 
 function avisoSalvo(alterados: string[]): string {
-  return `Salvo e conferido no banco${alterados.length ? ` — ${alterados.length} campo(s)` : ""}.`;
+  // "Salvo e conferido" só quando o banco de fato alterou algo; sem campo alterado, diz que nada mudou.
+  return alterados.length
+    ? `Salvo e conferido no banco — ${alterados.length} campo(s).`
+    : "Nada mudou: nenhum campo foi alterado no banco.";
 }
 
 function avisoNaoGuardados(alterados: string[], naoGuardados: string[]): string {

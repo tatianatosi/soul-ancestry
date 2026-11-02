@@ -365,9 +365,12 @@ async function resolverOrganizacao(supabase: SupabaseCliente, userId?: string) {
     .is("archived_at", null);
   if (userId) consulta = consulta.eq("user_id", userId);
   const membro = await consulta.limit(1).maybeSingle();
+  // Erro de leitura nunca vira "sem vínculo": criaria uma organização nova para quem já tem acesso.
+  if (membro.error) throw new Error(`Não foi possível ler o vínculo com a organização: ${membro.error.message}`);
   if (membro.data?.organization_id) return membro.data.organization_id as string;
   // Quem já possui acesso de equipe (pendente/suspenso/revogado) nunca cria nova organização.
   const staff = await supabase.from("staff_access").select("id,status").limit(1).maybeSingle();
+  if (staff.error) throw new Error(`Não foi possível ler o acesso de equipe: ${staff.error.message}`);
   if (staff.data) throw new Error("Acesso não autorizado.");
   const criada = await supabase.rpc("bootstrap_minha_organizacao", {});
   if (criada.error) throw new Error(criada.error.message);
@@ -389,6 +392,8 @@ export const getContexto = createServerFn({ method: "GET" })
       .eq("auth_user_id", context.userId)
       .is("archived_at", null)
       .maybeSingle();
+    // Falha ao ler o acesso de equipe não pode cair no caminho "sem staff" (que cria organização e assume admin).
+    if (staff.error) throw new Error(`Não foi possível ler o seu acesso de equipe: ${staff.error.message}`);
 
     if (staff.data && staff.data.status !== "active") {
       return {
@@ -420,11 +425,43 @@ export const getContexto = createServerFn({ method: "GET" })
         .is("archived_at", null),
     ]);
 
+    if (papeis.error) throw new Error(`Não foi possível ler os seus papéis: ${papeis.error.message}`);
+    if (org.error) throw new Error(`Não foi possível ler a organização: ${org.error.message}`);
+
     // Para a equipe interna, staff_access é a fonte canônica da autorização.
     // A leitura de user_roles continua compondo o contexto, mas uma resposta
     // vazia transitória de RLS não pode retirar o papel já validado do staff e
     // expulsar a proprietária durante reload, renovação do token ou nova aba.
-    const papeisPersistidos = ((papeis.data ?? []) as { role: Papel }[]).map((p) => p.role);
+    let papeisPersistidos = ((papeis.data ?? []) as { role: Papel }[]).map((p) => p.role);
+
+    // Autocura (02/11/2026): o reparo do vínculo só rodava no login por senha e a falha era engolida.
+    // Quem aceitou convite ou entrou por outro caminho ficava com a tela liberando e o banco recusando
+    // (políticas `can_write` exigem vínculo e papel). Aqui o vínculo é refeito a partir do staff_access
+    // ativo, a mesma fonte canônica do login.
+    let vinculoReparado = false;
+    if (staff.data?.status === "active" && !papeisPersistidos.includes(staff.data.role as Papel)) {
+      try {
+        const { sincronizarVinculo } = await import("@/lib/equipe.server");
+        await sincronizarVinculo(
+          { organization_id: organizationId, role: staff.data.role, email: null, full_name: staff.data.full_name },
+          context.userId as string,
+        );
+        const releitura = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("organization_id", organizationId)
+          .eq("user_id", context.userId)
+          .is("archived_at", null);
+        if (releitura.error) throw new Error(releitura.error.message);
+        papeisPersistidos = ((releitura.data ?? []) as { role: Papel }[]).map((p) => p.role);
+        vinculoReparado = true;
+      } catch (e) {
+        // Falha no reparo não derruba a entrada, mas o erro precisa existir para quem for investigar.
+        console.error("[getContexto] reparo do vínculo falhou", e);
+        const { capturarErroProducao } = await import("@/lib/producao-erros.server");
+        await capturarErroProducao(e, { origem: "servidor", mecanismo: "reparo_vinculo" });
+      }
+    }
     const papeisEfetivos = staff.data?.status === "active"
       ? Array.from(new Set<Papel>([staff.data.role as Papel, ...papeisPersistidos]))
       : papeisPersistidos;
@@ -435,9 +472,17 @@ export const getContexto = createServerFn({ method: "GET" })
       organizacao: (org.data ?? null) as { id: string; nome: string; slug: string; demo: boolean } | null,
       perfil: (perfil.data ?? null) as { id: string; nome: string | null; email: string | null } | null,
       papeis: papeisEfetivos,
+      // Sem linha em staff_access não existe acesso de equipe: antes isto devolvia "active/admin" para qualquer
+      // pessoa autenticada. O papel aqui é só o que está registrado em user_roles.
       staff: staff.data
         ? { status: staff.data.status as string, papel: staff.data.role as Papel }
-        : { status: "active", papel: "admin" as Papel },
+        : papeisPersistidos.length
+          ? {
+              status: "active",
+              papel: (papeisPersistidos.includes("admin" as Papel) ? "admin" : papeisPersistidos[0]) as Papel,
+            }
+          : { status: "sem_acesso", papel: "leitura" as Papel },
+      vinculoReparado,
     };
   });
 

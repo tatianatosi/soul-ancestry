@@ -210,26 +210,6 @@
   "classe": "producao_logica_ou_ui"
  },
  {
-  "arquivo": "src/lib/app-visibilidade-registro.ts",
-  "dominio": "lib",
-  "veredicto": "CASCA_DUPLICADA",
-  "risco_vazamento": true,
-  "aguarda_decisao": false,
-  "linhas": 45,
-  "importadores_teste": 0,
-  "classe": "producao_logica_ou_ui"
- },
- {
-  "arquivo": "src/lib/corte-vertical.ts",
-  "dominio": "lib",
-  "veredicto": "APOSENTADA_CLASSIFICADA",
-  "risco_vazamento": true,
-  "aguarda_decisao": false,
-  "linhas": 280,
-  "importadores_teste": 0,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
   "arquivo": "src/lib/debug-cliente-access.ts",
   "dominio": "lib",
   "veredicto": "APOSENTADA_CLASSIFICADA",
@@ -290,24 +270,14 @@
   "classe": "producao_logica_ou_ui"
  },
  {
-  "arquivo": "src/lib/inventario-recuperacao.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": true,
-  "aguarda_decisao": true,
-  "linhas": 998,
-  "importadores_teste": 0,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
   "arquivo": "src/lib/orfaos-modulos-classificados.ts",
   "dominio": "lib",
   "veredicto": "SEM_VEREDITO",
   "risco_vazamento": false,
   "aguarda_decisao": false,
-  "linhas": 343,
+  "linhas": 289,
   "importadores_teste": 1,
-  "classe": "producao_com_dado_real_fixo"
+  "classe": "producao_com_dado_ficticio_fixo"
  },
  {
   "arquivo": "src/lib/portal-fallback-canonico.ts",
@@ -320,26 +290,6 @@
   "classe": "producao_logica_ou_ui"
  },
  {
-  "arquivo": "src/lib/rascunhos-comunicacao-governados.ts",
-  "dominio": "lib",
-  "veredicto": "CASCA_DUPLICADA",
-  "risco_vazamento": true,
-  "aguarda_decisao": false,
-  "linhas": 127,
-  "importadores_teste": 2,
-  "classe": "producao_logica_ou_ui"
- },
- {
-  "arquivo": "src/lib/saneamento-desk-app-v4.ts",
-  "dominio": "lib",
-  "veredicto": "APOSENTADA_CLASSIFICADA",
-  "risco_vazamento": true,
-  "aguarda_decisao": false,
-  "linhas": 49,
-  "importadores_teste": 0,
-  "classe": "producao_com_dado_real_fixo"
- },
- {
   "arquivo": "src/lib/useActiveCase.ts",
   "dominio": "lib",
   "veredicto": "APOSENTADA_CLASSIFICADA",
@@ -348,15 +298,5 @@
   "linhas": 17,
   "importadores_teste": 0,
   "classe": "producao_logica_ou_ui"
- },
- {
-  "arquivo": "src/lib/varredura-completude.ts",
-  "dominio": "lib",
-  "veredicto": "AGUARDA_DECISAO",
-  "risco_vazamento": true,
-  "aguarda_decisao": true,
-  "linhas": 708,
-  "importadores_teste": 2,
-  "classe": "producao_com_dado_real_fixo"
  }
 ]

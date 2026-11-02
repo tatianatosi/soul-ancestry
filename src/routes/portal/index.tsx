@@ -161,9 +161,14 @@ export function PortalHome() {
       <EstadoDados
           superficie="app"
         carregando={isLoading || vivo.isLoading}
-        erro={error}
+        // C3 (02/11/2026): falha da leitura viva (documentos, pedidos, marcos)
+        // também é falha de carga, nunca "sem conteúdo".
+        erro={error ?? (vivo.isError ? (vivo.error ?? true) : null)}
         dados={data}
-        aoTentarNovamente={() => void refetch()}
+        aoTentarNovamente={() => {
+          void refetch();
+          if (vivo.isError) void vivo.refetch();
+        }}
         recurso="o painel do seu caso"
         vazio={COPY_TELAS.home.vazio}
       >
