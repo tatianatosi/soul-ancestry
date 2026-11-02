@@ -165,12 +165,12 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
       try {
         const prof = await supabase
           .from("genealogical_person_profiles")
-          .select("research_person_id, nascimento_data, nascimento_precisao, morte_data, morte_precisao")
+          .select("research_person_id, nascimento_data, nascimento_data_aproximada, nascimento_precisao, morte_data, morte_precisao")
           .eq("organization_id", organizationId)
           .eq("case_id", data.casoId)
           .eq("client_visibility", "aprovada")
           .is("archived_at", null)
-          .or("nascimento_data.not.is.null,morte_data.not.is.null")
+          .or("nascimento_data.not.is.null,nascimento_data_aproximada.not.is.null,morte_data.not.is.null")
           .in("research_person_id", [...publicadosArvore]);
         anosArvore = ((prof.data ?? []) as any[])
           .map((r) => ({ pessoa_id: String(r.research_person_id), rotulo: rotuloAnoArvore(r) }))
