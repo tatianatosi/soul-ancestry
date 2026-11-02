@@ -1,4 +1,6 @@
--- ESTADO: NÃO APLICADO; AGUARDA AUTORIZAÇÃO EXPLÍCITA
+-- ESTADO: JÁ APLICADO em 02/11/2026 pelo Lovable Cloud (autorização da Proprietária: "autorizo has a rolê no Lovable").
+-- Conferido antes (has_role = 0 funções, 3 triggers dependentes) e depois (1 função, SECURITY DEFINER, anon sem execute,
+-- authenticated com execute, true para a admin real e false para uuid inexistente).
 -- Auditoria do Cartographer (02/11/2026), segmento banco-esquema-rls, P1-1.
 --
 -- O que faz: cria `public.has_role(uuid, app_role)`, função que NÃO existe no banco vivo (pg_proc = 0,

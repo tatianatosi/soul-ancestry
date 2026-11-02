@@ -64,7 +64,7 @@ Legenda: ✅ feito e provado · 🟡 feito em parte · ⬜ não feito · ➖ nã
 
 | Achado | Estado | O que falta |
 |---|---|---|
-| `public.has_role` não existe no banco; 3 triggers a chamam (publicar entrega de documento, liberar fatura, assinatura externa) | 🟡 SQL escrito em `supabase/pendentes/20261102160000_cria_has_role.sql`, **não aplicado** | autorização para aplicar pelo Lovable; conferir antes e depois |
+| `public.has_role` não existia no banco; 3 triggers a chamavam (publicar entrega de documento, liberar fatura, assinatura externa) | ✅ aplicado em 02/11 pelo Lovable Cloud (arquivo `20261102160000_cria_has_role.sql`); banco conferido antes e depois | testar no app: publicar entrega de um documento e liberar uma fatura (uso: Proprietária) |
 | Os 3 documentos da Ana seguem liberados ao cliente | ⬜ | "Retirar do App" no Desk (tela destravada no PR #223), na sessão da admin |
 | Convite da Ana (`client_portal_access` 820b628e) está `invited`, sem primeiro login, expira em 03/11/2026 14:25 UTC | ⬜ | decidir se reenvia; enquanto `invited` a Ana não vê nada |
 | `sincronizarVinculo` roda só no login por senha e falha em silêncio; aceite de convite nunca ativa o vínculo (`equipe.functions.ts:130`, `equipe.redefinir-senha.tsx:116`) | ⬜ | corrigir no código (A4) |
