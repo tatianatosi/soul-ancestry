@@ -227,9 +227,9 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     modulo: "lib/app-visibilidade-registro.ts",
     veredicto: "CASCA_DUPLICADA",
     motivo:
-      "O escopo vivo vem do servidor por escopoDoPortal, com o caso real do cliente; escopoDoRegistro deriva o mesmo EscopoCliente de um registro estático de demonstração e não tem nenhum chamador, nem teste.",
+      "Deriva o escopo do App de CaseRecord, o registro fixo de src/data/case-registry (demo). O escopo real do cliente vem de escopoAPartirDePublicacoes, lido por caso no banco; não existe outra fonte de fase 1/fase 2 por caso para alimentar esta função sem inventar dado.",
     destino:
-      "lib/portal-jornada.functions.ts#escopoDoPortal, consumido por useEscopoPortal; não religar (fixture estática)",
+      "src/lib/app-visibilidade.ts (escopoAPartirDePublicacoes, por caso, usado pelo portal e por app-cliente-como-pessoa)",
     riscoVazamento: true,
   },
   {
@@ -239,15 +239,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "A regra 'pendência informa, não impede' roda por autoridade.server.ts, usada em casos-ativacao, caso-ficha, crm-desk e contratos; exigirCamposDeConteudo não tem importador (os 'faltando' vistos em outros arquivos são variáveis locais homônimas).",
     destino:
       "lib/autoridade.server.ts#assumirOuRecusarComUsuario, em uso nos escritores do Desk; não religar",
-  },
-  {
-    modulo: "lib/corte-vertical.ts",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "Nenhum símbolo é usado em src, scripts ou testes; o 'estado real do piloto' é uma foto estática (bloqueios, valores de pagamento) que o banco já responde ao vivo, e religá-la mostraria número desatualizado numa tela.",
-    destino:
-      "Estado vivo no banco e lib/fontes-canonicas-indicadores.ts#INDICADORES_CANONICOS; manter o arquivo como registro histórico, sem apagar",
-    riscoVazamento: true,
   },
   {
     modulo: "lib/debug-cliente-access.ts",
@@ -261,9 +252,9 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     modulo: "lib/decisao-ana-canonica.ts",
     veredicto: "CASCA_DUPLICADA",
     motivo:
-      "A resolução de códigos legados vive hoje nos aliases do banco, lidos por carregarCanonico; os símbolos deste módulo só aparecem em decisao-ana-canonica.test.ts, e as menções a CA-AUT-ANALUIZA em src são constantes próprias.",
+      "Registro da decisão de 22/08/2026 sobre os códigos legados de um caso. O mecanismo por caso já existe: case_aliases, lido pela busca de casos e, desde 01/11/2026, pela rota do Caso 360, que resolve qualquer código legado registrado para o UUID do próprio caso. Religar este módulo criaria uma segunda lista de aliases, escrita no código para uma família só.",
     destino:
-      "Tabela case_aliases via lib/caso-canonico.functions.ts#carregarCanonico; arquivo fica como registro da decisão, sem apagar",
+      "src/lib/caso-busca.functions.ts (alias por caso via case_aliases) e src/routes/_authenticated/casos.$caseId.index.tsx (rota resolve alias)",
     riscoVazamento: true,
   },
   {
@@ -296,15 +287,6 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
       "Decisão: manter o espelho TypeScript como especificação testada da RLS ou substituí-lo por teste contra as policies reais do banco",
   },
   {
-    modulo: "lib/inventario-recuperacao.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Nenhum arquivo importa o módulo, mas desk-modulos.ts:445 anuncia a rota /governanca/inventario-recuperacao, que não existe no routeTree. Há também um inventário mais novo (22/08) já em uso, e o snapshot traz dados reais do caso da Ana.",
-    destino:
-      "Decisão: criar a rota /governanca/inventario-recuperacao que desk-modulos.ts já anuncia, ou aposentar o snapshot de 16/08 em favor do inventário de 22/08",
-    riscoVazamento: true,
-  },
-  {
     modulo: "lib/saneamento-desk-app-v4.ts",
     veredicto: "APOSENTADA_CLASSIFICADA",
     motivo:
@@ -325,18 +307,9 @@ export const MODULOS_ORFAOS: OrfaModulo[] = [
     modulo: "lib/rascunhos-comunicacao-governados.ts",
     veredicto: "CASCA_DUPLICADA",
     motivo:
-      "Só rascunhos-comunicacao-governados.test.ts usa o módulo. Templates governados vivem na Biblioteca de Mensagens (status vigente) e o rascunho com aprovação humana vai para communication_queue em onboarding-plano.functions.ts; templateVigente de orquestracao-jornada é homônimo.",
+      "Lógica de template vigente e bloqueio de rascunho sem destinatário, contexto ou fase. Os modelos governados já existem em message-library e orquestracao-jornada (templateVigente, estados vigente/suspenso/substituido), e o rascunho do envio de contrato já nasce em communication_queue com aprovação humana. Religar criaria um terceiro sistema de templates na comunicação com o cliente.",
     destino:
-      "Não religar: usar src/lib/message-library.functions.ts e a rota biblioteca-mensagens, que já governam templates vigentes",
-    riscoVazamento: true,
-  },
-  {
-    modulo: "lib/varredura-completude.ts",
-    veredicto: "AGUARDA_DECISAO",
-    motivo:
-      "Só varredura-completude.test.ts e decisao-ana-canonica.test.ts usam o módulo; é uma foto datada que descreve a Ana (Felipe sem representação, Alice incompleta) e já não bate com o banco de hoje, que é medido por consulta.",
-    destino:
-      "Decisão: arquivar a foto de 22/08 como histórico rotulado ou mantê-la como inventário testado; o estado vivo vem do banco e do plano de tarefas de 31/10",
+      "src/lib/message-library.functions.ts e src/lib/orquestracao-jornada.ts (modelos governados) com src/lib/rascunho-comunicacao.ts (fila com aprovação humana)",
     riscoVazamento: true,
   },
 ];

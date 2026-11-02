@@ -38,3 +38,17 @@ Ainda sem chamador, com o motivo:
 | Dado de família no código | `inventario-recuperacao`, `varredura-completude`, `corte-vertical`, `decisao-ana-canonica`, `saneamento-desk-app-v4`, `app-visibilidade-registro`, `rascunhos-comunicacao-governados` | precisam virar dado de cada caso antes; `rascunhos` mexe no envio ao cliente |
 | Relatórios e entregas de demo | `entrega-consultiva`, `entrega-modelo`, `relatorio-visual`, `relatorio-fase02`, `plano-acao-demo`, `kit-consolidado`, `desk-arvore-canonica` | demos com família fictícia; a V4 tem as telas reais |
 | Lógica sem tela | `agenda-assistida`, `fontes-documentos-rls`, `design-tokens`, `useActiveCase`, `demo-cliente-helper`, `debug-cliente-access`, `botao-testar-cliente`, `preview-fixtures`, `portal-fallback-canonico`, `data/saneamento` | sem lugar natural na V4, ou duplicam algo ativo |
+
+## Atualização: os 7 módulos com dado de família (02/11/2026)
+
+| Módulo | Resultado |
+| --- | --- |
+| `varredura-completude` | **religado**: bloco "Registros históricos de auditoria" em `/qualidade`, datado (22/08/2026) e rotulado "não ao vivo"; só os números de anexos, sem dado de pessoa |
+| `inventario-recuperacao` | **religado** no mesmo bloco (retrato de 16/08/2026); a lista por pessoa (`ANA_LUIZA`) não é exibida |
+| `corte-vertical` | **religado** no mesmo bloco (fontes, entidades, eventos de conversão, fora do release); as constantes `ANA_*` não são exibidas |
+| `decisao-ana-canonica` | **resolvido por caso, no banco**: a rota do Caso 360 agora resolve código legado por `case_aliases` (a mesma fonte da busca). O módulo é a lista fixa de um caso só, e religá-lo criaria uma segunda lista de aliases |
+| `rascunhos-comunicacao-governados` | **não religado**: os modelos governados já existem (`message-library`, `orquestracao-jornada`) e o rascunho do envio já nasce em `communication_queue` com aprovação humana; religar criaria um terceiro sistema de templates na comunicação com o cliente |
+| `app-visibilidade-registro` | **não religado**: lê o registro fixo de `data/case-registry` (demo); o escopo real do cliente vem de `escopoAPartirDePublicacoes`, por caso, no banco |
+| `saneamento-desk-app-v4` | **não religado**: retrato fixo de um caso; o caso real chega por `dadosVivosDoPortal`. Fica porque o teste de rateio ainda lê o texto |
+
+Órfãos sem importador de produção: 36 → 33.

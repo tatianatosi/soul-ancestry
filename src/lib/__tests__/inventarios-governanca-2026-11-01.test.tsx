@@ -16,6 +16,8 @@ import { INDICADORES } from "@/lib/indicadores-governanca";
 import { INVENTARIO_CAMPOS_ABAS, totalDeCampos } from "@/lib/inventario-campos-abas";
 import { MATRIZ_CONFORMIDADE } from "@/lib/matriz-conformidade";
 import { PASSOS_ACEITE_E2E } from "@/lib/aceite-e2e-passos";
+import { SNAPSHOT } from "@/lib/inventario-recuperacao";
+import { VARREDURA_COMPLETUDE_DATA, anexosNaoLocalizados } from "@/lib/varredura-completude";
 
 afterEach(cleanup);
 
@@ -40,6 +42,21 @@ describe("inventários de governança no Desk", () => {
     const { container } = render(<InventariosDeGovernanca />);
     fireEvent.click(container.querySelector("[data-rodar-auditoria-canvas]") as HTMLElement);
     expect(screen.getByRole("status").textContent).toMatch(/Sem falhas|Falhas:/);
+  });
+
+  it("os registros históricos aparecem datados e rotulados como não ao vivo", () => {
+    render(<InventariosDeGovernanca />);
+    expect(screen.getByText("Retratos datados · não ao vivo")).toBeTruthy();
+    expect(screen.getByText(`Varredura de anexos · ${VARREDURA_COMPLETUDE_DATA}`)).toBeTruthy();
+    expect(screen.getByText(`Inventário de recuperação · ${SNAPSHOT.data}`)).toBeTruthy();
+    expect(screen.getByText("Corte vertical do primeiro release")).toBeTruthy();
+    expect(screen.getByText("Anexos não localizados").nextSibling?.textContent).toBe(String(anexosNaoLocalizados().length));
+  });
+
+  it("a rota do Caso 360 resolve código legado pelo case_aliases do próprio caso", () => {
+    const rota = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
+    expect(rota).toContain('.from("case_aliases")');
+    expect(rota).toMatch(/\.eq\("alias", params\.caseId\)/);
   });
 
   it("não escreve nada e não cita dado de família", () => {

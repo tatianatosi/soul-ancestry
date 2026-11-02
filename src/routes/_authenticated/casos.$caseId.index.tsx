@@ -186,6 +186,16 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
     if (data?.id) {
       throw redirect({ to: "/casos/$caseId", params: { caseId: data.id }, replace: true });
     }
+    // Código legado: o histórico de referências de cada caso vive em `case_aliases` (a mesma
+    // fonte da busca de casos). Sem alias registrado, continua "não encontrado": nada é adivinhado.
+    const { data: alias } = await supabase
+      .from("case_aliases")
+      .select("case_id")
+      .eq("alias", params.caseId)
+      .maybeSingle();
+    if (alias?.case_id) {
+      throw redirect({ to: "/casos/$caseId", params: { caseId: alias.case_id }, replace: true });
+    }
     throw notFound();
   },
   head: () => ({

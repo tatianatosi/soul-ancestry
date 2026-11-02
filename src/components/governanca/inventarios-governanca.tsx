@@ -21,6 +21,26 @@ import {
   totalLinhas as totalEquivalencia,
 } from "@/lib/matriz-equivalencia";
 import { PASSOS_ACEITE_E2E } from "@/lib/aceite-e2e-passos";
+import {
+  ENTIDADES_VERTICAIS,
+  EVENTOS_CONVERSAO_CANONICOS,
+  FONTES_CANONICAS,
+  FORA_DO_PRIMEIRO_RELEASE,
+} from "@/lib/corte-vertical";
+import {
+  ATIVOS,
+  DUPLICIDADES,
+  ORFAOS as ORFAOS_RECUPERACAO,
+  SNAPSHOT as SNAPSHOT_RECUPERACAO,
+} from "@/lib/inventario-recuperacao";
+import {
+  ANEXOS_VARREDURA,
+  REGRA_ANEXOS_NAO_LOCALIZADOS,
+  ROTULO_ESTADO_ANEXO_VARREDURA,
+  VARREDURA_COMPLETUDE_DATA,
+  anexosNaoLocalizados,
+  type EstadoAnexoVarredura,
+} from "@/lib/varredura-completude";
 
 /**
  * Inventários de governança do Desk (só leitura).
@@ -35,6 +55,63 @@ function Linha({ rotulo, valor }: { rotulo: string; valor: string | number }) {
       <span className="text-navy/70">{rotulo}</span>
       <span className="font-medium tabular-nums text-navy">{valor}</span>
     </li>
+  );
+}
+
+/**
+ * Registros históricos de auditoria: retratos datados, rotulados como NÃO ao vivo (trilha de legado).
+ * Mostram só o que é do produto (anexos, ativos, entidades); a leitura atual está nos blocos acima.
+ */
+export function RegistrosHistoricosDeAuditoria() {
+  const porEstado = ANEXOS_VARREDURA.reduce<Partial<Record<EstadoAnexoVarredura, number>>>((acc, a) => {
+    acc[a.estado] = (acc[a.estado] ?? 0) + 1;
+    return acc;
+  }, {});
+  const porStatus = ATIVOS.reduce<Record<string, number>>((acc, a) => {
+    acc[a.status] = (acc[a.status] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <CaCard titulo="Registros históricos de auditoria" eyebrow="Retratos datados · não ao vivo">
+      <p className="text-xs text-navy/60">
+        Cada retrato abaixo vale na data indicada. Servem de registro; o estado atual vem dos blocos acima e do banco.
+      </p>
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
+        <section aria-label="Varredura de anexos">
+          <h3 className="text-sm font-medium text-navy">Varredura de anexos · {VARREDURA_COMPLETUDE_DATA}</h3>
+          <ul className="mt-1">
+            {(Object.keys(porEstado) as EstadoAnexoVarredura[]).map((e) => (
+              <Linha key={e} rotulo={ROTULO_ESTADO_ANEXO_VARREDURA[e]} valor={porEstado[e] ?? 0} />
+            ))}
+            <Linha rotulo="Anexos não localizados" valor={anexosNaoLocalizados().length} />
+          </ul>
+          <p className="mt-1 text-xs text-navy/60">{REGRA_ANEXOS_NAO_LOCALIZADOS}</p>
+        </section>
+
+        <section aria-label="Inventário de recuperação">
+          <h3 className="text-sm font-medium text-navy">Inventário de recuperação · {SNAPSHOT_RECUPERACAO.data}</h3>
+          <ul className="mt-1">
+            <Linha rotulo="Tabelas / funções / policies" valor={`${SNAPSHOT_RECUPERACAO.totais.tabelas} / ${SNAPSHOT_RECUPERACAO.totais.funcoes} / ${SNAPSHOT_RECUPERACAO.totais.policies}`} />
+            {Object.entries(porStatus).map(([s, n]) => (
+              <Linha key={s} rotulo={`Ativos ${s}`} valor={n} />
+            ))}
+            <Linha rotulo="Duplicidades registradas" valor={DUPLICIDADES.length} />
+            <Linha rotulo="Órfãos registrados" valor={ORFAOS_RECUPERACAO.length} />
+          </ul>
+        </section>
+
+        <section aria-label="Corte vertical">
+          <h3 className="text-sm font-medium text-navy">Corte vertical do primeiro release</h3>
+          <ul className="mt-1">
+            <Linha rotulo="Fontes canônicas" valor={FONTES_CANONICAS.length} />
+            <Linha rotulo="Entidades verticais" valor={ENTIDADES_VERTICAIS.length} />
+            <Linha rotulo="Eventos de conversão" valor={EVENTOS_CONVERSAO_CANONICOS.length} />
+            <Linha rotulo="Fora do primeiro release" valor={FORA_DO_PRIMEIRO_RELEASE.length} />
+          </ul>
+        </section>
+      </div>
+    </CaCard>
   );
 }
 
@@ -173,6 +250,8 @@ export function InventariosDeGovernanca() {
           </p>
         ) : null}
       </CaCard>
+
+      <RegistrosHistoricosDeAuditoria />
 
       <MotoresPrimordiais />
     </div>
