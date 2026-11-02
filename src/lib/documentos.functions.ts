@@ -528,7 +528,8 @@ export const painelPrivacidade = createServerFn({ method: "GET" })
         .limit(30),
       supabase
         .from("client_portal_case_access")
-        .select("id,status,created_at")
+        // `access_status` é o nome real; `status` não existe e a consulta falhava inteira (data = null).
+        .select("id,status:access_status,created_at")
         .eq("case_id", data.casoId),
     ]);
 

@@ -17,7 +17,7 @@
  *    Documentos = requisitos de ativação confirmados / registrados.
  *    Estratégia e Próximos passos não têm medida percentual registrada → null.
  */
-import { useState, type MouseEvent, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import {
   Cartao,
@@ -149,18 +149,11 @@ export function RadarMatrizesPrancha({
   const idsSemPosicao = new Set(semPosicao.map((c) => c.id));
   const posicionaveis = casos.filter((c) => !idsSemPosicao.has(c.id));
   const pontos = erro ? [] : pontosDaMatriz(posicionaveis);
-  const idPorRotulo = new Map(pontos.map((p) => [p.rotulo, p.id]));
   const ordem = ordenarAtendimento(posicionaveis).slice(0, 3);
 
-  // O kit desenha cada ponto com `title={rotulo}`; o clique é delegado aqui
-  // para selecionar o mesmo caso no radar individual.
-  const cliqueNaMatriz = (e: MouseEvent<HTMLDivElement>) => {
-    const alvo = (e.target as HTMLElement).closest("[title]");
-    const id = alvo ? idPorRotulo.get(alvo.getAttribute("title") ?? "") : undefined;
-    if (id) {
-      onSelecionarCaso(id);
-      setModo("radar");
-    }
+  const selecionarPontoDaMatriz = (id: string) => {
+    onSelecionarCaso(id);
+    setModo("radar");
   };
 
   const p = selecionado?.posicao ?? null;
@@ -244,13 +237,14 @@ export function RadarMatrizesPrancha({
               ausência de casos.
             </p>
           ) : null}
-          <div onClick={cliqueNaMatriz} className="[&_span[title]]:cursor-pointer">
+          <div className="[&_button[title]]:cursor-pointer">
             <MatrizQuadrantes
               pontos={pontos}
               quadrantes={QUADRANTES}
               eixoX="Elegibilidade"
               eixoY="Urgência"
               tituloAcessivel="Matriz de elegibilidade por urgência dos casos ativos"
+              onPontoSelecionar={selecionarPontoDaMatriz}
             />
           </div>
           <div className="mt-4 border-t border-navy/10 pt-3">

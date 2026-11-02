@@ -4,6 +4,8 @@ import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { PainelQualidade } from "@/components/qualidade/painel";
 import { OrigemDosDados } from "@/components/qualidade/origem-dos-dados";
+import { InventariosDeGovernanca } from "@/components/governanca/inventarios-governanca";
+import { ReferenciasFixasNoCodigo } from "@/components/governanca/referencias-fixas-no-codigo";
 import {
   KpisQualidadeV4,
   PanoramaQualidadeV4,
@@ -89,6 +91,8 @@ function QualidadePage() {
         <div className="mt-4">
           <EixosCanonicosInternos />
           <OrigemDosDados />
+          <InventariosDeGovernanca />
+          <ReferenciasFixasNoCodigo />
           <PainelQualidade />
         </div>
       </details>

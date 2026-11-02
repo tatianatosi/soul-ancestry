@@ -56,6 +56,37 @@ function exigir(papel: string, permitidos: string[], mensagem: string) {
   if (!permitidos.includes(papel)) throw new Error(mensagem);
 }
 
+/** Vocabulário de contract_review_events_event_type_check (lido de pg_constraint em 02/11/2026). */
+export const TIPOS_EVENTO_REVISAO = [
+  "created",
+  "version_created",
+  "validation_run",
+  "review_requested",
+  "review_started",
+  "changes_requested",
+  "approved_for_send",
+  "send_blocked",
+  "signature_recorded",
+  "financial_gate_blocked",
+  "activation_gate_blocked",
+  "archived",
+  "restored",
+  "exception_created",
+  "render_failed",
+  "document_downloaded",
+] as const;
+
+/** Tipo aceito pelo banco; o nome específico do evento fica em metadata.tipo_original. */
+export function tipoEventoDoBanco(tipo: string): (typeof TIPOS_EVENTO_REVISAO)[number] {
+  if ((TIPOS_EVENTO_REVISAO as readonly string[]).includes(tipo)) {
+    return tipo as (typeof TIPOS_EVENTO_REVISAO)[number];
+  }
+  if (tipo.includes("conflito")) return "validation_run";
+  if (tipo.startsWith("render")) return "render_failed";
+  if (tipo === "document_previewed") return "document_downloaded";
+  return "created";
+}
+
 async function evento(
   supabase: Sb,
   organizationId: string,
@@ -64,13 +95,16 @@ async function evento(
   metadata: Record<string, unknown> = {},
   versionId?: string | null,
 ) {
-  await supabase.from("contract_review_events").insert({
+  const tipoBanco = tipoEventoDoBanco(tipo);
+  const { error } = await supabase.from("contract_review_events").insert({
     organization_id: organizationId,
     contract_id: contractId,
     contract_version_id: versionId ?? null,
-    event_type: tipo,
-    metadata,
+    event_type: tipoBanco,
+    metadata: tipoBanco === tipo ? metadata : { ...metadata, tipo_original: tipo },
   });
+  // Antes o erro era engolido e a decisão "manter com motivo" nunca ficava registrada.
+  if (error) throw new Error(`Falha ao registrar o evento do contrato: ${error.message}`);
 }
 
 // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: contract_review_events (acima) é a
@@ -665,7 +699,8 @@ async function decisaoConflitoJaAceita(
     .select("metadata,created_at")
     .eq("organization_id", organizationId)
     .eq("contract_id", contratoId)
-    .eq("event_type", "conflito_mantido_com_motivo")
+    .eq("event_type", "validation_run")
+    .eq("metadata->>tipo_original", "conflito_mantido_com_motivo")
     .order("created_at", { ascending: false })
     .limit(50);
   return ((data ?? []) as { metadata: Record<string, unknown> }[]).some((e) => {
@@ -1505,9 +1540,15 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!versao) throw new Error("Versão não encontrada.");
 
-    const impedimentos: string[] = ((linhas ?? []) as any[])
-      .filter((r) => r.status === "open" && ["blocking", "high"].includes(r.severity))
-      .map((r) => r.label as string);
+    const { data: dispensas, error: erroDispensa } = await supabase.from("contract_exceptions")
+      .select("id,reason,impact,expires_at")
+      .eq("organization_id", organizationId).eq("contract_id", data.contract_id)
+      .eq("scope", "validation_waiver").is("archived_at", null).is("revoked_at", null);
+    if (erroDispensa) throw new Error(erroDispensa.message);
+    const dispensa = (dispensas ?? []).find((d: { reason: string; impact: string; expires_at: string | null }) =>
+      d.reason?.trim() && d.impact?.trim() && (!d.expires_at || new Date(d.expires_at).getTime() > Date.now()));
+    const { impedimentosContratuais } = await import("@/lib/contrato-dispensa-documental");
+    const impedimentos = impedimentosContratuais(linhas ?? [], Boolean(dispensa));
     if (versao.review_decision !== "approved") impedimentos.push("Revisão humana ainda não aprovada");
     if (!versao.rendered_file_path || !versao.rendered_file_hash)
       impedimentos.push("Arquivo privado renderizado e hash registrado");
@@ -1554,7 +1595,11 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora },
     });
-    await evento(supabase, organizationId, data.contract_id, "approved_for_send", {}, data.version_id);
+    await evento(supabase, organizationId, data.contract_id, "approved_for_send", {
+      dispensa_documental_id: dispensa?.id ?? null,
+      pendencias_documentais_preservadas: (linhas ?? []).filter((r: { validation_key: string; status: string }) =>
+        r.status === "open" && ["annexes_required", "party_documents"].includes(r.validation_key)),
+    }, data.version_id);
     if (r.registro["case_id"]) {
       await registrarTimelineCaso(supabase, {
         organizationId,

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Baixar PDF do contrato — corte urgente PP-03/PDF (07/10/2026).
  *
@@ -35,19 +34,24 @@ export const baixarPdfContrato = createServerFn({ method: "GET" })
   })
   .handler(async ({ data, context }) => {
     semCache();
-    const supabase = context.supabase as any;
+    const supabase = context.supabase;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const { data: previa, error } = await supabase
       .from("contract_parameter_previews")
-      .select("id,versao,tipo,estado,html,congelado_em,created_at,updated_at,parameters_id,corpo_contratual,legado_sem_corpo")
+      .select(
+        "id,versao,tipo,estado,html,congelado_em,created_at,updated_at,parameters_id,corpo_contratual,legado_sem_corpo",
+      )
       .eq("id", data.previaId)
       .eq("organization_id", organizationId)
       .is("archived_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!previa) throw new Error("Prévia não encontrada nesta organização.");
-    if (!previa.html) throw new Error("Esta prévia ainda não tem conteúdo gerado — gere a prévia antes de baixar o PDF.");
+    if (!previa.html)
+      throw new Error(
+        "Esta prévia ainda não tem conteúdo gerado — gere a prévia antes de baixar o PDF.",
+      );
 
     /*
      * 08/10/2026 — a tela avisa, o servidor recusa. Medido no caso da Ana:
@@ -74,14 +78,21 @@ export const baixarPdfContrato = createServerFn({ method: "GET" })
       .eq("organization_id", organizationId)
       .maybeSingle();
     const { data: caso } = parametros?.case_id
-      ? await supabase.from("crm_casos").select("codigo").eq("id", parametros.case_id).eq("organization_id", organizationId).maybeSingle()
+      ? await supabase
+          .from("crm_casos")
+          .select("codigo")
+          .eq("id", parametros.case_id)
+          .eq("organization_id", organizationId)
+          .maybeSingle()
       : { data: null };
 
     const rascunho = previa.estado === "rascunho_editavel" || !previa.congelado_em;
     const identificacao = {
       caso: (caso?.codigo as string | undefined) ?? "caso",
       instrumento: "Contrato de Estudo Genealógico v2",
-      versao: rascunho ? `rascunho de trabalho (v${previa.versao})` : `versão v${previa.versao} (congelada)`,
+      versao: rascunho
+        ? `rascunho de trabalho (v${previa.versao})`
+        : `versão v${previa.versao} (congelada)`,
       revisao: previa.tipo === "final" ? "prévia final" : "rascunho",
       geradoEm: new Date().toLocaleString("pt-BR"),
       rascunho,

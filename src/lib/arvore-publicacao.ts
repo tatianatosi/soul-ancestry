@@ -59,16 +59,18 @@ export function conteudoArvore(nome: string, vinculo?: string | null): string {
 export type PerfilAnoArvore = {
   nascimento_data: string | null | undefined;
   nascimento_precisao?: string | null | undefined;
+  nascimento_data_aproximada?: string | null | undefined;
   morte_data: string | null | undefined;
   morte_precisao?: string | null | undefined;
 };
 
 export function rotuloAnoArvore(p: PerfilAnoArvore): string | null {
   const ano = (d: string | null | undefined) => (/^\d{4}/.test(t(d)) ? t(d).slice(0, 4) : null);
-  const nas = ano(p.nascimento_data);
+  const anoRegistrado = t(p.nascimento_data_aproximada);
+  const nas = ano(p.nascimento_data) ?? (/^\d{4}$/.test(anoRegistrado) ? anoRegistrado : null);
   const mor = ano(p.morte_data);
   if (!nas && !mor) return null;
-  const marca = (d: string | null | undefined) => (t(d) === "aproximada" ? "c. " : "");
+  const marca = (d: string | null | undefined) => (["aproximada", "estimada"].includes(t(d)) ? "c. " : "");
   const nasL = nas ? `${marca(p.nascimento_precisao)}${nas}` : null;
   const morL = mor ? `${marca(p.morte_precisao)}${mor}` : null;
   if (nasL && morL) return `${nasL}–${morL}`;

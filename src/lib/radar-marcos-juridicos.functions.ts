@@ -5,8 +5,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { radarMarcosJuridicos } from "@/lib/radar-marcos-juridicos";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * Leitura só-leitura do radar de marcos jurídicos × casos afetados (P25,
  * 2026-09-26). Mesmo padrão de `referencias-normativas.functions.ts`:
@@ -17,7 +15,7 @@ export const radarMarcosJuridicosDoPainel = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
-    const supabase = context.supabase as any;
+    const supabase = context.supabase;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const [{ data: trilhas }, { data: marcosRaw }, { data: casosRaw }] = await Promise.all([

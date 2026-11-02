@@ -332,6 +332,10 @@ export const mudarStatusProposta = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin movem propostas.");
+    if (data.status === "aprovada") {
+      const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+      await exigirAdminAprovador(supabase, organizationId);
+    }
     const atual = await supabase
       .from("proposals")
       .select("status,validade,validade_renovada_em,case_id")

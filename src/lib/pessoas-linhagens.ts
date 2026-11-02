@@ -153,6 +153,9 @@ export type Perfil = {
   sexo: string | null;
   nascimento_data: string | null;
   nascimento_data_aproximada: string | null;
+  nascimento_precisao?: string | null;
+  morte_precisao?: string | null;
+  source_id?: string | null;
   nascimento_localidade: string | null;
   morte_data: string | null;
   morte_data_aproximada: string | null;
