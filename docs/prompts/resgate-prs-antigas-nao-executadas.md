@@ -1,50 +1,24 @@
-# PROMPT EXECUTIVO PARA O CLAUDE CODE: RESGATE CIRÚRGICO DAS PRS ANTIGAS
-Status: aprovado pela Proprietária para execução direta
-Versão: v1.0
-Data: 2026-10-30
-Responsável pela decisão: Tatiana Melani Tosi (Proprietária do Clube Ancestral)
-Repositório: tatianatosi/soul-ancestry (branch main)
+# Resgate das PRs antigas — continuidade conferida
+Status: em revisão
+Versão: v2.0
+Data: 2026-11-02
+Responsável pela decisão: Proprietária do Clube Ancestral
+Fontes: leituras GitHub das PRs #200, #173, #151, #199 e #32; main: supabase/pendentes/README.md; src/lib/__tests__/g02-releitura-estrita-2026-10-30.test.ts.
+Escopo: recuperar capacidades sem repetir entregas ou descartar PRs por antiguidade. Produção exclusivamente no Lovable.
+Premissas: conflito não prova obsolescência; preservar mockups, dados e requisitos aprovados.
+Limites: esta conferência é do GitHub, não do banco vivo ou navegador. Nenhum teste foi executado nesta sessão. Este documento não autoriza automaticamente merge, SQL, fechamento de PR ou publicação.
 
----
+## Etapas já integradas
+- #200 mesclada em 30/10 às 15:11:43Z. Não repetir merge. Sync Guard não garante impedir todo push direto; conferir proteções efetivas.
+- #173 mesclada em 30/10 às 15:33:18Z. README registra aplicação do SQL em 30/10 com policy adaptada para has_org_role, porque has_role não existe no banco. Arquivo de migration ainda contém has_role: não reaplicar literalmente. Banco aplicado é registro documental, não nova verificação do Postgres.
+- #151 mesclada em 30/10 às 15:13:12Z. Não repetir merge nem restaurar placeholders de documentos. Validar comportamento atual e arquivos autorizados sem publicação automática.
+- #199 mesclada em 30/10 às 18:49:27Z, incluindo resgate da releitura estrita da #32 e pipeline na branch atual. Teste dedicado existe em main. Retirada a ordem de fechar #199 como redundante.
 
-## 1. OBJETIVO DA MISSÃO
-Muitas das PRs antigas carregam requisitos de negócio, motores de persistência e saneamento que foram solicitados pela Proprietária e nunca foram concluídos. 
-O erro anterior foi tratá-las como "lixo com conflito" e sugerir descarte. 
-A missão do Claude Code agora é realizar o **transplante cirúrgico** do conteúdo dessas PRs para a main, sem quebrar o layout aprovado do App Cliente nem regredir o sistema.
+## Pendência de resgate
+A #32 continua aberta e sua base é fix/caso-canonico-salvamento-operacional, não main. Não mesclar cegamente: cotejar suas oito alterações contra main, inclusive releitura, decisão pós-salvamento, tarefas do caso, abertura de contrato e ajustes mobile. Reaproveitar o que já existe; resgatar somente diferenças necessárias em branch de integração. Não fechar PRs ou arquivar branches enquanto faltar destino comprovado para cada capacidade.
 
----
+## Banco e lançamento
+README registra três documentos liberados com curadoria pendente e ausência de acesso de cliente na medição de 30/10. Não extrapolar isso para o estado de hoje. Conferir conteúdo e permissões atuais no Lovable; não recriar documentos ou reaplicar SQL por checklist. Publicação não congela código nem comprova integração.
 
-## 2. ORDEM DE EXECUÇÃO CIRÚRGICA (5 ETAPAS)
-
-### ETAPA 1: Automação de Sync e Proteção Anti-Bot (PR #200)
-- **Origem:** Branch `claude/automacao-sync` (PR #200).
-- **Ação:** Fazer o merge do PR #200 na `main`.
-- **Por que é prioritário:** Esta PR não altera `src/`. Ela adiciona o `Sync Guard` no GitHub Actions, impedindo que commits cegos de "Changes" do bot do Lovable sobrescrevam trabalho aprovado ou adicionem arquivos `.env`.
-
-### ETAPA 2: Histórico Contratual e Cadastros Civis da Família Ana Luiza (PR #173)
-- **Origem:** Branch `fix/ana-luiza-historico-contrato-2026-10-20` (PR #173).
-- **Arquivo Vital:** `supabase/migrations/20261020150000_ana_luiza_historico_contrato_banco_antigo.sql`.
-- **Ação:** 
-  1. Extrair e versionar a migration em `supabase/migrations/`;
-  2. Aplicar o SQL no banco Supabase: cria a tabela imutável `contract_history_imports` com as 6 versões de contrato, 84 validações e 20 eventos de revisão do banco antigo;
-  3. Atualizar telefone de Ana e complementar dados civis (RG/órgão/datas) de Adair e Alice onde estava vazio.
-
-### ETAPA 3: Saneamento de Documentos Fictícios (PR #151)
-- **Origem:** Branch `claude/saneamento-documentos-ficticios` (PR #151).
-- **Arquivo Vital:** `src/routes/portal/documentos.tsx`.
-- **Ação:** 
-  1. Resolver o conflito pontual de 1 arquivo;
-  2. Remover os nomes hardcoded da família da Ana ("Friedmann-Reimer") que apareciam para clientes com acervo vazio;
-  3. Preservar o vazio honesto acolhedor aprovado no Mockup de 17 páginas.
-
-### ETAPA 4: Persistência Real com Releitura Pós-Gravação no Desk (PR #32)
-- **Origem:** Branch `feat/pessoa-salvar-tarefa-continuidade` (PR #32).
-- **Arquivo Vital:** `src/lib/pessoas-linhagens.functions.ts`.
-- **Ação:**
-  1. Transplantar a função `salvarRegistroG02`: após o UPDATE, reler o registro diretamente do banco pelo mesmo ID e comparar campo a campo antes de confirmar sucesso na tela;
-  2. Manter a opção de criar tarefa vinculada imediatamente no módulo de Ops/Hoje;
-  3. Isso resolve a queixa central da Proprietária de que edições no Desk não persistiam.
-
-### ETAPA 5: Fechamento Seguro das PRs Redundantes
-- Fechar PR #199 (redundante após PR #198).
-- Arquivar branches antigas que tiveram seu conteúdo resgatado pelas etapas acima.
+## Próximos passos e critério de aceite
+Para cada capacidade da #32: registrar origem, estado em main, diferença necessária, teste e prova de uso. Executar testes pertinentes sem apagá-los para obter verde; demonstrar salvamento, releitura após F5 e tarefa no mesmo caso em Ops/Hoje. Submeter escritas resolvidas à aprovação específica. Sem force-push, descarte por idade ou nova auditoria geral em lugar da implementação.
