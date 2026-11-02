@@ -13,7 +13,9 @@ export async function revalidateOpenPrs(api, repo) {
       files.push(...batch.map(f=>f.filename));if(batch.length<100)break;
     }
     const result=validateEvidence(pr.body,pr.head.sha,files,prs.filter(p=>p.number!==pr.number).map(p=>parseReservation(p.body,p.number)));
-    const record=JSON.parse((pr.body??'').match(/```json\s*\n([\s\S]*?)\n```/)?.[1]??'null');
+    let record;
+    try { record=JSON.parse((pr.body??'').match(/```json\s*\n([\s\S]*?)\n```/)?.[1]??'null'); }
+    catch { record=null; }
     if(record?.base_sha!==pr.base.sha)result.errors.push('Base declarada difere da base atual da PR.');
     await api('POST',`/repos/${repo}/statuses/${pr.head.sha}`,{
       state:result.errors.length||result.pending.length?'failure':'success',context:'reservation-sync',
