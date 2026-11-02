@@ -127,8 +127,11 @@ describe("App consome a etapa real, não uma lista fixa", () => {
   it("o servidor entrega etapa e composição já sanitizadas", () => {
     const fn = ler("src/lib/portal-dados-vivos.functions.ts");
     expect(fn).toContain("fase_jornada, composicao");
-    expect(fn).toContain("etapa: etapaDoCasoCliente(casoAtivo.fase_jornada)");
-    expect(fn).toContain("composicao: composicaoDoCasoCliente(casoAtivo.composicao)");
+    // 02/11/2026 (C5): sanitização movida para `estadoDocumentalEPlanoDoCaso`, comum à prévia do admin.
+    expect(fn).toContain("faseJornada: casoAtivo.fase_jornada");
+    expect(fn).toContain("etapa: estado.etapa");
+    expect(fn).toContain("composicao: estado.composicao");
+    expect(ler("src/lib/portal-dados-vivos.ts")).toContain("etapa: etapaDoCasoCliente(entrada.faseJornada)");
     // Caso não autorizado segue devolvendo vazio, agora também sem etapa.
     // 05/10/2026: o objeto ganhou pessoasMapeadas e passou a várias linhas —
     // os dois campos continuam lado a lado, só que cada um na sua linha.
