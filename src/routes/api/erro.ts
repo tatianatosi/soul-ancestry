@@ -35,7 +35,9 @@ export const Route = createFileRoute("/api/erro")({
           const mensagem = typeof corpo.mensagem === "string" ? corpo.mensagem : "Erro no cliente";
           const erro = new Error(mensagem);
           if (typeof corpo.pilha === "string") erro.stack = corpo.pilha;
-          capturarErroProducao(erro, {
+          // Espera a gravação terminar ANTES de responder: em servidor sem estado o processo encerra o que
+          // ficou pendente assim que a resposta sai, e o erro nunca chegava ao banco (medido em 02/11/2026).
+          await capturarErroProducao(erro, {
             origem: "navegador",
             rota: typeof corpo.rota === "string" ? corpo.rota : undefined,
             mecanismo: typeof corpo.mecanismo === "string" ? corpo.mecanismo : "manual",
