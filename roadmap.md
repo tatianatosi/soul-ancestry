@@ -1,14 +1,14 @@
 # Roadmap
 
 ## 02/11 — v6 e seleção de branch
-- [ ] Preparar contrato da Ana com condição aprovada e validade atual: conferir bloqueios reais; sem assinatura/envio.
-- [ ] Ativar proteção clássica main autorizada, conferir diferença entre bloquear merge e publicar pelo Lovable.
-- [ ] Criar PR real de exemplo com critérios/testes/evidências; acompanhar integração/publicação sem presumir estados.
-- [ ] Executar sequência incremental do code review: caracterização → comparação compartilhada → leituras tipadas → separação por responsabilidade; coordenar territórios Claude/Lovable.
+- [ ] Preparar contrato da Ana: validade persistida 30/11/2026; v6 ainda pending review, prévia desatualizada, duas partes sem documento e anexos I–V ausentes segundo tela autenticada; não marcar prontidão nem inventar dados.
+- [x] Proteção clássica main aplicada PUT 200 e relida GET 200: guard/typecheck-test-build strict, revisão 1/último push, admins sujeitos, conversas resolvidas, sem force/exclusão. Não bloqueia Publicar no Lovable.
+- [ ] PR real #222 aberta no branch claude/exemplo-integracao-evidencias-2026-11-02, commit 7c806a805db04e9dda6d9a7c6fcf2c83754a736d; atrás da main, sem revisão e sem evidências de CI aprovado/publicação. Não integrada.
+- [ ] Corte de leitura tipada iniciado no draft Revisão incremental — leitura de clientes e integração protegida; código isolado, nenhum writer/dado/contrato alterado; aguarda resultado do draft e revisão humana independente.
 - [x] Automação implementada: template PR, validador puro e CLI, reservas de arquivos, guard por SHA, resumo CI e auditoria retrospectiva paginada no painel existente; sem merge/deploy.
 - [x] Comparação de duplicidade compartilhada em Clientes/Leads, preservando CPF, fixtures, queries e erros; 48 testes focais passaram, 3 workflows com sintaxe válida e compilação automática OK; consulta autenticada da Ana pediu decisão humana sem criar registro.
 - [x] GitHub lido via conexão Tati: 201 PRs fechadas, 187 integradas; integração confirmada não prova execução nem publicação.
-- [ ] Ativar checks obrigatórios na main: API confirmou ausência de proteção e regras adicionais; mudança de proteção exige autorização específica.
+- [x] Ativar checks obrigatórios na main: autorizado e aplicado em 02/11, conferido por releitura REST.
 - [ ] Rodar a nova auditoria remota integral: arquivos ainda não integrados à base confiável; precisa da integração autorizada e workflow em operação. PRs antigas sem evidência não serão marcadas como concluídas.
 - [ ] Teste antigo detectar-regressao-merge: execução bloqueada pelo sandbox ao usar git add; executar no CI externo, sem contornar restrições.
 - [x] Revisados os três dossiês anexados, histórico recuperado, 40 PDFs e imagens candidatas: Heinrich 15/05/1837 e Lotte 16/05/1902 na Auditoria-Mãe seção 10.4; PDF confirma Lotte 1902. Originais citados não estão nos anexos disponíveis. Nenhuma data gravada nesta revisão.
