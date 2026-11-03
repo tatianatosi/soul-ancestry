@@ -172,8 +172,6 @@ src/components/desk-go-live.tsx,components/(raiz),producao_viva_banco,1,1
 src/components/entrega-consultiva.tsx,components/(raiz),producao_logica_ou_ui,0,0
 src/components/entrega-modelo.tsx,components/(raiz),producao_com_dado_ficticio_fixo,0,0
 src/components/equipe/aviso-configuracao.tsx,components/equipe,producao_logica_ou_ui,1,0
-src/components/equipe/conferencia-membro.tsx,components/equipe,producao_logica_ou_ui,1,0
-src/components/equipe/conferencia-portal.tsx,components/equipe,producao_logica_ou_ui,1,0
 src/components/equipe/moldura.tsx,components/equipe,producao_logica_ou_ui,5,0
 src/components/equipe/status-envio-recuperacao.tsx,components/equipe,producao_viva_banco,1,0
 src/components/genealogia/aba-modulos.tsx,components/genealogia,producao_logica_ou_ui,1,0
@@ -277,7 +275,7 @@ src/components/saas/autoridade.tsx,components/saas,producao_logica_ou_ui,44,1
 src/components/saas/entidade-crud.tsx,components/saas,producao_viva_banco,3,0
 src/components/saas/erro-superficie.tsx,components/saas,producao_logica_ou_ui,2,0
 src/components/saas/estado-dados.tsx,components/saas,producao_logica_ou_ui,74,0
-src/components/saas/shell.tsx,components/saas,producao_viva_banco,79,1
+src/components/saas/shell.tsx,components/saas,producao_viva_banco,78,1
 src/components/studio-devolutivas.tsx,components/(raiz),producao_logica_ou_ui,1,0
 src/components/timeline-contratual.tsx,components/(raiz),producao_logica_ou_ui,1,0
 src/components/ui/accordion.tsx,components/ui,biblioteca_ui,0,0
@@ -410,7 +408,6 @@ src/lib/__tests__/audit-pr-completion.test.ts,lib,teste,0,0
 src/lib/__tests__/auditoria-mockup-canvas-2026-09-11.test.ts,lib,teste,0,0
 src/lib/__tests__/autoridade-operacional.test.ts,lib,teste,0,0
 src/lib/__tests__/b-catalogo-precos-produtos-pai-crud-2026-10-07.test.ts,lib,teste,0,0
-src/lib/__tests__/b8-auditoria-segura-2026-11-02.test.ts,lib,teste,0,0
 src/lib/__tests__/backlog-a3-b6-2026-11-02.test.ts,lib,teste,0,0
 src/lib/__tests__/backlog-a4-contexto-2026-11-02.test.ts,lib,teste,0,0
 src/lib/__tests__/biblioteca-dsa6-cards.test.ts,lib,teste,0,0
@@ -520,7 +517,6 @@ src/lib/__tests__/condicao-ana-estrutura-aprovada-2026-10-09.test.ts,lib,teste,0
 src/lib/__tests__/condicao-comercial-ana-4-anexos-2026-10-04.test.ts,lib,teste,0,0
 src/lib/__tests__/condicao-comercial-gate-contratante-2026-10-31.test.ts,lib,teste,0,0
 src/lib/__tests__/condicao-comercial.test.ts,lib,teste,0,0
-src/lib/__tests__/conferencia-acesso.test.ts,lib,teste,0,0
 src/lib/__tests__/config-publica.test.ts,lib,teste,0,0
 src/lib/__tests__/config-servidor.test.ts,lib,teste,0,0
 src/lib/__tests__/conta-faturas-gate-previa-2026-10-27.test.ts,lib,teste,0,0
@@ -1061,8 +1057,7 @@ src/lib/assinatura-app.ts,lib,producao_logica_ou_ui,6,1
 src/lib/assistente-transversal.ts,lib,producao_logica_ou_ui,1,1
 src/lib/atendimento.ts,lib,producao_logica_ou_ui,2,0
 src/lib/atos-representacao.functions.ts,lib,producao_viva_banco,1,0
-src/lib/auditoria-segura.server.ts,lib,producao_viva_banco,44,1
-src/lib/autoridade-operacional.ts,lib,producao_logica_ou_ui,2,2
+src/lib/autoridade-operacional.ts,lib,producao_logica_ou_ui,1,2
 src/lib/autoridade.server.ts,lib,producao_viva_banco,27,0
 src/lib/avanco-contrato.ts,lib,producao_logica_ou_ui,1,1
 src/lib/aviso-edicao-nao-salva.ts,lib,producao_logica_ou_ui,62,0
@@ -1141,7 +1136,6 @@ src/lib/conciliacao-catalogo.ts,lib,producao_logica_ou_ui,4,1
 src/lib/condicao-comercial-caso.functions.ts,lib,producao_viva_banco,1,0
 src/lib/condicao-comercial-caso.ts,lib,producao_logica_ou_ui,2,2
 src/lib/condicao-comercial.ts,lib,producao_logica_ou_ui,1,1
-src/lib/conferencia-acesso.ts,lib,producao_logica_ou_ui,5,1
 src/lib/config-publica.ts,lib,producao_viva_banco,5,4
 src/lib/config-servidor.ts,lib,producao_logica_ou_ui,8,4
 src/lib/consolidacao-catalogos-templates.ts,lib,producao_logica_ou_ui,1,1
@@ -1373,7 +1367,7 @@ src/lib/modelo-individual.functions.ts,lib,producao_viva_banco,1,0
 src/lib/modelo-nucleo-familiar.ts,lib,producao_logica_ou_ui,1,1
 src/lib/modo-anexos.ts,lib,producao_logica_ou_ui,2,1
 src/lib/modo-proprietaria.functions.ts,lib,producao_viva_banco,1,0
-src/lib/modo-proprietaria.ts,lib,producao_logica_ou_ui,12,2
+src/lib/modo-proprietaria.ts,lib,producao_logica_ou_ui,10,2
 src/lib/motor-caso.ts,lib,producao_logica_ou_ui,5,4
 src/lib/motor-cidadania.functions.ts,lib,producao_viva_banco,1,0
 src/lib/motor-cidadania.ts,lib,producao_logica_ou_ui,2,2
@@ -1468,7 +1462,7 @@ src/lib/portal-copy.ts,lib,producao_logica_ou_ui,18,5
 src/lib/portal-dados-vivos.functions.ts,lib,producao_com_dado_ficticio_fixo,3,0
 src/lib/portal-dados-vivos.ts,lib,producao_com_dado_ficticio_fixo,16,15
 src/lib/portal-demo-sophia.ts,lib,producao_com_dado_ficticio_fixo,7,3
-src/lib/portal-elegibilidade.ts,lib,producao_logica_ou_ui,8,3
+src/lib/portal-elegibilidade.ts,lib,producao_logica_ou_ui,6,3
 src/lib/portal-entregas.ts,lib,producao_logica_ou_ui,2,1
 src/lib/portal-envio-arquivo.ts,lib,producao_logica_ou_ui,2,1
 src/lib/portal-experiencia-integral.ts,lib,producao_logica_ou_ui,1,1
@@ -1481,7 +1475,7 @@ src/lib/portal-resiliencia.ts,lib,producao_logica_ou_ui,7,1
 src/lib/portal-resumo-caso.ts,lib,producao_viva_banco,5,1
 src/lib/portal-vinculo.ts,lib,producao_logica_ou_ui,4,0
 src/lib/portal.functions.ts,lib,producao_viva_banco,7,0
-src/lib/portal.server.ts,lib,producao_viva_banco,15,0
+src/lib/portal.server.ts,lib,producao_viva_banco,14,0
 src/lib/portfolio-mestre-cruzamento.ts,lib,producao_logica_ou_ui,1,1
 src/lib/preco-canonico.ts,lib,producao_logica_ou_ui,3,1
 src/lib/preco-sugerido-canonico.functions.ts,lib,producao_com_dado_real_fixo,1,0
@@ -1492,10 +1486,10 @@ src/lib/previa-vigente.ts,lib,producao_logica_ou_ui,4,5
 src/lib/prioridade-matriz.ts,lib,producao_logica_ou_ui,12,1
 src/lib/procuracao-europeia.ts,lib,producao_viva_banco,2,1
 src/lib/producao-erros-navegador.ts,lib,producao_logica_ou_ui,2,1
-src/lib/producao-erros.server.ts,lib,producao_logica_ou_ui,7,3
+src/lib/producao-erros.server.ts,lib,producao_logica_ou_ui,6,2
 src/lib/projecao-app-despublicar.server.ts,lib,producao_viva_banco,2,1
 src/lib/projecao-publicavel.ts,lib,producao_com_dado_real_fixo,2,2
-src/lib/projecoes-cliente.ts,lib,producao_logica_ou_ui,19,10
+src/lib/projecoes-cliente.ts,lib,producao_logica_ou_ui,18,10
 src/lib/prontidao-integracoes.ts,lib,producao_logica_ou_ui,2,1
 src/lib/proposta-comercial.ts,lib,producao_logica_ou_ui,1,1
 src/lib/proposta-saneamento.ts,lib,producao_logica_ou_ui,3,1
