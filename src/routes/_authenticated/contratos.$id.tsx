@@ -39,6 +39,7 @@ import {
 } from "@/components/contratos/rotulos";
 import {
   aprovarParaEnvio,
+  liberarContratoAprovadoAoCliente,
   arquivarContrato,
   arquivarItemContrato,
   atualizarContrato,
