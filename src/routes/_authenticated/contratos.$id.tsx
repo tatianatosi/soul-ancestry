@@ -39,6 +39,7 @@ import {
 } from "@/components/contratos/rotulos";
 import {
   aprovarParaEnvio,
+  liberarContratoAprovadoAoCliente,
   arquivarContrato,
   arquivarItemContrato,
   atualizarContrato,
@@ -1431,6 +1432,7 @@ function Revisao({
 }) {
   const decidir = useServerFn(registrarDecisaoRevisao);
   const aprovar = useServerFn(aprovarParaEnvio);
+  const liberar = useServerFn(liberarContratoAprovadoAoCliente);
   const excecao = useServerFn(criarExcecao);
   const os = useServerFn(salvarOrdemServico);
   // 06/09/2026: "Aprovar para envio" recusava com "Escopo contratado definido" e
@@ -1483,6 +1485,22 @@ function Revisao({
               onSalvo();
             }}
           />
+          {versao.status === "approved_for_send" ? (
+            <AcaoOperacional
+              rotulo={`Liberar v${versao.version_number} aprovada no App Cliente`}
+              capacidade="aprovar_proposta_os_anexo_previa"
+              efeito="Coloca esta versão aprovada como arquivo privado em Documentos do App, visível só à cliente do caso. Não envia e-mail, não assina e não cobra."
+              onConfirmar={async () => {
+                const r = await liberar({ data: { contract_id: contratoId } });
+                setAviso(
+                  r.jaLiberado
+                    ? "Esta versão já estava liberada no App Cliente."
+                    : "Versão aprovada liberada em Documentos do App Cliente.",
+                );
+                onSalvo();
+              }}
+            />
+          ) : null}
         </div>
       </div>
 
