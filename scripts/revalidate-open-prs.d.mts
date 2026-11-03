@@ -1,1 +1,0 @@
-export function revalidateOpenPrs(api: (method: string, path: string, body?: unknown) => Promise<any>, repo: string): Promise<number>;
