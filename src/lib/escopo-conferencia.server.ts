@@ -16,6 +16,7 @@ import { GateBloqueadoError, bloqueiosDaAcao, ehAcaoGateadaInterna, type AcaoGat
 import { extrairEscopoDaProposta, mapaCoberturaEscopo } from "@/lib/escopo-proposta";
 import { sanearProposta, type SaneamentoProposta } from "@/lib/proposta-saneamento";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 type Sb = any;
 
@@ -327,7 +328,7 @@ export async function exigirGate(
       .maybeSingle();
 
     if (decisao) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         user_id: input.userId,
         acao: "gate_superado_por_decisao_proprietaria",
@@ -347,7 +348,7 @@ export async function exigirGate(
     }
   }
 
-  await supabase.from("audit_logs").insert({
+  await registrarAuditoria(supabase, {
     organization_id: organizationId,
     user_id: input.userId,
     acao: "gate_formalizacao_bloqueado",

@@ -11,6 +11,7 @@ import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 import { entregasLiberadasParaCliente } from "@/lib/portal-entregas";
 import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { STATUS_FATURA_SIMPLES } from "@/lib/portal-cliente.server";
+import { exigirLeitura } from "@/lib/conferencia-acesso";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -343,7 +344,8 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const helpers = await import("./portal.server");
+    const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
     // Mesma ponte admin de `resumoVisaoClienteCaso` (evita recursão RLS em
     // app_projections). Filtro explícito de organização porque o admin
     // não passa por RLS.
@@ -353,28 +355,32 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       supabase
         .from("client_portal_access")
         .select(
-          "id, client_id, email, access_status, access_level, finalidade, authorized_email_id, invited_at, invitation_expires_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at, first_authenticated_at, last_authenticated_at, revocation_reason, is_demo, archived_at, created_at",
+          "id, client_id, auth_user_id, email, access_status, access_level, finalidade, authorized_email_id, invited_at, invitation_expires_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at, first_authenticated_at, last_authenticated_at, revocation_reason, is_demo, archived_at, created_at",
         )
+        .eq("organization_id", organizationId)
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
       supabase
         .from("client_portal_case_access")
-        .select("id, client_portal_access_id, case_id, access_status, granted_at"),
-      supabase.from("clientes").select("id, nome, email, classificacao, is_demo").is("archived_at", null),
+        .select("id, client_portal_access_id, case_id, access_status, granted_at")
+        .eq("organization_id", organizationId),
+      supabase.from("clientes").select("id, nome, email, classificacao, is_demo").eq("organization_id", organizationId).is("archived_at", null),
       supabase
         .from("crm_casos")
         .select(
           "id, codigo, titulo, cliente_id, ativo, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, app_access_status, demo",
         )
+        .eq("organization_id", organizationId)
         .is("archived_at", null),
       supabase
         .from("authorized_portal_emails")
         .select(
           "id, client_id, case_id, email, finalidade, nivel_pretendido, status, validado_em, motivo_recusa, is_demo, archived_at, created_at",
         )
+        .eq("organization_id", organizationId)
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
-      supabase.from("proposals").select("id, client_id, case_id, status, archived_at").is("archived_at", null),
+      supabase.from("proposals").select("id, client_id, case_id, status, archived_at").eq("organization_id", organizationId).is("archived_at", null),
       // §22 do De-Para (Portal do Cliente, zona "Resumo por família/caso —
       // status geral de publicação do App"): mesma fonte que
       // `resumoVisaoClienteCaso` já usa por caso, aqui por organização
@@ -386,18 +392,18 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       leitorProjecoes
         .from("app_projections")
         .select(
-          "id, case_id, approval_status, archived_at, projection_type, source_entity_type, created_by, updated_by, effective_from, created_at",
+          "id, case_id, approval_status, archived_at, projection_type, source_entity_type, created_by, updated_by, effective_from, created_at, destination, approved_at, approved_by, titular_client_id",
         )
         .eq("organization_id", organizationId),
     ]);
     return {
-      acessos: (acessos.data ?? []) as any[],
-      casosAcesso: (casosAcesso.data ?? []) as any[],
-      clientes: (clientes.data ?? []) as any[],
-      casos: (casos.data ?? []) as any[],
-      autorizacoes: (autorizacoes.data ?? []) as any[],
-      propostas: (propostas.data ?? []) as any[],
-      projecoes: (projecoes.data ?? []) as any[],
+      acessos: exigirLeitura(acessos, "os acessos ao portal") as any[],
+      casosAcesso: exigirLeitura(casosAcesso, "os vínculos de casos") as any[],
+      clientes: exigirLeitura(clientes, "as pessoas") as any[],
+      casos: exigirLeitura(casos, "os casos") as any[],
+      autorizacoes: exigirLeitura(autorizacoes, "as autorizações de e-mail") as any[],
+      propostas: exigirLeitura(propostas, "as propostas") as any[],
+      projecoes: exigirLeitura(projecoes, "as publicações do App") as any[],
     };
   });
 

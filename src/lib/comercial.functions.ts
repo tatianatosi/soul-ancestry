@@ -17,6 +17,7 @@ import {
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { calcularResumoFinanceiroCaso, type ResumoFinanceiroCaso } from "@/lib/financeiro-caso";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -47,7 +48,7 @@ export const listarComercial = createServerFn({ method: "GET" })
     // Auditoria da tentativa bloqueada de trazer dado TESTE para leitura operacional.
     // Registra apenas metadados (recurso e papel); nenhum conteúdo sensível é gravado.
     if (data.incluirDemos === true && !incluirDemos) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         user_id: context.userId as string,
         entidade: data.recurso,
