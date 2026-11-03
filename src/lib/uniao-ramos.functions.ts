@@ -18,7 +18,6 @@ import { exigirPublicavelNoApp } from "@/lib/projecao-publicavel";
 import { TIPO_PROJECAO_ROTULO, tipoChegaAoCliente } from "@/lib/projecoes-cliente";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { TIPO_UNIAO_RAMOS, validarUniaoDeRamos } from "@/lib/uniao-ramos";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 const COLUNAS = "id,projection_type,content_sanitized,source_entity_id,vinculo_projecao_id,effective_from,approved_at";
 
@@ -153,7 +152,7 @@ export const publicarUniaoDeRamos = createServerFn({ method: "POST" })
         });
 
     const id = idExistente ?? ((r as { id?: string }).id ?? null);
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: id,
@@ -209,7 +208,7 @@ export const despublicarUniaoDeRamos = createServerFn({ method: "POST" })
       userId,
       payload: { approval_status: "archived", archived_at: new Date().toISOString(), archived_reason: data.motivo.trim() },
     });
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: proj.id,

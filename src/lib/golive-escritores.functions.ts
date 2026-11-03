@@ -21,7 +21,6 @@ import { proprietariaOperando } from "@/lib/autoridade.server";
 import { etapaDoResultado, passoDeEtapa } from "@/lib/golive-comercial";
 import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
 import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -1264,7 +1263,7 @@ export const salvarRascunhoProjecaoApp = createServerFn({ method: "POST" })
         });
     const id = data.id ?? ((r as { id?: string }).id ?? null);
 
-    await registrarAuditoria(s, {
+    await s.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: id,
@@ -1352,7 +1351,7 @@ export const publicarRascunhoProjecaoApp = createServerFn({ method: "POST" })
         effective_from: agora,
       },
     });
-    await registrarAuditoria(s, {
+    await s.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: String(rascunho.id),

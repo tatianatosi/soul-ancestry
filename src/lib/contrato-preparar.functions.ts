@@ -48,7 +48,6 @@ import {
   type DependenteContrato,
   type ParteContrato,
 } from "@/lib/resgate-contrato-planejador";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -111,7 +110,7 @@ async function auditar(
     }
   }
 
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: input.org,
     user_id: input.userId,
     acao: input.acao,

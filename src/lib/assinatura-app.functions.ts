@@ -29,7 +29,6 @@ import {
   upsellsPublicados,
   validarAssinatura,
 } from "@/lib/assinatura-app";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 type Tipo = typeof TIPO_ASSINATURA | typeof TIPO_UPSELL;
 
@@ -144,7 +143,7 @@ export const publicarAssinaturaNoApp = createServerFn({ method: "POST" })
           },
         });
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: (idExistente ?? (r as { id?: string }).id) ?? null,
@@ -195,7 +194,7 @@ export const despublicarAssinaturaDoApp = createServerFn({ method: "POST" })
       payload: { approval_status: "archived", archived_at: agora, archived_reason: data.motivo.trim() },
     });
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: data.projecaoId,

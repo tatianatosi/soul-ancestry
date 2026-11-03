@@ -10,6 +10,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import { CaCard } from "@/components/ui/ca-card";
 import { PortalVisaoInternaV4 } from "@/components/desk/portal-visao-interna-v4";
+import { ConferenciaPortal } from "@/components/equipe/conferencia-portal";
 import {
   alterarStatusAcessoPortal,
   criarConvitePortal,
@@ -771,6 +772,8 @@ function AcessosPortalPage() {
                           </button>
                         </div>
                       </div>
+
+                      <ConferenciaPortal acesso={a} pessoa={cliente} vinculos={casosVinculados} casos={casos} autorizacoes={autorizacoes} propostas={propostas} projecoes={q.data?.projecoes ?? []} />
 
                       {a.access_level === "client_workspace" ? (
                         <div className="mt-4 border-t border-navy/10 pt-3">

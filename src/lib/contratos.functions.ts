@@ -5,7 +5,6 @@ import { gravarComVerificacao, inserirComVerificacao, exigirLinhaGravada } from 
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
  * Motor contratual — camada de servidor.
@@ -868,7 +867,7 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
       atualizados++;
     }
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "contract_parties",
       entidade_id: contrato.id,
@@ -1139,7 +1138,7 @@ export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
       atualizados++;
     }
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "contract_parties",
       entidade_id: contrato.id,

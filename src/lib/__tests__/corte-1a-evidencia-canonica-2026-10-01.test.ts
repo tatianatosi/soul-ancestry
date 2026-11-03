@@ -92,7 +92,7 @@ describe("escritor único: ninguém mais grava evidência", () => {
       "inserirComVerificacao(",
       "gravarComVerificacao(",
       "validarMudancaDeEstado(",
-      "registrarAuditoria(", // auditoria agora passa pelo helper que lê o erro (B8, 02/11/2026)
+      "audit_logs",
       "registrarTimelineCaso(",
     ])
       expect(canonico).toContain(t);

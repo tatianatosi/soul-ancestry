@@ -42,7 +42,6 @@ import {
   rotuloTrilhaLead,
   type EventoCall,
 } from "@/lib/crm-vivo";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -148,7 +147,7 @@ async function registrarEventosCall(
 ): Promise<void> {
   for (const evento of eventos) {
     try {
-      await registrarAuditoria(supabase, {
+      await supabase.from("audit_logs").insert({
         organization_id: organizationId,
         user_id: userId,
         acao: evento,
@@ -220,7 +219,7 @@ async function registrarAuditoriaLead(
   // devem, porém, derrubar a gravação principal: são registrados mas não
   // relançados, para não confundir defeito operacional com defeito de log.
   try {
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       user_id: userId,
       acao,
@@ -336,7 +335,7 @@ async function auditarDiscovery(
   metadados: Record<string, unknown>,
 ) {
   try {
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       user_id: userId,
       acao,

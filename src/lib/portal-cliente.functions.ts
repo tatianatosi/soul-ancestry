@@ -5,7 +5,6 @@ import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
 import { entregasLiberadasParaCliente } from "@/lib/portal-entregas";
 import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal } from "@/lib/motor-caso";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -332,7 +331,7 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
         throw new Error("NENHUMA_LINHA_AFETADA: solicitação de documento não encontrada neste caso.");
       }
     }
-    await registrarAuditoria(portal.adminClient, {
+    await portal.adminClient.from("audit_logs").insert({
       organization_id: acesso.organization_id,
       user_id: context.userId,
       acao: "documento_enviado_pelo_cliente",
@@ -378,7 +377,7 @@ export const baixarEntrega = createServerFn({ method: "POST" })
       .createSignedUrl(doc.data.storage_path, 120);
     if (assinado.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
-    await registrarAuditoria(portal.adminClient, {
+    await portal.adminClient.from("audit_logs").insert({
       organization_id: acesso.organization_id,
       user_id: context.userId,
       acao: "download_entrega_cliente",

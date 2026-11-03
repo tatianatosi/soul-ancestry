@@ -13,7 +13,6 @@ import { TIPOS_EXCECAO_ROTULOS, validadeSugerida } from "@/lib/varredura-autoriz
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { reconciliarD7Caso } from "@/lib/d7-microentrega.server";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -528,7 +527,7 @@ export const registrarExcecao = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: ctx.organizationId,
       user_id: context.userId,
       acao: "excecao_operacional",

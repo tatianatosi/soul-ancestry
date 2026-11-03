@@ -28,7 +28,6 @@ import {
   validarEvidencia,
   validarMudancaDeEstado,
 } from "@/lib/evidencia-canonica";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
  * O `research_cases` deste caso. Evidência pertence à Pesquisa (decisão 2 da
@@ -288,7 +287,7 @@ export async function gravarEvidenciaCanonica(
       });
 
   const id = data.id ?? (r as { id?: string }).id ?? null;
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: organizationId,
     entidade: "research_evidence_items",
     entidade_id: id,
@@ -357,7 +356,7 @@ export async function mudarSituacaoEvidenciaCanonica(
     payload: { ...par, validation_rationale: data.justificativa.trim() },
   });
 
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: organizationId,
     entidade: "research_evidence_items",
     entidade_id: data.id,
@@ -425,7 +424,7 @@ export async function arquivarEvidenciaCanonicaCore(
       archive_reason: data.motivo.trim(),
     },
   });
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: organizationId,
     entidade: "research_evidence_items",
     entidade_id: data.id,

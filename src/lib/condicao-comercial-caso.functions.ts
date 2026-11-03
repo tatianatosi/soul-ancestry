@@ -24,7 +24,6 @@ import {
   type CondicaoComercialCaso,
 } from "@/lib/condicao-comercial-caso";
 import { ANEXOS_CANONICOS, DE_PARA_ANEXOS_DUPLICADOS } from "@/lib/anexos-de-para-duplicidade";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 const COLUNAS =
   "id,case_id,proposal_id,proposal_reference,versao,approved_items,fees,third_party_costs,official_fees," +
@@ -204,7 +203,7 @@ export const registrarVersaoCondicaoComercial = createServerFn({ method: "POST" 
     // A versão aprovada continua vigente até a nova ser aprovada (`aprovarVersaoCondicaoComercial`).
     // Antes ela virava `substituida` já na criação do rascunho e o caso ficava sem condição vigente.
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "case_commercial_condition",
       entidade_id: (criada as any)?.id ?? null,

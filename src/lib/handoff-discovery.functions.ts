@@ -38,7 +38,6 @@ import { limparCamposLead } from "@/lib/crm-lead-campos";
 import { errosBloqueantesAlteracao } from "@/lib/crm-desk";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { patchCasoDaTriagem, patchClienteReaproveitado } from "@/lib/handoff-triagem";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -136,7 +135,7 @@ async function registrarHandoffNaTrilhaDoLead(
     caso_criado: args.casoCriado,
   };
   try {
-    await registrarAuditoria(supabase, [
+    await supabase.from("audit_logs").insert([
       { ...base, acao: "handoff_concluido", metadados: { ...vinculo, evento: "Handoff concluído" } },
       {
         ...base,
@@ -212,7 +211,7 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         userId,
         payload: rascunho,
       });
-      await registrarAuditoria(supabase, {
+      await supabase.from("audit_logs").insert({
         organization_id: organizationId,
         user_id: userId,
         acao: "handoff_rascunho_gravado",

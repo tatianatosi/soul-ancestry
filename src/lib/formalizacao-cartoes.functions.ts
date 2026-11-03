@@ -5,7 +5,6 @@ import { semCache } from "@/lib/no-store";
 import { CHAVES_CONFERENCIA_MANUAL, PREFIXO_CHAVE_FORMALIZACAO, type RegistroPersistido } from "@/lib/formalizacao-cartoes";
 import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 import { exigirLinhaGravada } from "@/lib/persistencia.server";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Sb = any;
@@ -173,7 +172,7 @@ export const marcarItemFormalizacao = createServerFn({ method: "POST" })
       throw new Error("A conferência não foi confirmada na releitura. Nada foi dado como salvo.");
     }
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: org,
       user_id: userId,
       acao: "formalizacao_conferencia_marcada",

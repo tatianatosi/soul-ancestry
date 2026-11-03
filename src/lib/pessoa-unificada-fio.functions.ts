@@ -15,7 +15,6 @@ import {
   type EloMedido,
   type PessoaDoFio,
 } from "@/lib/pessoa-unificada-fio";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -372,7 +371,7 @@ export const religarElosMecanicosDoFio = createServerFn({ method: "POST" })
       religados.push(String(pessoa["canonical_name"] ?? id));
     }
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       user_id: userId,
       acao: "elos_mecanicos_do_fio_religados",

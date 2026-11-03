@@ -3,7 +3,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { itemElegivelParaProposta, regraAplicavelACaso } from "@/lib/biblioteca-mestre";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
  * Biblioteca Mestre — leitura e escrita auditada das referências internas.
@@ -689,7 +688,7 @@ async function registrarAuditoriaBiblioteca(
   },
 ) {
   if (!evento.organizationId) return;
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: evento.organizationId,
     user_id: evento.userId,
     entidade: "biblioteca_mestre",

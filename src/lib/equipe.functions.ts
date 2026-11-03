@@ -3,7 +3,7 @@ import { origemDeAutenticacao } from "@/lib/origem-canonica";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
+import { exigirLeitura, type PapelRegistrado } from "@/lib/conferencia-acesso";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -216,16 +216,22 @@ export const listarEquipe = createServerFn({ method: "GET" })
     semCache();
     const h = await import("./equipe.server");
     const supabase = context.supabase as any;
-    const staff = await h.staffPorUsuario(context.userId as string);
-    const { data } = await supabase
+    const staff = await h.exigirAdminEquipe(context.userId as string);
+    const membros = await supabase
       .from("staff_access")
       .select(
-        "id, auth_user_id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
+        "id, organization_id, auth_user_id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
       )
+      .eq("organization_id", staff.organization_id)
       .is("archived_at", null)
       .order("created_at", { ascending: false });
+    const papeis = await supabase.from("user_roles")
+      .select("user_id, organization_id, role")
+      .eq("organization_id", staff.organization_id)
+      .is("archived_at", null);
     return {
-      membros: (data ?? []) as any[],
+      membros: exigirLeitura(membros, "a equipe") as any[],
+      papeisRegistrados: exigirLeitura(papeis, "os papéis da equipe") as PapelRegistrado[],
       souAdmin: staff?.status === "active" && staff?.role === "admin",
     };
   });
@@ -446,7 +452,7 @@ async function registrarBootstrapNegado(h: typeof import("./equipe.server"), mot
   const trava = await h.adminClient.from("bootstrap_lock").select("organization_id").limit(1).maybeSingle();
   const organizationId = trava.data?.organization_id as string | undefined;
   if (!organizationId) return;
-  await registrarAuditoria(h.adminClient, {
+  await h.adminClient.from("audit_logs").insert({
     organization_id: organizationId,
     acao: "bootstrap_denied",
     entidade: "staff_access",

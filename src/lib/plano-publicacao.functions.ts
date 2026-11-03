@@ -14,7 +14,6 @@ import { semCache } from "@/lib/no-store";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { conteudoPlano, validarPublicacaoPlano } from "@/lib/plano-publicacao";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /** O plano publicado hoje para este caso (ou `null`). */
 export const listarPlanoDoCaso = createServerFn({ method: "GET" })
@@ -116,7 +115,7 @@ export const publicarPlanoNoApp = createServerFn({ method: "POST" })
           },
         });
 
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: (idExistente ?? (r as { id?: string }).id) ?? null,
@@ -164,7 +163,7 @@ export const despublicarPlanoDoApp = createServerFn({ method: "POST" })
       userId,
       payload: { approval_status: "archived", archived_at: new Date().toISOString(), archived_reason: data.motivo.trim() },
     });
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: proj.id,

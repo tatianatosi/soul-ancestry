@@ -1,4 +1,3 @@
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 /**
  * Leitura e triagem das divergências de catálogo registradas.
  *
@@ -142,7 +141,7 @@ export async function anotarResolucao(
   if (error) throw new Error(error.message);
   if (!atualizada?.id) throw new Error("Nenhuma linha afetada ao anotar resolução da divergência.");
 
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: input.org,
     user_id: input.userId,
     acao: "divergencia_catalogo_observacao_registrada",

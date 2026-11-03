@@ -18,7 +18,6 @@ import {
   extensaoDe,
   validarArquivo,
 } from "@/lib/fontes-documentos";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -364,7 +363,7 @@ export const verFonteDocumento = createServerFn({ method: "POST" })
     const assinado = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(doc.storage_path as string, 120);
     if (assinado.error) throw new Error(assinado.error.message);
 
-    await registrarAuditoria(supabaseAdmin, {
+    await supabaseAdmin.from("audit_logs").insert({
       organization_id: organizationId,
       user_id: userId,
       acao: "leitura_arquivo",

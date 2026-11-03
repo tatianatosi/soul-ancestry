@@ -16,7 +16,6 @@ import {
   gravarEvidenciaCanonica,
   listarEvidenciasCanonicasDoCaso,
 } from "@/lib/evidencia-canonica.server";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -585,7 +584,7 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
         userId: context.userId as string,
       });
     }
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: data.id,
@@ -730,7 +729,7 @@ export const despublicarProjecao = createServerFn({ method: "POST" })
         userId: context.userId as string,
       });
     }
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: data.id,

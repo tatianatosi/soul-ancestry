@@ -19,7 +19,6 @@ import {
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { exigirPersistenciaConferida } from "@/lib/verificacao-persistencia";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -218,7 +217,7 @@ export const baixarDocumento = createServerFn({ method: "POST" })
     const assinado = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(doc.storage_path as string, 120);
     if (assinado.error) throw new Error(assinado.error.message);
 
-    await registrarAuditoria(supabaseAdmin, {
+    await supabaseAdmin.from("audit_logs").insert({
       organization_id: organizationId,
       user_id: userId,
       acao: "download",

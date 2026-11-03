@@ -15,7 +15,6 @@ import {
   type SugestaoTrilha,
   type TrilhaAtiva,
 } from "@/lib/ancestralscan-triagem";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -105,7 +104,7 @@ export async function criarLeadDaTriagem(
   // Mesma trilha de auditoria de `salvarLeadDesk` (entidade "lead",
   // ação "criar_lead") — `trilhaDoLead` lê essa tabela sem distinguir
   // origem, então o lead do Scan aparece na mesma trilha de qualquer outro.
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: organizationId,
     user_id: input.userId,
     acao: "criar_lead",
@@ -186,7 +185,7 @@ export async function aceitarSugestaoTrilha(
     userId: input.userId,
     payload: { trilha_referencia_id: input.trackId },
   });
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: organizationId,
     user_id: input.userId,
     acao: "aceitar_sugestao_trilha_scan",
@@ -206,7 +205,7 @@ export async function rejeitarSugestaoTrilha(
 ) {
   if (!input.motivo.trim()) throw new Error("Motivo é obrigatório para rejeitar uma sugestão de trilha.");
   const organizationId = await orgDoUsuario(supabase, input.userId);
-  await registrarAuditoria(supabase, {
+  await supabase.from("audit_logs").insert({
     organization_id: organizationId,
     user_id: input.userId,
     acao: "rejeitar_sugestao_trilha_scan",

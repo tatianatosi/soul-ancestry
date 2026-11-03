@@ -4,7 +4,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { avaliarPreparacaoInstrumentos, type EntradaPreparacao } from "@/lib/instrumentos-preparacao";
 import { TEMAS_JURIDICOS, canonicalizarTemaCodigo } from "@/lib/matriz-juridica";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -206,7 +205,7 @@ export const lerPreparacaoInstrumentos = createServerFn({ method: "GET" })
     const resultado = avaliarPreparacaoInstrumentos(entrada);
 
     // Auditoria sanitizada: só contadores e códigos, sem dados pessoais ou valores.
-    await registrarAuditoria(supabase, {
+    await supabase.from("audit_logs").insert({
       organization_id: caso.organization_id,
       user_id: userId,
       acao: "consulta_preparacao_instrumentos",

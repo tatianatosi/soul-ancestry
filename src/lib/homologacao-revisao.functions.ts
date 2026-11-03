@@ -2,7 +2,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
  * Confirma a homologação em lote dos SKUs previamente revisados item a item.
@@ -79,7 +78,7 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
         continue;
       }
 
-      await registrarAuditoria(supabase, {
+      await supabase.from("audit_logs").insert({
         organization_id: organizationId,
         user_id: userId,
         acao: "sku_homologado_em_lote",

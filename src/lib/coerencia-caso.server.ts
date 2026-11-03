@@ -7,7 +7,6 @@
 
 import { CONFLITO_PAIS_ROTA, validarCoerenciaCaso } from "@/lib/coerencia-caso";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
-import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 type Sb = any;
 
@@ -84,7 +83,7 @@ export async function exigirCoerencia(
       .limit(1)
       .maybeSingle();
     if (decisao) {
-      await registrarAuditoria(supabase, {
+      await supabase.from("audit_logs").insert({
         organization_id: ctx.organizationId,
         user_id: ctx.userId,
         acao: "conflito_pais_rota_superado_por_decisao_proprietaria",
