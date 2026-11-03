@@ -22,6 +22,7 @@ import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criti
 
 
 export const Route = createFileRoute("/_authenticated/pesquisa/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Pesquisa genealógica — Clube Ancestral" },

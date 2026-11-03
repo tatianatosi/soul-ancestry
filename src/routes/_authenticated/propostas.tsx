@@ -40,6 +40,7 @@ import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
 export const Route = createFileRoute("/_authenticated/propostas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Propostas — Clube Ancestral" },

@@ -8,6 +8,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { CardsVidaDoCliente } from "@/components/caso/cards-vida-do-cliente";
+import { ConferenciaPilotoCaso } from "@/components/caso/conferencia-piloto-caso";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -75,6 +76,7 @@ import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
 import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
 import { CadeiaGenealogicaCaso } from "@/components/caso/cadeia-genealogica-caso";
 import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
+import { rotuloTarefaDoCaso, separarTarefasDoCaso } from "@/lib/tarefas-do-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
 import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
@@ -169,6 +171,7 @@ import {
 } from "@/lib/caso-ficha";
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
+  staticData: { sitemap: false },
   // URL com código canônico (ex.: CA-CID-AT-FAM-2026-001) → resolve para o UUID
   // persistido em crm_casos.codigo (leitura sob RLS) antes de qualquer consulta.
   beforeLoad: async ({ params }) => {
@@ -182,6 +185,16 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
       .maybeSingle();
     if (data?.id) {
       throw redirect({ to: "/casos/$caseId", params: { caseId: data.id }, replace: true });
+    }
+    // Código legado: o histórico de referências de cada caso vive em `case_aliases` (a mesma
+    // fonte da busca de casos). Sem alias registrado, continua "não encontrado": nada é adivinhado.
+    const { data: alias } = await supabase
+      .from("case_aliases")
+      .select("case_id")
+      .eq("alias", params.caseId)
+      .maybeSingle();
+    if (alias?.case_id) {
+      throw redirect({ to: "/casos/$caseId", params: { caseId: alias.case_id }, replace: true });
     }
     throw notFound();
   },
@@ -825,28 +838,52 @@ function FichaCaso() {
   const mAbrirContrato = useMutation({
     mutationFn: () => abrirContrato({ data: { caseId: id } }),
     onSuccess: (r) => {
-      toast.success(r.criado ? "Contrato rascunho criado." : "Contrato existente reaberto — nada duplicado.");
+      toast.success(
+        r.criado ? "Contrato rascunho criado." : "Contrato existente reaberto — nada duplicado.",
+      );
       void navegarContrato({ to: "/contratos/$id", params: { id: r.id } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // Perf (01/11/2026, auditoria full-spectrum): `secaoFoco`/`modo` precisam
+  // existir antes das queries abaixo para que cada `enabled:` só dispare a
+  // leitura quando a seção/modal que a consome está realmente visível —
+  // mesmo estado que já controla `hidden` nas SecaoAncora, nenhum mecanismo
+  // novo. Hoisted do bloco original mais abaixo (mesma declaração, mesma
+  // ordem de hooks preservada a cada render).
+  const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
+  // G2 (23/10/2026): resumo (cards da vida do cliente) × ficha operacional completa.
+  const [modo, setModo] = useState<"resumo" | "ficha">("resumo");
+  // Seções cujo conteúdo consome qProposta/qJuridico (ver uso abaixo, dentro
+  // das respectivas SecaoAncora) — só usado para os `enabled:` das queries,
+  // nunca para decidir o que é renderizado.
+  const fichaAberta = modo === "ficha";
+  const secaoVisivelComercial = secaoFoco === null || secaoFoco === "comercial";
+  const secaoVisivelPessoas = secaoFoco === null || secaoFoco === "pessoas";
 
   const q = useQuery({
     queryKey: ["ficha-caso", id],
     queryFn: () => carregar({ data: { id } }),
     retry: false,
   });
+  // Perf: qc2 alimenta o cabeçalho/resumo da ficha (visível em todas as 8
+  // seções enquanto `modo === "ficha"`, nunca só numa delas) — gate por modo,
+  // nunca por secaoFoco, para não esconder dado de outra seção.
   const qc2 = useQuery({
     queryKey: ["caso-canonico", id],
     queryFn: () => carregarCanon({ data: { caseId: id } }),
+    enabled: fichaAberta,
     retry: false,
   });
   const carregarProposta = useServerFn(obterPropostaCanvaDoCliente);
   const clienteId = q.data?.caso?.cliente_id as string | null | undefined;
+  // Perf: qProposta só é lida dentro das seções "Formalização" (comercial) e
+  // "Pessoa e família" (pessoas) — único lugar onde seu `.data` é consumido.
   const qProposta = useQuery({
     queryKey: ["proposta-canva-cliente", clienteId],
     queryFn: () => carregarProposta({ data: { clienteId: clienteId as string } }),
-    enabled: Boolean(clienteId),
+    enabled: Boolean(clienteId) && fichaAberta && (secaoVisivelComercial || secaoVisivelPessoas),
     retry: false,
   });
   const recarregar = () => {
@@ -856,45 +893,61 @@ function FichaCaso() {
 
   // CA04-CASO360-SIMPLES (09/09/2026): fontes já existentes (tarefas,
   // documentos), só filtradas por este caso — nenhuma tabela nova.
+  // Perf: qTarefas só alimenta o resumo de tarefas do cabeçalho da ficha
+  // (visível em qualquer seção enquanto `modo === "ficha"`).
   const carregarTarefasFn = useServerFn(listarFilaOps);
   const qTarefas = useQuery({
     queryKey: ["ficha-caso-tarefas", id],
     queryFn: () => carregarTarefasFn({ data: { casoId: id } }),
+    enabled: fichaAberta,
     retry: false,
   });
+  // Perf: qDocumentos também alimenta o cabeçalho da ficha (contagem de
+  // documentos, progresso por frente) além da seção "Documentos" — gate por
+  // modo, nunca por secaoFoco.
   const carregarDocumentosFn = useServerFn(listarDocumentos);
   const qDocumentos = useQuery({
     queryKey: ["ficha-caso-documentos", id],
     queryFn: () => carregarDocumentosFn({ data: { casoId: id } }),
+    enabled: fichaAberta,
     retry: false,
   });
 
   // CA06-APP-NO-DESK (09/09/2026): mesmo resumo do que o App mostrará —
   // app_projections/client_portal_access; produção interna (microentregas
   // ainda não cliente-facing) conta à parte, nunca somada ao publicado.
+  // Perf: também usada no cabeçalho da ficha (progresso por frente) além da
+  // seção "Visão" — gate por modo, nunca por secaoFoco.
   const carregarVisaoClienteFn = useServerFn(resumoVisaoClienteCaso);
   const qVisaoCliente = useQuery({
     queryKey: ["ficha-caso-visao-cliente", id],
     queryFn: () => carregarVisaoClienteFn({ data: { casoId: id } }),
+    enabled: fichaAberta,
     retry: false,
   });
 
   // CA07-FINANCEIRO-SIMPLES (09/09/2026): fontes já existentes (proposals,
   // invoices, third_party_expenses), nenhuma tabela ou cálculo de preço novo.
+  // Perf: usada no cabeçalho da ficha e na seção "Financeiro" — gate por
+  // modo, nunca por secaoFoco.
   const carregarFinanceiroFn = useServerFn(obterResumoFinanceiroCaso);
   const qFinanceiro = useQuery({
     queryKey: ["ficha-caso-financeiro", id],
     queryFn: () => carregarFinanceiroFn({ data: { caseId: id } }),
+    enabled: fichaAberta,
     retry: false,
   });
 
   // CA20-PESQUISA-VIVA (09/09/2026): mesma leitura já usada por
   // /pesquisa-evidencias/$caseId (cadeiaPesquisaDoCaso) — Caso 360 resume,
   // nunca copia a base inteira nem conclui cidadania/linhagem sozinho.
+  // Perf: usada no cabeçalho da ficha (dossiê) e na seção "Visão" — gate por
+  // modo, nunca por secaoFoco.
   const carregarPesquisaFn = useServerFn(cadeiaPesquisaDoCaso);
   const qPesquisa = useQuery({
     queryKey: ["ficha-caso-pesquisa", id],
     queryFn: () => carregarPesquisaFn({ data: { caseId: id } }),
+    enabled: fichaAberta,
     retry: false,
   });
 
@@ -902,6 +955,10 @@ function FichaCaso() {
   // — lerCadeiaOperacional já existe (usada em casos.$caseId.contrato.
   // preparar.tsx), nunca tinha sido chamada dentro do Caso 360. Traz
   // etapa/rota/marcos de `case_plans`, que hoje só aparecem lá.
+  // Perf (01/11/2026): NÃO gateada — `etapaAtualPlanejador` (derivado de
+  // qCadeia.data) aparece no cabeçalho de identidade do caso, que é visível
+  // tanto em `modo === "resumo"` quanto em `modo === "ficha"` e em qualquer
+  // seção; gatear por modo ou secaoFoco esconderia a etapa no resumo.
   const carregarCadeiaFn = useServerFn(lerCadeiaOperacional);
   const qCadeia = useQuery({
     queryKey: ["ficha-caso-cadeia-operacional", id],
@@ -909,9 +966,6 @@ function FichaCaso() {
     retry: false,
   });
 
-  const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
-  // G2 (23/10/2026): resumo (cards da vida do cliente) × ficha operacional completa.
-  const [modo, setModo] = useState<"resumo" | "ficha">("resumo");
   // Frente 1 (19/10/2026) — "Visão Concreta" mora na sub-aba da seção "Visão"
   // (uma das 8 SECOES existentes; nunca uma 9ª seção solta no schema de
   // navegação). Decisão direta da Proprietária em 19/10/2026: no índice de
@@ -934,10 +988,13 @@ function FichaCaso() {
   // CA08-JURIDICO-PROPORCIONAL (09/09/2026): fontes já existentes
   // (citizenship_tracks, versioned_legal_rules, legal_reference_milestones,
   // matriz jurídica de temas), nenhuma tabela ou taxonomia nova.
+  // Perf: qJuridico só é lida dentro da seção "Formalização" (comercial) —
+  // único lugar onde seu `.data` é consumido.
   const carregarJuridicoFn = useServerFn(validacaoJuridicaCaso);
   const qJuridico = useQuery({
     queryKey: ["ficha-caso-juridico", id],
     queryFn: () => carregarJuridicoFn({ data: { caseId: id } }),
+    enabled: fichaAberta && secaoVisivelComercial,
     retry: false,
   });
   const salvarPagamentoFn = useServerFn(salvarPagamento);
@@ -2971,15 +3028,30 @@ function FichaCaso() {
                 <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
                   <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>
                   <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
-                    {(qTarefas.data?.tarefas ?? []).slice(0, 3).map((t: any) => (
-                      <li key={t.id}>
-                        {t.titulo} <span className="text-xs text-navy/50">— {t.status}</span>
-                      </li>
-                    ))}
-                    {!(qTarefas.data?.tarefas ?? []).length ? (
+                    {separarTarefasDoCaso(qTarefas.data?.tarefas)
+                      .abertas.slice(0, 3)
+                      .map((t: any) => (
+                        <li key={t.id}>
+                          {t.titulo}{" "}
+                          <span className="text-xs text-navy/50">— {rotuloTarefaDoCaso(t)}</span>
+                        </li>
+                      ))}
+                    {!separarTarefasDoCaso(qTarefas.data?.tarefas).abertas.length ? (
                       <li className="text-navy/50">Nenhuma tarefa aberta.</li>
                     ) : null}
                   </ul>
+                  {separarTarefasDoCaso(qTarefas.data?.tarefas).abertas.length > 3 ? (
+                    <p className="mt-1 text-xs text-navy/50">
+                      +{separarTarefasDoCaso(qTarefas.data?.tarefas).abertas.length - 3} aberta(s)
+                      na fila de Ops deste caso.
+                    </p>
+                  ) : null}
+                  {separarTarefasDoCaso(qTarefas.data?.tarefas).encerradas.length ? (
+                    <p className="mt-1 text-xs text-navy/50">
+                      {separarTarefasDoCaso(qTarefas.data?.tarefas).encerradas.length} tarefa(s)
+                      concluída(s) ou cancelada(s) neste caso.
+                    </p>
+                  ) : null}
                   <FormularioTarefaCaso caseId={id} onCriada={recarregarTarefas} />
                 </div>
                 <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
@@ -3085,6 +3157,9 @@ function FichaCaso() {
                 {/* Corte U3 (28/09/2026): decisões que só a equipe toma, lidas do dado real. */}
                 <div className="mb-4">
                   <PendenciasHumanasCaso caseId={id} />
+                </div>
+                <div className="mb-4">
+                  <ConferenciaPilotoCaso caseId={id} />
                 </div>
 
                 {/*
@@ -5143,7 +5218,10 @@ function manterSo(f: Record<string, unknown>, campos: string[]): Record<string, 
 }
 
 function avisoSalvo(alterados: string[]): string {
-  return `Salvo e conferido no banco${alterados.length ? ` — ${alterados.length} campo(s)` : ""}.`;
+  // "Salvo e conferido" só quando o banco de fato alterou algo; sem campo alterado, diz que nada mudou.
+  return alterados.length
+    ? `Salvo e conferido no banco — ${alterados.length} campo(s).`
+    : "Nada mudou: nenhum campo foi alterado no banco.";
 }
 
 function avisoNaoGuardados(alterados: string[], naoGuardados: string[]): string {

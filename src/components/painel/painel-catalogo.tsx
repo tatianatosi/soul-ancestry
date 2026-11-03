@@ -112,7 +112,7 @@ export function PainelCatalogo() {
         </div>
 
         <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4 sm:col-span-2">
-          <p className="text-xs uppercase tracking-wide text-navy/50">Alerta — caso Ana Luiza</p>
+          <p className="text-xs uppercase tracking-wide text-navy/50">Alerta — antes de liberar contrato</p>
           <p className="mt-2 text-xs text-navy/70">
             Não liberar contrato, Anexo I ou cobrança enquanto SKU, preço comercial vigente, escopo
             aprovado, parcelamento e vencimento não estiverem reconciliados com o catálogo homologado.

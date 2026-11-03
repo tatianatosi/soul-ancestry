@@ -77,7 +77,15 @@ export function Linha({ rotulo, valor, tom }: { rotulo: string; valor?: string; 
   );
 }
 
-export function Indicador({ rotulo, valor, apoio }: { rotulo: string; valor: string; apoio?: string }) {
+export function Indicador({
+  rotulo,
+  valor,
+  apoio,
+}: {
+  rotulo: string;
+  valor: string;
+  apoio?: string;
+}) {
   return (
     <div className="rounded-xl border border-navy/10 bg-cream/50 p-3">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{rotulo}</p>
@@ -87,7 +95,15 @@ export function Indicador({ rotulo, valor, apoio }: { rotulo: string; valor: str
   );
 }
 
-export function Pessoa({ nome, papel, destaque }: { nome: string; papel: string; destaque?: boolean }) {
+export function Pessoa({
+  nome,
+  papel,
+  destaque,
+}: {
+  nome: string;
+  papel: string;
+  destaque?: boolean;
+}) {
   return (
     <div className="flex min-w-0 items-center gap-2">
       <span
@@ -123,16 +139,28 @@ export function BarrasHorizontais({
           <div key={item.rotulo}>
             <div className="mb-1 flex items-center justify-between gap-3 text-[10px]">
               <span className="font-medium text-navy">{item.rotulo}</span>
-              <span className="tabular-nums text-navy/55">{item.apoio ?? `${Math.round(item.valor)}%`}</span>
+              <span className="tabular-nums text-navy/55">
+                {item.apoio ?? `${Math.round(item.valor)}%`}
+              </span>
             </div>
-            <svg viewBox="0 0 100 4" preserveAspectRatio="none" className="h-2 w-full overflow-hidden rounded-full">
+            <svg
+              viewBox="0 0 100 4"
+              preserveAspectRatio="none"
+              className="h-2 w-full overflow-hidden rounded-full"
+            >
               <rect width="100" height="4" className="fill-navy/10" />
               {largura > 0 ? (
                 <rect
                   width={largura}
                   height="4"
                   rx="2"
-                  className={item.tom === "terracotta" ? "fill-terracotta" : item.tom === "gold" ? "fill-gold" : "fill-navy"}
+                  className={
+                    item.tom === "terracotta"
+                      ? "fill-terracotta"
+                      : item.tom === "gold"
+                        ? "fill-gold"
+                        : "fill-navy"
+                  }
                 />
               ) : null}
             </svg>
@@ -171,7 +199,10 @@ export function FunilVisualSvg({
             </div>
             <div className="h-3 w-full overflow-hidden rounded-full bg-navy/10">
               <div
-                className={cn("h-full rounded-full", i === 0 ? "bg-navy" : i % 2 === 1 ? "bg-navy/80" : "bg-navy/60")}
+                className={cn(
+                  "h-full rounded-full",
+                  i === 0 ? "bg-navy" : i % 2 === 1 ? "bg-navy/80" : "bg-navy/60",
+                )}
                 style={{ width: `${largura}%` }}
               />
             </div>
@@ -196,15 +227,45 @@ export function GraficoColunas({
       <div className="flex h-36 items-end gap-1.5 border-b border-l border-navy/15 px-2 pt-3">
         {itens.map((item) => {
           const altura = item.valor > 0 ? Math.max(10, (item.valor / maior) * 92) : 2;
-          const alturaSec = item.secundario && item.valor > 0 ? (item.secundario / item.valor) * altura : 0;
+          const alturaSec =
+            item.secundario && item.valor > 0 ? (item.secundario / item.valor) * altura : 0;
           return (
-            <div key={item.rotulo} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
-              <span className="text-[9px] font-semibold tabular-nums text-navy/60">{item.valor}</span>
-              <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-14 overflow-hidden rounded-t-xl">
-                <rect x="0" y={96 - altura} width="32" height={altura} rx="4" className={item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"} />
-                {alturaSec > 0 ? <rect x="0" y={96 - alturaSec} width="32" height={alturaSec} rx="4" className="fill-gold" /> : null}
+            <div
+              key={item.rotulo}
+              className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1"
+            >
+              <span className="text-[9px] font-semibold tabular-nums text-navy/60">
+                {item.valor}
+              </span>
+              <svg
+                viewBox="0 0 32 96"
+                preserveAspectRatio="none"
+                className="h-24 w-full max-w-14 overflow-hidden rounded-t-xl"
+              >
+                <rect
+                  x="0"
+                  y={96 - altura}
+                  width="32"
+                  height={altura}
+                  rx="4"
+                  className={
+                    item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"
+                  }
+                />
+                {alturaSec > 0 ? (
+                  <rect
+                    x="0"
+                    y={96 - alturaSec}
+                    width="32"
+                    height={alturaSec}
+                    rx="4"
+                    className="fill-gold"
+                  />
+                ) : null}
               </svg>
-              <span className="w-full truncate text-center text-[8px] text-navy/55">{item.rotulo}</span>
+              <span className="w-full truncate text-center text-[8px] text-navy/55">
+                {item.rotulo}
+              </span>
             </div>
           );
         })}
@@ -245,7 +306,14 @@ export function GraficoLinha({
             strokeWidth={1}
           />
         ))}
-        <line x1={margem} x2={largura - margem} y1={altura - margem} y2={altura - margem} className="stroke-navy/15" strokeWidth={1} />
+        <line
+          x1={margem}
+          x2={largura - margem}
+          y1={altura - margem}
+          y2={altura - margem}
+          className="stroke-navy/15"
+          strokeWidth={1}
+        />
         <polyline
           points={coords.map((c) => `${c.x},${c.y}`).join(" ")}
           fill="none"
@@ -253,7 +321,13 @@ export function GraficoLinha({
           strokeWidth={2}
         />
         {coords.map((c, i) => (
-          <circle key={pontos[i]!.rotulo} cx={c.x} cy={c.y} r={3} className={temValor ? "fill-navy" : "fill-navy/20"} />
+          <circle
+            key={pontos[i]!.rotulo}
+            cx={c.x}
+            cy={c.y}
+            r={3}
+            className={temValor ? "fill-navy" : "fill-navy/20"}
+          />
         ))}
       </svg>
       <div className="mt-1 flex justify-between gap-1 px-1">
@@ -301,7 +375,14 @@ export function GraficoLinhaSeries({
             strokeWidth={1}
           />
         ))}
-        <line x1={margem} x2={largura - margem} y1={altura - margem} y2={altura - margem} className="stroke-navy/15" strokeWidth={1} />
+        <line
+          x1={margem}
+          x2={largura - margem}
+          y1={altura - margem}
+          y2={altura - margem}
+          className="stroke-navy/15"
+          strokeWidth={1}
+        />
         {series.map((s) => {
           const coords = s.pontos.map((p, i) => ({
             x: margem + i * passo,
@@ -309,9 +390,20 @@ export function GraficoLinhaSeries({
           }));
           return (
             <g key={s.rotulo}>
-              <polyline points={coords.map((c) => `${c.x},${c.y}`).join(" ")} fill="none" className={stroke[s.tom]} strokeWidth={2} />
+              <polyline
+                points={coords.map((c) => `${c.x},${c.y}`).join(" ")}
+                fill="none"
+                className={stroke[s.tom]}
+                strokeWidth={2}
+              />
               {coords.map((c, i) => (
-                <circle key={s.pontos[i]!.rotulo} cx={c.x} cy={c.y} r={2.5} className={ponto[s.tom]} />
+                <circle
+                  key={s.pontos[i]!.rotulo}
+                  cx={c.x}
+                  cy={c.y}
+                  r={2.5}
+                  className={ponto[s.tom]}
+                />
               ))}
             </g>
           );
@@ -346,10 +438,24 @@ export function DonutEstados({
 }) {
   const total = segmentos.reduce((soma, item) => soma + item.valor, 0);
   let acumulado = 0;
-  const classes = { navy: "stroke-navy", gold: "stroke-gold", terracotta: "stroke-terracotta", sucesso: "stroke-sucesso" } as const;
-  const fundo = { navy: "bg-navy", gold: "bg-gold", terracotta: "bg-terracotta", sucesso: "bg-sucesso" } as const;
+  const classes = {
+    navy: "stroke-navy",
+    gold: "stroke-gold",
+    terracotta: "stroke-terracotta",
+    sucesso: "stroke-sucesso",
+  } as const;
+  const fundo = {
+    navy: "bg-navy",
+    gold: "bg-gold",
+    terracotta: "bg-terracotta",
+    sucesso: "bg-sucesso",
+  } as const;
   return (
-    <figure role="img" aria-label={tituloAcessivel} className="grid gap-4 sm:grid-cols-[8rem_1fr] sm:items-center">
+    <figure
+      role="img"
+      aria-label={tituloAcessivel}
+      className="grid gap-4 sm:grid-cols-[8rem_1fr] sm:items-center"
+    >
       <div className="relative mx-auto h-32 w-32">
         <svg viewBox="0 0 120 120" className="h-32 w-32 -rotate-90">
           <circle cx="60" cy="60" r="42" fill="none" className="stroke-navy/10" strokeWidth="18" />
@@ -372,11 +478,16 @@ export function DonutEstados({
             ) : null;
           })}
         </svg>
-        <span className="absolute inset-0 grid place-items-center font-serif text-2xl tabular-nums text-navy">{total}</span>
+        <span className="absolute inset-0 grid place-items-center font-serif text-2xl tabular-nums text-navy">
+          {total}
+        </span>
       </div>
       <figcaption className="space-y-2">
         {segmentos.map((segmento) => (
-          <div key={segmento.rotulo} className="flex items-center justify-between gap-3 text-[10px]">
+          <div
+            key={segmento.rotulo}
+            className="flex items-center justify-between gap-3 text-[10px]"
+          >
             <span className="flex items-center gap-2 text-navy/65">
               <span className={cn("h-2.5 w-2.5 rounded-sm", fundo[segmento.tom])} />
               {segmento.rotulo}
@@ -390,21 +501,51 @@ export function DonutEstados({
 }
 
 /** Linha do tempo horizontal; sem eventos, desenha 4 marcos vazios. */
-export function LinhaTempoGrafica({ eventos }: { eventos: { id: string; nome: string; data: string | null }[] }) {
+export function LinhaTempoGrafica({
+  eventos,
+}: {
+  eventos: { id: string; nome: string; data: string | null }[];
+}) {
   const itens = eventos.length
     ? eventos.map((e) => ({ ...e, vazio: false }))
-    : Array.from({ length: 4 }, (_, i) => ({ id: `vazio-${i}`, nome: "—", data: null, vazio: true }));
+    : Array.from({ length: 4 }, (_, i) => ({
+        id: `vazio-${i}`,
+        nome: "—",
+        data: null,
+        vazio: true,
+      }));
   return (
     <div>
-      <ol className="grid pt-3" style={{ gridTemplateColumns: `repeat(${itens.length}, minmax(0, 1fr))` }}>
+      <ol
+        className="grid pt-3"
+        style={{ gridTemplateColumns: `repeat(${itens.length}, minmax(0, 1fr))` }}
+      >
         {itens.map((e, indice) => (
           <li key={e.id} className="relative text-center">
-            {indice > 0 ? <span className={cn("absolute left-0 top-2 h-0.5 w-1/2", e.vazio ? "bg-navy/10" : "bg-sucesso")} /> : null}
-            {indice < itens.length - 1 ? <span className={cn("absolute right-0 top-2 h-0.5 w-1/2", e.vazio ? "bg-navy/10" : "bg-sucesso")} /> : null}
+            {indice > 0 ? (
+              <span
+                className={cn(
+                  "absolute left-0 top-2 h-0.5 w-1/2",
+                  e.vazio ? "bg-navy/10" : "bg-sucesso",
+                )}
+              />
+            ) : null}
+            {indice < itens.length - 1 ? (
+              <span
+                className={cn(
+                  "absolute right-0 top-2 h-0.5 w-1/2",
+                  e.vazio ? "bg-navy/10" : "bg-sucesso",
+                )}
+              />
+            ) : null}
             <span
               className={cn(
                 "relative mx-auto block h-4 w-4 rounded-full border-2 border-card ring-1",
-                e.vazio ? "bg-card ring-navy/20" : indice === itens.length - 1 ? "bg-gold ring-gold" : "bg-sucesso ring-sucesso",
+                e.vazio
+                  ? "bg-card ring-navy/20"
+                  : indice === itens.length - 1
+                    ? "bg-gold ring-gold"
+                    : "bg-sucesso ring-sucesso",
               )}
             />
             <p className="mt-2 line-clamp-2 px-1 text-[10px] font-medium text-navy">{e.nome}</p>
@@ -412,7 +553,9 @@ export function LinhaTempoGrafica({ eventos }: { eventos: { id: string; nome: st
           </li>
         ))}
       </ol>
-      {!eventos.length ? <p className="mt-2 text-[10px] text-navy/50">Nenhum evento registrado ainda.</p> : null}
+      {!eventos.length ? (
+        <p className="mt-2 text-[10px] text-navy/50">Nenhum evento registrado ainda.</p>
+      ) : null}
     </div>
   );
 }
@@ -428,18 +571,35 @@ export function JornadaMarcos({ marcos, atual }: { marcos: string[]; atual: numb
   const progresso = vazio || atual === null ? 0 : (atual / Math.max(1, lista.length - 1)) * 100;
   const margem = 50 / lista.length;
   return (
-    <div className="relative grid gap-1 pt-2" style={{ gridTemplateColumns: `repeat(${lista.length}, minmax(0, 1fr))` }}>
-      <div className="absolute top-[19px] h-1 rounded-full bg-navy/10" style={{ left: `${margem}%`, right: `${margem}%` }}>
+    <div
+      className="relative grid gap-1 pt-2"
+      style={{ gridTemplateColumns: `repeat(${lista.length}, minmax(0, 1fr))` }}
+    >
+      <div
+        className="absolute top-[19px] h-1 rounded-full bg-navy/10"
+        style={{ left: `${margem}%`, right: `${margem}%` }}
+      >
         <div className="h-full rounded-full bg-gold" style={{ width: `${progresso}%` }} />
       </div>
       {lista.map((marco, indice) => {
-        const estado = vazio || atual === null ? "futuro" : indice < atual ? "feito" : indice === atual ? "atual" : "futuro";
+        const estado =
+          vazio || atual === null
+            ? "futuro"
+            : indice < atual
+              ? "feito"
+              : indice === atual
+                ? "atual"
+                : "futuro";
         return (
           <div key={`${indice}-${marco}`} className="relative text-center">
             <span
               className={cn(
                 "mx-auto grid h-7 w-7 place-items-center rounded-full border-2 border-card text-[9px] font-semibold ring-1",
-                estado === "feito" ? "bg-navy text-primary-foreground ring-navy" : estado === "atual" ? "bg-gold text-navy ring-gold" : "bg-card text-navy/45 ring-navy/20",
+                estado === "feito"
+                  ? "bg-navy text-primary-foreground ring-navy"
+                  : estado === "atual"
+                    ? "bg-gold text-navy ring-gold"
+                    : "bg-card text-navy/45 ring-navy/20",
               )}
             >
               {indice + 1}
@@ -460,7 +620,10 @@ export function ArvoreGeracoes({
   geracoes,
   total,
 }: {
-  geracoes: Map<number, { id: string; nome: string; apoio?: string | null; confirmado?: boolean }[]>;
+  geracoes: Map<
+    number,
+    { id: string; nome: string; apoio?: string | null; confirmado?: boolean }[]
+  >;
   total: number;
 }) {
   const niveis = Array.from({ length: total }, (_, i) => total - i);
@@ -469,7 +632,11 @@ export function ArvoreGeracoes({
       {niveis.map((g) => {
         const pessoas = geracoes.get(g) ?? [];
         return (
-          <div key={g} className="grid grid-cols-[2.5rem_1fr] items-center gap-2" data-geracao={`G${g}`}>
+          <div
+            key={g}
+            className="grid grid-cols-[2.5rem_1fr] items-center gap-2"
+            data-geracao={`G${g}`}
+          >
             <span className="text-[9px] font-semibold text-gold">G{g}</span>
             <div className="flex min-w-0 flex-wrap gap-1.5">
               {pessoas.length ? (
@@ -486,7 +653,9 @@ export function ArvoreGeracoes({
                   </span>
                 ))
               ) : (
-                <span className="rounded-md border border-dashed border-navy/15 px-2 py-1.5 text-[9px] text-navy/35">—</span>
+                <span className="rounded-md border border-dashed border-navy/15 px-2 py-1.5 text-[9px] text-navy/35">
+                  —
+                </span>
               )}
             </div>
           </div>
@@ -519,27 +688,58 @@ export function RedeVinculos({
     return { ...v, x: cx + Math.cos(ang) * 190, y: cy - 14 + Math.sin(ang) * 62 };
   });
   return (
-    <figure role="img" aria-label={legenda} className="relative mx-auto h-56 max-w-xl overflow-hidden rounded-lg border border-navy/10 bg-cream/35">
+    <figure
+      role="img"
+      aria-label={legenda}
+      className="relative mx-auto h-56 max-w-xl overflow-hidden rounded-lg border border-navy/10 bg-cream/35"
+    >
       <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full">
         {nos.map((n) => (
-          <line key={`l-${n.id}`} x1={cx} y1={cy} x2={n.x} y2={n.y} className={n.ligado ? "stroke-gold/60" : "stroke-navy/15"} strokeWidth="2" strokeDasharray={n.ligado ? undefined : "4 4"} />
+          <line
+            key={`l-${n.id}`}
+            x1={cx}
+            y1={cy}
+            x2={n.x}
+            y2={n.y}
+            className={n.ligado ? "stroke-gold/60" : "stroke-navy/15"}
+            strokeWidth="2"
+            strokeDasharray={n.ligado ? undefined : "4 4"}
+          />
         ))}
         <g>
-          <circle cx={cx} cy={cy} r={27} className={centro ? "fill-gold stroke-navy" : "fill-card stroke-navy/20"} strokeWidth="2" />
-          <text x={cx} y={cy + 4} textAnchor="middle" className="fill-navy text-[11px] font-semibold">
+          <circle
+            cx={cx}
+            cy={cy}
+            r={27}
+            className={centro ? "fill-gold stroke-navy" : "fill-card stroke-navy/20"}
+            strokeWidth="2"
+          />
+          <text
+            x={cx}
+            y={cy + 4}
+            textAnchor="middle"
+            className="fill-navy text-[11px] font-semibold"
+          >
             {centro ? sigla(centro.nome) : "—"}
           </text>
         </g>
         {nos.map((n) => (
           <g key={n.id}>
             <circle cx={n.x} cy={n.y} r={22} className="fill-card stroke-navy/40" strokeWidth="2" />
-            <text x={n.x} y={n.y + 4} textAnchor="middle" className="fill-navy text-[11px] font-semibold">
+            <text
+              x={n.x}
+              y={n.y + 4}
+              textAnchor="middle"
+              className="fill-navy text-[11px] font-semibold"
+            >
               {sigla(n.nome)}
             </text>
           </g>
         ))}
       </svg>
-      <figcaption className="absolute bottom-2 left-3 right-3 text-[9px] text-navy/50">{legenda}</figcaption>
+      <figcaption className="absolute bottom-2 left-3 right-3 text-[9px] text-navy/50">
+        {legenda}
+      </figcaption>
     </figure>
   );
 }
@@ -579,23 +779,47 @@ export function RadarEixos({
     <figure role="img" aria-label={tituloAcessivel} className="min-w-0">
       <svg viewBox="0 0 220 220" className="mx-auto h-auto w-full max-w-[260px]">
         {[0.25, 0.5, 0.75, 1].map((f) => (
-          <polygon key={f} points={anel(f)} fill="none" className="stroke-navy/15" strokeWidth="1" />
+          <polygon
+            key={f}
+            points={anel(f)}
+            fill="none"
+            className="stroke-navy/15"
+            strokeWidth="1"
+          />
         ))}
         {eixos.map((_, i) => {
           const [x, y] = ponto(i, raio);
-          return <line key={i} x1={c} y1={c} x2={x} y2={y} className="stroke-navy/10" strokeWidth="1" />;
+          return (
+            <line key={i} x1={c} y1={c} x2={x} y2={y} className="stroke-navy/10" strokeWidth="1" />
+          );
         })}
         {temLeitura ? (
           <polygon points={poligono} className="fill-gold/25 stroke-navy" strokeWidth="2" />
         ) : (
-          <polygon points={anel(0.55)} fill="none" className="stroke-navy/30" strokeWidth="1.5" strokeDasharray="4 4" />
+          <polygon
+            points={anel(0.55)}
+            fill="none"
+            className="stroke-navy/30"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+          />
         )}
         {eixos.map((e, i) => {
           const [x, y] = ponto(i, raio + 22);
           return (
-            <text key={e.rotulo} x={x} y={y} textAnchor="middle" className="fill-navy text-[8px] font-medium">
-              <tspan x={x} dy="-2">{e.rotulo}</tspan>
-              <tspan x={x} dy="10" className="fill-navy/50">{typeof e.valor === "number" ? `${Math.round(e.valor)}%` : "—"}</tspan>
+            <text
+              key={e.rotulo}
+              x={x}
+              y={y}
+              textAnchor="middle"
+              className="fill-navy text-[8px] font-medium"
+            >
+              <tspan x={x} dy="-2">
+                {e.rotulo}
+              </tspan>
+              <tspan x={x} dy="10" className="fill-navy/50">
+                {typeof e.valor === "number" ? `${Math.round(e.valor)}%` : "—"}
+              </tspan>
             </text>
           );
         })}
@@ -607,25 +831,45 @@ export function RadarEixos({
   );
 }
 
-/** Matriz 2×2 (ex.: elegibilidade × prioridade). x e y entre 0 e 1. */
+/**
+ * Matriz 2×2 (ex.: elegibilidade × prioridade). x e y entre 0 e 1.
+ *
+ * `onPontoSelecionar`, quando informado, torna cada ponto um `<button>`
+ * focável e ativável por teclado (Enter/Espaço nativos) em vez de um
+ * `<span>` — e a `<figure>` deixa de usar `role="img"` (que esconde os
+ * filhos do leitor de tela) porque agora há descendentes interativos de
+ * fato. Sem o prop, o desenho permanece estático como antes.
+ */
 export function MatrizQuadrantes({
   pontos,
   quadrantes,
   eixoX,
   eixoY,
   tituloAcessivel,
+  onPontoSelecionar,
 }: {
   pontos: { id: string; rotulo: string; x: number; y: number; tom: Tom }[];
   quadrantes: [string, string, string, string];
   eixoX: string;
   eixoY: string;
   tituloAcessivel: string;
+  onPontoSelecionar?: (id: string) => void;
 }) {
-  const cor: Record<Tom, string> = { neutro: "bg-navy/50", critico: "bg-critico", atencao: "bg-atencao", sucesso: "bg-sucesso" };
+  const cor: Record<Tom, string> = {
+    neutro: "bg-navy/50",
+    critico: "bg-critico",
+    atencao: "bg-atencao",
+    sucesso: "bg-sucesso",
+  };
+  const figureProps = onPontoSelecionar
+    ? { role: "group" as const, "aria-label": tituloAcessivel }
+    : { role: "img" as const, "aria-label": tituloAcessivel };
   return (
-    <figure role="img" aria-label={tituloAcessivel} className="min-w-0">
+    <figure {...figureProps} className="min-w-0">
       <div className="flex gap-2">
-        <span className="self-center text-[9px] text-navy/45 [writing-mode:vertical-rl] rotate-180">{eixoY} →</span>
+        <span className="self-center text-[9px] text-navy/45 [writing-mode:vertical-rl] rotate-180">
+          {eixoY} →
+        </span>
         <div className="relative grid aspect-[4/3] w-full max-w-full grid-cols-2 grid-rows-2 border-b-2 border-l-2 border-navy/40">
           {quadrantes.map((q, i) => (
             <div
@@ -639,19 +883,43 @@ export function MatrizQuadrantes({
               {q}
             </div>
           ))}
-          {pontos.map((p) => (
-            <span
-              key={p.id}
-              title={p.rotulo}
-              className="absolute flex -translate-x-1/2 translate-y-1/2 items-center gap-1 whitespace-nowrap text-[9px] text-navy"
-              style={{ left: `${Math.max(0, Math.min(1, p.x)) * 100}%`, bottom: `${Math.max(0, Math.min(1, p.y)) * 100}%` }}
-            >
-              <span className={cn("h-2.5 w-2.5 rounded-full ring-2 ring-card", cor[p.tom])} />
-              {p.rotulo}
-            </span>
-          ))}
+          {pontos.map((p) => {
+            const posicao = {
+              left: `${Math.max(0, Math.min(1, p.x)) * 100}%`,
+              bottom: `${Math.max(0, Math.min(1, p.y)) * 100}%`,
+            };
+            const conteudo = (
+              <>
+                <span className={cn("h-2.5 w-2.5 rounded-full ring-2 ring-card", cor[p.tom])} />
+                {p.rotulo}
+              </>
+            );
+            return onPontoSelecionar ? (
+              <button
+                key={p.id}
+                type="button"
+                title={p.rotulo}
+                onClick={() => onPontoSelecionar(p.id)}
+                className="absolute flex -translate-x-1/2 translate-y-1/2 items-center gap-1 whitespace-nowrap text-[9px] text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                style={posicao}
+              >
+                {conteudo}
+              </button>
+            ) : (
+              <span
+                key={p.id}
+                title={p.rotulo}
+                className="absolute flex -translate-x-1/2 translate-y-1/2 items-center gap-1 whitespace-nowrap text-[9px] text-navy"
+                style={posicao}
+              >
+                {conteudo}
+              </span>
+            );
+          })}
           {pontos.length === 0 ? (
-            <span className="absolute inset-0 grid place-items-center text-[11px] text-navy/50">{SEM_DADO}</span>
+            <span className="absolute inset-0 grid place-items-center text-[11px] text-navy/50">
+              {SEM_DADO}
+            </span>
           ) : null}
         </div>
       </div>
@@ -661,7 +929,13 @@ export function MatrizQuadrantes({
 }
 
 /** Anel de percentual (ex.: confiança da cadeia). `null` = anel vazio com "—". */
-export function AnelPercentual({ valor, tituloAcessivel }: { valor: number | null; tituloAcessivel: string }) {
+export function AnelPercentual({
+  valor,
+  tituloAcessivel,
+}: {
+  valor: number | null;
+  tituloAcessivel: string;
+}) {
   const v = typeof valor === "number" ? Math.max(0, Math.min(100, valor)) : null;
   const circ = 2 * Math.PI * 26;
   return (
@@ -669,12 +943,31 @@ export function AnelPercentual({ valor, tituloAcessivel }: { valor: number | nul
       <svg viewBox="0 0 64 64" className="h-20 w-20 -rotate-90">
         <circle cx="32" cy="32" r="26" fill="none" className="stroke-navy/10" strokeWidth="7" />
         {v !== null ? (
-          <circle cx="32" cy="32" r="26" fill="none" className="stroke-gold" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(v / 100) * circ} ${circ}`} />
+          <circle
+            cx="32"
+            cy="32"
+            r="26"
+            fill="none"
+            className="stroke-gold"
+            strokeWidth="7"
+            strokeLinecap="round"
+            strokeDasharray={`${(v / 100) * circ} ${circ}`}
+          />
         ) : (
-          <circle cx="32" cy="32" r="26" fill="none" className="stroke-navy/25" strokeWidth="2" strokeDasharray="3 4" />
+          <circle
+            cx="32"
+            cy="32"
+            r="26"
+            fill="none"
+            className="stroke-navy/25"
+            strokeWidth="2"
+            strokeDasharray="3 4"
+          />
         )}
       </svg>
-      <span className="absolute inset-0 grid place-items-center font-semibold tabular-nums text-navy">{v !== null ? `${Math.round(v)}%` : "—"}</span>
+      <span className="absolute inset-0 grid place-items-center font-semibold tabular-nums text-navy">
+        {v !== null ? `${Math.round(v)}%` : "—"}
+      </span>
     </figure>
   );
 }
@@ -688,7 +981,10 @@ export function ReguaEtapas({
   return (
     <ol className="grid gap-2 sm:grid-flow-col sm:auto-cols-fr" aria-label="Etapas">
       {etapas.map((e, i) => (
-        <li key={e.rotulo} className="relative flex min-w-0 flex-col items-center gap-1 rounded-lg border border-navy/10 bg-cream/40 px-2 py-3 text-center">
+        <li
+          key={e.rotulo}
+          className="relative flex min-w-0 flex-col items-center gap-1 rounded-lg border border-navy/10 bg-cream/40 px-2 py-3 text-center"
+        >
           <span
             aria-hidden="true"
             className={cn(
@@ -703,7 +999,12 @@ export function ReguaEtapas({
           <span className="text-[11px] font-semibold text-navy">{e.rotulo}</span>
           {e.apoio ? <span className="text-[10px] text-navy/55">{e.apoio}</span> : null}
           {i < etapas.length - 1 ? (
-            <span aria-hidden="true" className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-gold sm:block">→</span>
+            <span
+              aria-hidden="true"
+              className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-gold sm:block"
+            >
+              →
+            </span>
           ) : null}
         </li>
       ))}
@@ -712,15 +1013,30 @@ export function ReguaEtapas({
 }
 
 /** Fila com contagem por etapa (ex.: rascunho → revisão → aprovado → publicado). */
-export function FilaEtapas({ etapas }: { etapas: { rotulo: string; contagem: number | null; tom?: Tom }[] }) {
+export function FilaEtapas({
+  etapas,
+}: {
+  etapas: { rotulo: string; contagem: number | null; tom?: Tom }[];
+}) {
   return (
     <ol className="grid gap-2 sm:grid-flow-col sm:auto-cols-fr" aria-label="Fila">
       {etapas.map((e, i) => (
-        <li key={e.rotulo} className="relative flex min-w-0 items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
+        <li
+          key={e.rotulo}
+          className="relative flex min-w-0 items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2"
+        >
           <span className="truncate text-[11px] font-semibold text-navy">{e.rotulo}</span>
-          <Etiqueta texto={e.contagem === null ? "—" : String(e.contagem)} tom={e.tom ?? "neutro"} />
+          <Etiqueta
+            texto={e.contagem === null ? "—" : String(e.contagem)}
+            tom={e.tom ?? "neutro"}
+          />
           {i < etapas.length - 1 ? (
-            <span aria-hidden="true" className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-gold sm:block">→</span>
+            <span
+              aria-hidden="true"
+              className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-gold sm:block"
+            >
+              →
+            </span>
           ) : null}
         </li>
       ))}

@@ -64,6 +64,7 @@ import {
 import { Linha as LinhaV4 } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId")({
+  staticData: { sitemap: false },
   component: Pagina,
   head: () => ({
     meta: [
@@ -532,6 +533,7 @@ function Pagina() {
             eventos={eventos}
             relacoes={relacoes}
             evidencias={evidenciaOpcoes}
+            fontes={fonteOpcoes}
             clientesDoCaso={clientesDoCaso}
             pendenciaGate={pendenciaPerfis}
             onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
@@ -749,6 +751,7 @@ function AbaPerfis({
   eventos,
   relacoes,
   evidencias,
+  fontes,
   clientesDoCaso,
   pendenciaGate,
   onCriar,
@@ -761,6 +764,7 @@ function AbaPerfis({
   eventos: Evento[];
   relacoes: Relacao[];
   evidencias: { id: string; rotulo: string }[];
+  fontes: { id: string; rotulo: string }[];
   /** Candidatos ao vínculo de pessoa (Corte U2) — só clientes já ligados a este caso. */
   clientesDoCaso: { id: string; nome: string }[];
   /** Pendência de domínio: fica visível e pede motivo, nunca desabilita. */
@@ -864,14 +868,17 @@ function AbaPerfis({
             sexo: e.sexo,
             nascimento_data: e.nascimento_data,
             nascimento_data_aproximada: e.nascimento_data_aproximada,
+            nascimento_precisao: e.nascimento_precisao,
             nascimento_localidade: e.nascimento_localidade,
             morte_data: e.morte_data,
             morte_data_aproximada: e.morte_data_aproximada,
+            morte_precisao: e.morte_precisao,
             morte_localidade: e.morte_localidade,
             causa_morte: e.causa_morte,
             sepultamento_localidade: e.sepultamento_localidade,
             status_verificacao: e.status_verificacao,
             evidence_id: e.evidence_id,
+            source_id: e.source_id,
             /*
              * 09/10/2026 — bug medido e reportado pela Proprietária: "não
              * consigo mudar a visibilidade de nenhum parente da Ana para
@@ -929,6 +936,8 @@ function AbaPerfis({
               <Campo label="Nascimento (aproximado)" ajuda="Ex.: 'entre 1890 e 1893'.">
                 <input className={inputCls} value={e.nascimento_data_aproximada ?? ""} onChange={(x) => set("nascimento_data_aproximada", x.target.value)} />
               </Campo>
+              <Campo label="Precisão do nascimento"><Selecao valor={e.nascimento_precisao ?? "desconhecida"} onChange={(v) => set("nascimento_precisao", v)} opcoes={PRECISAO_DATA} /></Campo>
+              <Campo label="Fonte do nascimento"><Selecao valor={e.source_id ?? ""} onChange={(v) => set("source_id", v || null)} opcoes={fontes} vazio="Sem fonte vinculada" /></Campo>
               <Campo label="Nascimento (localidade)">
                 <input className={inputCls} value={e.nascimento_localidade ?? ""} onChange={(x) => set("nascimento_localidade", x.target.value)} />
               </Campo>
@@ -1077,8 +1086,11 @@ function AbaRelacoes({
     evidence_id: "",
     source_id: "",
     internal_notes: "",
+    // C6: padrão seguro = não publicado. Publicar é escolha humana explícita.
+    client_visibility: "interna",
   };
   const [nova, setNova] = useState(vazia);
+  const [editando, setEditando] = useState<{ id: string; relation_type: string; client_visibility: string; confirmar?: boolean } | null>(null);
   const nome = (id: string) => pessoas.find((p) => p.id === id)?.rotulo ?? "—";
 
   return (
@@ -1111,6 +1123,13 @@ function AbaRelacoes({
         <Campo label="Fonte">
           <Selecao valor={nova.source_id} onChange={(v) => setNova({ ...nova, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
         </Campo>
+        <Campo label="Visibilidade no App Cliente">
+          <Selecao
+            valor={nova.client_visibility}
+            onChange={(v) => setNova({ ...nova, client_visibility: v })}
+            opcoes={VISIBILIDADE_CLIENTE}
+          />
+        </Campo>
         <div className="md:col-span-3">
           <button
             type="button"
@@ -1137,7 +1156,49 @@ function AbaRelacoes({
             texto={rotuloDe(STATUS_PESQUISA_RELACAO, r.status_pesquisa)}
             tom={r.status_pesquisa === "confirmado" ? "ok" : "alerta"}
           />
+          <Selo
+            texto={rotuloDe(VISIBILIDADE_CLIENTE, r.client_visibility ?? "interna")}
+            tom={r.client_visibility === "aprovada" ? "ok" : "neutro"}
+          />
           {r.locality ? <span className="text-xs text-navy/60">{r.locality}</span> : null}
+          {editando?.id === r.id ? (
+            <span className="flex w-full flex-wrap items-end gap-2">
+              <Campo label="Tipo de relação">
+                <Selecao valor={editando.relation_type} onChange={(v) => setEditando({ ...editando, relation_type: v })} opcoes={TIPOS_RELACAO} />
+              </Campo>
+              <Campo label="Visibilidade no App Cliente">
+                <Selecao valor={editando.client_visibility} onChange={(v) => setEditando({ ...editando, client_visibility: v })} opcoes={VISIBILIDADE_CLIENTE} />
+              </Campo>
+              <button
+                type="button"
+                className={btnCls}
+                onClick={() => {
+                  // Publicar é decisão humana explícita: segundo clique confirma.
+                  if (editando.client_visibility === "aprovada" && r.client_visibility !== "aprovada" && !editando.confirmar) {
+                    setEditando({ ...editando, confirmar: true });
+                    return;
+                  }
+                  onSalvar(r.id, { relation_type: editando.relation_type, client_visibility: editando.client_visibility });
+                  setEditando(null);
+                }}
+              >
+                {editando.confirmar ? "Confirmar publicação no App Cliente" : "Salvar alteração"}
+              </button>
+              <button type="button" className="text-xs text-navy/60 underline" onClick={() => setEditando(null)}>
+                Cancelar
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="text-xs text-navy underline"
+              onClick={() =>
+                setEditando({ id: r.id, relation_type: r.relation_type, client_visibility: r.client_visibility ?? "interna" })
+              }
+            >
+              Editar
+            </button>
+          )}
           <AcaoOperacional
             rotulo="Arquivar"
             className="ml-auto text-xs text-terracotta underline"

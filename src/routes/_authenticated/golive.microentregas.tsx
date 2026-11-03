@@ -18,6 +18,7 @@ import { Barras } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
 import {
   aprovarMicroentregaGoLive,
+  publicarNoAppGoLive,
   criarMicroentregaGoLive,
   salvarRascunhoProjecaoApp,
 } from "@/lib/golive-escritores.functions";
@@ -28,14 +29,16 @@ import {
   type MicroentregaGoLive,
 } from "@/lib/golive-microentregas";
 import { RascunhosApp } from "@/components/golive/rascunhos-app";
+import { AcaoPublicarNoApp } from "@/components/golive/acoes-registro";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/microentregas")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Microentregas — Go-live Clube Ancestral" },
-      { name: "description", content: "Prazo, revisão e publicação das microentregas do caso do piloto." },
+      { name: "description", content: "Prazo, revisão e publicação das microentregas do caso escolhido." },
       { property: "og:title", content: "Microentregas — Go-live Clube Ancestral" },
       { property: "og:description", content: "Prazo, revisão e publicação das microentregas do caso." },
       { property: "og:type", content: "website" },
@@ -49,6 +52,7 @@ function MicroentregasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const aprovar = useEscritorGoLive(aprovarMicroentregaGoLive);
+  const publicarAgora = useEscritorGoLive(publicarNoAppGoLive);
   const salvarRascunho = useEscritorGoLive(salvarRascunhoProjecaoApp);
   const criar = useEscritorGoLive(criarMicroentregaGoLive);
 
@@ -167,6 +171,12 @@ function MicroentregasGoLive() {
                       confirmacao="Microentrega aprovada."
                     />
                   )}
+                  {concluida(m) ? (
+                    <AcaoPublicarNoApp
+                      microentregaId={m.id}
+                      aoConfirmar={(v) => publicarAgora({ data: v as Parameters<typeof publicarAgora>[0]["data"] })}
+                    />
+                  ) : null}
                   <Link search={true} to="/golive/caso">
                     <Button size="sm" variant="outline">Abrir Caso 360</Button>
                   </Link>

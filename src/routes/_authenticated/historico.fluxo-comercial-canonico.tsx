@@ -5,6 +5,7 @@ import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
 import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
 
 export const Route = createFileRoute("/_authenticated/historico/fluxo-comercial-canonico")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Visão histórica — Fluxo comercial canônico — Clube Ancestral" },

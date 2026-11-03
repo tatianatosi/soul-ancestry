@@ -2,10 +2,11 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
  * Confirma a homologação em lote dos SKUs previamente revisados item a item.
- * Somente perfis admin/operações. Nenhuma ação externa é executada: apenas o
+ * Somente admin. Nenhuma ação externa é executada: apenas o
  * estado interno do catálogo muda, com auditoria por item.
  */
 export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
@@ -22,9 +23,8 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
     const { pendenciasBloqueantes } = await import("@/lib/homologacao-revisao");
     const { organizationId, papel } = await contextoRg(supabase, userId);
 
-    if (!["admin", "operacoes"].includes(papel)) {
-      throw new Error("Homologação de catálogo restrita a admin e operações.");
-    }
+    const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+    await exigirAdminAprovador(supabase, organizationId);
 
     const { lerSaneamentoCatalogo } = await import("@/lib/catalogo-canonico.functions");
     const leitura: any = await (lerSaneamentoCatalogo as any)({ data: { incluirTeste: false } });
@@ -79,7 +79,7 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
         continue;
       }
 
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         user_id: userId,
         acao: "sku_homologado_em_lote",

@@ -427,6 +427,12 @@ export function itensComAcao(): { item: ItemChecklist58c; acao: AcaoDoItem }[] {
     .filter((x): x is { item: ItemChecklist58c; acao: AcaoDoItem } => x.acao !== null);
 }
 
+/** O item do template espera despesa de terceiro? `null` = id fora do template. */
+export function despesaEsperadaDoItem(itemId: string): boolean | null {
+  const base = ACAO_POR_ITEM[itemId];
+  return base ? base.despesaEsperada : null;
+}
+
 /** Itens de trabalho interno: sem linha de plano, sem custo, sem despesa. */
 export function itensSemAcaoDeTerceiro(): ItemChecklist58c[] {
   return CHECKLIST_58C.filter((i) => acaoDoItem(i) === null);

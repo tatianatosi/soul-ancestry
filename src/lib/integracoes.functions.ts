@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -25,7 +26,7 @@ async function auditar(entrada: {
   metadados: Record<string, unknown>;
 }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin.from("audit_logs").insert({
+  await registrarAuditoria(supabaseAdmin, {
     organization_id: entrada.organizationId,
     user_id: entrada.userId,
     acao: entrada.acao,
@@ -64,7 +65,7 @@ export const listarIntegracoes = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
       supabase
         .from("staff_access")
-        .select("auth_user_id, nome, email, role, status")
+        .select("auth_user_id, nome:full_name, email, role, status")
         .eq("organization_id", organizationId)
         .eq("status", "active")
         .is("archived_at", null),

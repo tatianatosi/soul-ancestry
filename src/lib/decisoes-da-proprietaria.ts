@@ -194,11 +194,6 @@ export const BLOQUEIOS_ABERTOS_DA_PROPRIETARIA: readonly BloqueioAbertoDaProprie
     registradoEm: "2026-09-29",
   },
   {
-    tema: "painel-dia.tsx × /painel (golive)",
-    oQueTrava: "Qual é a fonte viva do Painel Hoje — nenhum agente toca nos dois arquivos sem decisão.",
-    registradoEm: "2026-09-26",
-  },
-  {
     tema: "Taxonomia do Desk: 6 grupos vigentes × 8 do texto da memória permanente",
     oQueTrava: "Menu do Desk. Confirmado em 02/10: \"redesenho não vamos tocar agora\".",
     registradoEm: "2026-10-02",

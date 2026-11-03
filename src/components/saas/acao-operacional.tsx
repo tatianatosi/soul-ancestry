@@ -13,6 +13,7 @@
  * deixe a decisão aqui.
  */
 
+import { toast } from "sonner";
 import { useRef, useState, type ReactNode } from "react";
 
 import {
@@ -89,6 +90,9 @@ export function AcaoOperacional({
       await onConfirmar(texto);
       setAberto(false);
       setMotivo("");
+    } catch (e) {
+      // Falha de ação nunca fica muda: a pessoa vê o motivo e o erro vai ao coletor.
+      toast.error(e instanceof Error ? e.message : "A ação não foi concluída.");
     } finally {
       emVoo.current = false;
       setExecutando(false);

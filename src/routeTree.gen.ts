@@ -15,6 +15,7 @@ import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
@@ -59,6 +60,7 @@ import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticate
 import { Route as AcessoIndexRouteImport } from './routes/acesso.index'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
+import { Route as ApiErroRouteImport } from './routes/api/erro'
 import { Route as ApiPesquisaAssistenteRouteImport } from './routes/api/pesquisa-assistente'
 import { Route as ApiSaudeRouteImport } from './routes/api/saude'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
@@ -161,6 +163,11 @@ const DevolutivaRoute = DevolutivaRouteImport.update({
 const PortalRouteRoute = PortalRouteRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcessosPortalRoute =
@@ -402,6 +409,11 @@ const AcessoSemPermissaoRoute = AcessoSemPermissaoRouteImport.update({
   id: '/sem-permissao',
   path: '/sem-permissao',
   getParentRoute: () => AcessoRoute,
+} as any)
+const ApiErroRoute = ApiErroRouteImport.update({
+  id: '/api/erro',
+  path: '/api/erro',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPesquisaAssistenteRoute = ApiPesquisaAssistenteRouteImport.update({
   id: '/api/pesquisa-assistente',
@@ -826,6 +838,7 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -869,6 +882,7 @@ export interface FileRoutesByFullPath {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -949,6 +963,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -992,6 +1007,7 @@ export interface FileRoutesByTo {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -1076,6 +1092,7 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -1119,6 +1136,7 @@ export interface FileRoutesById {
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/erro': typeof ApiErroRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/api/saude': typeof ApiSaudeRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -1203,6 +1221,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/sitemap.xml'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1246,6 +1265,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
     | '/api/saude'
     | '/canvas/$token'
@@ -1326,6 +1346,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/devolutiva'
+    | '/sitemap.xml'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1369,6 +1390,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
     | '/api/saude'
     | '/canvas/$token'
@@ -1452,6 +1474,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/sitemap.xml'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
@@ -1495,6 +1518,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/erro'
     | '/api/pesquisa-assistente'
     | '/api/saude'
     | '/canvas/$token'
@@ -1579,6 +1603,8 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiErroRoute: typeof ApiErroRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   ApiSaudeRoute: typeof ApiSaudeRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
@@ -1634,6 +1660,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/acessos-portal': {
@@ -1943,6 +1976,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/acesso/sem-permissao'
       preLoaderRoute: typeof AcessoSemPermissaoRouteImport
       parentRoute: typeof AcessoRoute
+    }
+    '/api/erro': {
+      id: '/api/erro'
+      path: '/api/erro'
+      fullPath: '/api/erro'
+      preLoaderRoute: typeof ApiErroRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/pesquisa-assistente': {
       id: '/api/pesquisa-assistente'
@@ -2731,6 +2771,8 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiErroRoute: ApiErroRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   ApiSaudeRoute: ApiSaudeRoute,
   CanvasTokenRoute: CanvasTokenRoute,

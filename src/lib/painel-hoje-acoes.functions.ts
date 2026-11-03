@@ -200,7 +200,7 @@ export const registrarOverrideProprietaria = createServerFn({ method: "POST" })
         organization_id: organizationId,
         actor_user_id: context.userId,
         actor_papel: papel,
-        categoria: "override_gate_interno",
+        categoria: "override_interno", // owner_override_events_categoria_check: override_interno | confirmacao_externa
         acao: `superar_gate:${data.gate}`,
         modulo: data.modulo ?? null,
         operacao: avanco,

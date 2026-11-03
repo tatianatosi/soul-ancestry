@@ -186,7 +186,7 @@ export const projetarRelatorioParaApp = createServerFn({ method: "POST" })
       .from("app_projections")
       .select("id")
       .eq("organization_id", organizationId)
-      .eq("source_entity_type", "case_report")
+      .eq("source_entity_type", "case")
       .eq("source_entity_id", data.reportId)
       .is("archived_at", null)
       .maybeSingle();
@@ -202,7 +202,7 @@ export const projetarRelatorioParaApp = createServerFn({ method: "POST" })
       .from("app_projections")
       .insert({
         organization_id: organizationId,
-        source_entity_type: "case_report",
+        source_entity_type: "case",
         source_entity_id: data.reportId,
         case_id: relatorio.data["case_id"],
         projection_type: "relatorio_fase",

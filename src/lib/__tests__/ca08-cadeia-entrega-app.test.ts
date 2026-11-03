@@ -25,7 +25,7 @@ describe("CA08-CADEIA-ENTREGA-APP — ponte client_deliverables → app_projecti
 
   it("dedup: uma micro-entrega nunca gera duas projeções", () => {
     const trecho = bibliotecaFn.slice(bibliotecaFn.indexOf("export const projetarMicroentregaParaApp"));
-    expect(trecho).toContain('.eq("source_entity_type", "client_deliverable")');
+    expect(trecho).toContain('.eq("source_entity_type", "finding")');
     expect(trecho).toContain('.eq("source_entity_id", data.entregaId)');
     expect(trecho).toContain("existente.data?.id");
     expect(trecho).toContain("criado: false");

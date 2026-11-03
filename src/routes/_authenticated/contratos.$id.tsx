@@ -3,6 +3,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { History } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -12,6 +14,7 @@ import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { DocumentoDoInstrumento } from "@/components/contrato/documento-do-instrumento";
+import { HistoricoImportado } from "@/components/contrato/historico-importado";
 import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
@@ -57,6 +60,7 @@ import { listarEquipe } from "@/lib/equipe.functions";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Instrumento contratual — Clube Ancestral" },
@@ -116,6 +120,11 @@ function ContratoDetalhe() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [resumoVersao, setResumoVersao] = useState("");
   const [tituloTarefa, setTituloTarefa] = useState("");
+  const [historicoAberto, setHistoricoAberto] = useState(false);
+  const abrirHistorico = () => {
+    setHistoricoAberto(true);
+    requestAnimationFrame(() => document.getElementById("contrato-versões")?.scrollIntoView({ behavior: "auto", block: "start" }));
+  };
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(resumoVersao.trim() !== "" || tituloTarefa.trim() !== "");
 
@@ -248,7 +257,8 @@ function ContratoDetalhe() {
           <div><p className="text-xs text-muted-foreground">Versões registradas</p><p>{d.versoes.length}</p></div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">{c.signed_at ? "Assinatura registrada no instrumento." : "Assinatura não registrada no instrumento."}</p>
-        <a href="#contrato-versões" className="mt-2 inline-block text-xs underline">Consultar versões e histórico deste contrato</a>
+        <Button variant="outline" className="mt-3" onClick={abrirHistorico}><History />Rastrear versões do contrato</Button>
+        {c.case_id ? <Button variant="outline" className="mt-3 sm:ml-2" asChild><Link to="/pessoas-linhagens/$caseId" params={{ caseId: String(c.case_id) }}>Registrar nascimento com fonte</Link></Button> : null}
         {/*
           26/10/2026 — a saída em documento (PDF/DOCX) só existia em
           /casos/$caseId/contrato/preparar; nesta tela não havia nenhuma. Mesmo
@@ -467,7 +477,7 @@ function ContratoDetalhe() {
         <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e ordem de serviço"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
         <div id="contrato-fontes" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details></CaCard></div>
         <div id="contrato-validações" className="scroll-mt-24"><CaCard titulo="Validação jurídica da trilha"><Validacoes dados={d} /></CaCard></div>
-        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details></CaCard></div>
+        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details open={historicoAberto} onToggle={(e) => setHistoricoAberto(e.currentTarget.open)}><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /><HistoricoImportado contratoId={id} /></div></details></CaCard></div>
         <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
       </div>
     </SaasShell>
@@ -586,6 +596,9 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
       <Campo rotulo="Resumo de escopo" tipo="textarea" valor={c.scope_summary} onSalvar={(v) => salvar({ scope_summary: v })} />
       <Campo rotulo="Exclusões" tipo="textarea" valor={c.exclusions_summary} onSalvar={(v) => salvar({ exclusions_summary: v })} />
       <Campo rotulo="Confirmo ausência de exclusões" tipo="check" valor={c.no_exclusions_confirmed} onSalvar={(v) => salvar({ no_exclusions_confirmed: v })} />
+      <div className="sm:col-span-2">
+        <Campo rotulo="Observações internas" tipo="textarea" valor={c.internal_notes} onSalvar={(v) => salvar({ internal_notes: v })} />
+      </div>
       <Campo rotulo="Início da vigência" tipo="date" valor={c.effective_start_date} onSalvar={(v) => salvar({ effective_start_date: v || null })} />
       <Campo rotulo="Regra de vigência" valor={c.effective_rule} onSalvar={(v) => salvar({ effective_rule: v })} />
       <Campo
@@ -1244,6 +1257,18 @@ function Validacoes({ dados }: { dados: any }) {
 }
 
 function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
+  const carregarEquipe = useServerFn(listarEquipe);
+  const equipe = useQuery({ queryKey: ["equipe-revisao"], queryFn: () => carregarEquipe() });
+  const autor = (id: string | null | undefined) => {
+    if (!id) return "Não registrado";
+    const membro = equipe.data?.membros.find((m) => m.auth_user_id === id);
+    return membro?.full_name || membro?.email || "Autoria registrada; nome indisponível";
+  };
+  const dataHora = (valor: string | null | undefined) => {
+    if (!valor) return "Não registrado";
+    const data = new Date(valor);
+    return Number.isNaN(data.getTime()) ? "Não registrado" : data.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  };
   const baixar = useServerFn(baixarVersaoInterna);
   const visualizar = useServerFn(visualizarVersaoInterna);
   const [erro, setErro] = useState<string | null>(null);
@@ -1305,16 +1330,18 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
         vazio="Nenhuma versão gerada ainda. Use “Gerar rascunho interno”."
       >
         {(versoes) => (
-      <Tabela cabecalho={["Versão", "Status", "Alterações", "Arquivo privado", "Ações"]}>
+      <div className="overflow-x-auto"><table className="w-full text-sm max-md:[&_thead]:hidden max-md:[&_tr]:block max-md:[&_td]:block max-md:[&_td]:break-words max-md:[&_td]:before:mb-1 max-md:[&_td]:before:block max-md:[&_td]:before:text-xs max-md:[&_td]:before:text-muted-foreground max-md:[&_td]:before:content-[attr(data-coluna)]"><thead><tr>{["Versão", "Geração e autoria (São Paulo)", "Última atualização (São Paulo)", "Status", "Alterações", "Arquivo privado", "Ações"].map((h) => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead><tbody>
         {(versoes as any[]).map((v) => (
           <tr key={v.id} className="border-t border-navy/10 align-top">
-            <td className="px-3 py-2">v{v.version_number}</td>
-            <td className="px-3 py-2">{ROTULO_STATUS_VERSAO[v.status] ?? v.status}</td>
-            <td className="px-3 py-2 text-navy/70">{v.change_summary ?? "—"}</td>
-            <td className="px-3 py-2 text-xs text-navy/60">
+            <td data-coluna="Versão" className="px-3 py-2">v{v.version_number}</td>
+            <td data-coluna="Geração e autoria (São Paulo)" className="px-3 py-2"><p>{dataHora(v.created_at)}</p><p className="text-xs text-muted-foreground">{autor(v.created_by)}</p></td>
+            <td data-coluna="Última atualização (São Paulo)" className="px-3 py-2"><p>{dataHora(v.updated_at)}</p><p className="text-xs text-muted-foreground">{autor(v.updated_by)}</p></td>
+            <td data-coluna="Status" className="px-3 py-2">{ROTULO_STATUS_VERSAO[v.status] ?? v.status}</td>
+            <td data-coluna="Alterações" className="px-3 py-2 text-navy/70">{v.change_summary ?? "—"}</td>
+            <td data-coluna="Arquivo privado" className="px-3 py-2 text-xs text-navy/60">
               {v.rendered_file_hash ? `hash ${String(v.rendered_file_hash).slice(0, 12)}…` : v.render_error ? "falha de renderização" : "—"}
             </td>
-            <td className="px-3 py-2">
+            <td data-coluna="Ações" className="px-3 py-2">
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => abrirPreviaMaisRecente(v)} className="text-xs underline">
                   Ver prévia interna
@@ -1350,7 +1377,7 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
             </td>
           </tr>
         ))}
-      </Tabela>
+      </tbody></table></div>
         )}
       </EstadoDados>
       {previa ? (
@@ -1519,15 +1546,15 @@ function Revisao({
         <p className="text-xs text-navy/60">Exceção não oculta validação: continua visível no painel de completude.</p>
         <div className="mt-2">
           <AcaoOperacional
-            rotulo="Registrar exceção de gate"
+            rotulo="Autorizar documentos e anexos pendentes"
             capacidade="resolver_divergencia"
             variant="outline"
-            efeito="Registra uma exceção formal ao gate de ativação. O motivo informado fica auditado e a validação continua visível."
+            efeito="Admin autoriza preparar a liberação com documentos e anexos pendentes. Preços, validade, revisão, representação legal e assinatura não são dispensados. O motivo fica registrado."
             onConfirmar={async (motivo) => {
               await excecao({
                 data: {
                   contract_id: contratoId,
-                  scope: "activation_gate",
+                  scope: "validation_waiver",
                   reason: motivo,
                   impact: motivo,
                 },

@@ -409,6 +409,7 @@ function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
 }
 
 export const Route = createFileRoute("/portal/jornada")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Jornada — Portal Clube Ancestral" },

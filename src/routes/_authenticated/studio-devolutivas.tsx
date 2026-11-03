@@ -6,6 +6,7 @@ import { StudioDevolutivas } from "@/components/studio-devolutivas";
 // URL. Movida para dentro de _authenticated (herda o guard de autenticação
 // de route.tsx); o componente em si não mudou.
 export const Route = createFileRoute("/_authenticated/studio-devolutivas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Studio de Devolutivas — Clube Ancestral" },

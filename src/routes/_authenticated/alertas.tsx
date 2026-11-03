@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/alertas")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Alertas — Clube Ancestral" },

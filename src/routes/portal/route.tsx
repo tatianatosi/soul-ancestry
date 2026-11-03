@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
  * porta do Desk.
  */
 export const Route = createFileRoute("/portal")({
+  staticData: { sitemap: "exclude-subtree" },
   ssr: false,
   /**
    * Caso ativo na URL, não em estado local.

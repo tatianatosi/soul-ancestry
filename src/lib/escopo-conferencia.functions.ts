@@ -8,6 +8,7 @@ import { montarConferencia } from "@/lib/escopo-conferencia.server";
 import { ACOES_GATEADAS_INTERNAS, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { ACAO_REVALIDAR, detalheAcaoRevalidar } from "@/lib/proposta-saneamento";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -26,7 +27,7 @@ export const conferirEscopoProposta = createServerFn({ method: "POST" })
       proposalId: data.proposalId ?? null,
     });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: dados.caso.organization_id,
       user_id: actorId,
       acao: "escopo_proposta_conferido",
@@ -122,7 +123,7 @@ export const registrarRevalidacaoProposta = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: dados.caso.organization_id,
       user_id: actorId,
       acao: "proposta_revalidacao_solicitada",

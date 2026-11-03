@@ -30,13 +30,14 @@ describe("radarSeisDimensoes", () => {
   it("sem nenhuma publicação nem documento, nenhum eixo mostra 0% fictício", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
     for (const d of dimensoes) expect(d.percentual).toBeNull();
-    expect(dimensoes.find((d) => d.id === "documentacao")!.rotuloNumero).toBe("Em pesquisa");
+    // C4 (02/11/2026): sem checklist, "Não registrado" (antes "Em pesquisa").
+    expect(dimensoes.find((d) => d.id === "documentacao")!.rotuloNumero).toBe("Não registrado");
   });
 
   it("elegibilidade nunca lê parecer jurídico — é sempre a média dos outros 5 eixos", () => {
     const projecoes = [projecao("arvore"), projecao("achado"), projecao("marco")];
     const documentos: DocumentoPortal[] = [{ id: "1", liberado_cliente: true }];
-    const dimensoes = radarSeisDimensoes({ projecoes, documentos });
+    const dimensoes = radarSeisDimensoes({ projecoes, documentos, checklist: { itens: [], total: 1, concluidos: 1 } });
     const outros = dimensoes.filter((d) => d.id !== "elegibilidade" && d.percentual !== null);
     const mediaEsperada = Math.round(
       outros.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / outros.length,
@@ -72,15 +73,22 @@ describe("radarSeisDimensoes", () => {
     expect(dimensoes).toHaveLength(6);
   });
 
-  it("documentação é a proporção real de documentos liberados, ignorando demo", () => {
+  // C4 (02/11/2026): era "proporção de documentos liberados, ignorando demo" —
+  // arquivo liberado não é pedido concluído e `is_demo` não existe em documents.
+  it("documentação é a proporção do checklist canônico, não de arquivos liberados", () => {
     const documentos: DocumentoPortal[] = [
       { id: "1", liberado_cliente: true },
-      { id: "2", liberado_cliente: false },
-      { id: "3", liberado_cliente: true, is_demo: true },
+      { id: "2", liberado_cliente: true },
     ];
-    const dimensoes = radarSeisDimensoes({ projecoes: [], documentos });
+    const dimensoes = radarSeisDimensoes({
+      projecoes: [],
+      documentos,
+      checklist: { itens: [], total: 2, concluidos: 1 },
+    });
     const doc = dimensoes.find((d) => d.id === "documentacao")!;
     expect(doc.percentual).toBe(50);
+    const semChecklist = radarSeisDimensoes({ projecoes: [], documentos }).find((d) => d.id === "documentacao")!;
+    expect(semChecklist.percentual).toBeNull();
   });
 
   it("conexões familiares não apresenta o teto ilustrativo como total da família", () => {

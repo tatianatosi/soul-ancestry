@@ -10,6 +10,8 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
+import { ConferenciaMembro } from "@/components/equipe/conferencia-membro";
+import { type PapelRegistrado } from "@/lib/conferencia-acesso";
 import {
   alterarPapelMembro,
   alterarStatusMembro,
@@ -24,6 +26,7 @@ import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-propriet
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/_authenticated/equipe")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Usuários e papéis — Clube Ancestral" },
@@ -52,6 +55,8 @@ const PAPEIS = ["admin", "operacoes", "pesquisador", "comercial", "financeiro", 
 
 type MembroEquipe = {
   id: string;
+  organization_id: string;
+  auth_user_id: string | null;
   role: string;
   status: string;
   full_name?: string | null;
@@ -69,12 +74,14 @@ type MembroEquipe = {
  */
 function LinhaMembro({
   m,
+  papeis,
   executar,
   mudarPapel,
   mudarStatus,
   arquivar,
 }: {
   m: MembroEquipe;
+  papeis: readonly PapelRegistrado[];
   executar: (fn: () => Promise<unknown>) => Promise<void>;
   mudarPapel: (args: { data: { id: string; papel: string; motivo: string } }) => Promise<unknown>;
   mudarStatus: (args: { data: { id: string; status: "active" | "suspended" | "revoked"; motivo?: string } }) => Promise<unknown>;
@@ -91,7 +98,7 @@ function LinhaMembro({
             <Etiqueta texto={STATUS_LABEL[m.status] ?? m.status} tom={TOM_STATUS[m.status] ?? "neutro"} />
             {m.demo ? <Etiqueta texto="DEMO" tom="atencao" /> : null}
           </p>
-          <p className="text-sm text-navy/60">{m.email}</p>
+          <p className="break-words text-sm text-navy/60">{m.email}</p>
           <p className="mt-1 text-xs uppercase tracking-wide text-navy/50">
             {PAPEL_LABEL[m.role as keyof typeof PAPEL_LABEL]}
             {m.last_login_at ? ` · último acesso ${new Date(m.last_login_at).toLocaleString("pt-BR")}` : ""}
@@ -156,6 +163,7 @@ function LinhaMembro({
           />
         </div>
       </div>
+      <ConferenciaMembro membro={m} papeis={papeis} />
     </div>
   );
 }
@@ -209,7 +217,7 @@ function EquipePage() {
 
   // Cartões de decisão do grupo Administração — contam só o que já está
   // carregado por listarEquipe; sem fonte real, "Sem dados suficientes".
-  const membros = q.data?.membros ?? [];
+  const membros = (q.data?.membros ?? []).filter(m => !m.demo);
   const usuariosAtivos = q.data ? membros.filter((m) => m.status === "active").length : null;
   const convitesPendentes = q.data ? membros.filter((m) => m.status === "invited").length : null;
   const suspensosOuRevogados = q.data
@@ -387,7 +395,7 @@ function EquipePage() {
             <EstadoDados
               carregando={q.isLoading}
               erro={q.error}
-              dados={q.data?.membros}
+              dados={q.data ? membros : null}
               aoTentarNovamente={() => void q.refetch()}
               recurso="a equipe"
               vazio="Nenhum acesso interno cadastrado."
@@ -398,6 +406,7 @@ function EquipePage() {
                   <LinhaMembro
                     key={m.id}
                     m={m}
+                    papeis={q.data?.papeisRegistrados ?? []}
                     executar={executar}
                     mudarPapel={mudarPapel}
                     mudarStatus={mudarStatus}

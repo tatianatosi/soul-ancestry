@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { semFixtures } from "@/lib/fixtures";
 
 export const Route = createFileRoute("/_authenticated/ops-excecoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Exceções operacionais — Clube Ancestral" },

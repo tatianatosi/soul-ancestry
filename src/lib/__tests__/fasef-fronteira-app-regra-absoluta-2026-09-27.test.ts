@@ -113,7 +113,9 @@ describe("Fase F — App nunca lê as fontes internas da REGRA ABSOLUTA", () => 
     const interno = src.slice(src.indexOf(MARCADOR_INTERNO));
     const nomes = [...interno.matchAll(/export const (\w+) = createServerFn/g)].map((m) => m[1]!);
     expect(nomes).toContain("listarAcessosPortal");
-    expect(interno).toContain("organizacaoDo(");
+    // O Lovable trocou organizacaoDo() por exigirGestor() (que também devolve a organização do gestor): a regra
+    // "função interna exige organização" continua valendo pelos dois caminhos.
+    expect(interno).toMatch(/organizacaoDo\(|exigirGestor\(/);
     const telas = [...ROTAS_APP, ...arquivosDe("src/components/portal")];
     const achados: string[] = [];
     for (const t of telas) {

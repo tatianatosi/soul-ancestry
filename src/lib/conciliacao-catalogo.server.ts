@@ -16,6 +16,7 @@ import {
 } from "@/lib/conciliacao-catalogo";
 import { propostaComPaginasCanva, validarPropostaCanva } from "@/lib/escopo-proposta";
 import { casoGovernadoPeloPlanejador } from "@/lib/resgate-contrato-planejador";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 type Sb = any;
 
@@ -285,7 +286,7 @@ export async function registrarConciliacao(
     }
   }
 
-  await supabase.from("audit_logs").insert({
+  await registrarAuditoria(supabase, {
     organization_id: input.org,
     user_id: input.userId,
     acao: "conciliacao_catalogo_executada",
@@ -387,7 +388,7 @@ export async function reprocessarConciliacao(
     .maybeSingle();
   if (error) throw new Error(error.message);
 
-  await supabase.from("audit_logs").insert({
+  await registrarAuditoria(supabase, {
     organization_id: input.org,
     user_id: input.userId,
     acao: "conciliacao_catalogo_reprocessada",

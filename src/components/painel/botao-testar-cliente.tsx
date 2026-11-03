@@ -1,36 +1,35 @@
 /**
- * Botão para staff testar como cliente.
+ * Botão para a equipe ver o App Cliente de UM caso.
  *
- * Aparece no painel do staff. Clica e vai direto pro app cliente
- * com dados reais de Ana Luiza (ou outro cliente).
+ * Reescrito por caso em 01/11/2026: recebe o `casoId` e abre o mecanismo oficial
+ * (`/app-cliente-como-pessoa?casoId=`), sem virar cliente, sem link mágico e sem id fixo.
+ * Sem `casoId` o botão fica desabilitado e diz por quê (nunca cai em um caso padrão).
  */
 
 import { useNavigate } from "@tanstack/react-router";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function BotaoTestarComoCiente() {
+export function BotaoTestarComoCiente({ casoId }: { casoId?: string | null }) {
   const navigate = useNavigate();
+  const semCaso = !casoId;
 
-  function testarComoCliente() {
-    // Por enquanto, redireciona direto para o portal
-    // TODO: Integrar com gerarLinkAcessoClienteDebug quando houver integração SSO
-    navigate({
-      to: "/portal/casos/$id",
-      params: { id: "ana-luiza" },
-    });
+  function verComoCliente() {
+    if (!casoId) return;
+    navigate({ to: "/app-cliente-como-pessoa", search: { casoId } });
   }
 
   return (
     <Button
-      onClick={testarComoCliente}
+      onClick={verComoCliente}
+      disabled={semCaso}
       variant="outline"
       size="sm"
       className="gap-2"
-      title="Visualizar app cliente com dados reais (staff only)"
+      title={semCaso ? "Escolha um caso para ver o App Cliente dele" : "Ver o App Cliente deste caso (somente equipe)"}
     >
       <Eye className="h-4 w-4" />
-      Testar como cliente
+      Ver App Cliente
     </Button>
   );
 }

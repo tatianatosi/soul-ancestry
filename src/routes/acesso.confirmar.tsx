@@ -7,6 +7,7 @@ import { BrandLogo } from "@/components/brand";
 import { confirmarAcessoPortal } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/acesso/confirmar")({
+  staticData: { sitemap: false },
   ssr: false,
   head: () => ({
     meta: [

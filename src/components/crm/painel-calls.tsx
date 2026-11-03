@@ -53,6 +53,7 @@ import {
   ROTULO_ESTADO_CALL,
   acaoVencida,
   avaliarHandoffCall,
+  avisosOperacionaisLeadAtivo,
   corComplexidade,
   corElegibilidade,
   estadoCall,
@@ -68,6 +69,7 @@ import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 import { filaCrmVivo, statusPedeMotivo } from "@/lib/crm-vivo";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
 
 /** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
 const CATALOGO_MULTI: Record<string, Opcao[]> = {
@@ -363,6 +365,7 @@ export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string
   // nova" chamam a mesma mutation (mutarHandoff) que "Concluir handoff",
   // mas disparavam sem a checagem de capacidade/gate que este só tem —
   // as três portas para a mesma escrita externa precisam do mesmo guard.
+  const avisosOperacao = lead ? avisosOperacionaisLeadAtivo(lead) : [];
   const gateHandoff = lead ? podeExecutarHandoffDiscovery(lead) : { ok: false, motivo: "Selecione um lead" };
   // P2: o motivo só é exigido quando o status muda para no-show/cancelada
   // neste rascunho (mesma regra do servidor: só mudança vira evento).
@@ -955,6 +958,20 @@ export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string
             </p>
           ) : (
             <>
+              {avisosOperacao.length > 0 ? (
+                <div className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy" data-avisos-operacionais-lead>
+                  <p className="font-medium">Pendência operacional (informa; não trava a proprietária)</p>
+                  <ul className="mt-1 list-disc pl-4 text-navy/80">
+                    {avisosOperacao.map((a) => (
+                      <li key={a.campo}>{a.motivo}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-1 text-[11px] text-navy/55">
+                    Lead ativo exige área responsável, responsável nominal e próxima ação datada.
+                  </p>
+                </div>
+              ) : null}
+
               {/*
                 Fase 4 (27/09/2026) — "Prompt Canônicos": bloco 1 (contexto
                 do lead), como abertura — antes a tela abria direto na
@@ -1113,6 +1130,8 @@ export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string
                 passa a ter uma única superfície editável (o card SPIN),
                 nunca duas.
               */}
+              {/* 31/10/2026 — fontes do país do lead no roteiro Discovery: cobertura e sugestão de fonte. */}
+              <FontesPorPaisPainel paisValor={lead.pais_linha_prioritaria} className="mb-3" />
               <div id="calls-roteiro-vivo" className="scroll-mt-24" />
               <MesaDiscovery
                 lead={lead}

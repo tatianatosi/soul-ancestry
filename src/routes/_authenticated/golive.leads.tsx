@@ -27,13 +27,17 @@ import {
 import {
   arquivarLeadGoLive,
   registrarAtendimentoGoLive,
+  registrarCallGoLive,
+  registrarDiscoveryGoLive,
   registrarLeadGoLive,
 } from "@/lib/golive-escritores.functions";
+import { AcaoCall, AcaoDiscovery } from "@/components/golive/acoes-registro";
 
 
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/leads")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
@@ -60,6 +64,8 @@ function LeadsGoLive() {
   const { data, isPending, error } = useGoLive();
   const novoLead = useEscritorGoLive(registrarLeadGoLive);
   const atendimento = useEscritorGoLive(registrarAtendimentoGoLive);
+  const discovery = useEscritorGoLive(registrarDiscoveryGoLive);
+  const call = useEscritorGoLive(registrarCallGoLive);
   const arquivarLead = useEscritorGoLive(arquivarLeadGoLive);
 
   const [escolhido, setEscolhido] = useState<string | null>(null);
@@ -202,6 +208,14 @@ function LeadsGoLive() {
               <AcaoAgenda
                 leadId={emFoco.id}
                 aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+              <AcaoDiscovery
+                leadId={emFoco.id}
+                aoConfirmar={(v) => discovery({ data: v as Parameters<typeof discovery>[0]["data"] })}
+              />
+              <AcaoCall
+                leadId={emFoco.id}
+                aoConfirmar={(v) => call({ data: v as Parameters<typeof call>[0]["data"] })}
               />
               <Acao
                 rotulo="Arquivar lead"

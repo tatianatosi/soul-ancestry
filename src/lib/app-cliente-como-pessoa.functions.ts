@@ -10,8 +10,15 @@ import { escopoAPartirDePublicacoes, type EscopoCliente } from "@/lib/app-visibi
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 import {
   condicaoComercialCliente,
+  estadoDocumentalEPlanoDoCaso,
+  type ChecklistDocumentalCliente,
   type CondicaoComercialCliente,
   type DocumentoPortal,
+  type EtapaCliente,
+  type EventoTimelinePortal,
+  type MarcoHistoricoCliente,
+  type SolicitacaoChecklistBruta,
+  type SolicitacaoDocumentoCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
@@ -36,6 +43,17 @@ export type DadosPortalComoAdmin = {
   resumoCaso: ResumoCasoCliente | null;
   /** Mesmo recorte de `dadosVivosDoPortal` (30/10/2026): só campos numéricos de `case_commercial_condition`. */
   condicaoComercial: CondicaoComercialCliente | null;
+  /**
+   * 02/11/2026 (C5) — paridade com `dadosVivosDoPortal`: mesmos campos, lidos
+   * do caso escolhido e passados pelas mesmas funções sanitizadoras.
+   */
+  casoAtivoId: string | null;
+  etapa: EtapaCliente | null;
+  composicao: string | null;
+  proximaEntrega: { data: string; texto: string } | null;
+  historico: MarcoHistoricoCliente[];
+  solicitacoes: SolicitacaoDocumentoCliente[];
+  checklist: ChecklistDocumentalCliente;
 };
 
 /**
@@ -89,7 +107,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     // virava "Invalid API key" no Acesso app como pessoa.
     const leitorProjecoes = supabase;
 
-    const [proj, docs, pendencias, faturas, mapeadas] = await Promise.all([
+    const [proj, docs, pendencias, faturas, mapeadas, plano, entrega, timeline] = await Promise.all([
       leitorProjecoes
         .from("app_projections")
         .select("id, case_id, projection_type, content_sanitized, pessoa_id, geracao_cliente, effective_from, updated_at")
@@ -105,24 +123,53 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .select("id, liberado_cliente, origem, titulo, liberado_em")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId),
+      // C5: todos os pedidos não arquivados do caso (como `pdr_sel_portal` entrega
+      // à família), para montar checklist e solicitações; a contagem de pendência
+      // continua só com aguardando/recusado.
       supabase
         .from("portal_document_requests")
-        .select("id, status")
+        .select("id, case_id, status, titulo, descricao, prazo, motivo_recusa, obrigatorio")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
-        .in("status", ["aguardando", "recusado"])
         .is("archived_at", null),
       supabase
         .from("invoices")
         .select("id, status")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
-        .in("status", ["aberta", "vencida"]),
+        .in("status", ["emitida", "pendente", "vencida"]),
       supabase
         .from("genealogical_person_profiles")
         .select("id", { count: "exact", head: true })
         .eq("case_id", data.casoId)
         .is("archived_at", null),
+      // Mesma origem da view `portal_casos`: plano ativo mais recente.
+      supabase
+        .from("case_plans")
+        .select("fase_jornada, composicao, dependencias_cliente")
+        .eq("case_id", data.casoId)
+        .eq("status", "ativo")
+        .is("archived_at", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("ops_microentregas")
+        .select("prazo")
+        .eq("caso_id", data.casoId)
+        .is("archived_at", null)
+        .not("status", "in", "(concluida,cancelada)")
+        .not("prazo", "is", null)
+        .order("prazo", { ascending: true })
+        .limit(1),
+      // Só marcos aprovados para a família, como `cte_select_portal`.
+      supabase
+        .from("case_timeline_events")
+        .select("id, summary_client_approved, occurred_at, created_at, visibility")
+        .eq("case_id", data.casoId)
+        .eq("visibility", "cliente_aprovado")
+        .order("occurred_at", { ascending: false })
+        .limit(3),
     ]);
 
     const projecoes = linhasDe<ProjecaoBruta>(proj, "as publicações do App Cliente");
@@ -130,10 +177,20 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     const documentos = documentosBrutos.filter(
       (d) => d.liberado_cliente === true || d.origem === "cliente",
     );
-    const documentosPendentes = linhasDe<{ id: string }>(
-      pendencias,
-      "as solicitações de documento do cliente",
-    ).length;
+    const pedidos = linhasDe<SolicitacaoChecklistBruta>(pendencias, "as solicitações de documento do cliente");
+    const planoAtivo = ((plano as any)?.data ?? null) as {
+      fase_jornada?: string | null;
+      composicao?: string | null;
+      dependencias_cliente?: string[] | null;
+    } | null;
+    const estado = estadoDocumentalEPlanoDoCaso({
+      pedidos,
+      faseJornada: planoAtivo?.fase_jornada,
+      composicao: planoAtivo?.composicao,
+      proximaEntregaPrevistaEm: ((entrega as any)?.data?.[0]?.prazo as string | undefined) ?? null,
+      eventosTimeline: (((timeline as any)?.data ?? []) as EventoTimelinePortal[]),
+    });
+    const documentosPendentes = estado.documentosPendentes;
     const pagamentoPendente =
       linhasDe<{ id: string }>(faturas, "as faturas deste caso").length > 0;
 
@@ -165,12 +222,12 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
       try {
         const prof = await supabase
           .from("genealogical_person_profiles")
-          .select("research_person_id, nascimento_data, nascimento_precisao, morte_data, morte_precisao")
+          .select("research_person_id, nascimento_data, nascimento_data_aproximada, nascimento_precisao, morte_data, morte_precisao")
           .eq("organization_id", organizationId)
           .eq("case_id", data.casoId)
           .eq("client_visibility", "aprovada")
           .is("archived_at", null)
-          .or("nascimento_data.not.is.null,morte_data.not.is.null")
+          .or("nascimento_data.not.is.null,nascimento_data_aproximada.not.is.null,morte_data.not.is.null")
           .in("research_person_id", [...publicadosArvore]);
         anosArvore = ((prof.data ?? []) as any[])
           .map((r) => ({ pessoa_id: String(r.research_person_id), rotulo: rotuloAnoArvore(r) }))
@@ -207,6 +264,13 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     const condicaoComercial = condicaoComercialCliente(cond.data ?? null);
 
     return {
+      casoAtivoId: String(caso.id),
+      etapa: estado.etapa,
+      composicao: estado.composicao,
+      proximaEntrega: estado.proximaEntrega,
+      historico: estado.historico,
+      solicitacoes: estado.solicitacoes,
+      checklist: estado.checklist,
       resumoCaso,
       condicaoComercial,
       titularNome,
@@ -222,6 +286,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
           suspensoEm: caso.suspenso_em,
           documentosPendentes,
           pagamentoPendente,
+          pendenciaClientePendente: (planoAtivo?.dependencias_cliente?.length ?? 0) > 0,
         }),
       ),
       escopo: escopoAPartirDePublicacoes({
@@ -324,7 +389,7 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
         .select("id", { count: "exact", head: true })
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
-        .in("status", ["aberta", "vencida"]),
+        .in("status", ["emitida", "pendente", "vencida"]),
     ]);
 
     const listaProjecoes = (projecoes.data ?? []) as Record<string, any>[];

@@ -4,6 +4,7 @@ import { SaasShell } from "@/components/saas/shell";
 import { PesquisaCaso } from "@/components/pesquisa/painel";
 
 export const Route = createFileRoute("/_authenticated/pesquisa/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Dossiê de pesquisa — Clube Ancestral" },

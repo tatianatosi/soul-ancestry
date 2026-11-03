@@ -27,6 +27,7 @@ function NoPessoa({ pessoa }: { pessoa: PessoaNaArvore }) {
 }
 
 export const Route = createFileRoute("/portal/arvore")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Árvore — Portal Clube Ancestral" },

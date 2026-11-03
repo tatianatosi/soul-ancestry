@@ -6,6 +6,7 @@ import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { publicacoesDeFase02 } from "@/lib/portal-dados-vivos";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
@@ -18,6 +19,7 @@ function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
 }
 
 export const Route = createFileRoute("/portal/fase-02")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Atualização seguinte — Portal Clube Ancestral" },
@@ -35,13 +37,16 @@ export const Route = createFileRoute("/portal/fase-02")({
 export function PortalFase02() {
   const { visibilidade, carregando } = useVisibilidade("fase02");
   const previa = usePreviaPortal();
-  const { data, isLoading } = usePortalVivo();
+  const { data, isLoading, isError, refetch } = usePortalVivo();
   const itens = publicacoesDeFase02(data?.projecoes ?? []);
 
   return (
     <PortalShell titulo={COPY_TELAS.fase02.titulo} descricao={COPY_TELAS.fase02.descricao}>
       {carregando || isLoading ? (
         <PortalCarregando />
+      ) : isError ? (
+        // C3 (02/11/2026): falha de carga nunca vira "em preparação".
+        <AvisoFalhaConexao mensagem="Não conseguimos carregar agora. Tente de novo." aoTentar={() => void refetch()} />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           {/* permiteUpsell é sempre false: nenhuma oferta, preço ou CTA de compra. */}

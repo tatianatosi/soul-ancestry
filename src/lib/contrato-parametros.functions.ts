@@ -70,6 +70,7 @@ import {
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
 import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
 const CONFLITO_PROPOSTA_PLANEJADOR = "proposal_planner_value_conflict";
@@ -349,7 +350,7 @@ async function preencherQualificacaoContratada(supabase: Sb, parametersId: strin
   if (error || !atualizado) return valores;
 
   if (!preenchendoVazio) {
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: atualizado.organization_id,
       entidade: "contract_parameter_values",
       entidade_id: String(linha.id),
@@ -1335,7 +1336,7 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
       aGravar,
     );
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_annexes",
       entidade_id: registro.case_id,
@@ -1437,7 +1438,7 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
       instancias,
     );
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_annexes",
       entidade_id: registro.case_id,
@@ -1485,7 +1486,7 @@ export const dispensarAnexoComMotivo = createServerFn({ method: "POST" })
       motivo: data.motivo,
     });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_annexes",
       entidade_id: registro.case_id,
@@ -1549,7 +1550,7 @@ export const reativarAnexoDispensado = createServerFn({ method: "POST" })
     );
 
     if (!resultado.jaAtivo) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         entidade: "contract_annexes",
         entidade_id: registro.case_id,
@@ -1815,6 +1816,8 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       tipo as any,
     );
     if (tipo === "final") {
+      const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+      await exigirAdminAprovador(supabase, registro.organization_id);
       await exigirCoerencia(supabase, registro, {
         userId: context.userId as string,
         organizationId: registro.organization_id,
@@ -1950,7 +1953,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       .select("id,versao");
 
     if ((substituidas ?? []).length > 0) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         user_id: context.userId,
         entidade: "contract_parameter_previews",
@@ -1990,7 +1993,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     // Liberar não é apagar: a pendência assumida fica registrada na auditoria
     // do próprio congelamento.
     if (pendenciasAssumidas.length > 0) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         user_id: context.userId,
         entidade: "contract_parameter_previews",
@@ -2050,6 +2053,8 @@ export const aprovarParametros = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!previa) throw new Error("Prévia não encontrada.");
     if (previa.tipo !== "final") throw new Error("Somente a prévia final pode ser aprovada.");
+    const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+    await exigirAdminAprovador(supabase, previa.organization_id);
 
     // Autoridade operacional (05/09/2026): pendência informa, não impede.
     // Antes, a aprovação da prévia era recusada por placeholder pendente mesmo
@@ -2173,7 +2178,8 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
           client_id: caso?.cliente_id ?? null,
           proposal_id: registro.proposal_id,
           template_id: registro.contract_template_id,
-          status: "in_review",
+          // CHECK contracts_status_check + fn_contracts_guard: novo instrumento começa em rascunho.
+          status: "draft",
           purpose_summary: pegar("objeto_contrato"),
           scope_summary: pegar("escopo_resumo"),
           exclusions_summary: pegar("servicos_excluidos"),
@@ -2206,12 +2212,12 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
 
       const escopo = [
         {
-          category: "included",
+          category: "contracted_scope",
           title: "Serviços incluídos",
           description: pegar("servicos_incluidos"),
         },
         {
-          category: "excluded",
+          category: "exclusion",
           title: "Serviços excluídos",
           description: pegar("servicos_excluidos"),
         },
@@ -2229,8 +2235,10 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
             category: s.category,
             title: s.title,
             description: s.description,
-            status: "approved",
-            source_type: "contract_parameters",
+            // contract_scope_items: status só aceita included/excluded/pending/conditional/not_applicable;
+            // source_type só aceita proposal/case/manual_review/template/annex.
+            status: s.category === "exclusion" ? "excluded" : "included",
+            source_type: "case",
             source_reference: data.id,
             display_order: i,
             created_by: context.userId,
@@ -2506,7 +2514,7 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
     if (!linhaCorrigida?.length)
       throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi corrigido.");
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_parameter_values",
       entidade_id: valor.id,
@@ -2665,7 +2673,7 @@ export const preencherParametrosDoCanva = createServerFn({ method: "POST" })
     const divergentes = divergencias(plano).map((d) => d.campo);
 
     if (gravados.length || divergentes.length) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         entidade: "contract_parameter_values",
         entidade_id: null,

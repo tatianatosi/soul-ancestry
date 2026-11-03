@@ -5,7 +5,8 @@ import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell"
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
-import { registrarMembroNucleoGoLive } from "@/lib/golive-escritores.functions";
+import { registrarMembroNucleoGoLive, resolverPessoaGoLive } from "@/lib/golive-escritores.functions";
+import { AcaoConferirPessoa } from "@/components/golive/acoes-registro";
 import { Barras, Rede, Rosca } from "@/components/golive/graficos";
 import {
   coberturaPorGeracao,
@@ -20,11 +21,12 @@ import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/pessoas")({
+  staticData: { sitemap: false },
   validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Pessoas & Famílias — Go-live Clube Ancestral" },
-      { name: "description", content: "Núcleo familiar e pessoas vinculadas ao caso canônico do piloto." },
+      { name: "description", content: "Núcleo familiar e pessoas vinculadas ao caso escolhido." },
       { property: "og:title", content: "Pessoas & Famílias — Go-live Clube Ancestral" },
       { property: "og:description", content: "Núcleo familiar e pessoas vinculadas ao caso canônico." },
       { property: "og:type", content: "website" },
@@ -38,6 +40,7 @@ function PessoasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const adicionarMembro = useEscritorGoLive(registrarMembroNucleoGoLive);
+  const conferirPessoa = useEscritorGoLive(resolverPessoaGoLive);
 
   /* Fonte: nucleo_membros (núcleo do caso), case_members e case_dependents.
      Geração e relação só saem de pai_id/mae_id gravados. */
@@ -151,6 +154,9 @@ function PessoasGoLive() {
                   })
                 }
                 confirmacao="Pessoa adicionada ao núcleo."
+              />
+              <AcaoConferirPessoa
+                aoConfirmar={(v) => conferirPessoa({ data: v as Parameters<typeof conferirPessoa>[0]["data"] })}
               />
             </Acoes>
 

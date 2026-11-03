@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
  * Assistente de pesquisa genealógica (interno).
@@ -7,6 +8,7 @@ import type {} from "@tanstack/react-start";
  * relatório em streaming. Nenhuma escrita no banco.
  */
 export const Route = createFileRoute("/api/pesquisa-assistente")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {
@@ -195,9 +197,7 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
         }
 
         if (lacunas.length > 0) {
-          await supabase
-            .from("audit_logs")
-            .insert({
+          await registrarAuditoria(supabase, {
               organization_id: caso.data["organization_id"],
               user_id: userData.user.id,
               acao: "analysis_blocked_insufficient_case_data",

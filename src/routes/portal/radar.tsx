@@ -11,6 +11,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 
 export const Route = createFileRoute("/portal/radar")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Radar Ancestral — Portal Clube Ancestral" },
@@ -75,6 +76,7 @@ export function PortalRadar() {
               projecoes: vivo.projecoes,
               documentos: vivo.documentos,
               pessoasMapeadas: vivo.pessoasMapeadas ?? 0,
+              checklist: vivo.checklist,
             });
             const porId = new Map(base.map((d) => [d.id, d]));
             const dimensoes = [

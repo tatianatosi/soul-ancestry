@@ -27,6 +27,7 @@ import {
 } from "@/lib/golive-operacao";
 
 export const Route = createFileRoute("/_authenticated/painel")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Visão Geral — Clube Ancestral" },

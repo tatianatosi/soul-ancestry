@@ -4,6 +4,7 @@ import { SaasShell } from "@/components/saas/shell";
 import { AtendimentoInterno } from "@/components/portal/atendimento-interno";
 
 export const Route = createFileRoute("/_authenticated/atendimento")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Atendimento ao cliente — Clube Ancestral" },

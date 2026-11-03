@@ -11,6 +11,7 @@ import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 import { entregasLiberadasParaCliente } from "@/lib/portal-entregas";
 import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { STATUS_FATURA_SIMPLES } from "@/lib/portal-cliente.server";
+import { exigirLeitura } from "@/lib/conferencia-acesso";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -199,6 +200,8 @@ export const portalContexto = createServerFn({ method: "GET" })
       .limit(10)
       .then(comoUnico);
 
+    // C3 (02/11/2026): erro de leitura não vira "sem permissão".
+    if (acesso.error) throw new Error("Falha ao carregar o contexto do portal.");
     if (!acesso.data || acesso.data.access_status !== "active") {
       return { autorizado: false as const, cliente: null, casos: [], nivel: null };
     }
@@ -211,6 +214,7 @@ export const portalContexto = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
     ]);
 
+    if (cliente.error || casos.error) throw new Error("Falha ao carregar o contexto do portal.");
     return {
       autorizado: true as const,
       nivel: acesso.data.access_level as "proposal_portal" | "client_workspace",
@@ -340,7 +344,8 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const helpers = await import("./portal.server");
+    const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
     // Mesma ponte admin de `resumoVisaoClienteCaso` (evita recursão RLS em
     // app_projections). Filtro explícito de organização porque o admin
     // não passa por RLS.
@@ -350,28 +355,32 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       supabase
         .from("client_portal_access")
         .select(
-          "id, client_id, email, access_status, access_level, finalidade, authorized_email_id, invited_at, invitation_expires_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at, first_authenticated_at, last_authenticated_at, revocation_reason, is_demo, archived_at, created_at",
+          "id, client_id, auth_user_id, email, access_status, access_level, finalidade, authorized_email_id, invited_at, invitation_expires_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at, first_authenticated_at, last_authenticated_at, revocation_reason, is_demo, archived_at, created_at",
         )
+        .eq("organization_id", organizationId)
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
       supabase
         .from("client_portal_case_access")
-        .select("id, client_portal_access_id, case_id, access_status, granted_at"),
-      supabase.from("clientes").select("id, nome, email, classificacao, is_demo").is("archived_at", null),
+        .select("id, client_portal_access_id, case_id, access_status, granted_at")
+        .eq("organization_id", organizationId),
+      supabase.from("clientes").select("id, nome, email, classificacao, is_demo").eq("organization_id", organizationId).is("archived_at", null),
       supabase
         .from("crm_casos")
         .select(
           "id, codigo, titulo, cliente_id, ativo, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, app_access_status, demo",
         )
+        .eq("organization_id", organizationId)
         .is("archived_at", null),
       supabase
         .from("authorized_portal_emails")
         .select(
           "id, client_id, case_id, email, finalidade, nivel_pretendido, status, validado_em, motivo_recusa, is_demo, archived_at, created_at",
         )
+        .eq("organization_id", organizationId)
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
-      supabase.from("proposals").select("id, client_id, case_id, status, archived_at").is("archived_at", null),
+      supabase.from("proposals").select("id, client_id, case_id, status, archived_at").eq("organization_id", organizationId).is("archived_at", null),
       // §22 do De-Para (Portal do Cliente, zona "Resumo por família/caso —
       // status geral de publicação do App"): mesma fonte que
       // `resumoVisaoClienteCaso` já usa por caso, aqui por organização
@@ -383,18 +392,18 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       leitorProjecoes
         .from("app_projections")
         .select(
-          "id, case_id, approval_status, archived_at, projection_type, source_entity_type, created_by, updated_by, effective_from, created_at",
+          "id, case_id, approval_status, archived_at, projection_type, source_entity_type, created_by, updated_by, effective_from, created_at, destination, approved_at, approved_by, titular_client_id",
         )
         .eq("organization_id", organizationId),
     ]);
     return {
-      acessos: (acessos.data ?? []) as any[],
-      casosAcesso: (casosAcesso.data ?? []) as any[],
-      clientes: (clientes.data ?? []) as any[],
-      casos: (casos.data ?? []) as any[],
-      autorizacoes: (autorizacoes.data ?? []) as any[],
-      propostas: (propostas.data ?? []) as any[],
-      projecoes: (projecoes.data ?? []) as any[],
+      acessos: exigirLeitura(acessos, "os acessos ao portal") as any[],
+      casosAcesso: exigirLeitura(casosAcesso, "os vínculos de casos") as any[],
+      clientes: exigirLeitura(clientes, "as pessoas") as any[],
+      casos: exigirLeitura(casos, "os casos") as any[],
+      autorizacoes: exigirLeitura(autorizacoes, "as autorizações de e-mail") as any[],
+      propostas: exigirLeitura(propostas, "as propostas") as any[],
+      projecoes: exigirLeitura(projecoes, "as publicações do App") as any[],
     };
   });
 
@@ -586,7 +595,7 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
       const r = await supabase
         .from("crm_casos")
         .select(
-          "id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, archived_at",
+          "id, cliente_id, demo, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, archived_at",
         )
         .eq("id", data.casoId)
         .eq("organization_id", organizationId)
@@ -622,42 +631,31 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
 
 
 
+    const isDemo = Boolean(auth.is_demo || cliente.data.is_demo);
+    if (caso) {
+      const { erroDemoIncompativel } = await import("./portal-convite");
+      const incompativel = erroDemoIncompativel(caso.demo, isDemo);
+      if (incompativel) throw new Error(incompativel);
+    }
+
     const agora = new Date();
     const { CONVITE_VALIDADE_HORAS } = await import("./portal-elegibilidade");
     const expira = new Date(agora.getTime() + CONVITE_VALIDADE_HORAS * 60 * 60 * 1000);
 
-    const inserido = await supabase
-      .from("client_portal_access")
-      .insert({
-        organization_id: organizationId,
-        client_id: data.clientId,
-        email,
-        access_level: data.nivel,
-        access_status: "invited",
-        finalidade: auth.finalidade,
-        authorized_email_id: auth.id,
-        is_demo: auth.is_demo || cliente.data.is_demo || false,
-        invited_at: agora.toISOString(),
-        invited_by: context.userId,
-        invitation_expires_at: expira.toISOString(),
-        magic_link_expires_at: expira.toISOString(),
-        magic_link_uses: 0,
-        magic_link_max_uses: 1,
-      })
-      .select("id")
-      .maybeSingle();
-    if (inserido.error) throw new Error(inserido.error.message);
-    const acessoId = inserido.data.id as string;
-
-
-    if (caso) {
-      const vinculo = await supabase.from("client_portal_case_access").insert({
-        organization_id: organizationId,
-        client_portal_access_id: acessoId,
-        case_id: caso.id,
-      });
-      if (vinculo.error) throw new Error(vinculo.error.message);
-    }
+    const { gravarConvitePortal } = await import("./portal-convite");
+    const { acessoId } = await gravarConvitePortal(supabase, {
+      organizationId,
+      userId: context.userId as string,
+      clientId: data.clientId,
+      email,
+      nivel: data.nivel,
+      finalidade: auth.finalidade,
+      autorizacaoId: auth.id,
+      isDemo,
+      casoId: caso?.id ?? null,
+      agora,
+      expira,
+    });
 
     const userId = await helpers.garantirUsuarioAuth(email);
     if (userId) {

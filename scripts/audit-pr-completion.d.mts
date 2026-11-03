@@ -1,0 +1,1 @@
+export function auditPullRequests(api: (path: string) => Promise<any>, owner: string, repo: string): Promise<any[]>;

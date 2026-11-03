@@ -2,7 +2,7 @@ name: Sync Guard
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -17,6 +17,15 @@ jobs:
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
       IS_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
+      # Use validator from trusted base, never execute code supplied by a fork PR.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - name: Matriz de evidências e reservas por SHA
+        run: |
+          gh api "repos/${{ github.repository }}/pulls/${PR}/files" --paginate --slurp | jq 'add' > "$RUNNER_TEMP/pr-files.json"
+          gh api "repos/${{ github.repository }}/pulls?state=open&per_page=100" --paginate --slurp | jq 'add' > "$RUNNER_TEMP/pr-open.json"
+          node scripts/check-pr-evidence.mjs "$RUNNER_TEMP/pr-files.json" "$RUNNER_TEMP/pr-open.json"
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}

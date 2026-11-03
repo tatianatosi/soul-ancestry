@@ -3,6 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { PainelQualidade } from "@/components/qualidade/painel";
+import { OrigemDosDados } from "@/components/qualidade/origem-dos-dados";
+import { InventariosDeGovernanca } from "@/components/governanca/inventarios-governanca";
+import { ReferenciasFixasNoCodigo } from "@/components/governanca/referencias-fixas-no-codigo";
 import {
   KpisQualidadeV4,
   PanoramaQualidadeV4,
@@ -15,6 +18,7 @@ import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos
 import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Radar & Matrizes — Clube Ancestral" },
@@ -86,6 +90,9 @@ function QualidadePage() {
         </summary>
         <div className="mt-4">
           <EixosCanonicosInternos />
+          <OrigemDosDados />
+          <InventariosDeGovernanca />
+          <ReferenciasFixasNoCodigo />
           <PainelQualidade />
         </div>
       </details>

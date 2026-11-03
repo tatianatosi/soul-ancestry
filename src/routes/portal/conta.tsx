@@ -1,5 +1,5 @@
 import { UserRound, ShieldCheck, ChevronDown } from "lucide-react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -26,6 +26,7 @@ import { minhasFaturas } from "@/lib/portal-cliente.functions";
 import { comTimeout } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/conta")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Conta — Portal Clube Ancestral" },
@@ -145,7 +146,7 @@ export function PortalConta() {
       data: p.publicadoEm ?? null,
     })),
     ...(vivo.data?.documentos ?? [])
-      .filter((d) => d.liberado_cliente && !d.is_demo && d.liberado_em)
+      .filter((d) => d.liberado_cliente && d.liberado_em)
       .map((d) => ({
         id: `d-${d.id ?? d.titulo}`,
         rotulo: "Documento liberado",
@@ -233,16 +234,20 @@ export function PortalConta() {
                     <dd className="text-sm text-navy">{titularExibido}</dd>
                   </div>
                 ) : null}
+                {perfil?.contatoVisivel === false ? null : (
                 <div className="border-b border-border py-3" data-conta-email>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">E-mail</dt>
                   <dd className="break-all text-sm text-navy">
                     {perfil?.email ?? "Não registrado"}
                   </dd>
                 </div>
+                )}
+                {perfil?.contatoVisivel === false ? null : (
                 <div className="border-b border-border py-3" data-conta-whatsapp-titular>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">WhatsApp</dt>
                   <dd className="text-sm text-navy">{perfil?.telefone ?? "Não registrado"}</dd>
                 </div>
+                )}
                 <div className="border-b border-border py-3" data-conta-membro-desde>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">
                     Membro desde
@@ -295,6 +300,24 @@ export function PortalConta() {
                     Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}
                   </a>
                 </Button>
+                {/* C8 (02/11/2026): mensagens e atendimento do caso (/portal/casos/$id) sem
+                    8ª aba. Só com caso ativo autorizado pela RLS e fora da prévia do Desk. */}
+                {!previa && vivo.data?.casoAtivoId ? (
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="mt-3 h-auto min-h-11 whitespace-normal text-left"
+                  >
+                    <Link
+                      to="/portal/casos/$id"
+                      params={{ id: vivo.data.casoAtivoId }}
+                      search={{ casoId: vivo.data.casoAtivoId } as never}
+                      data-conta-mensagens-caso
+                    >
+                      Enviar mensagem à equipe pelo App
+                    </Link>
+                  </Button>
+                ) : null}
                 <p
                   data-conta-situacao
                   className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70"

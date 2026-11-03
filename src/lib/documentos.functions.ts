@@ -19,6 +19,7 @@ import {
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { exigirPersistenciaConferida } from "@/lib/verificacao-persistencia";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -217,7 +218,7 @@ export const baixarDocumento = createServerFn({ method: "POST" })
     const assinado = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(doc.storage_path as string, 120);
     if (assinado.error) throw new Error(assinado.error.message);
 
-    await supabaseAdmin.from("audit_logs").insert({
+    await registrarAuditoria(supabaseAdmin, {
       organization_id: organizationId,
       user_id: userId,
       acao: "download",
@@ -528,7 +529,8 @@ export const painelPrivacidade = createServerFn({ method: "GET" })
         .limit(30),
       supabase
         .from("client_portal_case_access")
-        .select("id,status,created_at")
+        // `access_status` é o nome real; `status` não existe e a consulta falhava inteira (data = null).
+        .select("id,status:access_status,created_at")
         .eq("case_id", data.casoId),
     ]);
 

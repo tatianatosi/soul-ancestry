@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { sinaisDuplicidade } from "@/lib/duplicidade-comparacao";
 import { AVISO_PRIVACIDADE } from "@/lib/decisoes-da-proprietaria";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
@@ -41,6 +42,7 @@ import {
   rotuloTrilhaLead,
   type EventoCall,
 } from "@/lib/crm-vivo";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -146,7 +148,7 @@ async function registrarEventosCall(
 ): Promise<void> {
   for (const evento of eventos) {
     try {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         user_id: userId,
         acao: evento,
@@ -218,7 +220,7 @@ async function registrarAuditoriaLead(
   // devem, porém, derrubar a gravação principal: são registrados mas não
   // relançados, para não confundir defeito operacional com defeito de log.
   try {
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       user_id: userId,
       acao,
@@ -334,7 +336,7 @@ async function auditarDiscovery(
   metadados: Record<string, unknown>,
 ) {
   try {
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       user_id: userId,
       acao,
@@ -1197,15 +1199,6 @@ export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
 
 /* ————— Cadastro manual de lead (Comercial → Leads → Novo lead) ————— */
 
-const soDigitos = (v: string) => v.replace(/\D+/g, "");
-const normalizarNome = (v: string) =>
-  v
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-
 export type PossivelDuplicidade = {
   id: string;
   codigo: string | null;
@@ -1234,18 +1227,9 @@ export async function buscarDuplicidades(
     "leads para checagem de duplicidade",
   );
 
-  const email = (entrada.email ?? "").trim().toLowerCase();
-  const tel = soDigitos(entrada.telefone ?? "");
-  const telChave = tel.length >= 8 ? tel.slice(-8) : "";
-  const nome = normalizarNome(entrada.nome);
-
   const achados: PossivelDuplicidade[] = [];
   for (const l of linhas) {
-    const motivos: string[] = [];
-    if (email && (l.email ?? "").trim().toLowerCase() === email) motivos.push("mesmo e-mail");
-    const lTel = soDigitos(l.telefone ?? "");
-    if (telChave && lTel.length >= 8 && lTel.slice(-8) === telChave) motivos.push("mesmo telefone");
-    if (nome && normalizarNome(l.nome ?? "") === nome) motivos.push("mesmo nome");
+    const motivos = sinaisDuplicidade(entrada, l);
     if (motivos.length) achados.push({ ...l, motivo: motivos.join(" + ") });
   }
   return achados;

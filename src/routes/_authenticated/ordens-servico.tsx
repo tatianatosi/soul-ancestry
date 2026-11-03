@@ -30,6 +30,7 @@ import {
 } from "@/lib/comercial.functions";
 
 export const Route = createFileRoute("/_authenticated/ordens-servico")({
+  staticData: { sitemap: false },
   validateSearch: (s: Record<string, unknown>) => ({
     caseId: typeof s.caseId === "string" ? s.caseId : undefined,
   }),

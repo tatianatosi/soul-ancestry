@@ -32,9 +32,17 @@ import { anexosIaV, entradaDeValores, gatesBloqueados, pendenciasDosAnexos } fro
 import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
+import { AnexosTresCamadasPainel } from "@/components/governanca/anexos-tres-camadas";
+import { KitContratualDoCaso } from "@/components/contrato/kit-contratual-do-caso";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
 import { CartoesFormalizacao } from "@/components/contrato/cartoes-formalizacao";
 import { GovernancaFormalizacao } from "@/components/contrato/governanca-formalizacao";
+import { PainelPreparacao } from "@/components/contrato/painel-preparacao";
+import { PainelInstrumentos } from "@/components/contrato/painel-instrumentos";
+import { AvancoDoContrato } from "@/components/contrato/avanco-do-contrato";
+import { AuditoriaDaPreparacao } from "@/components/contrato/auditoria-preparacao";
+import { TimelineContratualDesk } from "@/components/timeline-contratual";
+import { etapasContratuaisDosPassos } from "@/lib/etapas-contrato-timeline";
 import { CoberturaContratual } from "@/components/contrato/cobertura-contratual";
 import { TrazerDoCanva } from "@/components/contrato/trazer-do-canva";
 import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
@@ -99,6 +107,7 @@ function listaOpcional<T>(valor: T[] | null | undefined): T[] {
 }
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/preparar")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: TITULO },
@@ -754,6 +763,23 @@ function Pagina() {
           />
         </div>
 
+        <div className="mt-3 space-y-3" data-painel-preparacao-instrumentos>
+          <PainelPreparacao caseId={caseId} />
+          <PainelInstrumentos caseId={caseId} />
+          <AvancoDoContrato
+            passos={prontidao.passos}
+            papel={autoridade.proprietaria ? "admin" : (autoridade.papeis[0] ?? "")}
+          />
+          <details className="rounded-lg border border-navy/15 bg-card p-4" data-timeline-contratual-real>
+            <summary className="cursor-pointer text-sm font-medium text-navy/70">
+              Linha do tempo contratual (os mesmos 8 passos da prontidão)
+            </summary>
+            <div className="mt-3">
+              <TimelineContratualDesk etapas={etapasContratuaisDosPassos(prontidao.passos)} />
+            </div>
+          </details>
+        </div>
+
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Modo de trabalho da ficha">
           <button
             type="button"
@@ -960,6 +986,19 @@ function Pagina() {
                     }
                   />
                 </div>
+                <details className="mt-3 rounded-lg border border-navy/10 p-3" data-anexos-tres-camadas-detalhe>
+                  <summary className="cursor-pointer text-xs font-medium text-navy">
+                    Anexos I–V em três camadas (instância técnica, conteúdo jurídico, instância do caso)
+                  </summary>
+                  <div className="mt-3">
+                    <AnexosTresCamadasPainel
+                      instancias={qi.data}
+                      carregando={qi.isLoading}
+                      erro={qi.error}
+                      aoTentarNovamente={() => void qi.refetch()}
+                    />
+                  </div>
+                </details>
               </CaCard>
             </div>
 
@@ -1250,6 +1289,18 @@ function Pagina() {
             Detalhes internos (matriz técnica, gates, fontes, auditoria e inventários)
           </summary>
           <div className="mt-4 space-y-4 border-t border-navy/10 pt-4">
+            <details className="rounded border border-navy/10 p-3" data-auditoria-preparacao-bloco>
+              <summary className="cursor-pointer text-xs font-medium text-navy/70">
+                Histórico de auditoria da preparação
+              </summary>
+              <div className="mt-2">
+                {d.registro?.id ? (
+                  <AuditoriaDaPreparacao registroId={String(d.registro.id)} />
+                ) : (
+                  <p className="text-xs text-navy/60">Sem registro de preparação para auditar.</p>
+                )}
+              </div>
+            </details>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <Selo texto={`Completude ${d.completude?.pct ?? 0}%`} tom={(d.completude?.pct ?? 0) === 100 ? "ok" : "alerta"} />
               <Selo texto={`Modelo: ${d.modelo?.code ?? "não localizado"}`} tom={d.modelo ? "ok" : "erro"} />
@@ -1324,6 +1375,9 @@ function Pagina() {
                 </p>
               ) : null}
               <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
+              <div className="mt-4" data-kit-contratual-caso>
+                <KitContratualDoCaso casoId={casoUuid} />
+              </div>
               <div className="mt-2">
                 <MaterializarRevisados
                   plano={planoRevisados}

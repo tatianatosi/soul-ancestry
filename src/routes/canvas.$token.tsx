@@ -9,6 +9,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  * apagado no banco: só esta porta deixou de existir.
  */
 export const Route = createFileRoute("/canvas/$token")({
+  staticData: { sitemap: false },
   beforeLoad: () => {
     throw redirect({ to: "/acesso", replace: true });
   },

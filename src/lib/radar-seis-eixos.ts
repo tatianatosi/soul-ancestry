@@ -37,7 +37,7 @@
  *    Documentação e Conexões Familiares têm denominador real e por isso
  *    mostram percentual fino.
  */
-import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
+import type { ChecklistDocumentalCliente, DocumentoPortal } from "@/lib/portal-dados-vivos";
 import { publicacoesParaCliente, type ProjecaoBruta } from "@/lib/projecoes-cliente";
 
 export type EstadoDimensaoRadar = "percentual" | "em_preparacao";
@@ -105,29 +105,38 @@ export function radarSeisDimensoes(entrada: {
    * continua em preparação, sem fingir um percentual.
    */
   pessoasMapeadas?: number;
+  /**
+   * C4 (02/11/2026) — checklist documental canônico (pedidos do portal). É a
+   * ÚNICA fonte de "Documentação": arquivo liberado não é pedido concluído.
+   * Ausente ou sem itens = "não registrado", nunca 100%.
+   */
+  checklist?: ChecklistDocumentalCliente | null;
 }): DimensaoRadar[] {
   const publicacoes = publicacoesParaCliente(entrada.projecoes);
-  const docs = entrada.documentos.filter((d) => d.is_demo !== true);
-  const liberados = docs.filter((d) => d.liberado_cliente === true).length;
 
   const arvore = publicacoes.filter((p) => p.tipo === "arvore" || p.tipo === "linha_tempo");
   const achados = publicacoes.filter((p) => p.tipo === "achado");
   const marcos = publicacoes.filter((p) => p.tipo === "marco" || p.tipo === "resumo");
 
-  // 07/10/2026 (Proprietária): sem total real, mostrar a lacuna, nunca 0% sobre 0.
-  const temDocs = docs.length > 0;
+  // C4 (02/11/2026): numerador e denominador vêm do checklist canônico
+  // (pedidos aceitos ÷ pedidos do caso), nunca de arquivos liberados ÷ linhas
+  // visíveis. Sem checklist registrado: "Não registrado", nunca 0% nem 100%.
+  const totalPedidos = entrada.checklist?.total ?? 0;
+  const concluidosPedidos = entrada.checklist?.concluidos ?? 0;
+  const temDocs = totalPedidos > 0;
+  const pctDocs = percentual(concluidosPedidos, totalPedidos);
   const documentacao: DimensaoRadar = {
     id: "documentacao",
     titulo: "Documentação",
     estado: temDocs ? "percentual" : "em_preparacao",
-    percentual: temDocs ? percentual(liberados, docs.length) : null,
+    percentual: temDocs ? pctDocs : null,
     legenda: temDocs
-      ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
-      : "Em preparação — a lista de documentos do seu caso ainda não foi registrada.",
-    rotuloNumero: temDocs ? `${percentual(liberados, docs.length)}%` : "Em pesquisa",
+      ? `${concluidosPedidos} de ${totalPedidos} pedidos documentais do seu caso já concluídos.`
+      : "Não registrado — a equipe ainda não registrou pedidos documentais para o seu caso.",
+    rotuloNumero: temDocs ? `${pctDocs}%` : "Não registrado",
     comoCalculamos: temDocs
-      ? `Documentos liberados para você (${liberados}) ÷ documentos do seu caso (${docs.length}).`
-      : "O percentual aparece quando a equipe registrar os documentos do seu caso; antes disso não há total para comparar.",
+      ? `Pedidos documentais aceitos pela equipe (${concluidosPedidos}) ÷ pedidos documentais do seu caso (${totalPedidos}). Arquivos disponíveis não contam como conclusão.`
+      : "O percentual aparece quando a equipe registrar os pedidos documentais do seu caso; antes disso não há total para comparar.",
   };
   const origem: DimensaoRadar = {
     id: "origem",
