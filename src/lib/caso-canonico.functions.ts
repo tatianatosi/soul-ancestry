@@ -27,6 +27,7 @@ import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
 import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 
 export const carregarCanonico = createServerFn({ method: "GET" })
@@ -633,7 +634,7 @@ export const sincronizarMembrosDoCaso = createServerFn({ method: "POST" })
       criados++;
     }
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_members",
       entidade_id: data.caseId,
@@ -726,7 +727,7 @@ export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST"
         userId,
         payload: { cpf: canonico },
       });
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         entidade: "case_members",
         entidade_id: alvo.membroId,
@@ -766,7 +767,7 @@ export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST"
       atualizados++;
     }
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_members",
       entidade_id: data.caseId,
@@ -852,7 +853,7 @@ export const conferirDivergenciaTelefoneMembrosCaso = createServerFn({ method: "
         userId,
         payload: { telefone: canonico },
       });
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         entidade: "case_members",
         entidade_id: alvo.membroId,
@@ -891,7 +892,7 @@ export const conferirDivergenciaTelefoneMembrosCaso = createServerFn({ method: "
       atualizados++;
     }
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_members",
       entidade_id: data.caseId,
@@ -978,7 +979,7 @@ export const conferirDivergenciaCepMembrosCaso = createServerFn({ method: "POST"
         userId,
         payload: { cep: canonico },
       });
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         entidade: "case_members",
         entidade_id: alvo.membroId,
@@ -1017,7 +1018,7 @@ export const conferirDivergenciaCepMembrosCaso = createServerFn({ method: "POST"
       atualizados++;
     }
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_members",
       entidade_id: data.caseId,
@@ -1126,7 +1127,7 @@ export const conferirDivergenciaCampoCivilMembrosCaso = createServerFn({ method:
       atualizados++;
     }
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_members",
       entidade_id: data.caseId,
@@ -1359,7 +1360,7 @@ export const adicionarPessoaAoCaso = createServerFn({ method: "POST" })
       },
     });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_members",
       entidade_id: membro.id,
