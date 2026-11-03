@@ -71,6 +71,7 @@ import { PainelDadosCivisMembrosCaso } from "@/components/caso/reconciliar-dados
 import { GrupoComunicacaoCaso } from "@/components/caso/grupo-comunicacao-caso";
 import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
+import { PendenciasDocumentaisFamiliar } from "@/components/casos/pendencias-documentais-familiar";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
 import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
@@ -4149,6 +4150,7 @@ function FichaCaso() {
                 titulo="Documentos"
                 hidden={secaoFoco !== null && secaoFoco !== "documentos"}
               >
+                <PendenciasDocumentaisFamiliar casoId={id} />
                 <Secao
                   titulo="Documentos do caso"
                   descricao="Gestão completa (upload, categoria, visibilidade, liberação ao cliente) fica em Pesquisa e documentos — aqui é o resumo endereçável do caso."
