@@ -1,5 +1,8 @@
 # Roadmap
 
+## 03/11 — Sincronização integral
+- [ ] Pedido 01:13: cobertura de todas as telas Desk e sete abas App confirmada como requisito; PR225 integrada 703b6579, main posterior96c0fd08 com CI/reservation-sync/painel/alarme success. Cobertura workflows em investigação; seleção main no Git do Lovable não inspecionável por API. Não publicação automática nem escrita de dados.
+
 ## 02/11 — Publicação SEO, liberação Ana e revisão de sincronização
 - [ ] Pedido 18:47: painel de prazos na Árvore do Desk, destino escolhido pela Proprietária; somente datas reais e alertas visuais, sem cobrança. Implementação isolada drft_01m6ffe1nqfgn9rey82ycec1f5 iniciada; aguarda testes e conferência autenticada.
 - [ ] Pedido 18:46: comunicação formal preparada em Files, não enviada. Banco confirmou v6 approved_for_send, proposta aprovada válida até 30/11/2026 e conteúdo R$3.200/R$9.600/R$320. PDF assinado bloqueado: signed_at/signature_reference nulos, signature_provider=none; único rendered_file_path é instrumento.html. Não gerar falsa assinatura ou substituir exportação jurídica por impressão HTML. Investigação somente leitura sub_tw0d6qn8 em curso sobre exportação existente.
