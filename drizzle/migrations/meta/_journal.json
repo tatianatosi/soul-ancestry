@@ -43,6 +43,13 @@
       "when": 1793642851547,
       "tag": "0005_contract_readiness_qualified_status",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793643487477,
+      "tag": "0006_contract_validation_archive_prior_results",
+      "breakpoints": true
     }
   ]
 }
