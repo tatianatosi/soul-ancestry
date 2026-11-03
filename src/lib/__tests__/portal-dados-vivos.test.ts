@@ -68,7 +68,9 @@ describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
     expect(eixos.every((e) => e.itens.length === 0)).toBe(true);
   });
 
-  it("radar não conta documento demo e nunca emite parecer na estratégia", () => {
+  // C4 (02/11/2026): `documents.is_demo` não existe no banco; o filtro inerte saiu e
+  // nenhuma linha é descartada por ele (d1 agora conta).
+  it("radar não depende de is_demo e nunca emite parecer na estratégia", () => {
     const eixos = radarSanitizado({
       projecoes: [],
       documentos: [
@@ -79,7 +81,7 @@ describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
     });
     const docs = eixos.find((e) => e.id === "documentos")!;
     expect(docs.itens).toEqual([
-      { rotulo: "Disponíveis para você", valor: "1" },
+      { rotulo: "Disponíveis para você", valor: "2" },
       { rotulo: "Enviados por você", valor: "1" },
     ]);
     expect(eixos.find((e) => e.id === "estrategia")!.estado).toBe("in_preparation");

@@ -30,6 +30,8 @@ export const escopoDoPortal = createServerFn({ method: "GET" })
       .limit(10)
       .then(comoUnico);
 
+    // C3 (02/11/2026): erro de leitura não vira "sem acesso".
+    if (acesso.error) throw new Error("Falha ao carregar o escopo do portal.");
     const temAcesso =
       !!acesso.data && acesso.data.access_status === "active" && acesso.data.access_level === "client_workspace";
 
@@ -52,6 +54,7 @@ export const escopoDoPortal = createServerFn({ method: "GET" })
       supabase.from("portal_casos").select("id, codigo, titulo"),
     ]);
 
+    if (docs.error || casos.error) throw new Error("Falha ao carregar o escopo do portal.");
     const entregasLiberadas = semFixtures((docs.data ?? []) as any[]).length;
     const casosReais = semFixtures((casos.data ?? []) as any[]).length;
 

@@ -382,5 +382,7 @@ export function radarDoApp(
 
 /** Verdadeiro quando ainda não há nada publicado ou liberado para o radar. */
 export function radarSemConteudo(dimensoes: readonly DimensaoRadar[]): boolean {
-  return dimensoes.every((d) => (d.percentual ?? 0) === 0);
+  // C4 (02/11/2026): Documentação deixou de ser 100% por arquivo liberado; um eixo
+  // com contagem publicada ("3 registro(s)") continua sendo conteúdo.
+  return dimensoes.every((d) => (d.percentual ?? 0) === 0 && !/^[1-9]\d*\s/.test(d.rotuloNumero ?? ""));
 }

@@ -19,6 +19,7 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { formatarDinheiro } from "@/lib/orcamento-proposta";
 import {
+  aprovarVersaoCondicaoComercial,
   condicaoComercialDoCaso,
   registrarVersaoCondicaoComercial,
 } from "@/lib/condicao-comercial-caso.functions";
@@ -26,6 +27,7 @@ import {
 export function CondicaoComercialVersionada({ caseId }: { caseId: string }) {
   const carregar = useServerFn(condicaoComercialDoCaso);
   const novaVersao = useServerFn(registrarVersaoCondicaoComercial);
+  const aprovarVersao = useServerFn(aprovarVersaoCondicaoComercial);
   const q = useQuery({
     queryKey: ["condicao-comercial", caseId],
     queryFn: () => carregar({ data: { caseId } }),
@@ -34,7 +36,7 @@ export function CondicaoComercialVersionada({ caseId }: { caseId: string }) {
 
   /*
    * Nova versão parte da vigente e exige motivo. Não reescreve a anterior: a
-   * aprovada passa a `substituida` e a nova nasce em rascunho, para revisão.
+   * aprovada continua vigente e a nova nasce em rascunho; só a aprovação troca.
    * Mudar valor é decisão humana — por isso o motivo é obrigatório.
    */
   const mNovaVersao = useMutation({
@@ -53,7 +55,16 @@ export function CondicaoComercialVersionada({ caseId }: { caseId: string }) {
         },
       }),
     onSuccess: (r) => {
-      toast.success(`Versão ${r.versao} criada em rascunho — a anterior passou a substituída.`);
+      toast.success(`Versão ${r.versao} criada em rascunho — a vigente continua valendo até a nova ser aprovada.`);
+      void q.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mAprovar = useMutation({
+    mutationFn: (versaoId: string) => aprovarVersao({ data: { caseId, versaoId } }),
+    onSuccess: (r) => {
+      toast.success(`Versão ${r.versao} aprovada; a anterior passou a substituída.`);
       void q.refetch();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -74,8 +85,25 @@ export function CondicaoComercialVersionada({ caseId }: { caseId: string }) {
         aoTentarNovamente={() => void q.refetch()}
         recurso="a condição comercial do caso"
       >
-        {([d]) =>
-          !d.vigente ? (
+        {([d]) => (
+          <>
+          {d.condicoes
+            .filter((c) => c.estado === "rascunho" || c.estado === "em_revisao")
+            .map((c) => (
+              <div key={c.id} className="mt-3 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs" data-versao-pendente>
+                <p className="text-navy/80">
+                  Versão {c.versao} em {c.estado === "em_revisao" ? "revisão" : "rascunho"} · total{" "}
+                  {c.total === null ? "—" : formatarDinheiro(c.total, c.moeda)}
+                </p>
+                <AcaoOperacional
+                  rotulo={`Aprovar versão ${c.versao}`}
+                  capacidade="aprovar_proposta_os_anexo_previa"
+                  efeito="Aprova esta versão como a condição vigente do caso e marca a anterior como substituída. Não envia, não assina, não cobra."
+                  onConfirmar={() => mAprovar.mutate(c.id)}
+                />
+              </div>
+            ))}
+          {!d.vigente ? (
             <p className="mt-3 text-sm text-terracotta" data-sem-condicao>
               Nenhuma condição comercial aprovada para este caso. Enquanto não houver, nada é derivado do catálogo: o
               contrato fica sem valor de origem.
@@ -179,12 +207,13 @@ export function CondicaoComercialVersionada({ caseId }: { caseId: string }) {
               <AcaoOperacional
                 rotulo="Registrar nova versão da condição"
                 capacidade="corrigir_proposta_escopo_preco"
-                efeito="Cria uma versão nova em rascunho a partir da vigente, e marca a anterior como substituída. Não reescreve a versão aprovada, não envia, não cobra."
+                efeito="Cria uma versão nova em rascunho a partir da vigente; a vigente continua valendo até a nova ser aprovada. Não reescreve a versão aprovada, não envia, não cobra."
                 onConfirmar={(motivo) => mNovaVersao.mutate({ motivo, base: d.vigente })}
               />
             </div>
-          )
-        }
+          )}
+          </>
+        )}
       </EstadoDados>
     </section>
   );

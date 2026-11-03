@@ -53,7 +53,9 @@ const entrada = {
 };
 
 describe("App Cliente — 6 dimensões, todas com percentual e com a conta visível", () => {
-  const dims = radarSeisDimensoes(entrada);
+  // C4 (02/11/2026): Documentação passou a vir do checklist canônico (pedidos
+  // aceitos ÷ pedidos), não de arquivos liberados ÷ linhas visíveis; 1 de 2 = 50%.
+  const dims = radarSeisDimensoes({ ...entrada, checklist: { itens: [], total: 2, concluidos: 1 } });
 
   it("são exatamente 6, na ordem do mockup", () => {
     expect(dims.map((d) => d.id)).toEqual([

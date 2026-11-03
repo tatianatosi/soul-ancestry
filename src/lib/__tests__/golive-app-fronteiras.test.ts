@@ -51,7 +51,9 @@ describe("radar de seis dimensões", () => {
       [{ id: "d1", liberadoCliente: true }],
     );
     expect(radarSemConteudo(r)).toBe(false);
-    expect(r.find((d) => d.id === "documentacao")?.percentual).toBe(100);
+    // C4 (02/11/2026): arquivo liberado não vira 100%; sem checklist canônico, "não registrado".
+    expect(r.find((d) => d.id === "documentacao")?.percentual).toBeNull();
+    expect(r.find((d) => d.id === "documentacao")?.rotuloNumero).toBe("Não registrado");
     /*
       05/10/2026 — PREMISSA da Proprietária (não reabrir): Conexões Familiares
       usa pessoas mapeadas como denominador, nunca o teto ilustrativo de 31.

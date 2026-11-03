@@ -53,7 +53,7 @@ export function PortalDocumentos() {
   });
 
   if (previa) {
-    const docs = (vivo.data?.documentos ?? []).filter((d) => d.is_demo !== true);
+    const docs = vivo.data?.documentos ?? [];
     const liberados = docs.filter((d) => d.liberado_cliente);
     const enviados = docs.filter((d) => d.origem === "cliente");
     const proximaAcao = vivo.data?.proximaAcao ?? null;
@@ -289,7 +289,8 @@ export function PortalDocumentos() {
             /* Caso ativo único: todas as abas leem o mesmo caso da URL. */
             const casoAtivo = vivo.data?.casoAtivoId ?? null;
             const noCaso = <T extends { caseId?: string | null }>(l: T[] | undefined) =>
-              (l ?? []).filter((d) => !casoAtivo || !d.caseId || d.caseId === casoAtivo);
+              // C4 (02/11/2026): sem caso ativo, vazio honesto — nunca todos os documentos.
+              casoAtivo ? (l ?? []).filter((d) => !d.caseId || d.caseId === casoAtivo) : [];
             /*
               26/10/2026 (Lovable, mockup17) — §7 do De-Para separa quatro
               estados que nunca podem se misturar. Cada seção lê a fonte

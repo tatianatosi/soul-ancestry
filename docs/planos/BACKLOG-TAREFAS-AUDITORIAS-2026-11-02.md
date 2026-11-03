@@ -1,6 +1,6 @@
 # Backlog em tarefas — achados das auditorias do Cartographer (02/11/2026)
 
-Origem: 7 relatórios em `.cartographer/reports/` (contrato-comercial, crm-leads-calls, pesquisa-genealogia, jornada-planejador-motores, golive-casos, app-cliente-portal, desk-telas) mais os 2 anteriores (documentos, infra). Faltam 3 relatórios da onda 1 (auth-sessao, persistencia-banco, banco-esquema-rls); este backlog será revisto quando chegarem.
+Origem: 7 relatórios em `.cartographer/reports/` (contrato-comercial, crm-leads-calls, pesquisa-genealogia, jornada-planejador-motores, golive-casos, app-cliente-portal, desk-telas) mais os 2 anteriores (documentos, infra). Os 3 relatórios que faltavam (auth-sessao, persistencia-banco, banco-esquema-rls) chegaram em 02/11/2026; os achados deles que ainda não viraram tarefa estão na seção "Achados sem tarefa" no fim.
 
 **Limite do que está provado:** os relatórios leram só o código. Nenhum consultou o banco vivo nem rodou o app. Todo item marcado "confirmar no banco" tem a primeira tarefa de leitura antes de qualquer correção.
 
@@ -105,3 +105,29 @@ Cada tarefa começa lendo o CHECK real na migration (`supabase/migrations`) e `t
 ## Ordem recomendada
 
 A0 → A1/A2 → B1–B5 (paralelas, arquivos distintos) → C1/C3 → D2/D3 → C4–C8 → D1 → E. Checkpoints depois de A, B e C. O convite da Ana só depois de C1, C2 e D5.
+
+## Achados sem tarefa ainda (todos os 12 relatórios, revisão de 02/11/2026)
+
+Identificador F = achado de relatório ainda sem correção. Nenhum exige migration, exceto quando indicado.
+
+| ID | Achado | Onde | Origem |
+|---|---|---|---|
+| F1 | `conversion_events` exige lead_id ou case_id, responsável nominal e evento anterior; o código viola e o contato já foi gravado quando o erro aparece | `crm-fluxo.functions.ts:189`, `:357-461`, `migracao.functions.ts:156` | persistencia-banco |
+| F2 | Lead real (`/leads`, `/calls`, handoff) não grava `conversion_events` nem `crm_interactions`; handoff lead→caso não é atômico e pode devolver `clienteId "null"` | `leads.tsx`, `conversao.functions.ts:267` | crm-leads-calls |
+| F3 | Escritas de negócio com erro engolido | `contrato-parametros.functions.ts:1225`, `:1618`; `jornada-cliente.functions.ts:286`; `achados-genealogicos.functions.ts:165-172`; `pessoas-linhagens.functions.ts:354`; `onboarding.functions.ts:290`; `handoff-discovery.functions.ts:242` | persistencia-banco |
+| F4 | Guards que recusam não-admin e a UI não antecipa (`fn_cpv_guard`, `fn_app_projection_guard`, `fn_checklist_item_guard`, `fn_activation_check_guard`, `fn_case_plan_guard`) | banco | persistencia-banco |
+| F5 | `UPDATE` em `audit_logs` sem policy de UPDATE; `casos` lido sem policy de SELECT | `contrato-preparar.functions.ts:99`, `catalogo-homologacao.functions.ts:67` | banco-esquema-rls |
+| F6 | 27 tabelas sem FORCE RLS (168 de 195 têm) — **exige decisão e SQL pelo Lovable** | banco | banco-esquema-rls |
+| F7 | Cabeçalhos "NÃO APLICADO" desatualizados em `20261024120000` e `20261020150000` | `supabase/pendentes/` | banco-esquema-rls |
+| F8 | Convites residuais (org `b0fa3d42`, `0343f7b0`) e 2 contas auth não confirmadas: arquivar com autorização | banco | banco-esquema-rls |
+| F9 | Aceite de convite nunca ativa nem sincroniza o vínculo (o `getContexto` agora refaz o vínculo, mas o aceite continua sem sincronizar) | `equipe.redefinir-senha.tsx:116` | auth-sessao |
+| F10 | `registrarAssinatura` não cumpre os triggers de assinatura (versão renderizada, `approved_for_send_by`, `external_signature_*`) | `contratos.functions.ts` | contrato-comercial |
+| F11 | `UPDATE` em `contract_parameter_previews` afeta 0 linhas para não-admin; valor contratado ignora `case_commercial_condition`; `invoice_adjustments` e `invoices.contract_id` sem escritor; preços fixos em `src/data/propostas.ts` | contrato | contrato-comercial |
+| F12 | `garantirTarefaAberta` cria tarefa sem prazo (a RPC nunca a enxerga); `sincronizarPlanejador` regrava `case_plans.status='rascunho'` e nada promove a `ativo`; Painel Hoje só calcula `proxima_acao_prioritaria` para casos com `documentos_minimos_ok=false` | `cadeia-operacional.server.ts`, `painel-hoje-acoes.functions.ts` | jornada, crm |
+| F13 | GoLive grava `crm_interactions` sem `origem='lead'` nem `origem_id`; `leads.ultimo_followup_em` sem escritor; `registrarPagamentoGoLive` e `aprovarMicroentregaGoLive` não escopam por caso; `publicarProjecaoApp` pula os guards de publicação; `registrarMembroNucleoGoLive` sem `cliente_id` nem `papel_no_caso` | `golive-*.functions.ts` | golive-casos |
+| F14 | Cliente vê relação refutada ou hipótese; `filho` é ignorado pelo App; `salvarBlocoPesquisa` e `vincularEvidencia` não conferem o caso do registro; painel de pessoas faz INSERT dentro de um GET | `pessoas-linhagens.functions.ts`, `portal-dados-vivos.functions.ts` | pesquisa-genealogia |
+| F15 | Capacidade só existe para admin; `proprietariaOperando` engole erro | `modo-proprietaria.ts:57-61`, `autoridade.server.ts` | desk-telas, jornada |
+| F16 | O script de reconciliação não cobre CHECK nem NOT NULL; `reconciliacao-codigo-banco.json` desatualizado; `pesquisa-vocabulario-banco.test.ts` compara com cópia manual do CHECK | `scripts/reconciliar-codigo-banco.mjs` | persistencia-banco |
+
+**Cobertura que falta (áreas não lidas a fundo):** `leads.tsx`, `painel-calls.tsx`, `casos.$caseId.index.tsx` e as ~25 funções do Caso 360, rotas de contratos/financeiro/propostas, `conciliacao-catalogo.server.ts`. Uma segunda rodada dos especialistas nessas áreas (com acesso ao banco) é a próxima etapa da auditoria.
+

@@ -199,6 +199,8 @@ export const portalContexto = createServerFn({ method: "GET" })
       .limit(10)
       .then(comoUnico);
 
+    // C3 (02/11/2026): erro de leitura não vira "sem permissão".
+    if (acesso.error) throw new Error("Falha ao carregar o contexto do portal.");
     if (!acesso.data || acesso.data.access_status !== "active") {
       return { autorizado: false as const, cliente: null, casos: [], nivel: null };
     }
@@ -211,6 +213,7 @@ export const portalContexto = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
     ]);
 
+    if (cliente.error || casos.error) throw new Error("Falha ao carregar o contexto do portal.");
     return {
       autorizado: true as const,
       nivel: acesso.data.access_level as "proposal_portal" | "client_workspace",
@@ -586,7 +589,7 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
       const r = await supabase
         .from("crm_casos")
         .select(
-          "id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, archived_at",
+          "id, cliente_id, demo, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, archived_at",
         )
         .eq("id", data.casoId)
         .eq("organization_id", organizationId)
@@ -622,42 +625,31 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
 
 
 
+    const isDemo = Boolean(auth.is_demo || cliente.data.is_demo);
+    if (caso) {
+      const { erroDemoIncompativel } = await import("./portal-convite");
+      const incompativel = erroDemoIncompativel(caso.demo, isDemo);
+      if (incompativel) throw new Error(incompativel);
+    }
+
     const agora = new Date();
     const { CONVITE_VALIDADE_HORAS } = await import("./portal-elegibilidade");
     const expira = new Date(agora.getTime() + CONVITE_VALIDADE_HORAS * 60 * 60 * 1000);
 
-    const inserido = await supabase
-      .from("client_portal_access")
-      .insert({
-        organization_id: organizationId,
-        client_id: data.clientId,
-        email,
-        access_level: data.nivel,
-        access_status: "invited",
-        finalidade: auth.finalidade,
-        authorized_email_id: auth.id,
-        is_demo: auth.is_demo || cliente.data.is_demo || false,
-        invited_at: agora.toISOString(),
-        invited_by: context.userId,
-        invitation_expires_at: expira.toISOString(),
-        magic_link_expires_at: expira.toISOString(),
-        magic_link_uses: 0,
-        magic_link_max_uses: 1,
-      })
-      .select("id")
-      .maybeSingle();
-    if (inserido.error) throw new Error(inserido.error.message);
-    const acessoId = inserido.data.id as string;
-
-
-    if (caso) {
-      const vinculo = await supabase.from("client_portal_case_access").insert({
-        organization_id: organizationId,
-        client_portal_access_id: acessoId,
-        case_id: caso.id,
-      });
-      if (vinculo.error) throw new Error(vinculo.error.message);
-    }
+    const { gravarConvitePortal } = await import("./portal-convite");
+    const { acessoId } = await gravarConvitePortal(supabase, {
+      organizationId,
+      userId: context.userId as string,
+      clientId: data.clientId,
+      email,
+      nivel: data.nivel,
+      finalidade: auth.finalidade,
+      autorizacaoId: auth.id,
+      isDemo,
+      casoId: caso?.id ?? null,
+      agora,
+      expira,
+    });
 
     const userId = await helpers.garantirUsuarioAuth(email);
     if (userId) {
