@@ -16,6 +16,11 @@ import {
   type FaturaLida,
 } from "@/lib/prazos-contratuais";
 
+const SITUACAO: Record<string, string> = {
+  draft: "Rascunho", pending_data: "Aguardando dados", in_review: "Em revisão",
+  approved_for_send: "Aprovado para envio, não assinado", sent: "Enviado", signed: "Assinado", archived: "Arquivado",
+};
+
 const TOM = { futuro: "ok", hoje: "alerta", expirado: "erro", sem_data: "neutro" } as const;
 
 /** Prazos restantes de cada contrato do caso — somente leitura, sem envio ou cobrança. */
@@ -102,7 +107,7 @@ export function PrazosContratuaisCaso({ caseId }: { caseId: string }) {
                 <Link to="/contratos/$id" params={{ id: c.id }} className="min-w-0 font-medium text-navy underline-offset-2 hover:underline">
                   {c.title ?? "Contrato sem título"} {c.contract_number ? `· ${c.contract_number}` : ""}
                 </Link>
-                <Selo texto={`Situação: ${c.status ?? "Não registrado"}`} />
+                <Selo texto={`Situação: ${SITUACAO[c.status] ?? c.status ?? "Não registrado"}`} />
               </div>
               <dl className="grid gap-2 text-sm sm:grid-cols-3">
                 <div>
