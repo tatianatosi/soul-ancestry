@@ -20,6 +20,7 @@ import {
 import { clienteElegivelParaPerfil, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { exigirPersistenciaConferida } from "@/lib/verificacao-persistencia";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -741,7 +742,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
          * membro duplicado da ficha foi arquivado pela reconciliação; mais de
          * um é duplicidade a resolver antes.
          */
-        await supabase.from("audit_logs").insert({
+        await registrarAuditoria(supabase, {
           organization_id: organizationId,
           user_id: context.userId as string,
           acao: "fio_membro_nao_derivado",
@@ -775,7 +776,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       const novo = (valores["client_id"] as string | null) ?? null;
       if (novo === clienteAnterior) return;
       await propagarFioParaPesquisa(perfilId);
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         entidade: "genealogical_person_profiles",
         entidade_id: perfilId,
@@ -813,7 +814,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
     ) => {
       if (!ehRelacao) return;
       for (const m of auditoriaDaRelacao(anterior, valores as any)) {
-        await supabase.from("audit_logs").insert({
+        await registrarAuditoria(supabase, {
           organization_id: organizationId,
           user_id: context.userId as string,
           entidade: "genealogical_relationships",

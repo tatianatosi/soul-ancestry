@@ -9,6 +9,7 @@ import {
   type Sb,
 } from "@/lib/qualidade.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -313,7 +314,7 @@ export const exportarCsv = createServerFn({ method: "POST" })
     });
     if (erroLog) throw new Error(erroLog.message);
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: ctx.organizationId,
       user_id: context.userId,
       acao: "export_csv",

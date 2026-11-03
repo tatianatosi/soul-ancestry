@@ -70,6 +70,7 @@ import {
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
 import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
 const CONFLITO_PROPOSTA_PLANEJADOR = "proposal_planner_value_conflict";
@@ -349,7 +350,7 @@ async function preencherQualificacaoContratada(supabase: Sb, parametersId: strin
   if (error || !atualizado) return valores;
 
   if (!preenchendoVazio) {
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: atualizado.organization_id,
       entidade: "contract_parameter_values",
       entidade_id: String(linha.id),
@@ -1335,7 +1336,7 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
       aGravar,
     );
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_annexes",
       entidade_id: registro.case_id,
@@ -1437,7 +1438,7 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
       instancias,
     );
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_annexes",
       entidade_id: registro.case_id,
@@ -1485,7 +1486,7 @@ export const dispensarAnexoComMotivo = createServerFn({ method: "POST" })
       motivo: data.motivo,
     });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_annexes",
       entidade_id: registro.case_id,
@@ -1549,7 +1550,7 @@ export const reativarAnexoDispensado = createServerFn({ method: "POST" })
     );
 
     if (!resultado.jaAtivo) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         entidade: "contract_annexes",
         entidade_id: registro.case_id,
@@ -1952,7 +1953,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       .select("id,versao");
 
     if ((substituidas ?? []).length > 0) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         user_id: context.userId,
         entidade: "contract_parameter_previews",
@@ -1992,7 +1993,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     // Liberar não é apagar: a pendência assumida fica registrada na auditoria
     // do próprio congelamento.
     if (pendenciasAssumidas.length > 0) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         user_id: context.userId,
         entidade: "contract_parameter_previews",
@@ -2513,7 +2514,7 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
     if (!linhaCorrigida?.length)
       throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi corrigido.");
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: registro.organization_id,
       entidade: "contract_parameter_values",
       entidade_id: valor.id,
@@ -2672,7 +2673,7 @@ export const preencherParametrosDoCanva = createServerFn({ method: "POST" })
     const divergentes = divergencias(plano).map((d) => d.campo);
 
     if (gravados.length || divergentes.length) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: registro.organization_id,
         entidade: "contract_parameter_values",
         entidade_id: null,

@@ -3,6 +3,7 @@ import { origemDeAutenticacao } from "@/lib/origem-canonica";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -445,7 +446,7 @@ async function registrarBootstrapNegado(h: typeof import("./equipe.server"), mot
   const trava = await h.adminClient.from("bootstrap_lock").select("organization_id").limit(1).maybeSingle();
   const organizationId = trava.data?.organization_id as string | undefined;
   if (!organizationId) return;
-  await h.adminClient.from("audit_logs").insert({
+  await registrarAuditoria(h.adminClient, {
     organization_id: organizationId,
     acao: "bootstrap_denied",
     entidade: "staff_access",
