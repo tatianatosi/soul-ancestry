@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 /**
  * Onda 6 dos órfãos (04/10/2026).
@@ -53,10 +54,14 @@ describe("Despublicar do App Cliente deixa de depender de SQL", () => {
   it("4. despublicar arquiva com motivo e nunca apaga", () => {
     const s = readFileSync(FN, "utf8");
     const bloco = s.slice(s.indexOf("export const despublicarProjecaoApp"));
-    expect(bloco.slice(0, 1600)).toContain("archived_at");
-    expect(bloco.slice(0, 1600)).toContain("archived_reason");
-    expect(bloco.slice(0, 1600)).not.toContain(".delete()");
-    expect(bloco.slice(0, 1600)).toContain("projecao_app_despublicada");
+    // 02/11/2026 (C7): gravação/auditoria moveram para o caminho único
+    // `despublicarProjecaoPorId` (projecao-app-despublicar.server.ts).
+    expect(bloco.slice(0, 1600)).toContain("despublicarProjecaoPorId(");
+    const comum = readFileSync(resolve(__dirname, "../projecao-app-despublicar.server.ts"), "utf8");
+    expect(comum).toContain("archived_at");
+    expect(comum).toContain("archived_reason");
+    expect(comum).not.toContain(".delete()");
+    expect(comum).toContain("projecao_app_despublicada");
     const ui = readFileSync(UI, "utf8");
     expect(ui).toContain("Nada é apagado");
   });

@@ -181,3 +181,26 @@ describe("O serviço externo de erros saiu do projeto", () => {
     expect(readFileSync("package.json", "utf8")).not.toMatch(/@sen[t]ry/);
   });
 });
+
+import { ehCancelamentoDeRequisicao } from "../producao-erros.server";
+
+describe("Coletor: cancelamento de requisição não é erro do app (medido em 02/11/2026: 43 linhas, maioria 'aborted')", () => {
+  it("reconhece aborted, This operation was aborted e AbortError", () => {
+    expect(ehCancelamentoDeRequisicao(new Error("aborted"))).toBe(true);
+    expect(ehCancelamentoDeRequisicao(new Error("This operation was aborted"))).toBe(true);
+    expect(
+      ehCancelamentoDeRequisicao(Object.assign(new Error("x"), { name: "AbortError" })),
+    ).toBe(true);
+  });
+
+  it("erro de verdade continua sendo registrado", () => {
+    expect(ehCancelamentoDeRequisicao(new Error("Unauthorized: No authorization header"))).toBe(
+      false,
+    );
+    expect(ehCancelamentoDeRequisicao(undefined)).toBe(false);
+  });
+
+  it("o 500 engolido pelo h3 guarda a rota que quebrou", () => {
+    expect(readFileSync("src/server.ts", "utf8")).toContain('mecanismo: "h3_swallowed", rota');
+  });
+});

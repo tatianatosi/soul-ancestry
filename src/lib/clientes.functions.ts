@@ -10,6 +10,7 @@ import { semFixtures } from "@/lib/fixtures";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { normalizarCpf } from "@/lib/pessoa-identidade";
 import { sinaisDuplicidade } from "@/lib/duplicidade-comparacao";
+import { lerBasePessoasCliente, projetarPessoasCliente } from "@/lib/clientes-lista-projecao";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -31,43 +32,7 @@ export const listarPessoasCliente = createServerFn({ method: "GET" })
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
-    const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
-
-    const [pessoas, casos, membros, nucleos] = await Promise.all([
-      seguro(eq("clientes").order("nome")),
-      seguro(eq("crm_casos").is("archived_at", null)),
-      seguro(eq("nucleo_membros")),
-      seguro(eq("nucleos_familiares").is("archived_at", null)),
-    ]);
-
-    const nomeNucleo = new Map<string, string>(nucleos.map((n) => [n.id, n.nome ?? "Núcleo familiar"]));
-
-    return pessoas.map((p) => {
-      const meus = casos.filter((c) => c.cliente_id === p.id);
-      return {
-        id: p.id,
-        nome: p.nome,
-        nome_social: p.nome_social ?? null,
-        email: p.email ?? null,
-        telefone: p.telefone ?? null,
-        origem: p.origem ?? null,
-        status_comercial: p.status_comercial ?? null,
-        pais_interesse: p.pais_interesse ?? null,
-        status: p.status ?? "pre_onboarding",
-        classificacao: (p.classificacao ?? "pre_cliente") as Classificacao,
-        is_demo: Boolean(p.is_demo ?? p.demo),
-        archived_at: p.archived_at ?? null,
-        archive_motivo: p.archive_motivo ?? null,
-        ativacao_decidida_em: p.ativacao_decidida_em ?? null,
-        ativacao_justificativa: p.ativacao_justificativa ?? null,
-        contratoAssinado: meus.some((c) => Boolean(c.contrato_assinado)),
-        pagamentoConfirmado: meus.some((c) => Boolean(c.pagamento_confirmado)),
-        casosVinculados: meus.length,
-        participacoes: membros
-          .filter((m) => m.cliente_id === p.id)
-          .map((m) => ({ nucleo: nomeNucleo.get(m.nucleo_id) ?? null, papel: m.papel ?? m.vinculo ?? null })),
-      } satisfies PessoaLista;
-    });
+    return projetarPessoasCliente(await lerBasePessoasCliente(supabase, organizationId, seguro));
   });
 
 /** Decisão humana de ativação. O banco recusa sem contrato assinado e pagamento confirmado. */

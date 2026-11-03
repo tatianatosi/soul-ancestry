@@ -11,6 +11,7 @@ import {
 } from "@/lib/fontes-pesquisa-canonicas";
 import { inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -96,7 +97,7 @@ export const pontearFontesDePesquisa = createServerFn({ method: "POST" })
       const destino = item.origem === "research_relationships" ? "genealogical_relationships" : "genealogical_events";
       try {
         const r = await inserirComVerificacao({ supabase, tabela: destino, organizationId, userId, payload: item.payload });
-        await supabase.from("audit_logs").insert({
+        await registrarAuditoria(supabase, {
           organization_id: organizationId,
           entidade: destino,
           entidade_id: r.id,

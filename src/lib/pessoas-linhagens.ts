@@ -209,6 +209,8 @@ export type Relacao = {
   evidence_id: string | null;
   source_id: string | null;
   internal_notes: string | null;
+  /** CHECK real: interna | sanitizada | aprovada. Só 'aprovada' chega ao App Cliente. */
+  client_visibility?: string | null;
   archived_at?: string | null;
 };
 
@@ -656,4 +658,33 @@ export function validarAderenciaPercentual(bruto: unknown): number | null {
     throw new Error("Aderência precisa ser um número inteiro entre 0 e 100.");
   }
   return n;
+}
+
+/**
+ * 02/11/2026 (C6) — o que a edição de uma relação mudou e merece auditoria.
+ * Publicar (`client_visibility = 'aprovada'`) é decisão humana explícita e fica
+ * registrado com o valor anterior; mudança de tipo também. Sem mudança, nada.
+ */
+export function auditoriaDaRelacao(
+  anterior: { relation_type?: string | null; client_visibility?: string | null } | null,
+  novo: { relation_type?: string | null; client_visibility?: string | null },
+): { acao: string; de: string | null; para: string | null }[] {
+  const out: { acao: string; de: string | null; para: string | null }[] = [];
+  // Criação (sem anterior): o padrão do banco é não publicado, então só publicar vira evento.
+  const antV = anterior ? (anterior.client_visibility ?? null) : "interna";
+  if (novo.client_visibility !== undefined && (novo.client_visibility ?? null) !== antV) {
+    out.push({
+      acao:
+        novo.client_visibility === "aprovada"
+          ? "relacao_genealogica_publicada_para_cliente"
+          : "relacao_genealogica_visibilidade_alterada",
+      de: antV,
+      para: novo.client_visibility ?? null,
+    });
+  }
+  const antT = anterior?.relation_type ?? null;
+  if (anterior && novo.relation_type !== undefined && (novo.relation_type ?? null) !== antT) {
+    out.push({ acao: "relacao_genealogica_tipo_alterado", de: antT, para: novo.relation_type ?? null });
+  }
+  return out;
 }

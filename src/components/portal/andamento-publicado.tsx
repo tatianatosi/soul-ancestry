@@ -25,6 +25,7 @@ export function AndamentoPublicado({ rota }: { rota: string }) {
     projecoes: data.projecoes,
     documentos: data.documentos,
     pessoasMapeadas: data.pessoasMapeadas,
+    checklist: data.checklist,
   });
   const eixo = rota === "/portal/arvore" ? "conexoes"
     : rota === "/portal/legado" ? "legado" : "elegibilidade";

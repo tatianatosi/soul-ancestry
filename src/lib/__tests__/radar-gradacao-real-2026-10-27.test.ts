@@ -42,6 +42,8 @@ describe("Radar do App — gradação real, não binário disfarçado", () => {
         { id: "d2", liberado_cliente: false },
       ] as never,
       pessoasMapeadas: 2,
+      // C4 (02/11/2026): Documentação vem do checklist canônico, não dos arquivos liberados.
+      checklist: { itens: [], total: 2, concluidos: 1 },
     });
     const docs = dims.find((d) => d.id === "documentacao")!;
     expect(docs.percentual).toBe(50);

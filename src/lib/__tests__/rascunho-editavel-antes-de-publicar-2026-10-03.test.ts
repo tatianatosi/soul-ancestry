@@ -37,7 +37,8 @@ describe("Rascunho editável com persistência — o passo que faltava antes de 
     expect(c).toMatch(/inserirComVerificacao|gravarComVerificacao/);
     expect(c).toContain("inserirComVerificacao");
     expect(c).toContain("gravarComVerificacao");
-    expect(c).toContain("audit_logs");
+    // Desde 02/11/2026 (B8) a auditoria passa por registrarAuditoria, que lê o erro de audit_logs.
+    expect(c).toContain("registrarAuditoria(");
     expect(c).toContain('approval_status: "draft"');
   });
 

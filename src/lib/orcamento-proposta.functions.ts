@@ -30,6 +30,7 @@ import {
 } from "@/lib/orcamento-proposta";
 import { produtoPaiPorId } from "@/lib/planejador-produtos-pai";
 import { resolverPrecoSugerido, type DivergenciaFonte, type SkuPrecoSugerido } from "@/lib/preco-sugerido-canonico";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 const COLUNAS =
   "id,code,nome_comercial,preco_sugerido_fonte,preco_atual_fonte,moeda,fonte_versao,fonte_arquivo,vigencia_inicio,vigencia_fim,status_produto,status_fonte,ativo,archived_at,dados_teste,elegivel_para_proposta,estado_catalogo";
@@ -318,7 +319,7 @@ export const aplicarOrcamentoNaProposta = createServerFn({ method: "POST" })
       },
     });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "proposals",
       entidade_id: data.propostaId,

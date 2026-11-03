@@ -13,13 +13,8 @@ import type {
   SolicitacaoDocumentoCliente,
 } from "@/lib/portal-dados-vivos";
 import {
-  checklistDocumentalCliente,
-  composicaoDoCasoCliente,
   condicaoComercialCliente,
-  etapaDoCasoCliente,
-  historicoSanitizado,
-  proximaEntregaCliente,
-  solicitacoesAbertasCliente,
+  estadoDocumentalEPlanoDoCaso,
   type CondicaoComercialCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
@@ -130,6 +125,9 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     if (casos.error && new RegExp(COL_ENTREGA).test(String(casos.error.message ?? ""))) {
       casos = await supabase.from("portal_casos").select(COLUNAS);
     }
+    // C3 (02/11/2026): erro de leitura nunca vira "sem caso/vazio". Os
+    // fallbacks de coluna ausente acima já rodaram; o que sobra é falha real.
+    if (casos.error) throw new Error("Falha ao carregar os casos do portal.");
     const permitidos = ((casos.data ?? []) as {
       id: string;
       status?: string;
@@ -188,7 +186,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         // já os entrega à família, sem arquivados) para montar o checklist com
         // contador. As contagens de pendência abaixo continuam só com aguardando/recusado.
         .is("archived_at", null),
-      supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["aberta", "vencida"]),
+      supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["emitida", "pendente", "vencida"]),
       // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): "Histórico (3 marcos)"
       // da Ficha Piloto. RLS (`cte_select_portal`) já restringe a leitura a
       // `visibility = 'cliente_aprovado'` do próprio caso; o filtro explícito
@@ -203,8 +201,21 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         .limit(3),
     ]);
 
+    // C3: nenhuma das cinco leituras pode falhar em silêncio e virar "vazio".
+    for (const r of [proj, docs, pendencias, faturas, timeline]) {
+      if (r.error) throw new Error("Falha ao carregar os dados do portal.");
+    }
+
     const pedidos = (pendencias.data ?? []) as Array<SolicitacaoChecklistBruta & { case_id: string }>;
-    const documentosPendentes = pedidos.filter((p) => p.status === "aguardando" || p.status === "recusado").length;
+    // C5: recorte comum com a prévia do admin (`dadosVivosDoPortalComoAdmin`).
+    const estado = estadoDocumentalEPlanoDoCaso({
+      pedidos,
+      faseJornada: casoAtivo.fase_jornada,
+      composicao: casoAtivo.composicao,
+      proximaEntregaPrevistaEm: casoAtivo.proxima_entrega_prevista_em,
+      eventosTimeline: (timeline.data ?? []) as EventoTimelinePortal[],
+    });
+    const documentosPendentes = estado.documentosPendentes;
     const pagamentoPendente = ((faturas.data ?? []) as { case_id: string }[]).length > 0;
     // Mesma origem do conteúdo. Antes era `permitidos.find(...) ?? permitidos[0]`,
     // que com o alvo agregado devolvia o PRIMEIRO caso — a próxima ação de um
@@ -278,7 +289,26 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     let resumoCaso: ResumoCasoCliente | null = null;
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      resumoCaso = await lerResumoCaso(supabaseAdmin, String(casoAtivo.id));
+      // C4 (02/11/2026): contato do titular só para o próprio titular. O vínculo
+      // do visualizador vem da RLS (linhas dele); falha = sem contato (fail-closed).
+      let visualizadorClienteId: string | null = null;
+      try {
+        const vin = await supabase
+          .from("client_portal_access")
+          .select("client_id, access_status, updated_at")
+          .eq("auth_user_id", context.userId)
+          .eq("access_status", "active")
+          .is("archived_at", null)
+          .order("updated_at", { ascending: false })
+          .limit(10);
+        if (!vin.error) {
+          const ids = new Set(((vin.data ?? []) as { client_id: string | null }[]).map((v) => v.client_id).filter(Boolean));
+          visualizadorClienteId = ids.size === 1 ? String([...ids][0]) : null;
+        }
+      } catch {
+        visualizadorClienteId = null;
+      }
+      resumoCaso = await lerResumoCaso(supabaseAdmin, String(casoAtivo.id), { visualizadorClienteId });
     } catch {
       resumoCaso = null;
     }
@@ -321,12 +351,12 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,
       casoAtivoId: String(casoAtivo.id),
-      etapa: etapaDoCasoCliente(casoAtivo.fase_jornada),
-      composicao: composicaoDoCasoCliente(casoAtivo.composicao),
-      proximaEntrega: proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em),
-      historico: historicoSanitizado((timeline.data ?? []) as EventoTimelinePortal[]),
-      solicitacoes: solicitacoesAbertasCliente(pedidos),
-      checklist: checklistDocumentalCliente(pedidos),
+      etapa: estado.etapa,
+      composicao: estado.composicao,
+      proximaEntrega: estado.proximaEntrega,
+      historico: estado.historico,
+      solicitacoes: estado.solicitacoes,
+      checklist: estado.checklist,
       pessoasMapeadas: Math.max(0, Number(casoAtivo.pessoas_mapeadas ?? 0)),
     };
   });

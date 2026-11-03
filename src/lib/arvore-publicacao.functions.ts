@@ -11,6 +11,7 @@ import { semCache } from "@/lib/no-store";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { conteudoArvore, ehMenor, nomeParaArvore, validarPublicacaoArvore } from "@/lib/arvore-publicacao";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /** Pessoas da ficha genealógica do caso com o que já está publicado na árvore do App. */
 export const listarArvoreDoCaso = createServerFn({ method: "GET" })
@@ -160,7 +161,7 @@ export const publicarPessoaNaArvore = createServerFn({ method: "POST" })
           },
         });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: (idExistente ?? (r as { id?: string }).id) ?? null,
@@ -207,7 +208,7 @@ export const despublicarPessoaDaArvore = createServerFn({ method: "POST" })
       userId,
       payload: { approval_status: "archived", archived_at: new Date().toISOString(), archived_reason: data.motivo.trim() },
     });
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: proj.id,

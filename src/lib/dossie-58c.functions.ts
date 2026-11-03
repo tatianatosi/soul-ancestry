@@ -45,6 +45,7 @@ import {
   type ItemChecklist58c,
 } from "@/lib/dossie-58c";
 import { calcularTetoDespesas, paisIsoDoCaso } from "@/lib/teto-despesas-produto-pai";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /** Pessoas do caso, pelos papéis que o checklist precisa distinguir. */
 type ComposicaoDoCaso = {
@@ -492,7 +493,7 @@ export const semearChecklist58cNoCaso = createServerFn({ method: "POST" })
     }
 
     if (criados.length || acoesCriadas.length) {
-      await supabase.from("audit_logs").insert({
+      await registrarAuditoria(supabase, {
         organization_id: organizationId,
         entidade: "research_pending_items",
         entidade_id: null,

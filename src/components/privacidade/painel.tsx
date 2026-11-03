@@ -100,6 +100,8 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
   const revogar = useServerFn(revogarConsentimento);
   const excecao = useServerFn(registrarExcecaoConsentimento);
   const resolver = useServerFn(resolverAlertaPrivacidade);
+  // Hook antes de qualquer retorno antecipado (regra dos hooks).
+  const [categoriaForm, setCategoriaForm] = useState("interno");
 
   const painel = useQuery({ queryKey: ["privacidade", casoId], queryFn: () => carregarPainel({ data: { casoId } }) });
   const docs = useQuery({ queryKey: ["privacidade", casoId, "docs"], queryFn: () => carregarDocs({ data: { casoId } }) });
@@ -147,7 +149,6 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
   const p = painel.data;
   const documentos = (docs.data ?? []) as Linha[];
   const clienteContratanteId = (p.caso["cliente_id"] as string | null) ?? undefined;
-  const [categoriaForm, setCategoriaForm] = useState("interno");
   const categoriaSensivel = CATEGORIAS_SENSIVEIS.includes(categoriaForm);
 
   async function enviarDocumento(form: HTMLFormElement) {

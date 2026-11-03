@@ -29,6 +29,7 @@ import {
   validarMotivoArquivamento,
   validarNovoPreco,
 } from "@/lib/catalogo-precos-produtos-pai";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 const SELECT_LINHA =
   "id,item_id,country_code,phase,price_component,amount,currency,source_type,source_reference,source_date,price_status,effective_from,effective_to,case_only,notes,created_at,archived_at,archive_motivo";
@@ -64,6 +65,7 @@ export const criarPrecoCatalogo = createServerFn({ method: "POST" })
     const userId = context.userId as string;
 
     const payload = {
+      // Approval remains explicit and restricted; draft creation stays available.
       organization_id: organizationId,
       item_id: data.item_id?.trim() || null,
       country_code: data.country_code?.trim().toUpperCase() || null,
@@ -81,6 +83,10 @@ export const criarPrecoCatalogo = createServerFn({ method: "POST" })
       notes: data.notes?.trim() || null,
       created_by: userId,
     };
+    if (["VIGENTE", "HOMOLOGADO_CATALOGO", "CONDICAO_PARTICULAR_DE_CASO"].includes(data.price_status)) {
+      const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+      await exigirAdminAprovador(supabase, organizationId);
+    }
 
     const { data: criada, error } = await supabase
       .from("price_catalog_rescued")
@@ -97,7 +103,7 @@ export const criarPrecoCatalogo = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!relida.data) throw new Error("A linha criada não pôde ser relida — gravação não confirmada.");
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       user_id: userId,
       acao: "catalogo_preco_produto_pai_criado",
@@ -133,6 +139,15 @@ export const editarPrecoCatalogo = createServerFn({ method: "POST" })
     if (data.notes !== undefined) payload.notes = data.notes?.trim() || null;
 
     if (Object.keys(payload).length === 0) throw new Error("Nenhum campo para editar foi enviado.");
+    const atual = await supabase.from("price_catalog_rescued").select("price_status")
+      .eq("id", data.id).eq("organization_id", organizationId).is("archived_at", null).maybeSingle();
+    if (atual.error) throw new Error(atual.error.message);
+    if (!atual.data) throw new Error("Preço não encontrado nesta organização.");
+    if ([atual.data.price_status, data.price_status].some((status) =>
+      ["VIGENTE", "HOMOLOGADO_CATALOGO", "CONDICAO_PARTICULAR_DE_CASO"].includes(status ?? ""))) {
+      const { exigirAdminAprovador } = await import("@/lib/aprovacao-admin.server");
+      await exigirAdminAprovador(supabase, organizationId);
+    }
 
     const { data: linhas, error } = await supabase
       .from("price_catalog_rescued")
@@ -153,7 +168,7 @@ export const editarPrecoCatalogo = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!relida.data) throw new Error("A linha editada não pôde ser relida — gravação não confirmada.");
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       user_id: userId,
       acao: "catalogo_preco_produto_pai_editado",
@@ -198,7 +213,7 @@ export const arquivarPrecoCatalogo = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!relida.data) throw new Error("A linha arquivada não pôde ser relida — gravação não confirmada.");
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       user_id: userId,
       acao: "catalogo_preco_produto_pai_arquivado",

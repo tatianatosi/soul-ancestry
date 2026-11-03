@@ -128,7 +128,8 @@ describe("Corte 3c — o escritor existe e a aba Jornada deixou de depender da d
     expect(src).toContain("export const despublicarUniaoDeRamos");
     expect(src).toContain("inserirComVerificacao");
     expect(src).toContain("gravarComVerificacao");
-    expect(src).toContain("audit_logs");
+    // Desde 02/11/2026 (B8) a auditoria passa por registrarAuditoria, que lê o erro de audit_logs.
+    expect(src).toContain("registrarAuditoria(");
     expect(src).toContain("registrarTimelineCaso");
     // A fronteira do App vale para a legenda como para qualquer texto.
     expect(src).toContain("exigirPublicavelNoApp");

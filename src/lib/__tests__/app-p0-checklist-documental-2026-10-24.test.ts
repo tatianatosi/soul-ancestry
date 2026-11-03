@@ -4,6 +4,7 @@
  * (`portal_document_requests`); sem pedidos, "Em preparação".
  */
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { checklistDocumentalCliente, solicitacoesAbertasCliente } from "@/lib/portal-dados-vivos";
@@ -133,7 +134,11 @@ describe("tela de Documentos da família", () => {
 
   it("a leitura traz todos os pedidos do caso, sem arquivados, e a contagem de pendência segue restrita", () => {
     expect(vivas).toMatch(/\.is\("archived_at", null\)/);
-    expect(vivas).toMatch(/p\.status === "aguardando" \|\| p\.status === "recusado"/);
-    expect(vivas).toMatch(/checklist: checklistDocumentalCliente\(pedidos\)/);
+    // 02/11/2026 (C5): checklist/pendência passaram para `estadoDocumentalEPlanoDoCaso`
+    // (portal-dados-vivos.ts), compartilhado com a prévia do admin; o contrato é o mesmo.
+    const comum = readFileSync(resolve(__dirname, "../portal-dados-vivos.ts"), "utf8");
+    expect(comum).toMatch(/p\.status === "aguardando" \|\| p\.status === "recusado"/);
+    expect(comum).toMatch(/checklist: checklistDocumentalCliente\(entrada\.pedidos\)/);
+    expect(vivas).toMatch(/checklist: estado\.checklist/);
   });
 });

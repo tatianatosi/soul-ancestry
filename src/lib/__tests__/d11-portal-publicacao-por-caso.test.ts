@@ -65,7 +65,7 @@ describe("D11 · listarAcessosPortal agrega app_projections via ponte admin", ()
   it("usa supabaseAdmin com filtro explícito de organização (evita recursão RLS)", () => {
     const trecho = arquivo.slice(
       arquivo.indexOf("export const listarAcessosPortal"),
-      arquivo.indexOf("export const listarAcessosPortal") + 3000,
+      arquivo.indexOf("/* ---- E-mails previamente autorizados ---- */"),
     );
     expect(trecho).toContain("leitorProjecoes");
     expect(trecho).toMatch(/\.from\("app_projections"\)/);
@@ -73,7 +73,7 @@ describe("D11 · listarAcessosPortal agrega app_projections via ponte admin", ()
   });
 
   it("retorna projecoes no payload", () => {
-    expect(arquivo).toMatch(/projecoes: \(projecoes\.data \?\? \[\]\) as any\[\]/);
+    expect(arquivo).toMatch(/projecoes: exigirLeitura\(projecoes,/);
   });
 });
 

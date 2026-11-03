@@ -596,6 +596,9 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
       <Campo rotulo="Resumo de escopo" tipo="textarea" valor={c.scope_summary} onSalvar={(v) => salvar({ scope_summary: v })} />
       <Campo rotulo="Exclusões" tipo="textarea" valor={c.exclusions_summary} onSalvar={(v) => salvar({ exclusions_summary: v })} />
       <Campo rotulo="Confirmo ausência de exclusões" tipo="check" valor={c.no_exclusions_confirmed} onSalvar={(v) => salvar({ no_exclusions_confirmed: v })} />
+      <div className="sm:col-span-2">
+        <Campo rotulo="Observações internas" tipo="textarea" valor={c.internal_notes} onSalvar={(v) => salvar({ internal_notes: v })} />
+      </div>
       <Campo rotulo="Início da vigência" tipo="date" valor={c.effective_start_date} onSalvar={(v) => salvar({ effective_start_date: v || null })} />
       <Campo rotulo="Regra de vigência" valor={c.effective_rule} onSalvar={(v) => salvar({ effective_rule: v })} />
       <Campo
@@ -1543,15 +1546,15 @@ function Revisao({
         <p className="text-xs text-navy/60">Exceção não oculta validação: continua visível no painel de completude.</p>
         <div className="mt-2">
           <AcaoOperacional
-            rotulo="Registrar exceção de gate"
+            rotulo="Autorizar documentos e anexos pendentes"
             capacidade="resolver_divergencia"
             variant="outline"
-            efeito="Registra uma exceção formal ao gate de ativação. O motivo informado fica auditado e a validação continua visível."
+            efeito="Admin autoriza preparar a liberação com documentos e anexos pendentes. Preços, validade, revisão, representação legal e assinatura não são dispensados. O motivo fica registrado."
             onConfirmar={async (motivo) => {
               await excecao({
                 data: {
                   contract_id: contratoId,
-                  scope: "activation_gate",
+                  scope: "validation_waiver",
                   reason: motivo,
                   impact: motivo,
                 },

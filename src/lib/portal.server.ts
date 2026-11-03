@@ -181,10 +181,14 @@ export async function garantirUsuarioAuth(email: string): Promise<string | null>
 /** Envia o link mágico. Nunca revela se o e-mail existe. */
 export async function enviarLinkMagico(email: string, redirectTo: string) {
   const publico = clientePublico();
-  await publico.auth.signInWithOtp({
+  const { error } = await publico.auth.signInWithOtp({
     email,
     options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
   });
+  // E-mail sem acesso continua sem revelar nada; falha real de envio não pode virar "link enviado".
+  if (error && !/signups? not allowed|user not found/i.test(error.message)) {
+    throw new Error("Não foi possível enviar o link de acesso agora. Tente de novo em instantes.");
+  }
 }
 
 export async function acessoPorEmail(email: string) {
