@@ -16,6 +16,7 @@ import {
   validarEntradaHistorico,
   type EntradaHistoricoFase,
 } from "@/lib/historico-fase";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 export const painelHistoricoFase = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -81,7 +82,7 @@ export const registrarHistoricoFase = createServerFn({ method: "POST" })
       },
     });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_timeline_events",
       entidade_id: r.id,
@@ -116,7 +117,7 @@ export const arquivarHistoricoFase = createServerFn({ method: "POST" })
       payload: { archived_at: agora, archived_by: userId, archive_motivo: data.motivo.trim() },
     });
 
-    await supabase.from("audit_logs").insert({
+    await registrarAuditoria(supabase, {
       organization_id: organizationId,
       entidade: "case_timeline_events",
       entidade_id: data.registroId,

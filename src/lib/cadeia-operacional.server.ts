@@ -29,6 +29,7 @@ import {
 import { linhas } from "@/lib/linhas";
 import { gravarComVerificacao, exigirLinhaGravada } from "@/lib/persistencia.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 type Sb = any;
 
@@ -47,7 +48,7 @@ async function auditar(
   supabase: Sb,
   input: { org: string; userId: string; acao: string; entidade: string; entidadeId: string | null; metadados: any },
 ) {
-  await supabase.from("audit_logs").insert({
+  await registrarAuditoria(supabase, {
     organization_id: input.org,
     user_id: input.userId,
     acao: input.acao,

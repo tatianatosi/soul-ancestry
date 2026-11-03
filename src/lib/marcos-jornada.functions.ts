@@ -7,6 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { exigirLinhaGravada } from "@/lib/persistencia.server";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 type Sb = any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -29,7 +30,7 @@ async function orgDoCaso(sb: Sb, caseId: string): Promise<string> {
 }
 
 async function auditar(sb: Sb, org: string, userId: string, id: string, acao: string, antes: unknown, depois: unknown) {
-  await sb.from("audit_logs").insert({
+  await registrarAuditoria(sb, {
     organization_id: org,
     user_id: userId,
     entidade: "app_projections",

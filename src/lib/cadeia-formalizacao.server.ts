@@ -16,6 +16,7 @@ import {
 import { anexosIaV, entradaDeValores, gatesBloqueados, pendenciasDosAnexos } from "@/lib/anexos-i-v";
 import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
+import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 type Sb = any;
 
@@ -339,7 +340,7 @@ export async function persistirAnexoI(
   const { error: erroItens } = await supabase.from("contract_scope_items").insert(linhas);
   if (erroItens) throw new Error(erroItens.message);
 
-  await supabase.from("audit_logs").insert({
+  await registrarAuditoria(supabase, {
     organization_id: input.org,
     user_id: input.userId,
     acao: "anexo_i_derivado_da_proposta",
