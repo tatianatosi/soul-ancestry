@@ -2145,3 +2145,104 @@ export const historicoImportadoDoContrato = createServerFn({ method: "GET" })
       import_note: string | null;
     }[];
   });
+
+/* ==================== LIBERAÇÃO PRIVADA DA VERSÃO APROVADA ==================== */
+
+/**
+ * Libera ao App Cliente, como arquivo privado em Documentos, somente a versão
+ * atual já aprovada para envio. Não aprova, não envia e-mail, não assina e não
+ * cobra. Admin apenas; idempotente por versão (marcador em observacoes).
+ */
+export const liberarContratoAprovadoAoCliente = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const userId = context.userId as string;
+    const { organizationId } = await contexto(supabase, userId);
+    const { exigirAdminAprovador } = await import("./aprovacao-admin.server");
+    await exigirAdminAprovador(supabase as never, organizationId);
+
+    const { data: contrato, error: eC } = await supabase
+      .from("contracts")
+      .select("id,case_id,client_id,current_version_id,title")
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id)
+      .maybeSingle();
+    if (eC) throw new Error(eC.message);
+    if (!contrato?.case_id) throw new Error("Contrato sem caso vinculado.");
+    if (!contrato.current_version_id) throw new Error("Contrato sem versão atual.");
+
+    const { data: versao, error: eV } = await supabase
+      .from("contract_versions")
+      .select("id,version_number,status,rendered_file_path,rendered_file_hash")
+      .eq("organization_id", organizationId)
+      .eq("id", contrato.current_version_id)
+      .maybeSingle();
+    if (eV) throw new Error(eV.message);
+    if (!versao || versao.status !== "approved_for_send")
+      throw new Error("A versão atual ainda não está aprovada para envio.");
+    if (!versao.rendered_file_path) throw new Error("Versão aprovada sem arquivo gerado.");
+
+    const marcador = `contract_version:${versao.id}`;
+    const { data: existente, error: eE } = await supabase
+      .from("documents")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", contrato.case_id)
+      .eq("observacoes", marcador)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (eE) throw new Error(eE.message);
+    if (existente) return { documentoId: existente.id as string, jaLiberado: true };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const helpers = await import("./contratos.server");
+    const baixado = await supabaseAdmin.storage.from(helpers.BUCKET_CONTRATOS).download(versao.rendered_file_path);
+    if (baixado.error || !baixado.data) throw new Error("Não foi possível ler o arquivo da versão aprovada.");
+    const caminho = `${organizationId}/${contrato.case_id}/contratos/contrato-v${versao.version_number}-${versao.id}.html`;
+    const up = await supabaseAdmin.storage
+      .from("documentos")
+      .upload(caminho, baixado.data, { contentType: "text/html", upsert: true });
+    if (up.error) throw new Error("Não foi possível preparar o arquivo privado.");
+
+    const doc = await inserirComVerificacao({
+      supabase,
+      tabela: "documents",
+      organizationId,
+      userId,
+      payload: {
+        case_id: contrato.case_id,
+        client_id: contrato.client_id,
+        titulo: `Contrato aprovado — versão ${versao.version_number}`,
+        categoria: "contrato",
+        tipo: "contrato",
+        origem: "interno",
+        status: "liberado",
+        visibilidade: "cliente_quando_liberado",
+        sensibilidade: "sensivel",
+        storage_path: caminho,
+        nome_arquivo: `contrato-versao-${versao.version_number}.html`,
+        mime_type: "text/html",
+        file_hash: versao.rendered_file_hash,
+        observacoes: marcador,
+      },
+    } as never) as unknown as { id: string };
+
+    await evento(supabase, organizationId, contrato.id as string, "contrato_liberado_cliente", {
+      versao: versao.version_number,
+      documento_id: doc.id,
+    }, versao.id as string);
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: contrato.case_id as string,
+      eventType: "caso",
+      title: `Contrato aprovado (v${versao.version_number}) liberado no App Cliente`,
+      summaryInternal: "Arquivo privado em Documentos; sem envio, assinatura ou cobrança.",
+      sourceEntityType: "contracts",
+      sourceEntityId: contrato.id as string,
+      userId,
+    });
+    return { documentoId: doc.id, jaLiberado: false };
+  });
