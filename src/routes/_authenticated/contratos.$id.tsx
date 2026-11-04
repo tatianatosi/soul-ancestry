@@ -55,6 +55,7 @@ import {
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
 import { diagnosticarVersaoContratual, versaoMaisRecente } from "@/lib/versao-contratual-vazia";
+import { liberarVersaoAprovadaNoApp } from "@/lib/contrato-liberacao.functions";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
@@ -1431,6 +1432,7 @@ function Revisao({
 }) {
   const decidir = useServerFn(registrarDecisaoRevisao);
   const aprovar = useServerFn(aprovarParaEnvio);
+  const liberar = useServerFn(liberarVersaoAprovadaNoApp);
   const excecao = useServerFn(criarExcecao);
   const os = useServerFn(salvarOrdemServico);
   // 06/09/2026: "Aprovar para envio" recusava com "Escopo contratado definido" e
@@ -1483,6 +1485,18 @@ function Revisao({
               onSalvo();
             }}
           />
+          {versao.status === "approved_for_send" && versao.id === dados.contrato?.current_version_id ? (
+            <AcaoOperacional
+              rotulo={`Liberar v${versao.version_number} aprovada no App Cliente`}
+              capacidade="aprovar_proposta_os_anexo_previa"
+              efeito="Coloca esta versão aprovada como arquivo privado em Documentos no App da titular. Não envia e-mail, não assina e não cobra."
+              onConfirmar={async () => {
+                const r = await liberar({ data: { contract_id: contratoId } });
+                setAviso(r.jaLiberado ? `A v${r.versao} já estava liberada no App Cliente.` : `v${r.versao} liberada em Documentos no App Cliente.`);
+                onSalvo();
+              }}
+            />
+          ) : null}
         </div>
       </div>
 
