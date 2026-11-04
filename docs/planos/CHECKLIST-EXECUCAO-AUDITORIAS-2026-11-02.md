@@ -13,12 +13,12 @@ Legenda: ✅ feito e provado · 🟡 feito em parte · ⬜ não feito · ➖ nã
 | Fase                                                                                    | Estado                                                          | Evidência                                                                         | Falta                                                 |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | 1. Cartographer, ondas 2 e 3                                                            | ✅ 7 de 7 relatórios                                            | arquivos em `.cartographer/reports/` (pasta local da sessão, fora do git)         | nada                                                  |
-| 2. Cartographer, onda 1 que faltou (auth-sessao, persistencia-banco, banco-esquema-rls) | ✅ 3 de 3 relatórios entregues | arquivos em `.cartographer/reports/` | nada |
-| 3. Síntese e triagem | 🟡 backlog escrito e ampliado com 16 achados sem tarefa (F1–F16) | `synthesize.py` e `FINAL_REPORT` não rodaram | rodar a síntese oficial |
-| 4. Understand de novo e matriz do grosso                                                | ⬜                                                              | —                                                                                 | regerar grafo e classificação; matriz das 195 tabelas |
-| 5. Correções                                                                            | 🟡 ver tabela de tarefas                                        | commits `85ab22a0`, `301ecadf` e seguintes na branch `claude/funny-fermat-863kuc` | resto das tarefas                                     |
-| 6. Publicação e leitura de erros reais                                                  | 🟡 leitura de erros feita; publicação pendente                  | 43 linhas de `erro_app` lidas em 02/11                                            | mesclar e publicar                                    |
-| 7. Lançamento com um cliente (Ana)                                                      | ⬜                                                              | —                                                                                 | convite só depois de C1, C2 e D5                      |
+| 2. Cartographer, onda 1 que faltou | ✅ 3 de 3 | `.cartographer/reports/` | nada |
+| 3. Síntese e triagem | 🟡 backlog com F1–F16 e G1–G4 (rodada 2, 03/11) | `synthesize.py` e `FINAL_REPORT` não rodaram | síntese oficial (não muda tarefas) |
+| 4. Understand de novo e matriz do grosso | 🟡 grafo regenerado em 03/11 (1.697 arquivos, 30 órfãos) | `docs/grafo/` | matriz das 195 tabelas |
+| 5. Correções | 🟡 A, B, C e E5 publicados; D, F e G pendentes | PRs #223–#229 | D1–D5, F1–F16, G1–G4 |
+| 6. Publicação e leitura de erros reais | ✅ publicado `7dbf5716` em 03/11; 0 `erro_app` desde a publicação | `/api/saude` | uso real pela Proprietária |
+| 7. Lançamento com um cliente (Ana) | ⬜ bloqueado | `REALIDADE-LANCAMENTO-2026-11-03.md` | 8 bloqueios listados lá |
 
 ## O que o banco vivo mostrou (A0, lido em 02/11/2026)
 
@@ -34,28 +34,28 @@ Legenda: ✅ feito e provado · 🟡 feito em parte · ⬜ não feito · ➖ nã
 | Tarefa                                                   | Código                                                                                                    | Banco/produção                                                                                                                            | Uso                                                                            |
 | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | A0 Provar a causa (ler o banco)                          | ➖                                                                                                        | ✅ leitura acima; **ainda não prova** que `getContexto` falha para a admin: os 43 erros não incluem `getContexto` com erro de autorização | ⬜                                                                             |
-| A1 Erro real quando o contexto falha                     | ✅ `autoridade-operacional.ts`, `autoridade.tsx` + teste                                                  | ⬜ não publicado                                                                                                                          | ⬜                                                                             |
-| A2 `AcaoOperacional` com aviso de falha                  | ✅ `acao-operacional.tsx`                                                                                 | ⬜ não publicado                                                                                                                          | ⬜                                                                             |
-| A3 "Salvo" só quando houve linha alterada | ✅ código na branch `claude/backlog-a3-a4-b6-b8-c2-c8` (`casos.$caseId`, `portal-atendimento.functions.ts`) + teste | ⬜ ainda sem PR nem publicação | ⬜ |
-| A4 Resolvedor único de papel e organização | 🟡 `getContexto` lê os erros, não devolve mais admin por padrão e refaz o vínculo a partir do `staff_access` ativo (na branch, com teste); os outros resolvedores só por organização continuam | ⬜ | ⬜ |
-| B1 `enviarParaAssinatura` com valores válidos | ✅ `contrato-parametros.functions.ts` (status `draft`, categorias `contracted_scope`/`exclusion`, status do item e `source_type` válidos) + teste | ✅ CHECKs e triggers de `contracts` e `contract_scope_items` lidos do banco | ⬜ |
-| B2 Conversa exige caso                                   | ✅ `crm-fluxo.functions.ts`, `desk-canonico.functions.ts`                                                 | ✅ `case_id` NOT NULL confirmado em `types.ts`                                                                                            | ⬜                                                                             |
-| B3 Fatura: `emitida/pendente/vencida`                    | ✅ 5 arquivos + testes P27 atualizados                                                                    | ✅ CHECK e dados lidos do banco                                                                                                           | ⬜ (a RPC nível 6 segue lendo só `pendente`/`vencida`: é migration, fica fora) |
-| B4 Prioridade de tarefa                                  | ✅ `ops.server.ts` (`critica`)                                                                            | ✅ CHECK lido do banco                                                                                                                    | ⬜                                                                             |
-| B5 `source_entity_type` de `app_projections`             | ✅ União de Ramos, entregas, relatórios de fase + testes                                                  | ✅ CHECK lido do banco                                                                                                                    | ⬜                                                                             |
-| B6 Versão de condição comercial | ✅ criar rascunho não substitui a aprovada; novo escritor `aprovarVersaoCondicaoComercial` + botão (na branch, com teste) | ⬜ | ⬜ |
-| B7 Eventos de contrato fora do CHECK | ✅ `evento()` mapeia para os 16 tipos aceitos (nome original em `metadata.tipo_original`), deixa de engolir erro, leitor do "manter com motivo" ajustado + teste | ✅ CHECK lido do banco | ⬜ |
-| B8 `audit_logs` sem checar erro | ✅ helper `registrarAuditoria` (`src/lib/auditoria-segura.server.ts`) aplicado em 83 pontos de 44 arquivos; 7 pontos ficaram de fora de propósito (arquivos que já têm função local de auditoria, usam o resultado, ou são o próprio coletor de erros, onde o helper faria laço); teste novo + `tsc` + suíte (680 arquivos, 6.211 testes) + `bun run build` | ⬜ PR aberto, ainda não publicado | ⬜ |
-| B9 Coletor: filtrar cancelamento e guardar a rota do 500 | ✅ `producao-erros.server.ts`, `server.ts` + 3 testes                                                     | ⬜ não publicado                                                                                                                          | ➖                                                                             |
-| C1 Link mágico confere o envio                           | ✅ `portal.server.ts`                                                                                     | ⬜                                                                                                                                        | ⬜                                                                             |
-| C2, C5, C6, C7 Convite, prévia admin, genograma, despublicar | ⏳ agente em andamento (cópia isolada `wt-c2c7`) | ⬜ | ⬜ |
-| C3 Portal sem erro engolido | ✅ na branch (10 testes) | ⬜ | ⬜ |
-| C4 Dados enganosos no App | ✅ na branch (15 testes; Radar só com checklist canônico, contato só do titular, Documentos vazio sem caso, filtro `is_demo` removido) | ⬜ | ⬜ |
-| C8 Link para mensagens do caso | ✅ na branch (4 testes; sem 8ª aba) | ⬜ | ⬜ |
-| D1–D5 Documentos                                         | ⬜ (a tela de Privacidade foi destravada: `painel.tsx`)                                                   | ⬜                                                                                                                                        | ⬜                                                                             |
-| E5 Órfãos de família | ✅ `saneamento-desk-app-v4`, `app-visibilidade-registro` e `rascunhos-comunicacao-governados` agora aparecem em Qualidade, em "Dados fixos no código", cada bloco rotulado como retrato fixo ou DEMO, só leitura + teste; `decisao-ana-canonica` já vive em `case_aliases` (3 códigos lidos do banco) | ✅ aliases lidos do banco | ⬜ |
+| A1 Erro real quando o contexto falha                     | ✅ `autoridade-operacional.ts`, `autoridade.tsx` + teste                                                  | ✅ publicado `7dbf5716` (03/11) | ⬜                                                                             |
+| A2 `AcaoOperacional` com aviso de falha                  | ✅ `acao-operacional.tsx`                                                                                 | ✅ publicado `7dbf5716` (03/11) | ⬜                                                                             |
+| A3 "Salvo" só quando houve linha alterada | ✅ PR #226 + teste | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| A4 Resolvedor único de papel e organização | 🟡 `getContexto` lê os erros, sem admin por padrão, refaz o vínculo (PR #226); os outros resolvedores seguem | ✅ publicado `7dbf5716` (03/11) (parte feita) | ⬜ |
+| B1 `enviarParaAssinatura` com valores válidos | ✅ `contrato-parametros.functions.ts` (status `draft`, categorias `contracted_scope`/`exclusion`, status do item e `source_type` válidos) + teste | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| B2 Conversa exige caso                                   | ✅ `crm-fluxo.functions.ts`, `desk-canonico.functions.ts`                                                 | ✅ publicado `7dbf5716` (03/11) | ⬜                                                                             |
+| B3 Fatura: `emitida/pendente/vencida`                    | ✅ 5 arquivos + testes P27 atualizados                                                                    | ✅ publicado `7dbf5716` (03/11) | ⬜ (a RPC nível 6 segue lendo só `pendente`/`vencida`: é migration, fica fora) |
+| B4 Prioridade de tarefa                                  | ✅ `ops.server.ts` (`critica`)                                                                            | ✅ publicado `7dbf5716` (03/11) | ⬜                                                                             |
+| B5 `source_entity_type` de `app_projections`             | ✅ União de Ramos, entregas, relatórios de fase + testes                                                  | ✅ publicado `7dbf5716` (03/11) | ⬜                                                                             |
+| B6 Versão de condição comercial | ✅ PR #226 + teste | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| B7 Eventos de contrato fora do CHECK | ✅ `evento()` mapeia para os 16 tipos aceitos (nome original em `metadata.tipo_original`), deixa de engolir erro, leitor do "manter com motivo" ajustado + teste | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| B8 `audit_logs` sem checar erro | ✅ `registrarAuditoria` em 83 pontos de 44 arquivos (PR #227) | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| B9 Coletor: filtrar cancelamento e guardar a rota do 500 | ✅ `producao-erros.server.ts`, `server.ts` + 3 testes                                                     | ✅ publicado `7dbf5716` (03/11) | ➖                                                                             |
+| C1 Link mágico confere o envio                           | ✅ `portal.server.ts`                                                                                     | ✅ publicado `7dbf5716` (03/11) | ⬜                                                                             |
+| C2, C5, C6, C7 Convite, prévia admin, genograma, despublicar | ✅ PR #226 + testes | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| C3 Portal sem erro engolido | ✅ PR #226 | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| C4 Dados enganosos no App | ✅ PR #226 | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| C8 Link para mensagens do caso | ✅ PR #226 | ✅ publicado `7dbf5716` (03/11) | ⬜ |
+| D1–D5 Documentos | ⬜ (a tela de Privacidade foi destravada) | ⬜ 3 documentos da Ana seguem liberados (03/11) | ⬜ |
+| E5 Órfãos de família | ✅ `saneamento-desk-app-v4`, `app-visibilidade-registro` e `rascunhos-comunicacao-governados` agora aparecem em Qualidade, em "Dados fixos no código", cada bloco rotulado como retrato fixo ou DEMO, só leitura + teste; `decisao-ana-canonica` já vive em `case_aliases` (3 códigos lidos do banco) | ✅ publicado `7dbf5716` (03/11) | ⬜ |
 | E1–E4, E6 Planejador, handoff, infra | ⬜ | ⬜ | ⬜ |
-| Restauração de "Observações internas" (#202)             | ✅ `contratos.$id.tsx` + teste                                                                            | ⬜                                                                                                                                        | ⬜                                                                             |
+| Restauração de "Observações internas" (#202)             | ✅ `contratos.$id.tsx` + teste                                                                            | ✅ publicado `7dbf5716` (03/11) | ⬜                                                                             |
 
 ## Como cada tarefa passa a ✅ de verdade
 
@@ -79,3 +79,17 @@ Legenda: ✅ feito e provado · 🟡 feito em parte · ⬜ não feito · ➖ nã
 - Na branch `claude/backlog-a3-a4-b6-b8-c2-c8` (sem PR ainda): A3, A4, B6, C3, C4, C8 — `tsc` limpo e suíte `src/lib` com 675 arquivos e 6.189 testes passando.
 - Ainda não feito: B8 (cerca de 90 inserts de `audit_logs` sem checar erro), C2/C5/C6/C7 (agente em andamento), D1–D5, F1–F16 do backlog.
 
+
+## Atualização de 03/11/2026, 17h UTC
+
+- **Publicado:** `main` `7dbf5716` no ar (`/api/saude`: ok, `bancoOk`, sha `7dbf5716`). Contém #226 (A3, A4 em parte, B6, C2–C8), #227 (B8) e #229 (sincronização com o trabalho do Lovable). Nenhum `erro_app` desde a publicação; o app ainda não foi usado depois dela.
+- **Auditoria completa:** os 4 relatórios da rodada 2 chegaram. Viraram as microtarefas G1 (dinheiro e contrato), G2 (Caso 360), G3 (leads e calls) e G4 (banco vivo, pesquisa e portal) no backlog. Não há relatório pendente.
+- **Realidade do lançamento:** `docs/planos/REALIDADE-LANCAMENTO-2026-11-03.md` (8 bloqueios, órfãos e tarefas dos planos anteriores não executadas).
+
+| Tarefa | Código | Banco/produção | Uso |
+|---|---|---|---|
+| G1 Dinheiro e contrato (18 microtarefas) | ⬜ | ⬜ | ⬜ |
+| G2 Caso 360 diz a verdade (12) | ⬜ | ⬜ | ⬜ |
+| G3 Leads e calls (7) | ⬜ | ⬜ | ⬜ |
+| G4 Banco vivo, pesquisa e portal (8) | ⬜ | ⬜ 3 documentos e 8 vínculos publicados; convite venceu | ⬜ |
+| F1–F16 | ⬜ | ⬜ | ⬜ |
