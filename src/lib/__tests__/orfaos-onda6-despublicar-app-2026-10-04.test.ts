@@ -24,7 +24,9 @@ describe("Despublicar do App Cliente deixa de depender de SQL", () => {
     expect(s).toContain('.from("app_projections")');
     expect(s).toContain("projecoes: (projecoes.data ?? []) as any[]");
     // Só publicação viva: arquivada não volta para a lista.
-    const trecho = s.slice(s.indexOf('.from("app_projections")\n            .select'));
+    // 01/11/2026 — a indentação do bloco mudou (mais um item no Promise.all),
+    // então a ancoragem não depende mais de espaços exatos.
+    const trecho = s.slice(s.indexOf('.from("app_projections")'));
     expect(trecho.slice(0, 600)).toContain('.is("archived_at", null)');
   });
 

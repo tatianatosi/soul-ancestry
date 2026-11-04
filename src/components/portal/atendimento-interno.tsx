@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Eye, EyeOff, Lock, Plus, Send, X } from "lucide-react";
@@ -9,6 +9,8 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
+  aprovarRascunhoComunicacao,
+  arquivarRascunhoComunicacao,
   atualizarStatusTicket,
   cancelarSolicitacaoDocumento,
   confirmarDocumentosMinimos,
@@ -23,10 +25,12 @@ import {
   ticketInterno,
 } from "@/lib/portal-atendimento.functions";
 import {
+  CANAL_RASCUNHO_COMUNICACAO,
   CATEGORIAS_SOLICITACAO,
   CLASSIFICACAO_ENTREGA_LABEL,
   FINALIDADES_SOLICITACAO,
   STATUS_ENVIO,
+  STATUS_RASCUNHO_COMUNICACAO,
   STATUS_SOLICITACAO,
   STATUS_TICKET,
   VISIBILIDADE_ENTREGA_LABEL,
@@ -50,12 +54,19 @@ type Confirmacao = {
   versaoAtual?: string | null;
 };
 
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const inputCls = "w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm";
 
-function Painel({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
+function Painel({
+  titulo,
+  descricao,
+  children,
+}: {
+  titulo: string;
+  descricao?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h2 className="font-serif text-lg">{titulo}</h2>
@@ -72,7 +83,11 @@ function Selo({ texto, tom = "neutro" }: { texto: string; tom?: "neutro" | "aler
       : tom === "ok"
         ? "border-gold/50 bg-gold/15 text-navy"
         : "border-navy/15 bg-cream text-navy/70";
-  return <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${cls}`}>{texto}</span>;
+  return (
+    <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${cls}`}>
+      {texto}
+    </span>
+  );
 }
 
 /**
@@ -107,7 +122,7 @@ function lista<T = any>(valor: unknown): T[] | null {
   return Array.isArray(valor) ? (valor as T[]) : null;
 }
 
-export function AtendimentoInterno() {
+export function AtendimentoInterno({ rascunhoFoco }: { rascunhoFoco?: string } = {}) {
   const queryClient = useQueryClient();
   const carregar = useServerFn(painelAtendimento);
   const criar = useServerFn(criarSolicitacaoDocumento);
@@ -118,6 +133,8 @@ export function AtendimentoInterno() {
   const confirmarDocsMinimos = useServerFn(confirmarDocumentosMinimos);
   const publicarProjecao = useServerFn(publicarProjecaoApp);
   const despublicarProjecao = useServerFn(despublicarProjecaoApp);
+  const aprovarRascunho = useServerFn(aprovarRascunhoComunicacao);
+  const arquivarRascunho = useServerFn(arquivarRascunhoComunicacao);
 
   const [casoId, setCasoId] = useState<string>("");
   // Corte 3b (01/10/2026): "atualizacao" entra como terceiro tipo — o aviso
@@ -203,12 +220,12 @@ export function AtendimentoInterno() {
     const deps = dependentes
       ? dependentes
           .filter((d: any) => d.case_id === casoId)
-          .map((d: any) => ({ id: d.id as string, nome: `${d.nome_completo} (${d.vinculo_com_titular ?? "participante"})` }))
+          .map((d: any) => ({
+            id: d.id as string,
+            nome: `${d.nome_completo} (${d.vinculo_com_titular ?? "participante"})`,
+          }))
       : [];
-    return [
-      ...(titular ? [{ id: null, nome: `${titular.nome} (titular)` }] : []),
-      ...deps,
-    ];
+    return [...(titular ? [{ id: null, nome: `${titular.nome} (titular)` }] : []), ...deps];
   }, [casoId, casoPorId, data]);
 
   const bloqueioSelecionado = casoId ? bloqueio(casoId) : null;
@@ -220,8 +237,7 @@ export function AtendimentoInterno() {
   const [confSubstituta, setConfSubstituta] = useState("");
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(
-    confirmacao !== null &&
-      [confVersao, confMotivo, confSubstituta].some((v) => v.trim() !== ""),
+    confirmacao !== null && [confVersao, confMotivo, confSubstituta].some((v) => v.trim() !== ""),
   );
 
   function abrirConfirmacao(c: Confirmacao) {
@@ -230,7 +246,6 @@ export function AtendimentoInterno() {
     setConfSubstituta("");
     setConfirmacao(c);
   }
-
 
   const novaSolicitacao = useMutation({
     mutationFn: () => {
@@ -265,7 +280,8 @@ export function AtendimentoInterno() {
   });
 
   const revisarEnvio = useMutation({
-    mutationFn: (p: { documentoId: string; decisao: "aceito" | "recusado"; motivo?: string }) => revisar({ data: p }),
+    mutationFn: (p: { documentoId: string; decisao: "aceito" | "recusado"; motivo?: string }) =>
+      revisar({ data: p }),
     onSuccess: confirmar("Documento revisado."),
     onError: falhar,
   });
@@ -284,7 +300,8 @@ export function AtendimentoInterno() {
   });
 
   const alternarFatura = useMutation({
-    mutationFn: (p: { faturaId: string; liberar: boolean; motivo?: string }) => liberarFat({ data: p }),
+    mutationFn: (p: { faturaId: string; liberar: boolean; motivo?: string }) =>
+      liberarFat({ data: p }),
     onSuccess: confirmar("Liberação da fatura atualizada."),
     onError: falhar,
   });
@@ -296,7 +313,12 @@ export function AtendimentoInterno() {
   });
 
   const publicar = useMutation({
-    mutationFn: (p: { caseId: string; tipo: "marco" | "arvore" | "atualizacao"; conteudo: string; motivo: string }) => publicarProjecao({ data: p }),
+    mutationFn: (p: {
+      caseId: string;
+      tipo: "marco" | "arvore" | "atualizacao";
+      conteudo: string;
+      motivo: string;
+    }) => publicarProjecao({ data: p }),
     onSuccess: () => {
       setPublicacaoTexto("");
       toast.success("Projeção publicada.");
@@ -313,6 +335,18 @@ export function AtendimentoInterno() {
   const despublicar = useMutation({
     mutationFn: (p: { projecaoId: string; motivo: string }) => despublicarProjecao({ data: p }),
     onSuccess: confirmar("Conteúdo despublicado do App Cliente."),
+    onError: falhar,
+  });
+
+  const aprovarComunicacao = useMutation({
+    mutationFn: (p: { rascunhoId: string }) => aprovarRascunho({ data: p }),
+    onSuccess: confirmar("Rascunho aprovado. O envio em si continua manual, fora do sistema."),
+    onError: falhar,
+  });
+
+  const arquivarComunicacao = useMutation({
+    mutationFn: (p: { rascunhoId: string; motivo?: string }) => arquivarRascunho({ data: p }),
+    onSuccess: confirmar("Rascunho arquivado."),
     onError: falhar,
   });
 
@@ -337,14 +371,47 @@ export function AtendimentoInterno() {
   const solicitacoes = lista(data?.solicitacoes);
   const tickets = lista(data?.tickets);
   const faturas = lista(data?.faturas);
-  const enviosPendentes = envios ? envios.filter((e: any) => e.status === "pendente_de_revisao").length : null;
+  const enviosPendentes = envios
+    ? envios.filter((e: any) => e.status === "pendente_de_revisao").length
+    : null;
   const solicitacoesAbertas = solicitacoes
-    ? solicitacoes.filter((s: any) => ["aguardando", "recebido", "em_revisao"].includes(s.status) /* CHECK portal_document_requests_status_chk */).length
+    ? solicitacoes.filter(
+        (s: any) =>
+          ["aguardando", "recebido", "em_revisao"].includes(
+            s.status,
+          ) /* CHECK portal_document_requests_status_chk */,
+      ).length
     : null;
   const ticketsAbertos = tickets
     ? tickets.filter((t: any) => !["resolvido", "fechado"].includes(t.status)).length
     : null;
-  const faturasAguardandoLiberacao = faturas ? faturas.filter((f: any) => !f.liberada_cliente).length : null;
+  const faturasAguardandoLiberacao = faturas
+    ? faturas.filter((f: any) => !f.liberada_cliente).length
+    : null;
+
+  const rascunhosComunicacao = lista(data?.rascunhosComunicacao);
+  const rascunhosPendentesCount = rascunhosComunicacao
+    ? rascunhosComunicacao.filter((r: any) => r.status !== "approved").length
+    : null;
+
+  /*
+   * Link de `/atendimento?rascunho=<id>` (ex.: alertas-derivados.ts) chega
+   * sem caso selecionado. Assim que a leitura trouxer o rascunho, seleciona
+   * o caso dele para o resto da tela (solicitações, envios…) já abrir no
+   * contexto certo — sem isso o link caía numa tela sem nada em foco.
+   */
+  useEffect(() => {
+    if (!rascunhoFoco || casoId || !rascunhosComunicacao) return;
+    const alvo = rascunhosComunicacao.find((r: any) => r.id === rascunhoFoco);
+    if (alvo?.case_id) setCasoId(alvo.case_id);
+  }, [rascunhoFoco, casoId, rascunhosComunicacao]);
+
+  useEffect(() => {
+    if (!rascunhoFoco) return;
+    document
+      .getElementById(`rascunho-comunicacao-${rascunhoFoco}`)
+      ?.scrollIntoView({ block: "center" });
+  }, [rascunhoFoco, rascunhosComunicacao]);
 
   return (
     <div className="space-y-5">
@@ -368,7 +435,12 @@ export function AtendimentoInterno() {
         </p>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <CardIndicador
+          rotulo="Comunicações aguardando aprovação"
+          valor={rascunhosPendentesCount}
+          tom={rascunhosPendentesCount ? "atencao" : "sucesso"}
+        />
         <CardIndicador
           rotulo="Envios pendentes de revisão"
           valor={enviosPendentes}
@@ -394,7 +466,11 @@ export function AtendimentoInterno() {
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <label className="text-sm text-navy/60">Caso</label>
-          <select value={casoId} onChange={(e) => setCasoId(e.target.value)} className={`${inputCls} max-w-xl`}>
+          <select
+            value={casoId}
+            onChange={(e) => setCasoId(e.target.value)}
+            className={`${inputCls} max-w-xl`}
+          >
             <option value="">Todos os casos</option>
             {(["apto", "demo", "bloqueado"] as const).map((situacao) => {
               const grupo = casos.filter((c) => estadoCasoAtendimento(c).situacao === situacao);
@@ -433,7 +509,11 @@ export function AtendimentoInterno() {
         {bloqueioSelecionado ? <Pendencia motivos={bloqueioSelecionado.motivos} /> : null}
         {casoSelecionado && casoSelecionado.documentos_minimos_ok !== true ? (
           <AcaoOperacional
-            rotulo={confirmarDocumentos.isPending ? "Confirmando…" : "Confirmar documentos mínimos deste caso"}
+            rotulo={
+              confirmarDocumentos.isPending
+                ? "Confirmando…"
+                : "Confirmar documentos mínimos deste caso"
+            }
             className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5 disabled:opacity-50"
             acaoExterna="confirmar_documentos_minimos"
             efeito="Destrava uma das quatro condições exigidas para liberar o App Cliente deste caso."
@@ -444,16 +524,22 @@ export function AtendimentoInterno() {
           />
         ) : null}
         {casoSelecionado ? (
-          <div id="publicacao" className="rounded-lg border border-navy/15 bg-cream/40 p-3 scroll-mt-24">
+          <div
+            id="publicacao"
+            className="rounded-lg border border-navy/15 bg-cream/40 p-3 scroll-mt-24"
+          >
             <p className="text-xs font-medium text-navy">Publicar no App Cliente</p>
             <p className="mt-0.5 text-[11px] text-navy/60">
-              Grava uma atualização de Jornada ou um registro de Árvore, aprovado e publicado no mesmo instante — o
-              cliente vê ao recarregar. Escreva já em linguagem de cliente, sem termo interno.
+              Grava uma atualização de Jornada ou um registro de Árvore, aprovado e publicado no
+              mesmo instante — o cliente vê ao recarregar. Escreva já em linguagem de cliente, sem
+              termo interno.
             </p>
             <div className="mt-2 flex flex-wrap items-start gap-2">
               <select
                 value={publicacaoTipo}
-                onChange={(e) => setPublicacaoTipo(e.target.value as "marco" | "arvore" | "atualizacao")}
+                onChange={(e) =>
+                  setPublicacaoTipo(e.target.value as "marco" | "arvore" | "atualizacao")
+                }
                 className="rounded border border-navy/20 px-2 py-1.5 text-xs"
               >
                 <option value="marco">Jornada (marco)</option>
@@ -477,24 +563,35 @@ export function AtendimentoInterno() {
                 rotulo={publicar.isPending ? "Publicando…" : "Publicar"}
                 className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90 disabled:opacity-50"
                 acaoExterna="publicar_projecao_app_cliente"
-                validacaoFormulario={!publicacaoTexto.trim() ? "Escreva o conteúdo antes de publicar." : null}
+                validacaoFormulario={
+                  !publicacaoTexto.trim() ? "Escreva o conteúdo antes de publicar." : null
+                }
                 efeito="Publica imediatamente no App Cliente — o cliente vê ao recarregar."
                 onConfirmar={(motivo) => {
                   if (publicar.isPending) return;
-                  publicar.mutate({ caseId: casoSelecionado.id, tipo: publicacaoTipo, conteudo: publicacaoTexto, motivo });
+                  publicar.mutate({
+                    caseId: casoSelecionado.id,
+                    tipo: publicacaoTipo,
+                    conteudo: publicacaoTexto,
+                    motivo,
+                  });
                 }}
               />
             </div>
-            {publicar.isSuccess ? <p className="mt-1 text-[11px] text-navy/60">Publicado.</p> : null}
+            {publicar.isSuccess ? (
+              <p className="mt-1 text-[11px] text-navy/60">Publicado.</p>
+            ) : null}
 
             <div className="mt-3 border-t border-navy/10 pt-2" data-publicacoes-vivas>
               <p className="text-[11px] font-medium text-navy/70">Publicações deste caso</p>
               <p className="text-[11px] text-navy/55">
-                Só o que está <strong>publicado</strong> chega ao App. O resto existe no caso e não é visto pelo
-                cliente — fica aqui para a equipe saber que existe.
+                Só o que está <strong>publicado</strong> chega ao App. O resto existe no caso e não
+                é visto pelo cliente — fica aqui para a equipe saber que existe.
               </p>
               {publicacoesDoCaso === null ? (
-                <p className="mt-1 text-[11px] text-navy/55">Não foi possível ler as publicações.</p>
+                <p className="mt-1 text-[11px] text-navy/55">
+                  Não foi possível ler as publicações.
+                </p>
               ) : publicacoesDoCaso.length === 0 ? (
                 <p className="mt-1 text-[11px] text-navy/55">
                   Nada publicado neste caso ainda. O cliente vê o estado vazio da aba.
@@ -517,11 +614,15 @@ export function AtendimentoInterno() {
                           }
                           data-no-app={p.approval_status === "published" ? "sim" : "nao"}
                         >
-                          {p.approval_status === "published" ? "no App" : `não publicado · ${p.approval_status ?? "—"}`}
+                          {p.approval_status === "published"
+                            ? "no App"
+                            : `não publicado · ${p.approval_status ?? "—"}`}
                         </span>{" "}
                         · {new Date(p.approved_at ?? p.created_at).toLocaleString("pt-BR")} · por{" "}
                         {nomePessoa(p.approved_by ?? p.created_by)}
-                        <span className="mt-0.5 block text-navy/60">{String(p.content_sanitized ?? "").slice(0, 160)}</span>
+                        <span className="mt-0.5 block text-navy/60">
+                          {String(p.content_sanitized ?? "").slice(0, 160)}
+                        </span>
                       </span>
                       {data?.podeLiberar ? (
                         <AcaoOperacional
@@ -535,7 +636,9 @@ export function AtendimentoInterno() {
                           }}
                         />
                       ) : (
-                        <span className="text-[11px] text-navy/50">Só admin e operações despublicam.</span>
+                        <span className="text-[11px] text-navy/50">
+                          Só admin e operações despublicam.
+                        </span>
                       )}
                     </li>
                   ))}
@@ -576,8 +679,91 @@ export function AtendimentoInterno() {
         </ul>
       </div>
 
-
       {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+
+      <Painel
+        titulo="Fila de comunicação pendente de aprovação"
+        descricao="Rascunhos criados pelo contrato, cadastro e outras ações automáticas. Aprovar não envia nada — o envio por e-mail/WhatsApp continua um ato manual da equipe, fora deste sistema."
+      >
+        {rascunhosComunicacao !== null && rascunhosComunicacao.length === 0 ? (
+          <p className="text-sm text-navy/60">Nenhum rascunho aguardando aprovação.</p>
+        ) : null}
+        <EstadoDados
+          carregando={isLoading}
+          erro={falhaLeitura ? "A consulta do atendimento falhou." : undefined}
+          dados={rascunhosComunicacao}
+          aoTentarNovamente={() => void recarregarLeitura()}
+          recurso="a fila de comunicações"
+          vazio="Nenhum rascunho de comunicação registrado."
+        >
+          {(itens) => (
+            <ul className="space-y-2">
+              {(itens as any[]).map((r: any) => (
+                <li
+                  key={r.id}
+                  id={`rascunho-comunicacao-${r.id}`}
+                  className={`rounded-lg border p-3 text-sm ${
+                    r.id === rascunhoFoco ? "border-gold bg-gold/10" : "border-navy/10"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-medium">{r.assunto ?? "(sem assunto)"}</p>
+                      <p className="text-xs text-navy/50">
+                        {nomeCaso(r.case_id)} · criado em{" "}
+                        {new Date(r.created_at).toLocaleString("pt-BR")} ·{" "}
+                        {CANAL_RASCUNHO_COMUNICACAO[r.suggested_channel] ?? r.suggested_channel} ·{" "}
+                        destino: {r.target_audience}
+                      </p>
+                    </div>
+                    <Selo
+                      texto={STATUS_RASCUNHO_COMUNICACAO[r.status] ?? r.status}
+                      tom={r.status === "approved" ? "ok" : "alerta"}
+                    />
+                  </div>
+                  {r.corpo_rascunho ? (
+                    <p className="mt-2 whitespace-pre-wrap rounded bg-cream/60 p-2 text-xs text-navy/80">
+                      {r.corpo_rascunho}
+                    </p>
+                  ) : null}
+                  {r.observacao_interna ? (
+                    <p className="mt-1 text-xs text-navy/55">
+                      Observação interna: {r.observacao_interna}
+                    </p>
+                  ) : null}
+                  {r.status !== "approved" ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => aprovarComunicacao.mutate({ rascunhoId: r.id })}
+                        className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+                      >
+                        <Check className="h-3.5 w-3.5" /> Aprovar
+                      </button>
+                      <AcaoOperacional
+                        rotulo="Arquivar"
+                        className="inline-flex items-center gap-1 rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
+                        acaoExterna="arquivar_rascunho_comunicacao"
+                        efeito="Arquiva o rascunho sem aprovar — ele deixa de aparecer nesta fila, mas o registro não é excluído."
+                        onConfirmar={(motivo) =>
+                          arquivarComunicacao.mutate({ rascunhoId: r.id, motivo })
+                        }
+                      >
+                        <X className="h-3.5 w-3.5" /> Arquivar
+                      </AcaoOperacional>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-navy/55">
+                      Aprovado em{" "}
+                      {r.approved_at ? new Date(r.approved_at).toLocaleString("pt-BR") : "—"}. Envio
+                      externo ainda depende de ação manual da equipe.
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
+      </Painel>
 
       <Painel
         titulo="Solicitar documento ao cliente"
@@ -659,14 +845,18 @@ export function AtendimentoInterno() {
             >
               <Plus className="h-4 w-4" /> Solicitar
             </button>
-            <p className="mt-1 text-xs text-navy/60">Preencha para solicitar: {camposFaltando.join(", ")}.</p>
+            <p className="mt-1 text-xs text-navy/60">
+              Preencha para solicitar: {camposFaltando.join(", ")}.
+            </p>
           </div>
         ) : (
           <div className="mt-3">
             <AcaoOperacional
               rotulo={novaSolicitacao.isPending ? "Solicitando…" : "Solicitar"}
               capacidade="editar_fila_responsavel_prazo"
-              pendenciaGate={bloqueioSelecionado?.bloqueado ? bloqueioSelecionado.motivos.join("; ") : null}
+              pendenciaGate={
+                bloqueioSelecionado?.bloqueado ? bloqueioSelecionado.motivos.join("; ") : null
+              }
               efeito="Registra a solicitação documental no caso. Nenhum e-mail, WhatsApp ou mensagem externa é disparado aqui."
               className="inline-flex items-center gap-2 rounded-lg bg-navy px-3 py-2 text-sm text-cream"
               onConfirmar={() => {
@@ -690,32 +880,40 @@ export function AtendimentoInterno() {
               {(itens as any[]).map((s: any) => {
                 const b = bloqueio(s.case_id);
                 return (
-              <li key={s.id} className="rounded-lg border border-navy/10 p-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium">{s.titulo}</p>
-                    <p className="text-xs text-navy/50">
-                      {nomeCaso(s.case_id)} · {CATEGORIAS_SOLICITACAO[s.categoria] ?? s.categoria ?? "categoria não informada"} ·{" "}
-                      {FINALIDADES_SOLICITACAO[s.finalidade] ?? s.finalidade ?? "finalidade não informada"} ·{" "}
-                      {s.participante_nome ?? "participante não informado"} · {nomePessoa(s.responsavel_id)} ·{" "}
-                      {rotuloPrazo(s.prazo)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Selo texto={STATUS_SOLICITACAO[s.status] ?? s.status} />
-                    {["aguardando", "recusado"].includes(s.status) ? (
-                      <AcaoOperacional
-                        rotulo="Cancelar"
-                        className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
-                        acaoExterna="cancelar_solicitacao_documental"
-                        efeito="Cancela a solicitação documental; o histórico é preservado."
-                        onConfirmar={(motivo) => cancelarSolic.mutate({ solicitacaoId: s.id, motivo })}
-                      />
-                    ) : null}
-                  </div>
-                </div>
-                <Pendencia motivos={b.motivos} />
-              </li>
+                  <li key={s.id} className="rounded-lg border border-navy/10 p-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-medium">{s.titulo}</p>
+                        <p className="text-xs text-navy/50">
+                          {nomeCaso(s.case_id)} ·{" "}
+                          {CATEGORIAS_SOLICITACAO[s.categoria] ??
+                            s.categoria ??
+                            "categoria não informada"}{" "}
+                          ·{" "}
+                          {FINALIDADES_SOLICITACAO[s.finalidade] ??
+                            s.finalidade ??
+                            "finalidade não informada"}{" "}
+                          · {s.participante_nome ?? "participante não informado"} ·{" "}
+                          {nomePessoa(s.responsavel_id)} · {rotuloPrazo(s.prazo)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Selo texto={STATUS_SOLICITACAO[s.status] ?? s.status} />
+                        {["aguardando", "recusado"].includes(s.status) ? (
+                          <AcaoOperacional
+                            rotulo="Cancelar"
+                            className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
+                            acaoExterna="cancelar_solicitacao_documental"
+                            efeito="Cancela a solicitação documental; o histórico é preservado."
+                            onConfirmar={(motivo) =>
+                              cancelarSolic.mutate({ solicitacaoId: s.id, motivo })
+                            }
+                          />
+                        ) : null}
+                      </div>
+                    </div>
+                    <Pendencia motivos={b.motivos} />
+                  </li>
                 );
               })}
             </ul>
@@ -741,41 +939,50 @@ export function AtendimentoInterno() {
           {(itens) => (
             <ul className="space-y-2">
               {(itens as any[]).map((d: any) => (
-            <li key={d.id} className="rounded-lg border border-navy/10 p-3 text-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-medium">{d.titulo}</p>
-                  <p className="text-xs text-navy/50">
-                    {nomeCaso(d.case_id)} · recebido em {new Date(d.created_at).toLocaleString("pt-BR")}
-                    {d.revisado_em ? ` · revisado em ${new Date(d.revisado_em).toLocaleString("pt-BR")}` : ""}
-                  </p>
-                  {d.revisao_motivo ? <p className="mt-1 text-xs text-navy/60">Orientação: {d.revisao_motivo}</p> : null}
-                </div>
-                <Selo
-                  texto={STATUS_ENVIO[d.status] ?? d.status}
-                  tom={d.status === "pendente_de_revisao" ? "alerta" : "neutro"}
-                />
-              </div>
-              {d.status === "pendente_de_revisao" ? (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => revisarEnvio.mutate({ documentoId: d.id, decisao: "aceito" })}
-                    className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                  >
-                    <Check className="h-3.5 w-3.5" /> Aceitar recebimento
-                  </button>
-                  <AcaoOperacional
-                    rotulo="Pedir reenvio"
-                    className="inline-flex items-center gap-1 rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
-                    acaoExterna="pedir_reenvio_documento_cliente"
-                    efeito="Recusa o envio e pede ao cliente que reenvie, com orientação objetiva registrada."
-                    onConfirmar={(motivo) => revisarEnvio.mutate({ documentoId: d.id, decisao: "recusado", motivo })}
-                  >
-                    <X className="h-3.5 w-3.5" /> Pedir reenvio
-                  </AcaoOperacional>
-                </div>
-              ) : null}
-            </li>
+                <li key={d.id} className="rounded-lg border border-navy/10 p-3 text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-medium">{d.titulo}</p>
+                      <p className="text-xs text-navy/50">
+                        {nomeCaso(d.case_id)} · recebido em{" "}
+                        {new Date(d.created_at).toLocaleString("pt-BR")}
+                        {d.revisado_em
+                          ? ` · revisado em ${new Date(d.revisado_em).toLocaleString("pt-BR")}`
+                          : ""}
+                      </p>
+                      {d.revisao_motivo ? (
+                        <p className="mt-1 text-xs text-navy/60">Orientação: {d.revisao_motivo}</p>
+                      ) : null}
+                    </div>
+                    <Selo
+                      texto={STATUS_ENVIO[d.status] ?? d.status}
+                      tom={d.status === "pendente_de_revisao" ? "alerta" : "neutro"}
+                    />
+                  </div>
+                  {d.status === "pendente_de_revisao" ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        onClick={() =>
+                          revisarEnvio.mutate({ documentoId: d.id, decisao: "aceito" })
+                        }
+                        className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+                      >
+                        <Check className="h-3.5 w-3.5" /> Aceitar recebimento
+                      </button>
+                      <AcaoOperacional
+                        rotulo="Pedir reenvio"
+                        className="inline-flex items-center gap-1 rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
+                        acaoExterna="pedir_reenvio_documento_cliente"
+                        efeito="Recusa o envio e pede ao cliente que reenvie, com orientação objetiva registrada."
+                        onConfirmar={(motivo) =>
+                          revisarEnvio.mutate({ documentoId: d.id, decisao: "recusado", motivo })
+                        }
+                      >
+                        <X className="h-3.5 w-3.5" /> Pedir reenvio
+                      </AcaoOperacional>
+                    </div>
+                  ) : null}
+                </li>
               ))}
             </ul>
           )}
@@ -800,55 +1007,72 @@ export function AtendimentoInterno() {
                 const b = bloqueio(d.case_id);
                 const liberada = !!d.entrega_cliente;
                 return (
-              <li key={d.id} className="rounded-lg border border-navy/10 p-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium">{d.titulo}</p>
-                    <p className="text-xs text-navy/50">
-                      {nomeCaso(d.case_id)}
-                      {d.entrega_versao ? ` · versão ${d.entrega_versao}` : ""}
-                      {d.entrega_responsavel_id ? ` · ${nomePessoa(d.entrega_responsavel_id)}` : ""}
-                      {d.liberado_em && liberada ? ` · liberado em ${new Date(d.liberado_em).toLocaleString("pt-BR")}` : ""}
-                      {d.recolhido_em && !liberada
-                        ? ` · recolhido em ${new Date(d.recolhido_em).toLocaleString("pt-BR")}`
-                        : ""}
-                    </p>
-                    {!liberada && d.recolhimento_motivo ? (
-                      <p className="mt-1 text-xs text-navy/60">
-                        Recolhida: {d.recolhimento_motivo}
-                        {d.versao_substituta ? ` · substituída pela versão ${d.versao_substituta}` : ""}
+                  <li key={d.id} className="rounded-lg border border-navy/10 p-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-medium">{d.titulo}</p>
+                        <p className="text-xs text-navy/50">
+                          {nomeCaso(d.case_id)}
+                          {d.entrega_versao ? ` · versão ${d.entrega_versao}` : ""}
+                          {d.entrega_responsavel_id
+                            ? ` · ${nomePessoa(d.entrega_responsavel_id)}`
+                            : ""}
+                          {d.liberado_em && liberada
+                            ? ` · liberado em ${new Date(d.liberado_em).toLocaleString("pt-BR")}`
+                            : ""}
+                          {d.recolhido_em && !liberada
+                            ? ` · recolhido em ${new Date(d.recolhido_em).toLocaleString("pt-BR")}`
+                            : ""}
+                        </p>
+                        {!liberada && d.recolhimento_motivo ? (
+                          <p className="mt-1 text-xs text-navy/60">
+                            Recolhida: {d.recolhimento_motivo}
+                            {d.versao_substituta
+                              ? ` · substituída pela versão ${d.versao_substituta}`
+                              : ""}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Selo
+                          texto={liberada ? "Visível ao cliente" : "Interna"}
+                          tom={liberada ? "ok" : "neutro"}
+                        />
+                        <button
+                          onClick={() =>
+                            abrirConfirmacao({
+                              tipo: "entrega",
+                              liberar: !liberada,
+                              id: d.id,
+                              caso: nomeCaso(d.case_id),
+                              item: d.titulo,
+                              classificacao: CLASSIFICACAO_ENTREGA_LABEL,
+                              visibilidade: VISIBILIDADE_ENTREGA_LABEL,
+                              responsavel: nomePessoa(
+                                form.responsavelId || d.entrega_responsavel_id,
+                              ),
+                              versaoAtual: d.entrega_versao ?? null,
+                            })
+                          }
+
+                          className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+                        >
+                          {liberada ? (
+                            <EyeOff className="h-3.5 w-3.5" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
+                          {liberada ? "Recolher" : "Liberar ao cliente"}
+                        </button>
+                      </div>
+                    </div>
+                    {!liberada ? <Pendencia motivos={b.motivos} /> : null}
+                    {!liberada && !form.responsavelId ? (
+                      <p className="mt-1 text-xs text-navy/50">
+                        Escolha o responsável interno no bloco acima antes de liberar.
                       </p>
                     ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Selo texto={liberada ? "Visível ao cliente" : "Interna"} tom={liberada ? "ok" : "neutro"} />
-                    <button
-                      onClick={() =>
-                        abrirConfirmacao({
-                          tipo: "entrega",
-                          liberar: !liberada,
-                          id: d.id,
-                          caso: nomeCaso(d.case_id),
-                          item: d.titulo,
-                          classificacao: CLASSIFICACAO_ENTREGA_LABEL,
-                          visibilidade: VISIBILIDADE_ENTREGA_LABEL,
-                          responsavel: nomePessoa(form.responsavelId || d.entrega_responsavel_id),
-                          versaoAtual: d.entrega_versao ?? null,
-                        })
-                      }
-
-                      className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                    >
-                      {liberada ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                      {liberada ? "Recolher" : "Liberar ao cliente"}
-                    </button>
-                  </div>
-                </div>
-                {!liberada ? <Pendencia motivos={b.motivos} /> : null}
-                {!liberada && !form.responsavelId ? (
-                  <p className="mt-1 text-xs text-navy/50">Escolha o responsável interno no bloco acima antes de liberar.</p>
-                ) : null}
-              </li>
+                  </li>
                 );
               })}
             </ul>
@@ -874,39 +1098,47 @@ export function AtendimentoInterno() {
                 const caso = f.case_id ? casoPorId.get(f.case_id) : undefined;
                 const b = bloqueioFatura(caso);
                 return (
-              <li key={f.id} className="rounded-lg border border-navy/10 p-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium">{f.descricao ?? f.numero ?? "Fatura"}</p>
-                    <p className="text-xs text-navy/50">
-                      {f.case_id ? nomeCaso(f.case_id) : "sem caso vinculado"} ·{" "}
-                      {f.vencimento ? rotuloPrazo(f.vencimento) : "sem vencimento"} · {f.status ?? "—"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Selo texto={f.liberada_cliente ? "Visível" : "Oculta"} tom={f.liberada_cliente ? "ok" : "neutro"} />
-                    <button
-                      onClick={() =>
-                        abrirConfirmacao({
-                          tipo: "fatura",
-                          liberar: !f.liberada_cliente,
-                          id: f.id,
-                          caso: f.case_id ? nomeCaso(f.case_id) : "sem caso vinculado",
-                          item: f.descricao ?? f.numero ?? "Fatura",
-                          classificacao: "fatura vinculada ao caso autorizado",
-                          visibilidade: VISIBILIDADE_FATURA_LABEL,
-                          responsavel: "membro autenticado",
-                        })
-                      }
-                      className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                    >
-                      {f.liberada_cliente ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                      {f.liberada_cliente ? "Ocultar" : "Liberar ao cliente"}
-                    </button>
-                  </div>
-                </div>
-                {!f.liberada_cliente ? <Pendencia motivos={b.motivos} /> : null}
-              </li>
+                  <li key={f.id} className="rounded-lg border border-navy/10 p-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-medium">{f.descricao ?? f.numero ?? "Fatura"}</p>
+                        <p className="text-xs text-navy/50">
+                          {f.case_id ? nomeCaso(f.case_id) : "sem caso vinculado"} ·{" "}
+                          {f.vencimento ? rotuloPrazo(f.vencimento) : "sem vencimento"} ·{" "}
+                          {f.status ?? "—"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Selo
+                          texto={f.liberada_cliente ? "Visível" : "Oculta"}
+                          tom={f.liberada_cliente ? "ok" : "neutro"}
+                        />
+                        <button
+                          onClick={() =>
+                            abrirConfirmacao({
+                              tipo: "fatura",
+                              liberar: !f.liberada_cliente,
+                              id: f.id,
+                              caso: f.case_id ? nomeCaso(f.case_id) : "sem caso vinculado",
+                              item: f.descricao ?? f.numero ?? "Fatura",
+                              classificacao: "fatura vinculada ao caso autorizado",
+                              visibilidade: VISIBILIDADE_FATURA_LABEL,
+                              responsavel: "membro autenticado",
+                            })
+                          }
+                          className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+                        >
+                          {f.liberada_cliente ? (
+                            <EyeOff className="h-3.5 w-3.5" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
+                          {f.liberada_cliente ? "Ocultar" : "Liberar ao cliente"}
+                        </button>
+                      </div>
+                    </div>
+                    {!f.liberada_cliente ? <Pendencia motivos={b.motivos} /> : null}
+                  </li>
                 );
               })}
             </ul>
@@ -931,22 +1163,29 @@ export function AtendimentoInterno() {
               {(itens as any[]).map((t: any) => {
                 const b = bloqueio(t.case_id);
                 return (
-              <li key={t.id} className="rounded-lg border border-navy/10 p-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <button className="text-left" onClick={() => setTicketAberto(ticketAberto === t.id ? null : t.id)}>
-                    <p className="font-medium">{t.assunto}</p>
-                    <p className="text-xs text-navy/50">
-                      {nomeCaso(t.case_id)} · {nomePessoa(t.responsavel_id)} ·{" "}
-                      {new Date(t.ultima_mensagem_em ?? t.created_at).toLocaleString("pt-BR")}
-                    </p>
-                  </button>
-                  <Selo texto={STATUS_TICKET[t.status] ?? t.status} />
-                </div>
-                {b.bloqueado ? <Pendencia motivos={b.motivos} /> : null}
-                {ticketAberto === t.id ? (
-                  <Conversa ticketId={t.id} pendencias={b.bloqueado ? b.motivos : []} onErro={falhar} />
-                ) : null}
-              </li>
+                  <li key={t.id} className="rounded-lg border border-navy/10 p-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <button
+                        className="text-left"
+                        onClick={() => setTicketAberto(ticketAberto === t.id ? null : t.id)}
+                      >
+                        <p className="font-medium">{t.assunto}</p>
+                        <p className="text-xs text-navy/50">
+                          {nomeCaso(t.case_id)} · {nomePessoa(t.responsavel_id)} ·{" "}
+                          {new Date(t.ultima_mensagem_em ?? t.created_at).toLocaleString("pt-BR")}
+                        </p>
+                      </button>
+                      <Selo texto={STATUS_TICKET[t.status] ?? t.status} />
+                    </div>
+                    {b.bloqueado ? <Pendencia motivos={b.motivos} /> : null}
+                    {ticketAberto === t.id ? (
+                      <Conversa
+                        ticketId={t.id}
+                        pendencias={b.bloqueado ? b.motivos : []}
+                        onErro={falhar}
+                      />
+                    ) : null}
+                  </li>
                 );
               })}
             </ul>
@@ -1001,8 +1240,9 @@ export function AtendimentoInterno() {
             ) : null}
 
             <p className="mt-3 text-xs text-navy/50">
-              A decisão fica auditada com autor, papel, data e hora com fuso, caso, versão, classificação de
-              visibilidade e resultado (liberado, recolhido, recusado ou bloqueado).
+              A decisão fica auditada com autor, papel, data e hora com fuso, caso, versão,
+              classificação de visibilidade e resultado (liberado, recolhido, recusado ou
+              bloqueado).
             </p>
 
             <div className="mt-4 flex justify-end gap-2">
@@ -1052,7 +1292,6 @@ export function AtendimentoInterno() {
         </div>
       ) : null}
     </div>
-
   );
 }
 
@@ -1118,7 +1357,8 @@ function Conversa({
                 <p className="whitespace-pre-wrap">{m.corpo}</p>
                 <p className="mt-1 text-[11px] text-navy/50">
                   {m.autor_tipo === "cliente" ? "Cliente" : "Equipe"}
-                  {m.visivel_cliente ? "" : " · nota interna"} · {new Date(m.created_at).toLocaleString("pt-BR")}
+                  {m.visivel_cliente ? "" : " · nota interna"} ·{" "}
+                  {new Date(m.created_at).toLocaleString("pt-BR")}
                 </p>
               </li>
             ))}
@@ -1135,8 +1375,8 @@ function Conversa({
       />
       {temPendencia ? (
         <p className="mt-1 text-xs text-terracotta">
-          Pendência do caso: {pendencias.join("; ")}. A resposta começa como nota interna; desmarcar torna visível ao
-          cliente e a decisão fica registrada.
+          Pendência do caso: {pendencias.join("; ")}. A resposta começa como nota interna; desmarcar
+          torna visível ao cliente e a decisão fica registrada.
         </p>
       ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-3">
