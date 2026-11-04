@@ -68,7 +68,7 @@ export function ErrosERecusas() {
         <Selo texto={`${erros} erro(s)`} tom={erros ? "alerta" : "neutro"} />
         <Selo texto={`${recusas} recusa(s)`} tom="neutro" />
         {deTeste > 0 ? (
-          <label className="ml-auto flex min-h-11 items-center gap-2 text-xs text-navy/70">
+          <label className="flex min-h-11 items-center gap-2 text-xs text-navy/70 sm:ml-auto">
             <input type="checkbox" checked={mostrarTeste} onChange={(e) => setMostrarTeste(e.target.checked)} />
             Mostrar {deTeste} registro(s) gravado(s) por testes
           </label>
