@@ -1,0 +1,3 @@
+ALTER TABLE public.integrations DROP CONSTRAINT integrations_categoria_chk;
+ALTER TABLE public.integrations ADD CONSTRAINT integrations_categoria_chk CHECK (categoria = ANY (ARRAY['crm'::text, 'pre_onboarding'::text, 'calls'::text, 'mensageria'::text, 'financeiro'::text, 'armazenamento'::text, 'demo'::text, 'agente_mcp'::text]));
+COMMENT ON CONSTRAINT integrations_categoria_chk ON public.integrations IS 'agente_mcp (04/11/2026): cadastro de agentes externos no painel do Desk; visitas ficam em integration_runs.';
