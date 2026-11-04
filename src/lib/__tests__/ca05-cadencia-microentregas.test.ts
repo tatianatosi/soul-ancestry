@@ -30,9 +30,13 @@ describe("CA05-CADENCIA-MICROENTREGAS — fontes ativas (sem tabela nova)", () =
   it("ops_microentregas (trabalho interno) e client_deliverables (cliente-facing) são fontes distintas — uma tarefa não vira microentrega automaticamente", () => {
     // criarMicroentregaCliente só é chamado a partir do formulário manual da
     // Jornada do caso — nenhum escritor de tarefas/ops importa esta função.
-    expect(readFileSync("src/components/caso/jornada-cliente.tsx", "utf8")).toContain("criarMicroentregaCliente");
+    expect(readFileSync("src/components/caso/jornada-cliente.tsx", "utf8")).toContain(
+      "criarMicroentregaCliente",
+    );
     expect(opsFn).not.toContain("criarMicroentregaCliente");
-    expect(readFileSync("src/lib/caso-canonico.functions.ts", "utf8")).not.toContain("criarMicroentregaCliente");
+    expect(readFileSync("src/lib/caso-canonico.functions.ts", "utf8")).not.toContain(
+      "criarMicroentregaCliente",
+    );
   });
 });
 
@@ -44,18 +48,18 @@ describe("CA05-CADENCIA-MICROENTREGAS — evento aponta para microentrega sem du
     // igual ao padrão já usado por prepararAlertaProjecao/registrarProximaAcao.
     const trecho = jornadaFn.slice(
       jornadaFn.indexOf('if (data.para === "em_revisao")'),
-      jornadaFn.indexOf('return { ok: true, de, para: data.para };'),
+      jornadaFn.indexOf("return { ok: true, de, para: data.para };"),
     );
     expect(trecho).toContain('.eq("status", "pending")');
     expect(trecho).toContain("alertaExistente?.id");
-    expect(trecho).toContain('.update(alertaPayload)');
-    expect(trecho).toContain('.insert(alertaPayload)');
+    expect(trecho).toContain(".update(alertaPayload)");
+    expect(trecho).toContain(".insert(alertaPayload)");
   });
 
   it("o alerta de microentrega em revisão nunca cria ou duplica uma tarefa", () => {
     const trecho = jornadaFn.slice(
       jornadaFn.indexOf('if (data.para === "em_revisao")'),
-      jornadaFn.indexOf('return { ok: true, de, para: data.para };'),
+      jornadaFn.indexOf("return { ok: true, de, para: data.para };"),
     );
     expect(trecho).not.toMatch(/\.from\("tarefas"\)|salvarTarefa|criarRegistro/);
   });
@@ -78,7 +82,9 @@ describe("CA05-CADENCIA-MICROENTREGAS — revisão/liberação persistem; microe
     // compara); a tabela continua sendo só client_deliverables.
     expect(trecho).toContain('tabela: "client_deliverables"');
     expect(trecho).toContain("inserirComVerificacao(");
-    expect(trecho).not.toMatch(/\.from\("crm_casos"\)|\.from\("tarefas"\)|responsavel_principal|prazo_proxima_acao/);
+    expect(trecho).not.toMatch(
+      /\.from\("crm_casos"\)|\.from\("tarefas"\)|responsavel_principal|prazo_proxima_acao/,
+    );
   });
 
   it("publicado grava available_at e arquivado grava archived_at/by/motivo — estado de aprovação persiste, nada é apagado", () => {
@@ -96,17 +102,19 @@ describe("CA05-CADENCIA-MICROENTREGAS — revisão/liberação persistem; microe
 
 describe("CA05-CADENCIA-MICROENTREGAS — conteúdo interno não vai ao App automaticamente", () => {
   it("app_projections (a única fonte hoje lida por rota do App/portal) é sanitizada antes de publicar", () => {
+    // 01/11/2026 — não trava na quebra de linha exata do prettier: o erro pode
+    // vir em `throw new Error(\n  "...",\n)` tanto quanto numa linha só.
     expect(portalAtendimentoFn).toContain("contemConteudoInterno(conteudo)");
     expect(portalAtendimentoFn).toContain(
-      "throw new Error(\"O texto contém termo interno que não pode ir ao App Cliente. Reescreva em linguagem de cliente.\")",
+      "O texto contém termo interno que não pode ir ao App Cliente. Reescreva em linguagem de cliente.",
     );
   });
 
   it("client_deliverables ainda não é lido por nenhuma rota do App/portal — App bloqueado por ausência de leitor, não só por approval_status", () => {
-    const grep = execSync(
-      "grep -rl \"client_deliverables\" src/routes || true",
-      { cwd: process.cwd(), encoding: "utf8" },
-    ).trim();
+    const grep = execSync('grep -rl "client_deliverables" src/routes || true', {
+      cwd: process.cwd(),
+      encoding: "utf8",
+    }).trim();
     expect(grep).toBe("");
   });
 
