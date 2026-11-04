@@ -50,8 +50,10 @@ export const liberarVersaoAprovadaNoApp = createServerFn({ method: "POST" })
 
     let clientId = contrato.client_id as string | null;
     if (!clientId) {
-      const { data: caso } = await supabase.from("crm_casos").select("client_id").eq("id", contrato.case_id).maybeSingle();
-      clientId = (caso?.client_id as string | null) ?? null;
+      const { data: caso, error: eC } = await supabase
+        .from("crm_casos").select("cliente_id").eq("id", contrato.case_id).maybeSingle();
+      if (eC) throw new Error(`Não foi possível ler o caso do contrato: ${eC.message}`);
+      clientId = (caso?.cliente_id as string | null) ?? null;
     }
 
     const conteudo = prepararHtmlContratoCliente(html, versao.version_number as number);
