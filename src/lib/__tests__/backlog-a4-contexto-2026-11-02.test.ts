@@ -11,7 +11,9 @@ describe("getContexto concorda com o banco e não esconde erro", () => {
   const res = src.slice(src.indexOf("async function resolverOrganizacao"), src.indexOf("export const getContexto"));
 
   it("erro ao ler staff_access, vínculo ou papéis é lançado (não vira 'sem staff')", () => {
-    expect(ctx).toContain("if (staff.error) throw new Error(");
+    // A04 (04/11/2026): a leitura de staff_access passou a listar vínculos (sem maybeSingle) e escolher o vigente.
+    expect(ctx).toContain("if (staffLinhas.error) throw new Error(");
+    expect(ctx).not.toMatch(/from\("staff_access"\)[^;]*\.maybeSingle\(\)/);
     expect(ctx).toContain("if (papeis.error) throw new Error(");
     expect(res).toContain("if (membro.error) throw new Error(");
     expect(res).toContain("if (staff.error) throw new Error(");

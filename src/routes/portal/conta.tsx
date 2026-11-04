@@ -14,6 +14,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -245,7 +246,7 @@ export function PortalConta() {
                 {perfil?.contatoVisivel === false ? null : (
                 <div className="border-b border-border py-3" data-conta-whatsapp-titular>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">WhatsApp</dt>
-                  <dd className="text-sm text-navy">{perfil?.telefone ?? "Não registrado"}</dd>
+                  <dd className="text-sm text-navy">{perfil?.telefone ? formatarTelefone(perfil.telefone) : "Não registrado"}</dd>
                 </div>
                 )}
                 <div className="border-b border-border py-3" data-conta-membro-desde>

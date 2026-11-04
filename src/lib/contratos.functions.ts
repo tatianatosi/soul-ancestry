@@ -5,6 +5,7 @@ import { gravarComVerificacao, inserirComVerificacao, exigirLinhaGravada } from 
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
+import { cpfValido, emailValido, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
 import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
@@ -606,7 +607,28 @@ const PAPEIS_FILHO: Record<Filho, string[]> = {
 function sanitizarFilho(tabela: Filho, dados: Record<string, unknown>) {
   const saida: Record<string, unknown> = {};
   for (const c of CAMPOS_FILHO[tabela]) if (dados[c] !== undefined) saida[c] = dados[c] === "" ? null : dados[c];
+  if (tabela === "contract_parties") validarContatoParte(saida);
   return saida;
+}
+
+/** C01 (04/11/2026): CPF, telefone e e-mail da parte passam pelos validadores canônicos antes de gravar. */
+export function validarContatoParte(saida: Record<string, unknown>) {
+  const tipo = String(saida["document_type"] ?? "cpf").toLowerCase();
+  const doc = saida["document_number"];
+  if (typeof doc === "string" && tipo === "cpf") {
+    if (!cpfValido(doc)) throw new Error("CPF da parte inválido.");
+    saida["document_number"] = formatarCpf(doc);
+  }
+  const tel = saida["phone"];
+  if (typeof tel === "string") {
+    if (!telefoneValido(tel)) throw new Error("Telefone da parte inválido.");
+    saida["phone"] = formatarTelefone(tel);
+  }
+  const em = saida["email"];
+  if (typeof em === "string") {
+    if (!emailValido(em)) throw new Error("E-mail da parte inválido.");
+    saida["email"] = em.trim().toLowerCase();
+  }
 }
 
 export const salvarItemContrato = createServerFn({ method: "POST" })
