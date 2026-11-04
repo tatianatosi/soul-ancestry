@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 import { CaCard } from "@/components/ui/ca-card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,17 @@ export function AgentesMcp() {
   const atual = agentes.find((a) => a.id === sel) ?? null;
   const visitas = ((data?.execucoes ?? []) as any[]).filter((r) => r.integration_id === sel);
   const pode = Boolean(data?.podeConfigurar);
+
+  /* F5 / sair da linha: cadastro digitado ou perfil alterado e ainda não salvo trava a saída. */
+  const novoSujo = Boolean(novo.nome.trim() || novo.provedor.trim() || novo.descricao.trim());
+  const perfilSujo = Boolean(
+    atual &&
+      (perfil.nome !== (atual.nome ?? "") ||
+        perfil.provedor !== (atual.provedor ?? "") ||
+        perfil.descricao !== (atual.descricao ?? "") ||
+        perfil.ownerUserId !== (atual.owner_user_id ?? "")),
+  );
+  useAvisoEdicaoNaoSalva(novoSujo || perfilSujo);
 
   const mNovo = useMutation({
     mutationFn: () => cadastrar({ data: novo }),
