@@ -880,11 +880,19 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         />
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
-        <input value={cpf} onChange={(e) => setCpf(formatarCpf(e.target.value))} inputMode="numeric" placeholder="CPF (opcional)" aria-label="CPF da parte" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-        <input value={telefone} onChange={(e) => setTelefone(formatarTelefone(e.target.value))} inputMode="tel" placeholder="Telefone (opcional)" aria-label="Telefone da parte" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="E-mail (opcional)" aria-label="E-mail da parte" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <div>
+          <input value={cpf} onChange={(e) => setCpf(formatarCpf(e.target.value))} inputMode="numeric" placeholder="CPF (opcional)" aria-label="CPF da parte" className={classeCampo("w-full rounded-lg border border-navy/20 px-3 py-2 text-sm", motivoCampoInvalido("CPF", "cpf", cpf))} />
+          <AvisoCampo motivo={motivoCampoInvalido("CPF", "cpf", cpf)} />
+        </div>
+        <div>
+          <input value={telefone} onChange={(e) => setTelefone(formatarTelefone(e.target.value))} inputMode="tel" placeholder="Telefone (opcional)" aria-label="Telefone da parte" className={classeCampo("w-full rounded-lg border border-navy/20 px-3 py-2 text-sm", motivoCampoInvalido("Telefone", "telefone", telefone))} />
+          <AvisoCampo motivo={motivoCampoInvalido("Telefone", "telefone", telefone)} />
+        </div>
+        <div>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="E-mail (opcional)" aria-label="E-mail da parte" className={classeCampo("w-full rounded-lg border border-navy/20 px-3 py-2 text-sm", motivoCampoInvalido("E-mail", "email", email))} />
+          <AvisoCampo motivo={motivoCampoInvalido("E-mail", "email", email)} />
+        </div>
       </div>
-      {erroCampos ? <p className="text-xs text-terracotta">{erroCampos}</p> : null}
       <p className="text-xs text-navy/60">
         Documento, endereço e telefone das partes são restritos: não vão ao portal do cliente, a exports padrão nem a logs.
       </p>
