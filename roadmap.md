@@ -554,3 +554,4 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [x] Consulta + projeção extraídas para `clientes-lista-projecao.ts` (mesmo resultado, org/auth/cache/erros preservados); 3 testes novos + 20 existentes verdes; /clientes autenticado 1280/375 conferido só leitura.
 - [ ] CI base e44d0e6 falha (#202 "Observações internas" ausente) — tarefa separada; não tocada.
 - [ ] Integração/merge/publicação — aguardam a Proprietária.
+- [ ] Esteira 04/11 22:03 (execução direta Lovable): A01 modo proprietária, A04 getContexto sem maybeSingle, C01 máscaras Partes, C03 formatadores Conta, K01/K02 CHECKs, B01/B02 contrato visualizar/salvar.
