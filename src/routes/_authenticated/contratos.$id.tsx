@@ -58,6 +58,8 @@ import { diagnosticarVersaoContratual, versaoMaisRecente } from "@/lib/versao-co
 import { liberarVersaoAprovadaNoApp } from "@/lib/contrato-liberacao.functions";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
+import { cpfValido, emailValido, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
+import { CpfMascarado } from "@/components/campos/cpf-mascarado";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
@@ -743,6 +745,12 @@ function CardsPartes({
             </Link>
           ) : null}
           <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-navy/70">
+            {p.document_number && String(p.document_type ?? "cpf").toLowerCase() === "cpf" ? (
+              <>
+                <dt className="text-navy/55">CPF</dt>
+                <dd><CpfMascarado cpf={String(p.document_number)} /></dd>
+              </>
+            ) : null}
             <dt className="text-navy/55">Capacidade</dt>
             <dd>{p.legal_capacity_status}</dd>
             <dt className="text-navy/55">Assinatura</dt>
@@ -774,8 +782,16 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const { erro, salvar, arquivar } = useSalvarItem(contratoId, "contract_parties", onSalvo);
   const [nome, setNome] = useState("");
   const [papel, setPapel] = useState("contracting_client");
+  const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  /* C01 (04/11/2026): validadores canônicos no onChange; o servidor revalida. */
+  const erroCampos =
+    (cpf && !cpfValido(cpf) ? "CPF inválido." : null) ??
+    (telefone && !telefoneValido(telefone) ? "Telefone inválido." : null) ??
+    (email && !emailValido(email) ? "E-mail inválido." : null);
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
-  useAvisoEdicaoNaoSalva(nome.trim() !== "");
+  useAvisoEdicaoNaoSalva(nome.trim() !== "" || cpf !== "" || telefone !== "" || email !== "");
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
@@ -845,15 +861,30 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <AcaoOperacional
           rotulo="Adicionar parte"
           capacidade="corrigir_pessoas_dependentes_representacao"
-          validacaoFormulario={nome.trim() ? null : "Informe o nome da parte antes de adicionar."}
+          validacaoFormulario={nome.trim() ? erroCampos : "Informe o nome da parte antes de adicionar."}
           efeito="Cadastra a parte neste instrumento contratual."
           onConfirmar={async () => {
-            if (!nome.trim()) return;
-            await salvar({ person_name: nome, role: papel });
+            if (!nome.trim() || erroCampos) return;
+            await salvar({
+              person_name: nome,
+              role: papel,
+              ...(cpf ? { document_type: "cpf", document_number: cpf } : {}),
+              ...(telefone ? { phone: telefone } : {}),
+              ...(email ? { email } : {}),
+            });
             setNome("");
+            setCpf("");
+            setTelefone("");
+            setEmail("");
           }}
         />
       </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <input value={cpf} onChange={(e) => setCpf(formatarCpf(e.target.value))} inputMode="numeric" placeholder="CPF (opcional)" aria-label="CPF da parte" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <input value={telefone} onChange={(e) => setTelefone(formatarTelefone(e.target.value))} inputMode="tel" placeholder="Telefone (opcional)" aria-label="Telefone da parte" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="E-mail (opcional)" aria-label="E-mail da parte" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+      </div>
+      {erroCampos ? <p className="text-xs text-terracotta">{erroCampos}</p> : null}
       <p className="text-xs text-navy/60">
         Documento, endereço e telefone das partes são restritos: não vão ao portal do cliente, a exports padrão nem a logs.
       </p>
