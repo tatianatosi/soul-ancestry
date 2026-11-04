@@ -21,7 +21,8 @@ export function FonteAlimento({
   detalheTecnico?: string;
 }) {
   return (
-    <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-[11px] text-navy/65">
+    // div, não p: <details> dentro de <p> é HTML inválido e gerava erro de hidratação em toda tela do Desk.
+    <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-[11px] text-navy/65">
       <span className="font-semibold uppercase tracking-wide text-navy/50">Alimento</span>
       <span className="font-medium text-navy">{fonte}</span>
       <ArrowRight className="h-3 w-3 text-gold" aria-hidden />
@@ -34,6 +35,6 @@ export function FonteAlimento({
           <span className="mt-1 block font-mono text-[10px] text-navy/45">{detalheTecnico}</span>
         </details>
       ) : null}
-    </p>
+    </div>
   );
 }
