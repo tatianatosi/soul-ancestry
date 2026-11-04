@@ -59,6 +59,7 @@ import { liberarVersaoAprovadaNoApp } from "@/lib/contrato-liberacao.functions";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
 import { cpfValido, emailValido, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
+import { AvisoCampo, classeCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { CpfMascarado } from "@/components/campos/cpf-mascarado";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
