@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { CentroIntegracoes } from "@/components/integracoes/centro";
+import { AgentesMcp } from "@/components/integracoes/agentes-mcp";
 import { MatrizProntidaoIntegracoes } from "@/components/integracoes/prontidao";
 import { Indicador } from "@/components/prancha-v4/kit";
 import { PRONTIDAO_INTEGRACOES, type EstadoIntegracao } from "@/lib/prontidao-integracoes";
@@ -43,6 +44,7 @@ function IntegracoesPage() {
         </div>
         <MatrizProntidaoIntegracoes />
         <CentroIntegracoes />
+        <AgentesMcp />
       </div>
     </SaasShell>
   );

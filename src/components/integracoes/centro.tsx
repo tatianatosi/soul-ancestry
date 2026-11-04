@@ -223,7 +223,7 @@ export function CentroIntegracoes() {
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <ul className="space-y-2">
-          {(data?.integracoes ?? []).map((i: any) => (
+          {(data?.integracoes ?? []).filter((i: any) => i.categoria !== "agente_mcp").map((i: any) => (
             <li key={i.id}>
               <button
                 onClick={() => abrir(i)}
