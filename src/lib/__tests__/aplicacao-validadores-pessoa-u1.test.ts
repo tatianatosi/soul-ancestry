@@ -90,14 +90,19 @@ describe("Corte U1 — áreas sem alteração (achado: nada a aplicar com valida
     expect(nucleosTsx).not.toContain('label="CPF"');
   });
 
-  it("Contrato (contratos.$id.tsx), tela Adicionar parte, só coleta nome e papel — sem campo de e-mail/telefone/CPF na UI", () => {
+  it("Contrato (contratos.$id.tsx), tela Adicionar parte: CPF, telefone e e-mail (C01, 04/11/2026) usam máscara e validador canônicos", () => {
     const contratosTsx = readFileSync("src/routes/_authenticated/contratos.$id.tsx", "utf8");
     const trecho = contratosTsx.slice(
       contratosTsx.indexOf('const [nome, setNome] = useState("")'),
-      contratosTsx.indexOf('rotulo="Adicionar parte"') + 200,
+      contratosTsx.indexOf("function Escopo("),
     );
-    expect(trecho).not.toContain("email");
-    expect(trecho).not.toContain("telefone");
+    expect(trecho).toContain("formatarCpf(e.target.value)");
+    expect(trecho).toContain("formatarTelefone(e.target.value)");
+    expect(trecho).toContain('motivoCampoInvalido("CPF", "cpf", cpf)');
+    expect(trecho).toContain('motivoCampoInvalido("Telefone", "telefone", telefone)');
+    expect(trecho).toContain('motivoCampoInvalido("E-mail", "email", email)');
+    // O botão continua recusando dado inválido antes de gravar; o servidor revalida.
+    expect(trecho).toContain("if (!nome.trim() || erroCampos) return;");
   });
 
   it("Pesquisa (pessoas-linhagens.$caseId.tsx) usa Selecao fechada para sexo e input type=date para nascimento — já conforme", () => {

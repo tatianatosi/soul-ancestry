@@ -54,6 +54,8 @@ function supabaseFalso(opts: { caso: Registro; blueprint: Registro | null; propo
           return resolve({ data: [{ id: propostaViva.id }], error: null });
         }
         if (tabela === "case_members") return resolve({ data: [] });
+        // 03/11/2026: proprietariaOperando() lê todas as linhas de staff_access (sem maybeSingle).
+        if (tabela === "staff_access") return resolve({ data: [{ role: "admin", status: "active" }], error: null });
         return resolve({ data: [], error: null });
       },
     };

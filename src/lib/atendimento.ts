@@ -75,14 +75,18 @@ export type EstadoCaso = {
 export function estadoCasoAtendimento(caso: CasoAtendimento): EstadoCaso {
   const { bloqueado, motivos } = bloqueioAtendimento(caso);
   if (bloqueado) return { situacao: "bloqueado", rotulo: `Bloqueado — ${motivos[0]}`, motivos };
-  if (caso.demo) return { situacao: "demo", rotulo: "Demonstração — portal liberado (fora dos indicadores reais)", motivos: [] };
+  if (caso.demo)
+    return {
+      situacao: "demo",
+      rotulo: "Demonstração — portal liberado (fora dos indicadores reais)",
+      motivos: [],
+    };
   return { situacao: "apto", rotulo: "Apto ao portal", motivos: [] };
 }
 
 /** Classificação de visibilidade usada na confirmação de publicação. */
 export const VISIBILIDADE_ENTREGA_LABEL = "Espaço do cliente";
 export const VISIBILIDADE_FATURA_LABEL = "Espaço do cliente — financeiro";
-
 
 export const CATEGORIAS_SOLICITACAO: Record<string, string> = {
   identificacao: "Identificação",
@@ -132,6 +136,21 @@ export const CLASSIFICACAO_ENTREGA_LABEL = "Externa aprovada";
 export const PAPEIS_ENTREGA = ["admin", "operacoes"];
 export const PAPEIS_FATURA = ["admin", "financeiro"];
 
+/** Status de um rascunho em `communication_queue` — nunca envia nada por si só. */
+export const STATUS_RASCUNHO_COMUNICACAO: Record<string, string> = {
+  rascunho: "Rascunho",
+  draft_created: "Rascunho criado",
+  awaiting_approval: "Aguardando aprovação",
+  approved: "Aprovado — envio manual pendente",
+  archived: "Arquivado",
+};
+
+export const CANAL_RASCUNHO_COMUNICACAO: Record<string, string> = {
+  email: "E-mail",
+  whatsapp: "WhatsApp",
+  portal: "Portal do cliente",
+};
+
 /** Prazo em dias até vencer; negativo indica atraso. */
 export function diasAtePrazo(prazo: string | null | undefined, agora = Date.now()): number | null {
   if (!prazo) return null;
@@ -158,9 +177,22 @@ export function sanitizarParaLog(valor: string | null | undefined, max = 400): s
   if (!t) return null;
   t = t
     .replace(/https?:\/\/\S+/gi, "[link removido]")
-    .replace(/\b(token|access_token|magic|otp|senha|password|pix)\b\s*[:=]?\s*\S+/gi, "[dado sensível removido]")
+    .replace(
+      /\b(token|access_token|magic|otp|senha|password|pix)\b\s*[:=]?\s*\S+/gi,
+      "[dado sensível removido]",
+    )
     .replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, "[e-mail removido]")
     .replace(/\b[\d][\d.\-/\s]{6,}\d\b/g, "[número removido]");
   return t.slice(0, max);
 }
 
+/**
+ * Valida a query string de `/atendimento`. `rascunho` é o id de uma linha de
+ * `communication_queue` — vem de links como os de `alertas-derivados.ts`
+ * (`destino: /atendimento?rascunho=${q.id}`), para abrir a tela já com o
+ * rascunho correspondente em foco.
+ */
+export function buscaAtendimento(busca: Record<string, unknown>): { rascunho?: string } {
+  const rascunho = typeof busca.rascunho === "string" ? busca.rascunho : undefined;
+  return rascunho ? { rascunho } : {};
+}

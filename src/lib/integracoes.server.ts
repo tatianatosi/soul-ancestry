@@ -25,6 +25,7 @@ export const CATEGORIAS_INTEGRACAO: Record<string, string> = {
   financeiro: "Gateway financeiro",
   armazenamento: "Armazenamento de documentos",
   demo: "Demonstração",
+  agente_mcp: "Agente (MCP)",
 };
 
 /** Campos que a integração espera receber, para montar o mapeamento na tela. */

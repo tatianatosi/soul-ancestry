@@ -431,3 +431,70 @@ export const resolverRevisaoIntegracao = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/* ---- Agentes (MCP) — 04/11/2026 ----
+ * Cadastro e perfil em `integrations` (categoria agente_mcp); visitas em
+ * `integration_runs`. Nada aqui conecta o agente: o cadastro nasce desligado
+ * e em modo simulado, e ativar continua exigindo admin + confirmação. */
+
+export const cadastrarAgenteMcp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { nome: string; provedor?: string | null; descricao?: string | null }) => {
+    const nome = (d.nome ?? "").trim();
+    if (nome.length < 2) throw new Error("Informe o nome do agente.");
+    return { nome, provedor: d.provedor?.trim() || null, descricao: d.descricao?.trim() || null };
+  })
+  .handler(async ({ data, context }) => {
+    const h = await import("./integracoes.server");
+    const supabase = context.supabase as any;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    if (!h.PAPEIS_CONFIG.includes(papel)) throw new Error("Sem permissão para cadastrar agentes.");
+    const chave = "agente_mcp_" + data.nome.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    const { data: linha, error } = await supabase
+      .from("integrations")
+      .insert({
+        organization_id: organizationId,
+        chave,
+        nome: data.nome,
+        categoria: "agente_mcp",
+        provedor: data.provedor,
+        descricao: data.descricao,
+        status: "desligada",
+        created_by: context.userId,
+        updated_by: context.userId,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.code === "23505" ? "Já existe um agente com esse nome." : error.message);
+    await auditar({ organizationId, userId: context.userId as string, acao: "agente_mcp_cadastrado", entidadeId: linha.id, metadados: { nome: data.nome } });
+    return { id: linha.id as string };
+  });
+
+export const atualizarPerfilAgenteMcp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; nome: string; provedor?: string | null; descricao?: string | null; ownerUserId?: string | null }) => {
+    if ((d.nome ?? "").trim().length < 2) throw new Error("Informe o nome do agente.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const h = await import("./integracoes.server");
+    const supabase = context.supabase as any;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    if (!h.PAPEIS_CONFIG.includes(papel)) throw new Error("Sem permissão para editar agentes.");
+    await gravarComVerificacao({
+      supabase,
+      tabela: "integrations",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        nome: data.nome.trim(),
+        provedor: data.provedor?.trim() || null,
+        descricao: data.descricao?.trim() || null,
+        owner_user_id: data.ownerUserId || null,
+        updated_by: context.userId,
+      },
+    });
+    await auditar({ organizationId, userId: context.userId as string, acao: "agente_mcp_perfil_atualizado", entidadeId: data.id, metadados: {} });
+    return { ok: true };
+  });
