@@ -13,5 +13,5 @@ Reservas são lidas no corpo das PRs e verificadas pelo Sync Guard quando execut
 | LC-02 / M, Q | BLOQUEADO_POR_CAUSA | este arquivo | base `0b842aee` | `docs/execucao/` ausente na base do Lovable | — | Não integrado | Não se aplica | Não publicado | Fila v2 só existe nas refs #233/#231; copiar seção LC quando chegar à main |
 | LC-03 / A02, A03 | BLOQUEADO_POR_CAUSA | — | — | Lovable não lê logs de CI do GitHub nesta sessão | #233 | — | — | — | Claude/Proprietária obtêm log do typecheck-test-build da #233 |
 | LC-04 / Q01–Q08 | BLOQUEADO_POR_CAUSA | — | — | `scripts/triagem-branches-e-docs.mjs` ausente na base | — | — | — | — | Depende da integração da #231/#233 |
-| LC-05 / A–O | A EXECUTAR | — | — | — | — | — | — | — | Escolher item A–O não reservado após a fila chegar à main |
+| LC-05 / A–O | BLOQUEADO_POR_CAUSA | — | releitura 2026-11-04 22:00 UTC, head `47c3dfbb` | `docs/execucao/` e `scripts/triagem-branches-e-docs.mjs` ainda ausentes | — | — | — | — | Itens A–O só são identificáveis pela fila v2; aguardar integração das #233/#231 |
 | LC-06 / L, M | A EXECUTAR | — | — | — | — | — | — | — | PR nativo com JSON de evidências agent=Lovable |
