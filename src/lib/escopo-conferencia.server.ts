@@ -17,6 +17,7 @@ import { extrairEscopoDaProposta, mapaCoberturaEscopo } from "@/lib/escopo-propo
 import { sanearProposta, type SaneamentoProposta } from "@/lib/proposta-saneamento";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarAuditoria } from "@/lib/auditoria-segura.server";
+import { proprietariaOperando } from "@/lib/autoridade.server";
 
 type Sb = any;
 
@@ -315,7 +316,7 @@ export async function exigirGate(
   const organizationId = input.organizationId ?? dados.caso.organization_id;
 
   if (ehAcaoGateadaInterna(input.acao)) {
-    const { data: decisao } = await supabase
+    const { data: decisao, error: erroDecisao } = await supabase
       .from("owner_override_events")
       .select("id,motivo,fonte,created_at,actor_user_id")
       .eq("organization_id", organizationId)
@@ -326,6 +327,7 @@ export async function exigirGate(
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (erroDecisao) throw new Error(`Não foi possível ler as decisões da proprietária: ${erroDecisao.message}`);
 
     if (decisao) {
       await registrarAuditoria(supabase, {
@@ -341,6 +343,30 @@ export async function exigirGate(
           decisao_event_id: decisao.id,
           motivo: decisao.motivo,
           fonte: decisao.fonte,
+          pendencia_preservada: true,
+        },
+      });
+      return resultado;
+    }
+
+    /*
+     * A05 (04/11/2026, decisão D5): a proprietária administradora não é bloqueada em ação interna.
+     * Sem decisão prévia registrada, ela assume a pendência no próprio ato; a pendência continua
+     * aberta e a superação vai para a auditoria com os mesmos códigos.
+     */
+    if (await proprietariaOperando(supabase, input.userId)) {
+      await registrarAuditoria(supabase, {
+        organization_id: organizationId,
+        user_id: input.userId,
+        acao: "gate_superado_por_decisao_proprietaria",
+        entidade: "crm_casos",
+        entidade_id: input.caseId,
+        metadados: {
+          acao_tentada: input.acao,
+          codigos: erros.map((e) => e.codigo),
+          descricoes: erros.map((e) => e.descricao),
+          decisao_event_id: null,
+          origem: "proprietaria_assumiu_no_ato",
           pendencia_preservada: true,
         },
       });

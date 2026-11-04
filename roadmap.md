@@ -1,5 +1,14 @@
 # Roadmap
 
+## 04/11 noite — Integração à main e fila A (docs/execucao)
+- [x] #234 (esteira Lovable) corrigida (5 testes + matriz) e mesclada a1e6f7a1; #232 dc39a6e9; #233 5424728a (mock staff_access); #231 fe7a2687. Publicação solicitada após merge (pedido da Proprietária 23:08).
+- [ ] A05 exigirGate: proprietária assume pendência com auditoria (conferir se já existe).
+- [ ] A06 log de negação em audit_logs (usuário, ação, motivo, tela).
+- [ ] A07 Registrar autorização de pesquisa na ficha do caso (CAMPOS_PERMITIDOS + componente).
+- [ ] A08 teste do invariante da proprietária.
+- [ ] Testes locais gravavam erro_app no banco real (7 linhas de teste 23:12/23:18): coletor não grava sob vitest.
+- [ ] Republicar depois desses cortes — exige o "pode publicar" da Proprietária.
+
 ## 03/11 — Sincronização integral
 - [ ] Pedido 01:13: cobertura de todas as telas Desk e sete abas App confirmada como requisito; PR225 integrada 703b6579, main posterior96c0fd08 com CI/reservation-sync/painel/alarme success. Cobertura workflows em investigação; seleção main no Git do Lovable não inspecionável por API. Não publicação automática nem escrita de dados.
 

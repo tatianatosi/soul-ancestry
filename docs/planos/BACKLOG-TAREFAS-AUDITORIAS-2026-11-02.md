@@ -131,3 +131,76 @@ Identificador F = achado de relatório ainda sem correção. Nenhum exige migrat
 
 **Cobertura que falta (áreas não lidas a fundo):** `leads.tsx`, `painel-calls.tsx`, `casos.$caseId.index.tsx` e as ~25 funções do Caso 360, rotas de contratos/financeiro/propostas, `conciliacao-catalogo.server.ts`. Uma segunda rodada dos especialistas nessas áreas (com acesso ao banco) é a próxima etapa da auditoria.
 
+
+## Fase G — Rodada 2 da auditoria (03/11/2026): 4 relatórios, 11 P0
+
+Os 4 relatórios estão em `.cartographer/reports/` (pasta local da sessão): `rodada2-crm-leads-calls.md` (R2-P*), `rodada2-banco-vivo-jornada-pesquisa-portal.md` (R2-BD, N-P*), `rodada2-caso360.md` (R2-C360-01 a 41) e `rodada2-contratos-financeiro.md` (R2-FIN-01 a 43). Os dois primeiros consultaram o banco vivo; os dois últimos leram o código e o dump do esquema. Antes de corrigir, cada P0 é conferido no arquivo e, quando depende de trigger, no banco.
+
+**Duplicados unidos:** R2-C360-02 = R2-FIN-01 (`conciliarPagamento`); R2-C360-09 = R2-FIN-05 (resumo financeiro R$ 0); R2-C360-22 = R2-FIN-25 (`gravarComVerificacao` sem organização); R2-C360-25 = R2-P1-2 (`painelAtendimento`); R2-P1-12 = F2 (funil de leads sem `conversion_events`); N-P0-1 = D5 (3 documentos da Ana).
+
+Cada microtarefa: um arquivo ou dois, teste que falha antes e passa depois, `tsc` e suíte verdes. Tamanho XS/S salvo indicação.
+
+### G1 — Dinheiro e contrato (P0 primeiro)
+
+| ID | Microtarefa | Origem | Tam. |
+|---|---|---|---|
+| G1.1 | `conciliarPagamento` só confirma pagamento e gate quando o trigger classificou `conciliado` e o valor cobre a fatura; parcial e divergente não liberam portal nem OS | R2-FIN-01, R2-C360-02 | S |
+| G1.2 | `registrarPagamentoGoLive`: conferir que a fatura é do caso, exigir referência e passar pela mesma conciliação | R2-FIN-02, F13 | S |
+| G1.3 | "Ativar OS" não grava NULL em `scope_summary`, `deliverable_summary` e `case_id` | R2-FIN-03 | XS |
+| G1.4 | `proximaParcela` ignora fatura em `rascunho` | R2-C360-02 | XS |
+| G1.5 | KPIs do Financeiro: tirar `enviada`, contar `pendente` e `parcialmente_paga`, não contar rascunho | R2-FIN-04 | XS |
+| G1.6 | Resumo financeiro do caso: erro de leitura vira aviso, nunca R$ 0 | R2-FIN-05, R2-C360-09 | XS |
+| G1.7 | `parcialmente_paga` com rótulo próprio no portal, GoLive e Painel Hoje | R2-FIN-07, R2-FIN-09 | S |
+| G1.8 | Estorno reabre a fatura e o gate (conferir trigger no banco antes) | R2-FIN-06 | S |
+| G1.9 | `/portal/proposta` falha fechado e filtra fixture | R2-FIN-08 | XS |
+| G1.10 | `valor_total` pt-BR ("R$ 12.000,00") convertido sem NaN | R2-FIN-12 | XS |
+| G1.11 | Blocos do instrumento: erro aparece e o texto digitado fica | R2-FIN-13 | XS |
+| G1.12 | Proposta: versão de ajuste não herda `aprovada_em`/`enviada_em`; aprovada/enviada não edita no lugar | R2-FIN-14, R2-FIN-15 | S |
+| G1.13 | `aprovarParaEnvio` e conciliação falham fechado quando não acham proposta | R2-FIN-16, R2-FIN-18 | S |
+| G1.14 | "Manter com motivo" lido pelo tipo aceito pelo CHECK; panorama jurídico com status reais | R2-FIN-10, R2-FIN-11 | XS |
+| G1.15 | `atualizarCompletude`, `sincronizarContratoBase` (papel), divergências duplicadas, âncora de preço por substring | R2-FIN-19 a 22 | S |
+| G1.16 | CRUD genérico sem escritores financeiros paralelos (faturas, pagamentos, propostas) | R2-FIN-23 | M |
+| G1.17 | "Enviar para assinatura" cria versão do contrato (junto com F10) | R2-FIN-26, F10 | M |
+| G1.18 | Demais P1/P2 de R2-FIN-24 a 43 (ajuste de fatura sem consumidor, `eventos_financeiros` sem leitor etc.) | relatório | triagem |
+
+### G2 — Caso 360: a tela diz a verdade
+
+| ID | Microtarefa | Origem | Tam. |
+|---|---|---|---|
+| G2.1 | Consolidação de case service lê só colunas que existem; promoção deixa de ficar sempre bloqueada | R2-C360-01 | S |
+| G2.2 | Erro da RPC de bloqueios aparece como erro, nunca "elegível para ativação" | R2-C360-03 | XS |
+| G2.3 | Registrar pagamento e preparar cobrança visíveis e com motivo quando desabilitados | R2-C360-05 | XS |
+| G2.4 | "Assumir próxima ação manual" usa o rascunho digitado | R2-C360-06 | XS |
+| G2.5 | `registrarTimelineCaso` depois do commit não vira falha nem permite retry duplicado | R2-C360-04 | S |
+| G2.6 | Leituras sem `error` viram aviso: `carregarFichaCaso`, `carregarCanonico`, `resumoVisaoClienteCaso`, `cadeiaPesquisaDoCaso`, `estadoCadeiaOperacional`, `lerCadeiaCaso360`, consolidação, reconciliadores | R2-C360-07 a 15 | M (2 PRs) |
+| G2.7 | Sem duplicação quando a leitura falha: membros, Pessoa 360, contrato | R2-C360-16 a 18 | S |
+| G2.8 | "Salvar pessoa", reprogramar, mover fase e atualização só dizem "salvo" com linha gravada | R2-C360-21, 38 | S |
+| G2.9 | `gravarComVerificacao`: retry com filtro de organização; chamadores leem divergências | R2-C360-22, R2-FIN-25 | XS |
+| G2.10 | `legal_rule` fora do CHECK em `biblioteca-evidencias.$caseId.tsx` | R2-C360-23 | XS |
+| G2.11 | Proposta Canva por caso; "Confirmar pagamento" atômico | R2-C360-19, 20 | S |
+| G2.12 | Demais P2 (R2-C360-24 a 41) | relatório | triagem |
+
+### G3 — Leads e calls
+
+| ID | Microtarefa | Origem | Tam. |
+|---|---|---|---|
+| G3.1 | Botão "Gravar registro da call" e o resultado visíveis nos momentos Antes e Durante | R2-P0-1 | XS |
+| G3.2 | Consentimento de gravação: a tela grava o status que o trigger aceita (não reverte sozinho) | R2-P0-2, R2-P1-5 | S |
+| G3.3 | `avancarEstadoAceite` não perde o evento; erro aparece | R2-P0-3 | S |
+| G3.4 | `seguro()` e auditoria de lead sem erro engolido; `painelAtendimento` checa as 11 leituras | R2-P1-1 a 3 | S |
+| G3.5 | Gravar lead devolve campos ignorados; mensagens e rascunho não somem; Gravar diz o motivo de estar desabilitado | R2-P1-4, 6 a 9 | S |
+| G3.6 | Funil de leads grava `conversion_events` | R2-P1-12, F2 | M |
+| G3.7 | Valores fora do catálogo nos leads vivos (`novo`, `manual`) | rodada 2 | XS (decisão) |
+
+### G4 — Banco vivo, pesquisa e portal
+
+| ID | Microtarefa | Origem | Dono |
+|---|---|---|---|
+| G4.1 | Retirar do App os 3 documentos da Ana antes de qualquer convite | N-P0-1, D5 | Proprietária |
+| G4.2 | Leitores do cliente só mostram relação `confirmado`/`com_suporte`, ou decisão de mostrar "provável" com rótulo (hoje são 8 vínculos `pendente` publicados) | N-P0-2 | decisão + C |
+| G4.3 | `dias_sem_touchpoint` calculado de `crm_casos.ultimo_touchpoint_em` (a coluna não existe em `crm_casos`; 8 leitores recebem null) | N-P1-1 | C |
+| G4.4 | Sentinel `sem_nova_acao_necessaria` limpa o prazo e vira texto humano; a Proprietária registra uma próxima ação real para a Ana | N-P1-5 | C + P |
+| G4.5 | Arquivar o acesso antigo `active` da Ana sem vínculo de caso | N-P1-6 | P |
+| G4.6 | SLA para `critica` e RPC `proxima_acao_prioritaria` isolada por organização | N-P1-2, N-P1-4 | Lovable (SQL) com autorização |
+| G4.7 | Pedidos de documento: `portal_document_requests` entra no motor de próxima ação | N-P1-3 | Lovable (SQL) com autorização |
+| G4.8 | Achar o fluxo que faz DELETE em `contract_validation_results` e trocar por arquivamento | N-P2-4 | C |

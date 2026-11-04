@@ -29,6 +29,15 @@ export function ehCancelamentoDeRequisicao(error: unknown): boolean {
   return e.name === "AbortError" || /^(this operation was )?aborted$/.test(msg);
 }
 
+/** Vitest define VITEST=true; em produção (Worker) a variável não existe. */
+export function rodandoSobTeste(): boolean {
+  try {
+    return typeof process !== "undefined" && Boolean(process.env?.VITEST);
+  } catch {
+    return false;
+  }
+}
+
 export function capturarErroProducao(error: unknown, contexto: ContextoErro = {}): Promise<void> {
   if (ehCancelamentoDeRequisicao(error)) return Promise.resolve();
   const erroReal = error instanceof Error ? error : new Error(String(error));
@@ -37,6 +46,9 @@ export function capturarErroProducao(error: unknown, contexto: ContextoErro = {}
   } catch {
     /* log indisponível: segue para o banco */
   }
+  // 04/11/2026: execução local da suíte de testes gravava linhas `erro_app` falsas no banco real
+  // (7 linhas entre 23:12 e 23:18 UTC), misturando ruído de teste com os erros que a Proprietária lê.
+  if (rodandoSobTeste()) return Promise.resolve();
   const gravacao = import("@/lib/erro-no-banco.server")
     .then((m) => m.gravarErroNoBanco(erroReal, contexto))
     .catch(() => {
