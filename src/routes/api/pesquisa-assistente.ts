@@ -3,6 +3,15 @@ import type {} from "@tanstack/react-start";
 import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
+ * Valores de crm_casos.estado_de_autorizacao_pesquisa que liberam o assistente.
+ * Vocabulário do CHECK crm_casos_estado_autorizacao_pesquisa_chk (migration 20260821135341):
+ * nao_autorizada | autorizada_interna | autorizada_externa | suspensa.
+ * O assistente só lê o dossiê interno, então basta autorização interna ou externa.
+ * "autorizada" NÃO existe no banco: comparar com esse literal bloqueava todos os casos (HTTP 409).
+ */
+const ESTADOS_AUTORIZADOS = ["autorizada_interna", "autorizada_externa"] as const;
+
+/**
  * Assistente de pesquisa genealógica (interno).
  * Exige sessão da equipe; lê o dossiê com RLS do próprio usuário e devolve o
  * relatório em streaming. Nenhuma escrita no banco.
@@ -140,7 +149,7 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
 
         // Trava dura: sem autorização de pesquisa registrada no caso, o assistente permanece inerte.
         const autorizacao = String(caso.data["estado_de_autorizacao_pesquisa"] ?? "nao_autorizada");
-        if (autorizacao !== "autorizada") {
+        if (!(ESTADOS_AUTORIZADOS as readonly string[]).includes(autorizacao)) {
           return json(
             {
               ...identificacao,
