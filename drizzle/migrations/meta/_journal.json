@@ -50,6 +50,13 @@
       "when": 1793643487477,
       "tag": "0006_contract_validation_archive_prior_results",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793830558084,
+      "tag": "0007_integrations_categoria_agente_mcp",
+      "breakpoints": true
     }
   ]
 }
