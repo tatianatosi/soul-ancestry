@@ -5,6 +5,7 @@ import { gravarComVerificacao, inserirComVerificacao, exigirLinhaGravada } from 
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
+import { cpfValido, emailValido, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
 import { registrarAuditoria } from "@/lib/auditoria-segura.server";
 
 /**
