@@ -84,6 +84,33 @@ function ondeDe(l: LinhaAuditoria): string {
   return entidade || "Não registrado";
 }
 
+export type GrupoDeRegistros = RegistroLegivel & {
+  chave: string;
+  quantidade: number;
+  primeiraEm: string;
+};
+
+/**
+ * Agrupa ocorrências repetidas (mesmo tipo, motivo e lugar) para a leitura caber numa tela:
+ * cada grupo mostra quantas vezes aconteceu e quando foi a última. A entrada vem da mais recente
+ * para a mais antiga; a ordem dos grupos segue a última ocorrência.
+ */
+export function agruparRegistros(registros: RegistroLegivel[]): GrupoDeRegistros[] {
+  const grupos = new Map<string, GrupoDeRegistros>();
+  for (const r of registros) {
+    const chave = [r.tipo, r.rotulo, r.motivo, r.onde, r.deTeste ? "teste" : "app"].join("|");
+    const atual = grupos.get(chave);
+    if (atual) {
+      atual.quantidade += 1;
+      if (r.em < atual.primeiraEm) atual.primeiraEm = r.em;
+      if (r.em > atual.em) atual.em = r.em;
+    } else {
+      grupos.set(chave, { ...r, chave, quantidade: 1, primeiraEm: r.em });
+    }
+  }
+  return [...grupos.values()].sort((a, b) => (a.em < b.em ? 1 : a.em > b.em ? -1 : 0));
+}
+
 export function legivel(l: LinhaAuditoria): RegistroLegivel {
   const m = l.metadados ?? {};
   return {
