@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { CaCard } from "@/components/ui/ca-card";
+import { RegistrarAutorizacaoPesquisa } from "@/components/pesquisa/registrar-autorizacao";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
   const [demoConfirmada, setDemoConfirmada] = useState(false);
   const [bloqueio, setBloqueio] = useState<{ mensagem: string; lacunas: Lacuna[] } | null>(null);
   const [rascunho, setRascunho] = useState(false);
+  const [naoAutorizada, setNaoAutorizada] = useState<{ estado: string; mensagem: string } | null>(null);
   const abortar = useRef<AbortController | null>(null);
 
   const token = useCallback(async () => {
@@ -58,7 +60,22 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
         body: JSON.stringify({ casoId, complemento, verificar: true }),
       });
+      if (r.status === 409) {
+        const corpo = (await r.json().catch(() => null)) as
+          | { erro?: string; mensagem?: string; estado_de_autorizacao_pesquisa?: string }
+          | null;
+        if (corpo?.erro === "pesquisa_nao_autorizada") {
+          setVerificacao(null);
+          setNaoAutorizada({
+            estado: corpo.estado_de_autorizacao_pesquisa ?? "nao_autorizada",
+            mensagem: corpo.mensagem ?? "Pesquisa não autorizada para este caso.",
+          });
+          return;
+        }
+        throw new Error(corpo?.mensagem || "Não foi possível verificar o caso.");
+      }
       if (!r.ok) throw new Error((await r.text()) || "Não foi possível verificar o caso.");
+      setNaoAutorizada(null);
       setVerificacao((await r.json()) as Verificacao);
     } catch (e) {
       setErro((e as Error).message);
@@ -190,6 +207,17 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
               <span>Executar demonstração com dados fictícios.</span>
             </label>
           )}
+        </div>
+      )}
+
+      {naoAutorizada && (
+        <div className="rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-xs text-terracotta">
+          <p className="font-semibold">{naoAutorizada.mensagem}</p>
+          <RegistrarAutorizacaoPesquisa
+            casoId={casoId}
+            estadoAtual={naoAutorizada.estado}
+            onRegistrado={() => void verificar()}
+          />
         </div>
       )}
 

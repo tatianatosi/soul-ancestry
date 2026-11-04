@@ -150,6 +150,8 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "link_origem_interna",
     "proxima_acao_codigo",
     "proxima_acao_justificativa",
+    // A07 (04/11/2026): autorização de pesquisa registrada na ficha (CHECK da migration 20260821135341).
+    "estado_de_autorizacao_pesquisa",
     // "alias_historico" migrou para case_aliases (histórico imutável, somente leitura na ficha).
     // Jornada, comunicação e alertas
     "proposta_id_origem",

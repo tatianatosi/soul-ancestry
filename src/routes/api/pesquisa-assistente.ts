@@ -150,6 +150,25 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
         // Trava dura: sem autorização de pesquisa registrada no caso, o assistente permanece inerte.
         const autorizacao = String(caso.data["estado_de_autorizacao_pesquisa"] ?? "nao_autorizada");
         if (!(ESTADOS_AUTORIZADOS as readonly string[]).includes(autorizacao)) {
+          // A06 (04/11/2026): tentativa real de execução recusada fica no log, com quem, o quê, o motivo
+          // e a tela. A consulta de verificação (abrir o painel) não é tentativa e não gera registro.
+          if (!body.verificar) {
+            await registrarAuditoria(supabase, {
+              organization_id: caso.data["organization_id"],
+              user_id: userData.user.id,
+              acao: "analysis_blocked_research_not_authorized",
+              entidade: "crm_casos",
+              entidade_id: caso.data["id"],
+              metadados: {
+                case_id: caso.data["id"],
+                codigo: caso.data["codigo"],
+                estado_de_autorizacao_pesquisa: autorizacao,
+                motivo: "Pesquisa não autorizada na ficha do caso.",
+                tela: "Assistente de pesquisa genealógica",
+                status_http: 409,
+              },
+            });
+          }
           return json(
             {
               ...identificacao,
