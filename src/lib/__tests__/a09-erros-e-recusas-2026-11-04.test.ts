@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { ACOES_DE_RECUSA, ehRegistroDeTeste, legivel } from "@/lib/erros-e-recusas";
+import { ACOES_DE_RECUSA, agruparRegistros, ehRegistroDeTeste, legivel } from "@/lib/erros-e-recusas";
 
 /** A09 (04/11/2026, D13): a proprietária lê erros do app e recusas do servidor em /qualidade. */
 describe("A09 — erros e recusas legíveis", () => {
@@ -60,6 +60,19 @@ describe("A09 — erros e recusas legíveis", () => {
     expect(legivel({ id: "4", created_at: "x", acao: "bootstrap_denied", entidade: null, user_id: null, metadados: null }).motivo).toBe(
       "Motivo não registrado",
     );
+  });
+
+  it("ocorrências iguais viram um grupo com contagem, primeira e última", () => {
+    const base = { tipo: "erro" as const, rotulo: "Erro do app", motivo: "Failed to fetch", onde: "/painel", origem: "navegador", quem: null, deTeste: false };
+    const grupos = agruparRegistros([
+      { ...base, id: "a", em: "2026-11-04T21:30:41Z" },
+      { ...base, id: "b", em: "2026-11-04T21:19:21Z" },
+      { ...base, id: "c", em: "2026-11-04T21:18:42Z" },
+      { ...base, id: "d", em: "2026-11-04T22:03:45Z", motivo: "Acesso não autorizado.", onde: "/acesso/sem-permissao" },
+    ]);
+    expect(grupos).toHaveLength(2);
+    expect(grupos[0]).toMatchObject({ motivo: "Acesso não autorizado.", quantidade: 1 });
+    expect(grupos[1]).toMatchObject({ motivo: "Failed to fetch", quantidade: 3, em: "2026-11-04T21:30:41Z", primeiraEm: "2026-11-04T21:18:42Z" });
   });
 
   it("a leitura no servidor é só do admin, por organização, e erro de leitura aparece", () => {

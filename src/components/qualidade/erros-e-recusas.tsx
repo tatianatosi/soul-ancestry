@@ -6,6 +6,9 @@ import { CaCard } from "@/components/ui/ca-card";
 import { Selo } from "@/components/comercial/base";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { listarErrosERecusas } from "@/lib/qualidade.functions";
+import { agruparRegistros } from "@/lib/erros-e-recusas";
+
+const LIMITE_INICIAL = 8;
 
 /**
  * A09 (04/11/2026) — erros do app e recusas do servidor, legíveis para a proprietária.
@@ -14,6 +17,7 @@ import { listarErrosERecusas } from "@/lib/qualidade.functions";
 export function ErrosERecusas() {
   const carregar = useServerFn(listarErrosERecusas);
   const [mostrarTeste, setMostrarTeste] = useState(false);
+  const [verTodos, setVerTodos] = useState(false);
   const q = useQuery({ queryKey: ["qualidade", "erros-e-recusas"], queryFn: () => carregar() });
 
   if (q.isLoading) {
@@ -52,6 +56,8 @@ export function ErrosERecusas() {
   const visiveis = dados.registros.filter((r) => mostrarTeste || !r.deTeste);
   const erros = visiveis.filter((r) => r.tipo === "erro").length;
   const recusas = visiveis.length - erros;
+  const grupos = agruparRegistros(visiveis);
+  const exibidos = verTodos ? grupos : grupos.slice(0, LIMITE_INICIAL);
 
   return (
     <CaCard titulo="Erros do app e recusas" eyebrow="Últimos 7 dias · leitura interna" className="mb-6">
@@ -72,23 +78,40 @@ export function ErrosERecusas() {
       {visiveis.length === 0 ? (
         <p className="mt-3 text-sm text-navy/70">Nenhum erro nem recusa registrado nos últimos 7 dias.</p>
       ) : (
-        <ul className="mt-3 divide-y divide-navy/10">
-          {visiveis.map((r) => (
-            <li key={r.id} className="min-w-0 py-2 text-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <Selo texto={r.rotulo} tom={r.tipo === "erro" ? "alerta" : "neutro"} />
-                {r.deTeste ? <Selo texto="Registro de teste, não é erro do app" tom="neutro" /> : null}
-                <span className="text-xs text-navy/60">{new Date(r.em).toLocaleString("pt-BR")}</span>
-              </div>
-              <p className="mt-1 break-words text-navy">{r.motivo}</p>
-              <p className="mt-0.5 break-words text-xs text-navy/60">
-                Onde: {r.onde}
-                {r.origem ? ` · origem: ${r.origem}` : ""}
-                {r.quem ? "" : " · sem usuário identificado"}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="mt-3 text-xs text-navy/60">
+            {grupos.length} situação(ões) distinta(s); ocorrências iguais aparecem juntas com a contagem.
+          </p>
+          <ul className="mt-2 divide-y divide-navy/10">
+            {exibidos.map((g) => (
+              <li key={g.chave} className="min-w-0 py-2 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Selo texto={g.rotulo} tom={g.tipo === "erro" ? "alerta" : "neutro"} />
+                  {g.deTeste ? <Selo texto="Registro de teste, não é erro do app" tom="neutro" /> : null}
+                  <Selo texto={`${g.quantidade} ocorrência(s)`} tom="neutro" />
+                </div>
+                <p className="mt-1 break-words text-navy">{g.motivo}</p>
+                <p className="mt-0.5 break-words text-xs text-navy/60">
+                  Onde: {g.onde}
+                  {g.origem ? ` · origem: ${g.origem}` : ""}
+                  {g.quem ? "" : " · sem usuário identificado"}
+                  {" · última: "}
+                  {new Date(g.em).toLocaleString("pt-BR")}
+                  {g.quantidade > 1 ? ` · primeira: ${new Date(g.primeiraEm).toLocaleString("pt-BR")}` : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+          {grupos.length > LIMITE_INICIAL ? (
+            <button
+              type="button"
+              onClick={() => setVerTodos((v) => !v)}
+              className="mt-2 min-h-11 rounded-lg border border-navy/20 px-3 text-sm text-navy"
+            >
+              {verTodos ? "Mostrar só as mais recentes" : `Ver todas as ${grupos.length} situações`}
+            </button>
+          ) : null}
+        </>
       )}
     </CaCard>
   );
