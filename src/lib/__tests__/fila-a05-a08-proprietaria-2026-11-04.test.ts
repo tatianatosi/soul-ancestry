@@ -56,6 +56,24 @@ describe("A07 — autorização de pesquisa registrada na ficha do caso", () => 
   });
 });
 
+describe("A06 — recusa no servidor fica no log com usuário, ação, motivo e tela", () => {
+  it("assistente de pesquisa: tentativa sem autorização registrada grava audit_logs antes do 409", () => {
+    const rota = ler("src/routes/api/pesquisa-assistente.ts");
+    const trecho = rota.slice(rota.indexOf("if (!(ESTADOS_AUTORIZADOS"), rota.indexOf('erro: "pesquisa_nao_autorizada"'));
+    expect(trecho).toContain('acao: "analysis_blocked_research_not_authorized"');
+    expect(trecho).toContain("user_id: userData.user.id");
+    expect(trecho).toContain("motivo:");
+    expect(trecho).toContain("tela:");
+    expect(trecho).toContain("if (!body.verificar)");
+  });
+
+  it("gate de formalização recusado continua auditado antes de lançar", () => {
+    const src = ler("src/lib/escopo-conferencia.server.ts");
+    const fim = src.slice(src.indexOf('acao: "gate_formalizacao_bloqueado"'));
+    expect(fim.indexOf("throw new GateBloqueadoError")).toBeGreaterThan(0);
+  });
+});
+
 describe("A08 — invariante: para a proprietária, nada interno ou externo vira bloqueio", () => {
   const pendencias = [null, "Documentos mínimos pendentes"] as const;
   const externas: (string | undefined)[] = [undefined, ...ACOES_EXTERNAS];
