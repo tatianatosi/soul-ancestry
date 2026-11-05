@@ -1317,7 +1317,7 @@ async function montarConteudoDoInstrumento(supabase: Sb, organizationId: string,
     modeloClausulas: modelo?.default_clauses ?? null,
     modeloStatus: modelo?.status ?? null,
   });
-  return { contrato, ultima, conteudo, pendenciasConciliacao, helpers };
+  return { contrato: { data: contrato.data }, ultima, conteudo, pendenciasConciliacao, helpers };
 }
 
 export const gerarRascunhoInterno = createServerFn({ method: "POST" })
@@ -1434,6 +1434,87 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       pendenciasConciliacao,
     };
 
+  });
+
+/**
+ * B02 (05/11/2026): "Salvar rascunho" regrava a versão de trabalho aberta com a edição atual
+ * (partes, escopo, cláusulas e anexos já salvos), sem criar número de versão. "Nova versão" continua
+ * em `gerarRascunhoInterno`. Versão fechada (aprovada, congelada, substituída) não muda: o banco
+ * recusa, e aqui a recusa vem antes, com o caminho certo. O arquivo vai para caminho novo — nunca
+ * sobrescreve o anterior — e só depois de gravado a versão passa a apontar para ele.
+ */
+export const salvarRascunhoAtual = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PREPARA, "Seu papel não permite salvar rascunhos.");
+
+    const { contrato, conteudo, pendenciasConciliacao, helpers } = await montarConteudoDoInstrumento(
+      supabase,
+      organizationId,
+      data.contract_id,
+    );
+    const atualId = (contrato.data.current_version_id as string | null) ?? null;
+    if (!atualId) throw new Error("Este contrato ainda não tem versão. Use “Nova versão” para criar a primeira.");
+
+    const { data: atual, error: erroAtual } = await supabase
+      .from("contract_versions")
+      .select("id,version_number,status,frozen_at,archived_at")
+      .eq("organization_id", organizationId)
+      .eq("contract_id", data.contract_id)
+      .eq("id", atualId)
+      .maybeSingle();
+    if (erroAtual) throw new Error(`Não foi possível ler a versão atual: ${erroAtual.message}`);
+    if (!atual || atual.archived_at) throw new Error("A versão atual não foi encontrada. Use “Nova versão”.");
+    if (atual.status !== "working" || atual.frozen_at) {
+      throw new Error(
+        `A versão ${atual.version_number} está fechada e não muda. Use “Nova versão” para registrar as alterações.`,
+      );
+    }
+
+    const caminho = helpers
+      .caminhoVersao(organizationId, data.contract_id, atual.version_number as number)
+      .replace(/instrumento\.html$/, `rascunho-${Date.now()}.html`);
+    const hash = await helpers.hashConteudo(conteudo.html);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const up = await supabaseAdmin.storage
+      .from(helpers.BUCKET_CONTRATOS)
+      .upload(caminho, new Blob([conteudo.html], { type: "text/html" }), { upsert: false });
+    if (up.error) throw new Error(`Rascunho não salvo: o arquivo da versão falhou (${up.error.message}). Nada mudou.`);
+
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contract_versions",
+      id: atual.id as string,
+      organizationId,
+      userId: context.userId as string,
+      payload: { generated_content: conteudo, rendered_file_path: caminho, rendered_file_hash: hash },
+    });
+
+    await evento(
+      supabase,
+      organizationId,
+      data.contract_id,
+      "version_created",
+      { versao: atual.version_number, acao: "rascunho_salvo_na_versao_atual", arquivo_registrado: true },
+      atual.id as string,
+    );
+
+    if (contrato.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: contrato.data.case_id as string,
+        eventType: "caso",
+        title: `Rascunho do contrato salvo na versão ${atual.version_number}`,
+        sourceEntityType: "contract_versions",
+        sourceEntityId: atual.id as string,
+        userId: context.userId as string,
+      });
+    }
+
+    return { versionId: atual.id as string, versao: atual.version_number as number, pendenciasConciliacao };
   });
 
 export const executarValidacoes = createServerFn({ method: "POST" })
