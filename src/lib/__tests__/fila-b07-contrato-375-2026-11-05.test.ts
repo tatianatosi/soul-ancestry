@@ -24,5 +24,6 @@ describe("B07 — contrato no celular", () => {
     expect(tela).toMatch(/aria-label="Seções do contrato"/);
     expect(tela).toMatch(/sticky top-0 z-10 mt-6 flex gap-1 overflow-x-auto/);
     expect(tela).toContain('className="mt-4 space-y-5"');
+    expect(tela).toContain('<ul className="flex flex-col gap-2 md:hidden">');
   });
 });
