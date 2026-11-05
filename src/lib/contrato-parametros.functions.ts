@@ -1221,10 +1221,11 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
 
 async function atualizarCompletude(supabase: Sb, id: string) {
   const completude = await supabase.rpc("contract_parameters_completude", { _id: id });
-  await supabase
+  const { error } = await supabase
     .from("contract_case_parameters")
     .update({ completude_pct: (completude.data as any)?.pct ?? 0 })
     .eq("id", id);
+  if (error) throw new Error(`atualizarCompletude: ${error.message}`);
 }
 
 /**

@@ -82,12 +82,17 @@ export const painelAchados = createServerFn({ method: "GET" })
     semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
-    if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa achados genealógicos.");
+    if (!PAPEIS_LE_DETALHE.includes(papel))
+      throw new Error("Seu papel não acessa achados genealógicos.");
 
     const org = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
     const [achados, encontros, evidencias, fontes, nucleos, pesquisas, caso] = await Promise.all([
-      org("genealogical_findings").eq("case_id", data.caseId).order("found_at", { ascending: false }),
-      org("lineage_encounters").eq("case_id", data.caseId).order("created_at", { ascending: false }),
+      org("genealogical_findings")
+        .eq("case_id", data.caseId)
+        .order("found_at", { ascending: false }),
+      org("lineage_encounters")
+        .eq("case_id", data.caseId)
+        .order("created_at", { ascending: false }),
       supabase
         .from("research_evidence_items")
         .select("id,title,evidence_status,research_case_id")
@@ -100,7 +105,11 @@ export const painelAchados = createServerFn({ method: "GET" })
         .is("archived_at", null),
       org("nucleos_familiares").eq("case_id", data.caseId).is("archived_at", null),
       org("research_cases").eq("case_id", data.caseId).is("archived_at", null),
-      supabase.from("crm_casos").select("id,codigo,titulo,pais").eq("id", data.caseId).maybeSingle(),
+      supabase
+        .from("crm_casos")
+        .select("id,codigo,titulo,pais")
+        .eq("id", data.caseId)
+        .maybeSingle(),
     ]);
 
     return {
@@ -117,7 +126,8 @@ export const painelAchados = createServerFn({ method: "GET" })
 
 async function autorizarEscrita(supabase: Sb, userId: string) {
   const { organizationId, papel } = await contextoRg(supabase, userId);
-  if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode registrar achados ou encontros.");
+  if (!PAPEIS_EDITA.includes(papel))
+    throw new Error("Seu papel não pode registrar achados ou encontros.");
   return organizationId;
 }
 
@@ -139,7 +149,9 @@ export async function prepararConsequenciaAchado(
 ): Promise<void> {
   if (!achado?.case_id) return;
   const pendente =
-    Boolean(achado.eligible_for_client_deliverable) && !achado.client_deliverable_id && !achado.archived_at;
+    Boolean(achado.eligible_for_client_deliverable) &&
+    !achado.client_deliverable_id &&
+    !achado.archived_at;
 
   const { data: existente } = await supabase
     .from("case_alerts")
@@ -162,15 +174,18 @@ export async function prepararConsequenciaAchado(
       status: "pending",
     };
     if (existente?.id) {
-      await supabase.from("case_alerts").update(payload).eq("id", existente.id);
+      const { error } = await supabase.from("case_alerts").update(payload).eq("id", existente.id);
+      if (error) throw new Error(`sincronizarAlertaMicroentrega(update): ${error.message}`);
     } else {
-      await supabase.from("case_alerts").insert(payload);
+      const { error } = await supabase.from("case_alerts").insert(payload);
+      if (error) throw new Error(`sincronizarAlertaMicroentrega(insert): ${error.message}`);
     }
   } else if (existente?.id) {
-    await supabase
+    const { error } = await supabase
       .from("case_alerts")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", existente.id);
+    if (error) throw new Error(`sincronizarAlertaMicroentrega(complete): ${error.message}`);
   }
 }
 
@@ -214,7 +229,9 @@ export const salvarAchado = createServerFn({ method: "POST" })
         organizationId,
         caseId: String(registro.case_id),
         eventType: "caso",
-        title: criando ? `Achado registrado — ${registro.title ?? "sem título"}` : `Achado atualizado — ${registro.title ?? "sem título"}`,
+        title: criando
+          ? `Achado registrado — ${registro.title ?? "sem título"}`
+          : `Achado atualizado — ${registro.title ?? "sem título"}`,
         summaryInternal: `Status de validação: ${String(registro.validation_status ?? "não informado")}`,
         sourceEntityType: "genealogical_findings",
         sourceEntityId: String(registro.id),
@@ -257,7 +274,10 @@ export const salvarEncontro = createServerFn({ method: "POST" })
 /** Sem exclusão física: apenas arquivamento com motivo. */
 export const arquivarRegistroG06 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { tabela: "genealogical_findings" | "lineage_encounters"; id: string; motivo: string }) => d)
+  .inputValidator(
+    (d: { tabela: "genealogical_findings" | "lineage_encounters"; id: string; motivo: string }) =>
+      d,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
@@ -275,7 +295,10 @@ export const arquivarRegistroG06 = createServerFn({ method: "POST" })
         organizationId,
         caseId: String(r.registro.case_id),
         eventType: "caso",
-        title: data.tabela === "genealogical_findings" ? "Achado arquivado" : "Encontro de linhagem arquivado",
+        title:
+          data.tabela === "genealogical_findings"
+            ? "Achado arquivado"
+            : "Encontro de linhagem arquivado",
         summaryInternal: data.motivo,
         sourceEntityType: data.tabela,
         sourceEntityId: data.id,
