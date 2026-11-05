@@ -2,10 +2,11 @@
 
 ## 05/11 17:44 — Conferência contratual pós-publicação
 - [x] Aplicar duas correções especificamente autorizadas: 0008 restringe pendências à organização do registro; 0009 restringe escrita da condição do caso a preparadores. Definições relidas no banco; 8 testes de aprovação passaram; lista de contratos abre como Proprietária. Não houve alteração de contrato/preço/assinatura.
-- [ ] Concluir conferência profunda dos demais alertas antes de publicar: varredura básica sem achados não encerra os cinco alertas profundos persistidos; negativa com outra sessão real ainda não exercitada.
-- [ ] Integrar #244 e #245 com controles verdes; confirmar main e revisão publicada antes do teste.
-- [ ] Abrir contrato na main publicada, salvar rascunho e criar nova versão; confirmar após recarga.
-- [ ] Registrar assinatura pelo GoLive apenas com comprovação real e conferir status do contrato/caso; nenhum comprovante foi fornecido neste pedido.
+- [ ] Revalidar profundamente dois avisos persistidos (histórico do portal e preparação para assinatura); três achados referentes às correções 0008/0009 marcados corrigidos. Varredura básica sem achados; negativa com outra sessão real ainda não exercitada.
+- [x] #244 integrada 90f5dff0; #245 atualizada com main, matriz atualizada, guard/CI/label verdes e integrada 692bbb3a. Diffs exatos trazidos à prévia preservando segurança; 40 testes focais passam; build automático OK.
+- [x] Publicação solicitada em 05/11 18:07; site HTTP 200 e conferência autenticada publicada mostra Salvar rascunho + Nova versão, oito versões e GoLive no caso escolhido.
+- [x] Prévia autenticada: Salvar rascunho manteve v7; Nova versão criou v8 working. UI após F5 e banco confirmam, v6 approved_for_send preservada; 375 px sem overflow. Site publicado lê v8.
+- [ ] Registrar assinatura pelo GoLive: bloqueado por ausência de data/referência real. Contrato pending_data, signed_at/signature_reference nulos; crm_casos.contrato_assinado já true antes do teste, divergência informada, nenhum dado de assinatura alterado. Prévia documental de parâmetros também permanece desatualizada.
 
 ## 04/11 noite — Integração à main e fila A (docs/execucao)
 - [x] #234 (esteira Lovable) corrigida (5 testes + matriz) e mesclada a1e6f7a1; #232 dc39a6e9; #233 5424728a (mock staff_access); #231 fe7a2687. Publicação solicitada após merge (pedido da Proprietária 23:08).
