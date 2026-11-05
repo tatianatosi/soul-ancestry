@@ -143,7 +143,7 @@ export function diagnosticarVersaoContratual(v: VersaoContratual | null | undefi
     tipoDeclarado: typeof tipoDeclarado === "string" ? tipoDeclarado : null,
     motivos,
     acao: vazia
-      ? 'Gere o rascunho de novo em "Salvar rascunho": o modelo aprovado já tem o texto completo, e a versão nova nasce com as cláusulas. A versão antiga continua no histórico — nada é apagado.'
+      ? 'Gere o texto de novo: "Salvar rascunho" regrava a versão de trabalho aberta com o modelo aprovado; se ela já estiver fechada, use "Nova versão". Versões anteriores continuam no histórico — nada é apagado.'
       : null,
   };
 }

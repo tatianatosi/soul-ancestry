@@ -65,6 +65,14 @@ export const ROTULO_STATUS_VERSAO: Record<string, string> = {
   archived: "Arquivada",
 };
 
+/** B07 (05/11/2026): valores do CHECK de `contract_parties.legal_capacity_status`, em português. */
+export const ROTULO_CAPACIDADE_PARTE: Record<string, string> = {
+  adult: "Maior de idade",
+  minor: "Menor de idade",
+  legal_representative_required: "Exige representante legal",
+  unknown: "Não registrado",
+};
+
 export const ROTULO_PAPEL_PARTE: Record<string, string> = {
   provider: "Prestador",
   contracting_client: "Contratante",
