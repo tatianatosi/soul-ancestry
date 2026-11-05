@@ -174,6 +174,19 @@ function ContratoDetalhe() {
     },
     onError: (e: Error) => setAviso(e.message),
   });
+  const salvarAtual = useServerFn(salvarRascunhoAtual);
+  const mSalvar = useMutation({
+    mutationFn: () => salvarAtual({ data: { contract_id: id } }),
+    onSuccess: (r) => {
+      setAviso(
+        r.pendenciasConciliacao?.length
+          ? `Rascunho salvo na versão ${r.versao}. Pendente para envio (não impede o rascunho): ${r.pendenciasConciliacao.join(" · ")}`
+          : `Rascunho salvo na versão ${r.versao}. Nenhuma versão nova foi criada.`,
+      );
+      recarregar();
+    },
+    onError: (e: Error) => setAviso(e.message),
+  });
   const mValidar = useMutation({
     mutationFn: () => validar({ data: { contract_id: id } }),
     onSuccess: (r) => {
