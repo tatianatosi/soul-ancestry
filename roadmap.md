@@ -1,7 +1,8 @@
 # Roadmap
 
 ## 05/11 17:44 — Conferência contratual pós-publicação
-- [ ] Corrigir antes da publicação os alertas de permissões contratuais e preços (decisão da Proprietária nesta conferência); aplicação de RLS/migration exige autorização específica.
+- [x] Aplicar duas correções especificamente autorizadas: 0008 restringe pendências à organização do registro; 0009 restringe escrita da condição do caso a preparadores. Definições relidas no banco; 8 testes de aprovação passaram; lista de contratos abre como Proprietária. Não houve alteração de contrato/preço/assinatura.
+- [ ] Concluir conferência profunda dos demais alertas antes de publicar: varredura básica sem achados não encerra os cinco alertas profundos persistidos; negativa com outra sessão real ainda não exercitada.
 - [ ] Integrar #244 e #245 com controles verdes; confirmar main e revisão publicada antes do teste.
 - [ ] Abrir contrato na main publicada, salvar rascunho e criar nova versão; confirmar após recarga.
 - [ ] Registrar assinatura pelo GoLive apenas com comprovação real e conferir status do contrato/caso; nenhum comprovante foi fornecido neste pedido.

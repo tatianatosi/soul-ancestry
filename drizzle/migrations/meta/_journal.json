@@ -57,6 +57,20 @@
       "when": 1793830558084,
       "tag": "0007_integrations_categoria_agente_mcp",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793901027549,
+      "tag": "0008_contract_pending_org_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793901038987,
+      "tag": "0009_case_commercial_condition_write_scope",
+      "breakpoints": true
     }
   ]
 }
