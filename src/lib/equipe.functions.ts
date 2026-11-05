@@ -1,6 +1,6 @@
 import { semCache } from "@/lib/no-store";
 import { origemDeAutenticacao } from "@/lib/origem-canonica";
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { exigirLeitura, type PapelRegistrado } from "@/lib/conferencia-acesso";
@@ -14,9 +14,9 @@ import { registrarAuditoria } from "@/lib/auditoria-segura.server";
  * da requisição — qualquer host novo passava. Agora é lista de PERMISSÃO exata
  * (`origem-canonica.ts`): só a produção; o cabeçalho nunca define o destino.
  */
-function origem() {
-  return origemDeAutenticacao(getRequestHeader("origin"));
-}
+// 05/11/2026: só no servidor. Como função comum, a leitura do cabeçalho ficava no pacote do navegador e a
+// prévia parava de montar (proteção de importação do TanStack Start).
+const origem = createServerOnlyFn(() => origemDeAutenticacao(getRequestHeader("origin")));
 
 /** Rate limit de login. Resposta neutra: não revela existência de conta. */
 export const prepararLoginEquipe = createServerFn({ method: "POST" })

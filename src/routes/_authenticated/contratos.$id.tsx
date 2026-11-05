@@ -27,6 +27,7 @@ import {
   ROTULO_ESCOPO_EXCECAO,
   ROTULO_GATE_PESQUISA,
   ROTULO_ORIGEM_ESCOPO,
+  ROTULO_CAPACIDADE_PARTE,
   ROTULO_PAPEL_PARTE,
   ROTULO_SEVERIDADE_VALIDACAO,
   ROTULO_SITUACAO_VALIDACAO,
@@ -84,9 +85,20 @@ export const Route = createFileRoute("/_authenticated/contratos/$id")({
   component: ContratoDetalhe,
 });
 
-const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos"] as const;
-const ABAS_AVANCADAS = ["Fontes", "Validações", "Versões", "Revisão"] as const;
-const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
+/**
+ * B06 (05/11/2026): o instrumento é lido em sete cartões, nesta ordem. Fontes das cláusulas ficam dentro do
+ * Texto do contrato; a Validação jurídica da trilha fica dentro de Assinatura, antes da revisão. Mesmos
+ * leitores e gravadores de antes — só muda o agrupamento.
+ */
+const SECOES_CONTRATO = [
+  { id: "contrato-partes", rotulo: "Partes" },
+  { id: "contrato-escopo", rotulo: "Escopo e entregas" },
+  { id: "contrato-condicoes", rotulo: "Condições e vigência" },
+  { id: "contrato-anexos", rotulo: "Anexos e OS" },
+  { id: "contrato-texto", rotulo: "Texto do contrato" },
+  { id: "contrato-assinatura", rotulo: "Assinatura" },
+  { id: "contrato-historico", rotulo: "Histórico" },
+] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -123,14 +135,13 @@ function ContratoDetalhe() {
   const navigate = useNavigate();
   const obter = useServerFn(obterContrato);
   const q = useQuery({ queryKey: ["contrato", id], queryFn: () => obter({ data: { id } }) });
-  const [aba, setAba] = useState<(typeof ABAS)[number]>("Resumo");
   const [aviso, setAviso] = useState<string | null>(null);
   const [resumoVersao, setResumoVersao] = useState("");
   const [tituloTarefa, setTituloTarefa] = useState("");
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const abrirHistorico = () => {
     setHistoricoAberto(true);
-    requestAnimationFrame(() => document.getElementById("contrato-versões")?.scrollIntoView({ behavior: "auto", block: "start" }));
+    requestAnimationFrame(() => document.getElementById("contrato-historico")?.scrollIntoView({ behavior: "auto", block: "start" }));
   };
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(resumoVersao.trim() !== "" || tituloTarefa.trim() !== "");
@@ -477,9 +488,13 @@ function ContratoDetalhe() {
       </div>
 
       <nav className="sticky top-0 z-10 mt-6 flex gap-1 overflow-x-auto border-y border-navy/10 bg-background/95 py-2 backdrop-blur" aria-label="Seções do contrato">
-        {[...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS].map((secao) => (
-          <a key={secao} href={`#contrato-${secao.toLowerCase()}`} className="shrink-0 px-3 py-2 text-sm text-navy/65 hover:text-navy">
-            {secao}
+        {SECOES_CONTRATO.map((secao) => (
+          <a
+            key={secao.id}
+            href={`#${secao.id}`}
+            className="inline-flex min-h-11 shrink-0 items-center px-3 text-sm text-navy/65 hover:text-navy"
+          >
+            {secao.rotulo}
           </a>
         ))}
       </nav>
@@ -503,15 +518,32 @@ function ContratoDetalhe() {
       </div>
 
       <div className="mt-4 space-y-5">
-        <div id="contrato-resumo" className="scroll-mt-24"><CaCard titulo="Resumo"><Resumo dados={d} onSalvo={recarregar} /></CaCard></div>
         <div id="contrato-partes" className="scroll-mt-24"><CaCard titulo="Partes"><Partes dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-escopo" className="scroll-mt-24"><CaCard titulo="Escopo e condição comercial"><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-cláusulas" className="scroll-mt-24"><CaCard titulo="Texto do contrato"><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e ordem de serviço"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-fontes" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details></CaCard></div>
-        <div id="contrato-validações" className="scroll-mt-24"><CaCard titulo="Validação jurídica da trilha"><Validacoes dados={d} /></CaCard></div>
-        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details open={historicoAberto} onToggle={(e) => setHistoricoAberto(e.currentTarget.open)}><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /><HistoricoImportado contratoId={id} /></div></details></CaCard></div>
-        <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
+        <div id="contrato-escopo" className="scroll-mt-24"><CaCard titulo="Escopo e entregas"><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-condicoes" className="scroll-mt-24"><CaCard titulo="Condições e vigência"><Resumo dados={d} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e OS"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-texto" className="scroll-mt-24">
+          <CaCard titulo="Texto do contrato">
+            <Clausulas dados={d} contratoId={id} onSalvo={recarregar} />
+            <details className="mt-5 border-t border-navy/10 pt-4">
+              <summary className="cursor-pointer font-serif text-base text-navy">Fontes das cláusulas</summary>
+              <div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div>
+            </details>
+          </CaCard>
+        </div>
+        <div id="contrato-assinatura" className="scroll-mt-24">
+          <CaCard titulo="Assinatura">
+            <section aria-label="Validação jurídica da trilha">
+              <h3 className="mb-3 font-serif text-base text-navy">Validação jurídica da trilha</h3>
+              <Validacoes dados={d} />
+            </section>
+            <section aria-label="Revisão e assinatura" className="mt-5 border-t border-navy/10 pt-4">
+              <h3 className="mb-3 font-serif text-base text-navy">Revisão e assinatura</h3>
+              <Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} />
+            </section>
+          </CaCard>
+        </div>
+        <div id="contrato-historico" className="scroll-mt-24"><CaCard><details open={historicoAberto} onToggle={(e) => setHistoricoAberto(e.currentTarget.open)}><summary className="cursor-pointer font-serif text-lg text-navy">Histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /><HistoricoImportado contratoId={id} /></div></details></CaCard></div>
       </div>
     </SaasShell>
     </div>
@@ -782,7 +814,7 @@ function CardsPartes({
               </>
             ) : null}
             <dt className="text-navy/55">Capacidade</dt>
-            <dd>{p.legal_capacity_status}</dd>
+            <dd>{ROTULO_CAPACIDADE_PARTE[p.legal_capacity_status] ?? "Não registrado"}</dd>
             <dt className="text-navy/55">Assinatura</dt>
             <dd>{p.signature_required ? "requerida" : "não requerida"}</dd>
           </dl>
@@ -850,7 +882,7 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
                   ) : null}
                 </td>
                 <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
-                <td className="px-3 py-2">{p.legal_capacity_status}</td>
+                <td className="px-3 py-2">{ROTULO_CAPACIDADE_PARTE[p.legal_capacity_status] ?? "Não registrado"}</td>
                 <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>
                 <td className="px-3 py-2 text-right">
                   {!p.archived_at ? (
@@ -989,7 +1021,7 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
           {["included", "excluded", "pending", "conditional", "not_applicable"].map((v) => (
             <option key={v} value={v}>
-              {v}
+              {ROTULO_STATUS_ESCOPO[v] ?? v}
             </option>
           ))}
         </select>

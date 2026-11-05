@@ -44,6 +44,26 @@ async function contar(supabase: any, tabela: string, organizationId: string, fil
 
 export type SuperficiesKit = Awaited<ReturnType<typeof carregarSuperficiesKit>>;
 
+/**
+ * DB-01 (05/11/2026): contar `audit_logs` era a leitura mais cara do banco (608 chamadas, média 503 ms),
+ * porque a regra de leitura confere o papel de admin linha a linha. Só a Governança mostra esse número,
+ * mas a contagem rodava em toda tela que usa os indicadores do kit. Agora roda só onde aparece, e uma
+ * falha de leitura vira erro visível em vez de zero.
+ */
+export const contarAuditoriaKit = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const { count, error } = await supabase
+      .from("audit_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", organizationId);
+    if (error) throw new Error(`Não foi possível contar os registros de auditoria: ${error.message}`);
+    return { auditoriaTotal: typeof count === "number" ? count : null };
+  });
+
 export const carregarSuperficiesKit = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -112,12 +132,12 @@ export const carregarSuperficiesKit = createServerFn({ method: "GET" })
         .sort((a, b) => b.value - a.value);
     };
 
-    const [leadsTotal, evidenciasTotal, projecoesTotal, faturasTotal, auditoriaTotal] = await Promise.all([
+    // DB-01 (05/11/2026): a contagem de auditoria saiu daqui — ver `contarAuditoriaKit`.
+    const [leadsTotal, evidenciasTotal, projecoesTotal, faturasTotal] = await Promise.all([
       contar(supabase, "leads", organizationId),
       contar(supabase, "evidences", organizationId),
       contar(supabase, "app_projections", organizationId),
       contar(supabase, "invoices", organizationId),
-      contar(supabase, "audit_logs", organizationId),
     ]);
 
     return {
@@ -139,7 +159,6 @@ export const carregarSuperficiesKit = createServerFn({ method: "GET" })
       evidenciasTotal,
       projecoesTotal,
       faturasTotal,
-      auditoriaTotal,
       destaques: reais.slice(0, 8).map((c) => ({
         id: c["id"] as string,
         codigo: (c["codigo"] as string) ?? null,
