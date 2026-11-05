@@ -103,6 +103,7 @@ import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaUnica } from "@/components/caso/ficha-unica";
+import { resolverSecaoCaso } from "@/lib/ficha-unica-caso";
 import { CaseHealthHero, saudeDoCaso } from "@/components/caso/case-health-hero";
 import { DossieConsolidado } from "@/components/caso/dossie-consolidado";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
@@ -979,7 +980,11 @@ function FichaCaso() {
   // 18/10/2026: reage também à âncora vinda do menu lateral (Caso 360 / Jornada / Ficha Única).
   const hashRota = useRouterState({ select: (s) => s.location.hash });
   useEffect(() => {
-    const alvo = (hashRota || window.location.hash).replace("#", "");
+    // J03 (05/11/2026): nomes antigos (Ficha Piloto, Ficha Master, Formalização…) caem na seção atual.
+    const alvo = resolverSecaoCaso(
+      hashRota || window.location.hash,
+      SECOES.map((x) => x.id),
+    );
     const secao = SECOES.find((x) => x.id === alvo);
     if (secao) setSecaoFoco(secao.id);
     // #visao (menu "Caso 360") abre o resumo; qualquer outra seção abre a ficha nela.
