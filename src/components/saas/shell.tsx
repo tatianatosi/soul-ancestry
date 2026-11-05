@@ -414,8 +414,10 @@ export function SaasShell({
             uma letra por linha. Empilhado, o título sempre tem a largura toda; a
             partir de `sm:` volta a dividir a linha com as ações, como antes.
           */}
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-            <div className="w-full min-w-0 max-w-full sm:w-auto sm:flex-1">
+          {/* 05/11/2026: no computador o título também sumia (Caso 360 a 1280 px, ações largas). O título
+              guarda largura mínima e as ações descem para a linha seguinte quando não cabem. */}
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4">
+            <div className="w-full min-w-0 max-w-full sm:w-auto sm:min-w-[14rem] sm:flex-1">
               <h1 className="break-words font-serif text-2xl leading-tight text-navy sm:text-3xl">{titulo}</h1>
               {descricao ? (
                 <p className="overflow-wrap-anywhere mt-1 text-xs text-navy/60">{descricao}</p>

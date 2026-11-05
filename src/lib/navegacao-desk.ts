@@ -252,13 +252,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     to: "/clientes",
     label: "Pessoas & Famílias",
     descricao:
-      "Pessoa 360, núcleos familiares, participantes, acessos ao App Cliente e visão administrativa do App.",
+      "Pessoa 360, núcleos familiares, revisão de núcleos duplicados, acessos ao App Cliente e visão administrativa do App.",
     icone: "pessoas",
     agrupador: true,
     sub: [
       { to: "/clientes", label: "Pessoa 360" },
       { to: "/nucleos", label: "Núcleos familiares" },
-      { to: "/nucleos-duplicidades", label: "Participantes e duplicidades" },
+      // J04 (05/11/2026): a tela revisa núcleos duplicados; não é cadastro separado de participante.
+      { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados" },
       { to: "/acessos-portal", label: "Acessos ao App Cliente" },
       { to: "/app-cliente-como-pessoa", label: "Visão administrativa do App" },
     ],

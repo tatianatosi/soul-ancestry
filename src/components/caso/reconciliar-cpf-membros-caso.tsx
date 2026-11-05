@@ -59,7 +59,7 @@ export function ReconciliarCpfMembrosCaso({
         <span className="text-[11px] text-navy/55">Pessoa Canônica · nunca funde automaticamente</span>
       </div>
       <p className="mt-1 text-xs text-navy/65">
-        Compara o CPF de cada membro do caso já vinculado a uma pessoa cadastrada (`clientes`). Só
+        Compara o CPF de cada membro do caso já vinculado a uma pessoa cadastrada na Pessoa 360. Só
         preenche quem está com CPF vazio. Um CPF já preenchido que diverge do canônico nunca é
         sobrescrito aqui — fica marcado como conflito para decisão humana.
       </p>
