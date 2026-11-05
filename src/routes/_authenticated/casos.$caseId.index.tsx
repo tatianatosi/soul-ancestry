@@ -982,7 +982,7 @@ function FichaCaso() {
   useEffect(() => {
     // J03 (05/11/2026): nomes antigos (Ficha Piloto, Ficha Master, Formalização…) caem na seção atual.
     const alvo = resolverSecaoCaso(
-      hashRota || window.location.hash,
+      (hashRota || window.location.hash).replace("#", ""),
       SECOES.map((x) => x.id),
     );
     const secao = SECOES.find((x) => x.id === alvo);

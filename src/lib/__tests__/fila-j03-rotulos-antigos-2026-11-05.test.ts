@@ -28,6 +28,6 @@ describe("J03 — endereços antigos do Caso 360", () => {
 
   it("o Caso 360 usa o resolvedor ao ler o endereço", () => {
     const pagina = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
-    expect(pagina).toMatch(/resolverSecaoCaso\(\s*hashRota \|\| window\.location\.hash/);
+    expect(pagina).toMatch(/resolverSecaoCaso\(\s*\(hashRota \|\| window\.location\.hash\)\.replace\("#", ""\)/);
   });
 });
