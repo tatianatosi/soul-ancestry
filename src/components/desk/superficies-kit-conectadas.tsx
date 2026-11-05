@@ -19,7 +19,7 @@ import {
   type BarDatum,
   type KanbanItem,
 } from "@/components/clube-ancestral-kit";
-import { carregarSuperficiesKit, type SuperficiesKit } from "@/lib/kit-superficies.functions";
+import { carregarSuperficiesKit, contarAuditoriaKit, type SuperficiesKit } from "@/lib/kit-superficies.functions";
 import { listarLeadsDesk } from "@/lib/crm-desk.functions";
 import { etapaComercialDoLead, porEtapaComercial, rotuloEtapaComercial } from "@/lib/golive-comercial";
 
@@ -301,9 +301,18 @@ export function FormalizacaoConectada() {
 /** Grupo 6 · Governança, com volumes reais de auditoria, leads e projeções. */
 export function GovernancaConectada() {
   const q = useSuperficies();
+  // DB-01 (05/11/2026): a contagem de auditoria só é lida aqui, onde aparece.
+  const carregarAuditoria = useServerFn(contarAuditoriaKit);
+  const auditoria = useQuery({
+    queryKey: ["kit-superficies", "auditoria"],
+    queryFn: () => carregarAuditoria({}),
+    retry: false,
+    staleTime: 60_000,
+  });
   if (q.isLoading) return <Carregando rotulo="Carregando indicadores de governança" />;
   if (q.isError || !q.data) return <Falha mensagem="A leitura de governança falhou. Isto é erro de leitura, não ausência de registros." />;
   const d = q.data;
+  const totalAuditoria = auditoria.data?.auditoriaTotal;
 
   return (
     <GovernancaTemplate
@@ -312,8 +321,12 @@ export function GovernancaConectada() {
         { label: "Leads", value: d.leadsTotal ?? 0 },
         { label: "Evidências", value: d.evidenciasTotal ?? 0 },
         { label: "Projeções", value: d.projecoesTotal ?? 0 },
-        { label: "Auditoria", value: d.auditoriaTotal ?? 0 },
+        ...(typeof totalAuditoria === "number" ? [{ label: "Auditoria", value: totalAuditoria }] : []),
       ]}
-    />
+    >
+      {auditoria.isError ? (
+        <Falha mensagem="A contagem de auditoria falhou. Isto é erro de leitura, não ausência de registros." />
+      ) : null}
+    </GovernancaTemplate>
   );
 }

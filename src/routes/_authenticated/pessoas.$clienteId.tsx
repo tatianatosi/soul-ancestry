@@ -14,6 +14,7 @@ import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import { salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
 import { ContatosDaPessoa } from "@/components/pessoa/contatos-pessoa";
+import { ReconciliacaoCivilPessoa } from "@/components/pessoa/reconciliacao-civil-pessoa";
 import {
   evidenciaDeMesmaPessoa,
   inventarioDocumentalDaPessoa,
@@ -1117,6 +1118,14 @@ function Pessoa() {
               ))}
             </div>
           ) : null}
+          {/* J05 (05/11/2026): mesmos painéis e conferências do Caso 360, por caso desta pessoa. */}
+          <section className="mt-4 border-t border-navy/10 pt-3">
+            <h3 className="mb-2 font-serif text-base text-navy">Conferência de CPF, telefone e CEP</h3>
+            <ReconciliacaoCivilPessoa
+              casos={casos.map((c) => ({ id: String(c.id), rotulo: String(c.codigo ?? c.titulo ?? "Caso sem código") }))}
+              onMudou={() => void qc.invalidateQueries({ queryKey: ["pessoa", clienteId] })}
+            />
+          </section>
         </CaCard>
 
         <CaCard

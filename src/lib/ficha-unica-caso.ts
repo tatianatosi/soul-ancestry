@@ -242,3 +242,31 @@ export function montarBlocosFichaUnica(params: {
   }
   return blocos;
 }
+
+/**
+ * J03 (05/11/2026): endereços antigos do Caso 360 continuam funcionando. Quem chega por um nome anterior
+ * (Ficha Piloto, Ficha Master, Técnico e riscos, Pesquisa Genealógica, Formalização, Histórico…) cai na seção
+ * atual, sem segunda tela. Só casa o endereço inteiro; âncoras internas (ex.: formalizacao-juridico) não mudam.
+ */
+export const ALIASES_SECAO_CASO: Record<string, string> = {
+  ficha: "tecnico",
+  "ficha-unica": "tecnico",
+  "ficha-piloto": "tecnico",
+  "ficha-master": "tecnico",
+  "tecnico-e-riscos": "tecnico",
+  pesquisa: "tecnico",
+  "pesquisa-genealogica": "tecnico",
+  formalizacao: "comercial",
+  contrato: "comercial",
+  historico: "log",
+  "pessoa-e-familia": "pessoas",
+  familia: "pessoas",
+};
+
+export function resolverSecaoCaso<T extends string>(hash: string | null | undefined, ids: readonly T[]): T | null {
+  const alvo = String(hash ?? "").replace(/^#/, "").trim().toLowerCase();
+  if (!alvo) return null;
+  if ((ids as readonly string[]).includes(alvo)) return alvo as T;
+  const alias = ALIASES_SECAO_CASO[alvo];
+  return alias && (ids as readonly string[]).includes(alias) ? (alias as T) : null;
+}
