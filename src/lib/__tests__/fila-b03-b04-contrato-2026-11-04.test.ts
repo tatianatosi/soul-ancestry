@@ -37,4 +37,3 @@ describe("B04 — Enviar ao cliente abre a fila de atendimento no rascunho", () 
     expect(tela).toContain('navigate({ to: "/atendimento", search: { rascunho: rascunhoId } })');
   });
 });
-
