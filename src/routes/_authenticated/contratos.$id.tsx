@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -118,6 +118,7 @@ function ContratoDetalhe() {
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const obter = useServerFn(obterContrato);
   const q = useQuery({ queryKey: ["contrato", id], queryFn: () => obter({ data: { id } }) });
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Resumo");
@@ -432,6 +433,9 @@ function ContratoDetalhe() {
             const r = await externa({ data: { contract_id: id, etapa: "envio" } });
             setAviso(r.mensagem);
             recarregar();
+            // B04 (04/11/2026): o rascunho de envio abre direto na fila de atendimento, para aprovar ali.
+            const rascunhoId = (r as { rascunhoId?: string }).rascunhoId;
+            if (rascunhoId) void navigate({ to: "/atendimento", search: { rascunho: rascunhoId } });
           }}
         />
         <AcaoOperacional
