@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, type ItemNav } from "@/lib/navegacao-desk";
 
 /**
  * J04 (05/11/2026): uma pessoa, um cadastro (Pessoa 360). O menu não oferece Cliente, Perfil, Participante
@@ -8,17 +8,21 @@ import { GRUPOS_DESK } from "@/lib/navegacao-desk";
  */
 const CADASTRO_SEPARADO = /^(Clientes?|Perfis|Perfil(?! institucional)|Participantes?|Membros?)\b/i;
 
-describe("J04 — menu sem cadastros separados de pessoa", () => {
-  const subs = GRUPOS_DESK.flatMap((g) => (g.sub ?? []).map((s) => ({ grupo: g.id, ...s })));
+type Link = Extract<ItemNav, { to: string }>;
+const ehLink = (i: ItemNav): i is Link => "to" in i;
+const links = (sub: ItemNav[] | undefined): Link[] => (sub ?? []).filter(ehLink);
 
+describe("J04 — menu sem cadastros separados de pessoa", () => {
   it("nenhuma entrada de menu se apresenta como cadastro de Cliente, Perfil, Participante ou Membro", () => {
-    expect(subs.filter((s) => CADASTRO_SEPARADO.test(s.label))).toEqual([]);
+    const todos = GRUPOS_DESK.flatMap((g) => links(g.sub));
+    expect(todos.filter((s) => CADASTRO_SEPARADO.test(s.label)).map((s) => s.label)).toEqual([]);
   });
 
   it("Pessoa 360 é a entrada única de pessoa; a revisão de duplicidades mantém a rota", () => {
     const pessoas = GRUPOS_DESK.find((g) => g.id === "pessoas");
-    expect(pessoas?.sub?.find((s) => s.to === "/clientes")?.label).toBe("Pessoa 360");
-    expect(pessoas?.sub?.find((s) => s.to === "/nucleos-duplicidades")?.label).toBe("Possíveis núcleos duplicados");
+    const sub = links(pessoas?.sub);
+    expect(sub.find((s) => s.to === "/clientes")?.label).toBe("Pessoa 360");
+    expect(sub.find((s) => s.to === "/nucleos-duplicidades")?.label).toBe("Possíveis núcleos duplicados");
     expect(pessoas?.prefixos).toContain("/nucleos-duplicidades");
   });
 });
