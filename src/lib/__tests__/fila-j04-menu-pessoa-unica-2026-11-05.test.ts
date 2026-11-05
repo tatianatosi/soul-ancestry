@@ -10,7 +10,7 @@ const CADASTRO_SEPARADO = /^(Clientes?|Perfis|Perfil(?! institucional)|Participa
 
 type Link = Extract<ItemNav, { to: string }>;
 const ehLink = (i: ItemNav): i is Link => "to" in i;
-const links = (sub: ItemNav[] | undefined): Link[] => (sub ?? []).filter(ehLink);
+const links = (sub: readonly ItemNav[] | undefined): Link[] => (sub ?? []).filter(ehLink);
 
 describe("J04 — menu sem cadastros separados de pessoa", () => {
   it("nenhuma entrada de menu se apresenta como cadastro de Cliente, Perfil, Participante ou Membro", () => {
