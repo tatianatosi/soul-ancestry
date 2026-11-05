@@ -11,7 +11,7 @@
 - [x] Aviso de hidratação "details dentro de p" na faixa Alimento do Desk.
 - [ ] Integrar estes cortes à main por PR (merge commit, checks verdes).
 - [ ] Investigar tela que tenta apagar contract_validation_results (erro 02/11 18:13).
-- [ ] Seguir a fila (mensagem 05/11 00:23 = fila v1; vale `docs/execucao/DECISOES…` onde diverge — I01 mantém 8 grupos): bloco B (B01–B08), depois D, C, E, F, G, H, I.
+- [ ] Seguir a fila na ordem oficial (`docs/execucao/FILA…v2.md` §Ordem, revisada 05/11 00:36): A ✔ → **B, D e J em paralelo** → C, K e M → E, F e G → H, I, L e N. Bloco Q em paralelo (atrasado: devia rodar junto do A). Bloco O é da Proprietária desde a #235. Onde v1 (00:23) diverge, vale v2 + DECISOES (I01 mantém 8 grupos).
   - [x] B02 já testado (v7). [ ] B02 "Nova versão" como botão separado do "Salvar rascunho".
   - [ ] B03 cancelar com motivo · [ ] B04 envio abre /atendimento?rascunho · [ ] B05 decisão humana atual + selo · [ ] B06/B07 conferir cards e 375 · [ ] B08 assinatura consistente.
 - [ ] Otimização do banco (skill database-optimization, 05/11 00:33): consultas mais lentas → EXPLAIN → índice só com ganho medido; índices/migration exigem palavra da Proprietária (preparar SQL, não aplicar sem ela).
