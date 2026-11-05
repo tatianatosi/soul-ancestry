@@ -1209,6 +1209,117 @@ export const arquivarItemContrato = createServerFn({ method: "POST" })
 
 /* ==================== VERSÕES, VALIDAÇÃO E REVISÃO ==================== */
 
+/**
+ * B02 (05/11/2026): leitura do instrumento e montagem do texto, compartilhada por "Nova versão"
+ * (`gerarRascunhoInterno`, cria a versão seguinte) e "Salvar rascunho" (`salvarRascunhoAtual`,
+ * regrava a versão de trabalho aberta). Uma montagem só, para as duas ações nunca divergirem.
+ */
+async function montarConteudoDoInstrumento(supabase: Sb, organizationId: string, contractId: string) {
+  const data = { contract_id: contractId };
+  const helpers = await import("./contratos.server");
+  const base = { organization_id: organizationId, contract_id: data.contract_id };
+  const [contrato, partes, escopo, clausulas, anexos, ultima] = await Promise.all([
+    supabase
+      .from("contracts")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id)
+      .maybeSingle(),
+    supabase.from("contract_parties").select("*").match(base).is("archived_at", null),
+    supabase.from("contract_scope_items").select("*").match(base).is("archived_at", null),
+    supabase.from("contract_clause_overrides").select("*").match(base).is("archived_at", null),
+    supabase.from("contract_annexes").select("*").match(base).is("archived_at", null),
+    supabase
+      .from("contract_versions")
+      .select("id,version_number")
+      .match(base)
+      .order("version_number", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
+  if (contrato.data.status === "signed") throw new Error("Contrato assinado é imutável: use complementar ou aditivo.");
+
+  // Achado 06/09 (CA-CONTRATO-RASCUNHO-SEM-MODELO-013): o instrumento é
+  // vinculado a um contract_templates.id (contrato.data.template_id) desde a
+  // criação, mas esse ID nunca era lido de volta — só gravado como rótulo em
+  // contract_versions.source_template_id. O modelo real (14 cláusulas
+  // completas, preâmbulo, perfil institucional, em
+  // contract_templates.default_clauses) ficava 100% sem uso: quem editava o
+  // contrato via UI (contract_clause_overrides vazio) sempre via "Cláusulas
+  // indicadas: Pendente de preenchimento", mesmo com o modelo pronto e
+  // aprovado no banco. Buscamos o modelo aqui para servir de piso textual
+  // quando não há cláusula específica sobrescrita para este contrato.
+  let modelo: any = null;
+  if (contrato.data.template_id) {
+    const r = await supabase
+      .from("contract_templates")
+      .select("id,name,default_clauses,status")
+      .eq("organization_id", organizationId)
+      .eq("id", contrato.data.template_id)
+      .maybeSingle();
+    modelo = r.data ?? null;
+  }
+
+  /*
+    Achado 05/09 (CA-CONTRATO-OS-SEM-BLOQUEIO-SURREAL-011): esta checagem
+    barrava a própria geração do RASCUNHO INTERNO — que a tela já rotula
+    "não enviar/não assinar" — com requisitos que só fazem sentido para um
+    ato externo. Criar/editar minuta interna precisa ser sempre possível;
+    quem realmente barra envio/assinatura é aprovarParaEnvio (re-executa
+    esta mesma conciliação) e tentarEtapaExterna (etapa desabilitada nesta
+    fase, incondicionalmente). Aqui a pendência só passa a ser registrada —
+    no evento de auditoria e devolvida ao chamador — nunca mais lançada como
+    erro que impede salvar o trabalho em andamento.
+  */
+  let pendenciasConciliacao: string[] = [];
+  {
+    const { conciliacaoDoContrato } = await import("@/lib/conciliacao-catalogo.server");
+    const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
+    const conc = await conciliacaoDoContrato(supabase as any, {
+      org: organizationId,
+      contractId: data.contract_id,
+    });
+    if (conc) {
+      const barra = mensagemBloqueio(conc);
+      if (barra) {
+        pendenciasConciliacao = conc.bloqueios;
+        await evento(supabase, organizationId, data.contract_id, "render_blocked", {
+          motivo: "conciliacao_catalogo",
+          bloqueios: conc.bloqueios.length,
+          observacao: "rascunho interno gerado mesmo assim — pendência registrada, não impeditiva",
+        });
+      }
+    } else if (!linhasDe<any>(escopo, "itens de escopo do instrumento").length) {
+      pendenciasConciliacao = ["Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados."];
+    }
+  }
+
+
+  let contratoBase: any = null;
+  if (contrato.data.parent_contract_id) {
+    const r = await supabase
+      .from("contracts")
+      .select("id,contract_number")
+      .eq("organization_id", organizationId)
+      .eq("id", contrato.data.parent_contract_id)
+      .maybeSingle();
+    contratoBase = r.data ?? null;
+  }
+
+  const conteudo = helpers.montarRascunho({
+    contrato: contrato.data,
+    partes: linhasDe<any>(partes, "partes do instrumento"),
+    escopo: linhasDe<any>(escopo, "itens de escopo do instrumento"),
+    clausulas: linhasDe<any>(clausulas, "cláusulas do instrumento"),
+    anexos: linhasDe<any>(anexos, "anexos do instrumento"),
+    contratoBase,
+    modeloClausulas: modelo?.default_clauses ?? null,
+    modeloStatus: modelo?.status ?? null,
+  });
+  return { contrato, ultima, conteudo, pendenciasConciliacao, helpers };
+}
+
 export const gerarRascunhoInterno = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contract_id: string; change_summary?: string }) => data)
@@ -1217,107 +1328,11 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contexto(supabase, context.userId as string);
     exigir(papel, PREPARA, "Seu papel não permite gerar rascunhos.");
 
-    const helpers = await import("./contratos.server");
-    const base = { organization_id: organizationId, contract_id: data.contract_id };
-    const [contrato, partes, escopo, clausulas, anexos, ultima] = await Promise.all([
-      supabase
-        .from("contracts")
-        .select("*")
-        .eq("organization_id", organizationId)
-        .eq("id", data.contract_id)
-        .maybeSingle(),
-      supabase.from("contract_parties").select("*").match(base).is("archived_at", null),
-      supabase.from("contract_scope_items").select("*").match(base).is("archived_at", null),
-      supabase.from("contract_clause_overrides").select("*").match(base).is("archived_at", null),
-      supabase.from("contract_annexes").select("*").match(base).is("archived_at", null),
-      supabase
-        .from("contract_versions")
-        .select("id,version_number")
-        .match(base)
-        .order("version_number", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
-    if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
-    if (contrato.data.status === "signed") throw new Error("Contrato assinado é imutável: use complementar ou aditivo.");
-
-    // Achado 06/09 (CA-CONTRATO-RASCUNHO-SEM-MODELO-013): o instrumento é
-    // vinculado a um contract_templates.id (contrato.data.template_id) desde a
-    // criação, mas esse ID nunca era lido de volta — só gravado como rótulo em
-    // contract_versions.source_template_id. O modelo real (14 cláusulas
-    // completas, preâmbulo, perfil institucional, em
-    // contract_templates.default_clauses) ficava 100% sem uso: quem editava o
-    // contrato via UI (contract_clause_overrides vazio) sempre via "Cláusulas
-    // indicadas: Pendente de preenchimento", mesmo com o modelo pronto e
-    // aprovado no banco. Buscamos o modelo aqui para servir de piso textual
-    // quando não há cláusula específica sobrescrita para este contrato.
-    let modelo: any = null;
-    if (contrato.data.template_id) {
-      const r = await supabase
-        .from("contract_templates")
-        .select("id,name,default_clauses,status")
-        .eq("organization_id", organizationId)
-        .eq("id", contrato.data.template_id)
-        .maybeSingle();
-      modelo = r.data ?? null;
-    }
-
-    /*
-      Achado 05/09 (CA-CONTRATO-OS-SEM-BLOQUEIO-SURREAL-011): esta checagem
-      barrava a própria geração do RASCUNHO INTERNO — que a tela já rotula
-      "não enviar/não assinar" — com requisitos que só fazem sentido para um
-      ato externo. Criar/editar minuta interna precisa ser sempre possível;
-      quem realmente barra envio/assinatura é aprovarParaEnvio (re-executa
-      esta mesma conciliação) e tentarEtapaExterna (etapa desabilitada nesta
-      fase, incondicionalmente). Aqui a pendência só passa a ser registrada —
-      no evento de auditoria e devolvida ao chamador — nunca mais lançada como
-      erro que impede salvar o trabalho em andamento.
-    */
-    let pendenciasConciliacao: string[] = [];
-    {
-      const { conciliacaoDoContrato } = await import("@/lib/conciliacao-catalogo.server");
-      const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
-      const conc = await conciliacaoDoContrato(supabase as any, {
-        org: organizationId,
-        contractId: data.contract_id,
-      });
-      if (conc) {
-        const barra = mensagemBloqueio(conc);
-        if (barra) {
-          pendenciasConciliacao = conc.bloqueios;
-          await evento(supabase, organizationId, data.contract_id, "render_blocked", {
-            motivo: "conciliacao_catalogo",
-            bloqueios: conc.bloqueios.length,
-            observacao: "rascunho interno gerado mesmo assim — pendência registrada, não impeditiva",
-          });
-        }
-      } else if (!linhasDe<any>(escopo, "itens de escopo do instrumento").length) {
-        pendenciasConciliacao = ["Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados."];
-      }
-    }
-
-
-    let contratoBase: any = null;
-    if (contrato.data.parent_contract_id) {
-      const r = await supabase
-        .from("contracts")
-        .select("id,contract_number")
-        .eq("organization_id", organizationId)
-        .eq("id", contrato.data.parent_contract_id)
-        .maybeSingle();
-      contratoBase = r.data ?? null;
-    }
-
-    const conteudo = helpers.montarRascunho({
-      contrato: contrato.data,
-      partes: linhasDe<any>(partes, "partes do instrumento"),
-      escopo: linhasDe<any>(escopo, "itens de escopo do instrumento"),
-      clausulas: linhasDe<any>(clausulas, "cláusulas do instrumento"),
-      anexos: linhasDe<any>(anexos, "anexos do instrumento"),
-      contratoBase,
-      modeloClausulas: modelo?.default_clauses ?? null,
-      modeloStatus: modelo?.status ?? null,
-    });
+    const { contrato, ultima, conteudo, pendenciasConciliacao, helpers } = await montarConteudoDoInstrumento(
+      supabase,
+      organizationId,
+      data.contract_id,
+    );
 
     const proxima = (ultima.data?.version_number ?? 0) + 1;
 
