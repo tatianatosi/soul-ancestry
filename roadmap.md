@@ -13,13 +13,20 @@
 - [ ] Investigar tela que tenta apagar contract_validation_results (erro 02/11 18:13).
 - [ ] Seguir a fila na ordem oficial (`docs/execucao/FILA…v2.md` §Ordem, revisada 05/11 00:36): A ✔ → **B, D e J em paralelo** → C, K e M → E, F e G → H, I, L e N. Bloco Q em paralelo (atrasado: devia rodar junto do A). Bloco O é da Proprietária desde a #235. Onde v1 (00:23) diverge, vale v2 + DECISOES (I01 mantém 8 grupos).
   - [x] B02 já testado (v7). [ ] B02 "Nova versão" como botão separado do "Salvar rascunho".
-  - [x] B03 cancelar com motivo · [x] B04 envio abre /atendimento?rascunho — #236 (merge 93b72feb). [ ] B05 decisão humana atual + selo — pronto e testado no editor; PR na próxima rodada a partir do commit de sincronia (arquivo do contrato grande demais para transcrever). · [ ] B06/B07 conferir cards e 375 · [ ] B08 assinatura consistente.
-  - [ ] D01 filtros do catálogo de fontes — pronto e testado (1280/375); PR na próxima rodada a partir do commit de sincronia.
-  - [x] J01 JÁ FEITO (Pessoa 360 lê pesquisa por research_person_id). [ ] J02 tela única dos três elos · [ ] J03 rótulos antigos redirecionam.
-  - [ ] J04 menu: "Participantes e duplicidades" → "Possíveis núcleos duplicados" (nome real da tela) — pronto e testado; PR a partir da sincronia.
-  - [ ] J05 painéis de CPF/telefone/CEP na Pessoa 360 (mesmos painéis e conferências do Caso 360, por caso) — pronto, testado, visto em 1280/375 sem overflow; PR a partir da sincronia.
-  - [ ] Copy dos painéis de reconciliação mostra nome técnico "`clientes`" (regra: sem nome de tabela no fluxo) — trocar por "pessoa cadastrada".
-- [ ] Otimização do banco (skill database-optimization, 05/11 00:33): consultas mais lentas → EXPLAIN → índice só com ganho medido; índices/migration exigem palavra da Proprietária (preparar SQL, não aplicar sem ela).
+  - [x] B03 cancelar com motivo · [x] B04 envio abre /atendimento?rascunho — #236 (merge 93b72feb). [x] B05 decisão humana atual + selo — #239 (merge fc41dfbf). · [ ] B06/B07 conferir cards e 375 · [ ] B08 assinatura consistente.
+  - [x] D01 filtros do catálogo de fontes — #240 (merge ad7adde2).
+  - [x] J01 JÁ FEITO (Pessoa 360 lê pesquisa por research_person_id). [ ] J02 tela única dos três elos · [ ] J03 rótulos antigos redirecionam — pronto/testado; PR na fila de integração.
+  - [ ] J04 menu: "Participantes e duplicidades" → "Possíveis núcleos duplicados" — pronto/testado (tipo do teste corrigido 05/11); PR na fila de integração.
+  - [ ] J05 painéis de CPF/telefone/CEP na Pessoa 360 — agora dentro do cartão Casos (mantém 14 cartões); pronto/testado; PR na fila de integração.
+  - [ ] Copy dos painéis de reconciliação sem "`clientes`" — pronto/testado; PR na fila de integração.
+  - [ ] Título do Caso 360 com largura mínima no computador — pronto/testado; PR na fila de integração.
+- [x] Prévia em branco (05/11 13:06): `equipe.functions.ts` deixava a leitura do cabeçalho no pacote do navegador; corrigido com createServerOnlyFn — PR #241 em verificação. Publicação pedida pela Proprietária 05/11 e solicitada 14:24 UTC.
+- [ ] Otimização do banco (skill database-optimization): análise concluída 05/11. As 4 leituras mais caras são de `audit_logs` (~412 s somados); a tabela tem 2.669 linhas e sem a regra de leitura o plano custa ~1 ms — a causa é a regra `has_org_role` avaliada linha a linha (função SECURITY DEFINER, sem índice além da chave).
+  - [ ] DB-01 (código, sem banco): contagem de auditoria só na Governança, falha visível — pronto/testado, visto em 1280/375; PR na fila de integração.
+  - [ ] DB-02 (migration + RLS, exige palavra da Proprietária): `supabase/pendentes/20261105010000_audit_logs_indices_e_leitura_por_conjunto.sql` — 2 índices + leitura por conjunto. Não aplicado.
+  - [ ] Custo em créditos do banco não medido nesta análise.
+- [ ] Registro de auditoria (Governança): selo "Registrado" quebra em "Registrad/o" a 1280 px e a ação mostra o endereço técnico serverFn/… — rótulo humano e selo sem quebra.
+- [ ] 05/11 13:06–14:20: a prévia quebrada gerou registros `erro app` no banco real (Governança mostra 8). Não apagar (exclusão exige palavra da Proprietária); só registrar a causa.
 - [ ] Bloco Q (mensagem 05/11 00:33; ≤3 arquivos/item; nada apagado; sai só como ENTREGUE/SUPERADO/PORTADO):
   - [x] Q01a script corrigido (erro do git vira ERRO_GIT; renomeação/remoção; não grava triagem vazia) — #237 (merge cf6cd58a).
   - [ ] Q01b fluxo manual só leitura `.github/workflows/triagem-branches.yml` — #238; depois disparar e registrar a contagem (o clone do editor não enxerga as branches do GitHub).
