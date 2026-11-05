@@ -70,3 +70,20 @@ Correção registrada: `0b842aee` é commit do Lovable, não a main; a main real
 | [x] B05 | TESTADO | `src/lib/decisao-humana-contrato.ts`, `src/components/contrato/decisao-humana-atual.tsx`, `contratos.$id.tsx` | mesmo teste; prévia autenticada 1280/375 sem rolagem lateral | via PR | Só leitura | Não | Ana: "A versão 6 está aprovada para envio. A versão 7, mais recente, está em preparação. 2 bloqueio(s) formal(is)…"; selo "Sem atos externos automáticos" |
 | [x] B06, B07 | JÁ FEITO | — | prévia 375 sem rolagem lateral (05/11) | antes de #235 | — | — | Sete cartões já existem com resumo/estado/âncora; tabela de versões vira cartões no celular |
 | [x] B08 | JÁ FEITO (código) | — | gatilho `fn_contracts_guard` lido em 05/11 | antes de #235 | — | — | `registrarAssinatura` grava `signed`+`signature_reference`+`signed_at` e o banco recusa sem versão renderizada, revisão humana, condição comercial e pendências; `crm_casos.contrato_assinado=true` da Ana veio da reconciliação autorizada de 23/10 (`requisitos_portal_reconciliados`) — mudar isso é decisão da Proprietária |
+
+Atualização 05/11 01:00: B03/B04 mesclados na **#236** (merge `93b72feb`). B05 ainda só no editor (PR a partir do commit de sincronia).
+
+## Fila — blocos D, J e Q (05/11 01:00, execução Lovable)
+
+| ID | Estado | Arquivos | Teste | Main | Banco | Publicado | Observação |
+|---|---|---|---|---|---|---|---|
+| [ ] D01 | TESTADO no editor | `src/lib/filtros-fontes.ts`, `src/components/pesquisa/filtros-catalogo-fontes.tsx`, `fontes-genealogicas.tsx` | `fila-d01-filtros-fontes-2026-11-05.test.ts`; prévia 1280/375 | PR pendente | Só leitura (23 fontes, 11 países; período ausente em todas → aviso honesto) | Não | Filtros país, período, tipo de acervo, acesso, automação |
+| [x] J01 | JÁ FEITO | — | — | antes de #235 | — | — | Pessoa 360 lê pesquisa por `research_person_id` (vínculo auditado), nunca por nome |
+| [ ] J02 | ABERTO | — | — | — | — | — | Elos existem espalhados; falta a tela única de decisão |
+| [ ] J03 | TESTADO no editor | `src/lib/ficha-unica-caso.ts`, `casos.$caseId.index.tsx` | `fila-j03-rotulos-antigos-2026-11-05.test.ts`; prévia `#ficha-piloto` → Pesquisa | PR pendente | — | Não | Nomes antigos caem na seção atual; âncoras internas não mudam |
+| [ ] J04 | TESTADO no editor | `src/lib/navegacao-desk.ts` | `fila-j04-menu-pessoa-unica-2026-11-05.test.ts` | PR pendente | — | Não | "Participantes e duplicidades" → "Possíveis núcleos duplicados" (nome real da tela); rota mantida |
+| [ ] J05 | TESTADO no editor | `src/components/pessoa/reconciliacao-civil-pessoa.tsx`, `pessoas.$clienteId.tsx` | `fila-j05-reconciliacao-pessoa360-2026-11-05.test.ts`; prévia 1280/375 | PR pendente | Só leitura (nenhuma conferência disparada) | Não | Mesmos painéis e conferências do Caso 360, por caso da pessoa, dentro da ficha completa |
+| [x] Q01a | MESCLADO | `scripts/triagem-classificar.mjs`, `scripts/triagem-branches-e-docs.mjs` | `q01-triagem-classificar-2026-11-05.test.ts` | **#237** `cf6cd58a` | — | — | Erro do git vira ERRO_GIT; renomeação/remoção contam; não grava triagem vazia |
+| [x] Q01b | MESCLADO | `.github/workflows/triagem-branches.yml` | `q01-triagem-workflow-2026-11-05.test.ts` | **#238** `90195d37` | — | — | Fluxo só manual e só leitura num clone completo; o clone do editor não enxerga as branches do GitHub |
+
+Extra (fora da fila, defeito visível): título "Caso 360" saía uma letra por linha a 1280 px — `src/components/saas/shell.tsx` + teste `shell-titulo-largura-minima-2026-11-05.test.ts`; conferido 1280/768/375. PR pendente.
