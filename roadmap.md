@@ -1,5 +1,19 @@
 # Roadmap
 
+## 04/11 noite — Integração à main e fila A (docs/execucao)
+- [x] #234 (esteira Lovable) corrigida (5 testes + matriz) e mesclada a1e6f7a1; #232 dc39a6e9; #233 5424728a (mock staff_access); #231 fe7a2687. Publicação solicitada após merge (pedido da Proprietária 23:08).
+- [x] A05 exigirGate: proprietária assume pendência interna no ato, auditada.
+- [x] A06 recusa do assistente de pesquisa grava audit_logs (usuário, motivo, tela); gate já gravava.
+- [x] A07 Registrar autorização de pesquisa no painel do assistente (4 valores do CHECK).
+- [x] A08 teste do invariante da proprietária.
+- [x] A09 Desk → Radar & Matrizes → "Erros do app e recusas" (sem SQL; política admin já existe).
+- [x] Testes locais não gravam mais erro_app no banco real (suíte completa 23:43: 0 linhas novas).
+- [x] Aviso de hidratação "details dentro de p" na faixa Alimento do Desk.
+- [ ] Integrar estes cortes à main por PR (merge commit, checks verdes).
+- [ ] Investigar tela que tenta apagar contract_validation_results (erro 02/11 18:13).
+- [ ] Seguir a fila: bloco B (contrato) depois D/J.
+- [ ] Republicar depois desses cortes — exige o "pode publicar" da Proprietária.
+
 ## 03/11 — Sincronização integral
 - [ ] Pedido 01:13: cobertura de todas as telas Desk e sete abas App confirmada como requisito; PR225 integrada 703b6579, main posterior96c0fd08 com CI/reservation-sync/painel/alarme success. Cobertura workflows em investigação; seleção main no Git do Lovable não inspecionável por API. Não publicação automática nem escrita de dados.
 

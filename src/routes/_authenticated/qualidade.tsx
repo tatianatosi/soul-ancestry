@@ -12,6 +12,7 @@ import {
   RecomendacoesQualidadeV4,
 } from "@/components/qualidade/kpis-recomendacoes";
 import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado";
+import { ErrosERecusas } from "@/components/qualidade/erros-e-recusas";
 import { CaCard } from "@/components/ui/ca-card";
 import { Selo } from "@/components/comercial/base";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
@@ -80,6 +81,7 @@ function QualidadePage() {
       <div className="mb-6">
         <KpisQualidadeV4 />
       </div>
+      <ErrosERecusas />
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <RecomendacoesQualidadeV4 />
         <PanoramaQualidadeV4 />
