@@ -41,6 +41,7 @@ import {
   aprovarParaEnvio,
   arquivarContrato,
   arquivarItemContrato,
+  cancelarContrato,
   atualizarContrato,
   baixarVersaoInterna,
   criarExcecao,
@@ -139,6 +140,7 @@ function ContratoDetalhe() {
   const validar = useServerFn(executarValidacoes);
   const solicitar = useServerFn(solicitarRevisaoHumana);
   const arquivar = useServerFn(arquivarContrato);
+  const cancelar = useServerFn(cancelarContrato);
   const externa = useServerFn(tentarEtapaExterna);
 
   const mGerar = useMutation({
@@ -438,6 +440,19 @@ function ContratoDetalhe() {
             if (rascunhoId) void navigate({ to: "/atendimento", search: { rascunho: rascunhoId } });
           }}
         />
+        {!["signed", "cancelled", "archived"].includes(c.status) ? (
+          <AcaoOperacional
+            rotulo="Cancelar contrato"
+            acaoExterna="excluir_registro_ou_versao"
+            variant="outline"
+            efeito="Marca o instrumento como cancelado, com o motivo. Diferente de arquivar: o registro continua visível no caso e no histórico. Nada é excluído, enviado ou cobrado."
+            onConfirmar={async (motivo) => {
+              await cancelar({ data: { contract_id: id, motivo } });
+              setAviso("Contrato cancelado, com motivo registrado. Nenhum dado foi excluído.");
+              recarregar();
+            }}
+          />
+        ) : null}
         <AcaoOperacional
           rotulo="Arquivar"
           acaoExterna="excluir_registro_ou_versao"

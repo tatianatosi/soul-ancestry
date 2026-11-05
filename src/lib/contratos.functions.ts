@@ -1772,6 +1772,63 @@ export const arquivarContrato = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * B03 (04/11/2026): cancelar é diferente de arquivar. Cancelado = o instrumento deixou de valer para o
+ * caso (status `cancelled` + `cancellation_reason`, vocabulário do CHECK contracts_status_check); o
+ * registro continua na operação e no histórico. Contrato assinado não é cancelado aqui (o banco o
+ * mantém imutável; o caminho é aditivo ou complemento).
+ */
+export const STATUS_QUE_NAO_CANCELAM = ["signed", "cancelled", "archived"] as const;
+
+export const cancelarContrato = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; motivo: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, ["admin", "operacoes"], "Seu papel não permite cancelar instrumentos.");
+    const motivo = data.motivo?.trim();
+    if (!motivo) throw new Error("Cancelamento exige motivo.");
+
+    const { data: atual, error } = await supabase
+      .from("contracts")
+      .select("id,status,case_id")
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!atual) throw new Error("Instrumento não encontrado nesta organização.");
+    if ((STATUS_QUE_NAO_CANCELAM as readonly string[]).includes(atual.status)) {
+      throw new Error(
+        atual.status === "signed"
+          ? "Contrato assinado não é cancelado: registre um aditivo ou complemento."
+          : `O instrumento já está ${atual.status === "cancelled" ? "cancelado" : "arquivado"}.`,
+      );
+    }
+
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contracts",
+      id: data.contract_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: "cancelled", cancellation_reason: motivo },
+    });
+    if (atual.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: atual.case_id as string,
+        eventType: "caso",
+        title: "Contrato cancelado",
+        summaryInternal: motivo,
+        sourceEntityType: "contracts",
+        sourceEntityId: data.contract_id,
+        userId: context.userId as string,
+      });
+    }
+    return { ok: true };
+  });
+
 /* ==================== ORDENS DE SERVIÇO E EXCEÇÕES ==================== */
 
 export const salvarOrdemServico = createServerFn({ method: "POST" })
