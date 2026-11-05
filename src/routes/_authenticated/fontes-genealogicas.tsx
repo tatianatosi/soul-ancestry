@@ -31,7 +31,7 @@ import {
 import { toast } from "sonner";
 import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
 import { FiltrosCatalogoFontes } from "@/components/pesquisa/filtros-catalogo-fontes";
-import { aplicarFiltrosFontes, FILTROS_VAZIOS, type FiltrosFontes } from "@/lib/filtros-fontes";
+import { aplicarFiltrosFontes, FILTROS_VAZIOS, filtrosAtivos, type FiltrosFontes } from "@/lib/filtros-fontes";
 
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Selecao, Texto } from "@/components/caso/campos";
@@ -547,7 +547,7 @@ function FontesGenealogicas() {
           <Indicador
             rotulo="Fontes catalogadas"
             valor={String(grupos.total)}
-            apoio={busca.trim() ? "Na busca atual" : "Catálogo interno"}
+            apoio={busca.trim() || filtrosAtivos(filtros) > 0 ? "Na busca e nos filtros atuais" : "Catálogo interno"}
           />
           <Indicador rotulo="Recomendáveis" valor={String(grupos.recomendaveis.length)} apoio="Uso operacional" />
           <Indicador rotulo="Termos a confirmar" valor={String(grupos.termosAConfirmar.length)} apoio="Aguardam parecer" />
