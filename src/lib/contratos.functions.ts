@@ -1715,6 +1715,7 @@ export const tentarEtapaExterna = createServerFn({ method: "POST" })
     if (!fila.criado) {
       return {
         ok: true,
+        rascunhoId: fila.id,
         mensagem: "Já existe um rascunho de envio aguardando aprovação na fila de comunicações deste caso — nada duplicado.",
       };
     }
@@ -1733,6 +1734,7 @@ export const tentarEtapaExterna = createServerFn({ method: "POST" })
 
     return {
       ok: true,
+      rascunhoId: fila.id,
       mensagem: "Rascunho de envio criado — revise e aprove na fila de comunicações deste caso. Nenhum e-mail foi enviado ainda.",
     };
   });
