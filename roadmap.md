@@ -1,5 +1,11 @@
 # Roadmap
 
+## 05/11 17:44 — Conferência contratual pós-publicação
+- [ ] Corrigir antes da publicação os alertas de permissões contratuais e preços (decisão da Proprietária nesta conferência); aplicação de RLS/migration exige autorização específica.
+- [ ] Integrar #244 e #245 com controles verdes; confirmar main e revisão publicada antes do teste.
+- [ ] Abrir contrato na main publicada, salvar rascunho e criar nova versão; confirmar após recarga.
+- [ ] Registrar assinatura pelo GoLive apenas com comprovação real e conferir status do contrato/caso; nenhum comprovante foi fornecido neste pedido.
+
 ## 04/11 noite — Integração à main e fila A (docs/execucao)
 - [x] #234 (esteira Lovable) corrigida (5 testes + matriz) e mesclada a1e6f7a1; #232 dc39a6e9; #233 5424728a (mock staff_access); #231 fe7a2687. Publicação solicitada após merge (pedido da Proprietária 23:08).
 - [x] A05 exigirGate: proprietária assume pendência interna no ato, auditada.
