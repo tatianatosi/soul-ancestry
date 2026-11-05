@@ -49,6 +49,7 @@ import {
   criarExcecao,
   executarValidacoes,
   gerarRascunhoInterno,
+  salvarRascunhoAtual,
   obterContrato,
   registrarDecisaoRevisao,
   salvarItemContrato,
@@ -411,11 +412,26 @@ function ContratoDetalhe() {
             className="rounded-lg border border-navy/20 px-3 py-2 text-sm md:w-64"
           />
         ) : null}
+        {/* B02 (05/11/2026): "Salvar rascunho" regrava a versão de trabalho aberta; "Nova versão" cria a seguinte. */}
+        {(d.versoes as any[]).length ? (
+          <button
+            onClick={() => mSalvar.mutate()}
+            disabled={mSalvar.isPending}
+            className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90 disabled:opacity-60"
+          >
+            {mSalvar.isPending ? "Salvando…" : "Salvar rascunho"}
+          </button>
+        ) : null}
         <button
           onClick={() => mGerar.mutate((d.versoes as any[]).length ? resumoVersao : undefined)}
-          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
+          disabled={mGerar.isPending}
+          className={
+            (d.versoes as any[]).length
+              ? "rounded-lg border border-navy/30 px-3 py-2 text-sm font-medium text-navy hover:bg-navy/5 disabled:opacity-60"
+              : "rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90 disabled:opacity-60"
+          }
         >
-          Salvar rascunho
+          {(d.versoes as any[]).length ? "Nova versão" : "Criar primeira versão"}
         </button>
         <input
           value={tituloTarefa}
