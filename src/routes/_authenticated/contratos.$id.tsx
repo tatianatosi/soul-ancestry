@@ -421,7 +421,7 @@ function ContratoDetalhe() {
           <input
             value={resumoVersao}
             onChange={(e) => setResumoVersao(e.target.value)}
-            placeholder="Resumo das alterações desta versão (opcional)"
+            placeholder="Resumo das alterações (para “Nova versão”)"
             className="rounded-lg border border-navy/20 px-3 py-2 text-sm md:w-64"
           />
         ) : null}
