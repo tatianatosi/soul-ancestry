@@ -57,7 +57,7 @@ export function ReconciliarCepMembrosCaso({
         <span className="text-[11px] text-navy/55">Pessoa Canônica · nunca funde automaticamente</span>
       </div>
       <p className="mt-1 text-xs text-navy/65">
-        Compara o CEP de cada membro do caso já vinculado a uma pessoa cadastrada (`clientes`). Só
+        Compara o CEP de cada membro do caso já vinculado a uma pessoa cadastrada na Pessoa 360. Só
         preenche quem está com CEP vazio. Um CEP já preenchido que diverge do canônico nunca é
         sobrescrito aqui — fica marcado como conflito para decisão humana. Esta é a única tela que
         conecta os dois lugares onde o CEP existe hoje (endereço da pessoa e endereço do membro no
