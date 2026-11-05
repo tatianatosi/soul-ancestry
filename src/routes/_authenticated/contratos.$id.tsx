@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -41,6 +41,7 @@ import {
   aprovarParaEnvio,
   arquivarContrato,
   arquivarItemContrato,
+  cancelarContrato,
   atualizarContrato,
   baixarVersaoInterna,
   criarExcecao,
@@ -118,6 +119,7 @@ function ContratoDetalhe() {
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const obter = useServerFn(obterContrato);
   const q = useQuery({ queryKey: ["contrato", id], queryFn: () => obter({ data: { id } }) });
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Resumo");
@@ -138,6 +140,7 @@ function ContratoDetalhe() {
   const validar = useServerFn(executarValidacoes);
   const solicitar = useServerFn(solicitarRevisaoHumana);
   const arquivar = useServerFn(arquivarContrato);
+  const cancelar = useServerFn(cancelarContrato);
   const externa = useServerFn(tentarEtapaExterna);
 
   const mGerar = useMutation({
@@ -432,8 +435,24 @@ function ContratoDetalhe() {
             const r = await externa({ data: { contract_id: id, etapa: "envio" } });
             setAviso(r.mensagem);
             recarregar();
+            // B04 (04/11/2026): o rascunho de envio abre direto na fila de atendimento, para aprovar ali.
+            const rascunhoId = (r as { rascunhoId?: string }).rascunhoId;
+            if (rascunhoId) void navigate({ to: "/atendimento", search: { rascunho: rascunhoId } });
           }}
         />
+        {!["signed", "cancelled", "archived"].includes(c.status) ? (
+          <AcaoOperacional
+            rotulo="Cancelar contrato"
+            acaoExterna="excluir_registro_ou_versao"
+            variant="outline"
+            efeito="Marca o instrumento como cancelado, com o motivo. Diferente de arquivar: o registro continua visível no caso e no histórico. Nada é excluído, enviado ou cobrado."
+            onConfirmar={async (motivo) => {
+              await cancelar({ data: { contract_id: id, motivo } });
+              setAviso("Contrato cancelado, com motivo registrado. Nenhum dado foi excluído.");
+              recarregar();
+            }}
+          />
+        ) : null}
         <AcaoOperacional
           rotulo="Arquivar"
           acaoExterna="excluir_registro_ou_versao"
