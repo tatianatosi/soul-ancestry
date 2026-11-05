@@ -34,7 +34,7 @@ jobs:
             head -1 docs/triagem/triagem-branches.csv
             grep -v '"JA_NA_MAIN"$' docs/triagem/triagem-branches.csv | tail -n +2
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: triagem-q01
