@@ -27,6 +27,7 @@ import {
   ROTULO_ESCOPO_EXCECAO,
   ROTULO_GATE_PESQUISA,
   ROTULO_ORIGEM_ESCOPO,
+  ROTULO_CAPACIDADE_PARTE,
   ROTULO_PAPEL_PARTE,
   ROTULO_SEVERIDADE_VALIDACAO,
   ROTULO_SITUACAO_VALIDACAO,
@@ -813,7 +814,7 @@ function CardsPartes({
               </>
             ) : null}
             <dt className="text-navy/55">Capacidade</dt>
-            <dd>{p.legal_capacity_status}</dd>
+            <dd>{ROTULO_CAPACIDADE_PARTE[p.legal_capacity_status] ?? "Não registrado"}</dd>
             <dt className="text-navy/55">Assinatura</dt>
             <dd>{p.signature_required ? "requerida" : "não requerida"}</dd>
           </dl>
@@ -881,7 +882,7 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
                   ) : null}
                 </td>
                 <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
-                <td className="px-3 py-2">{p.legal_capacity_status}</td>
+                <td className="px-3 py-2">{ROTULO_CAPACIDADE_PARTE[p.legal_capacity_status] ?? "Não registrado"}</td>
                 <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>
                 <td className="px-3 py-2 text-right">
                   {!p.archived_at ? (
