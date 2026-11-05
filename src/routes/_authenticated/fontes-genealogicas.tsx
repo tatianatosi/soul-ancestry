@@ -30,6 +30,8 @@ import {
 } from "@/lib/fontes-genealogicas.functions";
 import { toast } from "sonner";
 import { FontesPorPaisPainel } from "@/components/pesquisa/fontes-por-pais-painel";
+import { FiltrosCatalogoFontes } from "@/components/pesquisa/filtros-catalogo-fontes";
+import { aplicarFiltrosFontes, FILTROS_VAZIOS, type FiltrosFontes } from "@/lib/filtros-fontes";
 
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Selecao, Texto } from "@/components/caso/campos";
@@ -494,8 +496,9 @@ function FontesGenealogicas() {
     onError: (e: Error) => setErroNovaFonte(e.message),
   });
 
+  const [filtros, setFiltros] = useState<FiltrosFontes>(FILTROS_VAZIOS);
   const grupos = useMemo(() => {
-    const fontes = filtrarPorBusca((data?.fontes ?? []) as Fonte[], busca, [
+    const fontes = filtrarPorBusca(aplicarFiltrosFontes((data?.fontes ?? []) as Fonte[], filtros), busca, [
       "nome",
       "pais_eixo",
       "tipo_de_acervo",
@@ -504,7 +507,7 @@ function FontesGenealogicas() {
       "status_integracao",
     ]);
     return agruparCatalogo(fontes);
-  }, [data, busca]);
+  }, [data, busca, filtros]);
   const matrizPor = (id: string) => (data?.matriz ?? []).filter((m: any) => m.source_id === id);
   const backlogPor = (id: string) => (data?.backlog ?? []).filter((b: any) => b.source_id === id);
 
@@ -560,6 +563,12 @@ function FontesGenealogicas() {
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar fonte por nome, país, tipo ou status"
           className="w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm"
+        />
+        <FiltrosCatalogoFontes
+          fontes={(data.fontes ?? []) as Fonte[]}
+          filtros={filtros}
+          aoMudar={setFiltros}
+          totalFiltrado={grupos.total}
         />
       </header>
 
