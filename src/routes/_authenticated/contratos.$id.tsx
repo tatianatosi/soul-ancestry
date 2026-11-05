@@ -14,6 +14,7 @@ import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { DocumentoDoInstrumento } from "@/components/contrato/documento-do-instrumento";
+import { DecisaoHumanaAtual } from "@/components/contrato/decisao-humana-atual";
 import { HistoricoImportado } from "@/components/contrato/historico-importado";
 import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
@@ -264,6 +265,15 @@ function ContratoDetalhe() {
           <div><p className="text-xs text-muted-foreground">Versões registradas</p><p>{d.versoes.length}</p></div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">{c.signed_at ? "Assinatura registrada no instrumento." : "Assinatura não registrada no instrumento."}</p>
+        <DecisaoHumanaAtual
+          status={String(c.status ?? "")}
+          pendenciaChecklist={pendenciaChecklist}
+          motivoCancelamento={(c.cancellation_reason as string | null) ?? null}
+          responsavelUserId={(c.review_owner_user_id as string | null) ?? null}
+          versoes={((d.versoes as any[]) ?? [])
+            .filter((v) => !v?.archived_at)
+            .map((v) => ({ numero: Number(v.version_number), status: String(v.status ?? "") }))}
+        />
         <Button variant="outline" className="mt-3" onClick={abrirHistorico}><History />Rastrear versões do contrato</Button>
         {c.case_id ? <Button variant="outline" className="mt-3 sm:ml-2" asChild><Link to="/pessoas-linhagens/$caseId" params={{ caseId: String(c.case_id) }}>Registrar nascimento com fonte</Link></Button> : null}
         {/*
