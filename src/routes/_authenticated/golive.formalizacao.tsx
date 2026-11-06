@@ -15,6 +15,7 @@ import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { CartoesFormalizacaoDoCaso } from "@/components/contrato/cartoes-formalizacao";
 import { Button } from "@/components/ui/button";
+import { ComprovanteAssinatura } from "@/components/contrato/comprovante-assinatura";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
   adicionarItemEscopoGoLive,
@@ -274,6 +275,9 @@ function FormalizacaoGoLive() {
                         <div>Sem pendências registradas</div>
                       )}
                     </div>
+                    {!c.assinadoEm ? (
+                      <ComprovanteAssinatura casoId={caso.caso.id} contratoId={c.id} versao={c.versao} />
+                    ) : null}
                     {!c.assinadoEm ? (
                       <Acoes>
                         <Acao
