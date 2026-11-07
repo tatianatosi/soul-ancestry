@@ -37,6 +37,13 @@ export function assumirOuRecusar(
  * Verdadeiro quando quem executa é admin ativo. Para uso onde o papel não está
  * em escopo e só se tem `supabase` e `userId`.
  *
+ * 03/11/2026: a consulta usava `maybeSingle()`. Com mais de uma linha de
+ * `staff_access` para a mesma pessoa (convite antigo, linha repetida) o
+ * PostgREST devolve erro, o `catch` engolia e a proprietária virava "não é
+ * proprietária" em silêncio — todo gate de domínio voltava a bloqueá-la. Agora
+ * lê todas as linhas ativas e não arquivadas: basta uma com papel de
+ * proprietária administradora. Erro de leitura vai ao coletor de erros.
+ *
  * Nunca derruba o fluxo: se a leitura falhar, devolve falso e o gate original
  * segue valendo.
  */
@@ -45,14 +52,25 @@ export async function proprietariaOperando(
   userId: string,
 ): Promise<boolean> {
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("staff_access")
       .select("role,status")
       .eq("auth_user_id", userId)
-      .is("archived_at", null)
-      .maybeSingle();
-    return data?.status === "active" && data?.role === "admin";
-  } catch {
+      .is("archived_at", null);
+    if (error) throw new Error(String(error.message ?? "Falha ao ler staff_access."));
+    const linhas: { role?: string | null; status?: string | null }[] = Array.isArray(data)
+      ? data
+      : data
+        ? [data]
+        : [];
+    return linhas.some((l) => l?.status === "active" && ehProprietariaAdministradora(l?.role));
+  } catch (erro) {
+    try {
+      const { capturarErroProducao } = await import("@/lib/producao-erros.server");
+      await capturarErroProducao(erro, { origem: "servidor", mecanismo: "proprietaria_operando" });
+    } catch {
+      /* registrar o erro nunca pode virar outro erro */
+    }
     return false;
   }
 }

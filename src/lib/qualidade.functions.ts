@@ -346,6 +346,34 @@ export const listarExportacoes = createServerFn({ method: "GET" })
     return { exportacoes: (data ?? []) as Record<string, any>[] };
   });
 
+/**
+ * A09 (04/11/2026): erros do app e recusas do servidor dos últimos 7 dias, para leitura da
+ * proprietária. Lê `audit_logs` com a sessão dela (a política do banco já restringe a leitura ao
+ * admin da organização); erro de leitura aparece, nunca vira lista vazia.
+ */
+export const listarErrosERecusas = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const ctx = await contextoQualidade(supabase, context.userId as string);
+    if (!ctx.ehAdmin) {
+      return { permitido: false as const, registros: [], desde: null as string | null };
+    }
+    const { ACAO_ERRO_APP, ACOES_DE_RECUSA, legivel } = await import("@/lib/erros-e-recusas");
+    const desde = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from("audit_logs")
+      .select("id,created_at,acao,entidade,user_id,metadados")
+      .eq("organization_id", ctx.organizationId)
+      .in("acao", [ACAO_ERRO_APP, ...ACOES_DE_RECUSA])
+      .gte("created_at", desde)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(`Não foi possível ler os registros de erro: ${error.message}`);
+    return { permitido: true as const, registros: ((data ?? []) as any[]).map(legivel), desde };
+  });
+
 /** Monta as linhas de cada conjunto usando somente os campos autorizados. */
 async function coletar(supabase: Sb, org: string, conjunto: string): Promise<Record<string, any>[]> {
   if (conjunto === "inconsistencias") {

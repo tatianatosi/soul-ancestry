@@ -79,3 +79,11 @@ Cada PR: teste novo que falha antes e passa depois, `tsc` e vitest limpos, CI ve
    - `jornada-planejador-motores`, `app-cliente-portal`, `desk-telas`, `pesquisa-genealogia`: banco vivo e navegador não consultados; CHECKs lidos das migrations.
 4. **Achados dos 3 últimos relatórios que ainda não viraram tarefa:** ver a seção "Achados sem tarefa" do backlog.
 
+
+## Revisão de 03/11/2026
+
+- **Todos os relatórios estão entregues:** 12 da rodada 1 e 4 da rodada 2 (`rodada2-crm-leads-calls`, `rodada2-banco-vivo-jornada-pesquisa-portal`, `rodada2-caso360`, `rodada2-contratos-financeiro`). As áreas que a rodada 1 não leu a fundo (leads, calls, Caso 360, contratos, financeiro, banco vivo) foram cobertas pela rodada 2.
+- **Fase 3:** achados da rodada 2 viraram G1–G4 no backlog. Falta só rodar a síntese oficial do Cartographer.
+- **Fase 4:** grafo regenerado em 03/11 (1.697 arquivos, 4.627 arestas, 30 órfãos). Falta a matriz das 195 tabelas.
+- **Fase 6:** `7dbf5716` publicado em 03/11.
+- **Fase 7:** bloqueios em `REALIDADE-LANCAMENTO-2026-11-03.md`.

@@ -1,0 +1,42 @@
+name: Triagem de branches e documentos (Bloco Q01)
+
+# Só por disparo manual (Q01/Q08): roda scripts/triagem-branches-e-docs.mjs num clone completo, sem escrever no
+# repositório. Resultado: resumo do job (branches fora da main) e artefato com os dois CSVs de docs/triagem.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  triagem:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Buscar todas as branches
+        run: git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Rodar a triagem
+        id: rodar
+        run: |
+          node scripts/triagem-branches-e-docs.mjs | tee contagem.json
+      - name: Resumo
+        run: |
+          {
+            echo "## Triagem Q01 — main $(git rev-parse origin/main)"
+            echo '```json'; cat contagem.json; echo '```'
+            echo '### Branches com código ou documento fora da main'
+            echo '```csv'
+            head -1 docs/triagem/triagem-branches.csv
+            grep -v '"JA_NA_MAIN"$' docs/triagem/triagem-branches.csv | tail -n +2
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: triagem-q01
+          path: docs/triagem/
+          retention-days: 30

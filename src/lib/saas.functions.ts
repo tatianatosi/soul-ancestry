@@ -150,6 +150,8 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "link_origem_interna",
     "proxima_acao_codigo",
     "proxima_acao_justificativa",
+    // A07 (04/11/2026): autorização de pesquisa registrada na ficha (CHECK da migration 20260821135341).
+    "estado_de_autorizacao_pesquisa",
     // "alias_historico" migrou para case_aliases (histórico imutável, somente leitura na ficha).
     // Jornada, comunicação e alertas
     "proposta_id_origem",
@@ -386,14 +388,18 @@ export const getContexto = createServerFn({ method: "GET" })
     const supabase = context.supabase as unknown as SupabaseCliente;
 
     // Autorização interna vem sempre de staff_access (nunca do front-end).
-    const staff = await supabase
+    // A04 (04/11/2026): sem maybeSingle — duplicidade histórica não pode virar erro nem papel vazio.
+    const staffLinhas = await supabase
       .from("staff_access")
-      .select("id,role,status,organization_id,full_name")
+      .select("id,role,status,organization_id,full_name,updated_at")
       .eq("auth_user_id", context.userId)
       .is("archived_at", null)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(20);
     // Falha ao ler o acesso de equipe não pode cair no caminho "sem staff" (que cria organização e assume admin).
-    if (staff.error) throw new Error(`Não foi possível ler o seu acesso de equipe: ${staff.error.message}`);
+    if (staffLinhas.error) throw new Error(`Não foi possível ler o seu acesso de equipe: ${staffLinhas.error.message}`);
+    const { escolherStaffVigente } = await import("@/lib/staff-vigente");
+    const staff = { data: escolherStaffVigente(staffLinhas.data ?? []) };
 
     if (staff.data && staff.data.status !== "active") {
       return {

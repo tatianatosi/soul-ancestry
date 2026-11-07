@@ -51,9 +51,12 @@ export const ROTULO_CAPACIDADE: Record<Capacidade, string> = {
   consultar_arquivados: "Consultar itens arquivados e históricos",
 };
 
-/** Somente o papel admin da própria organização opera no modo proprietária. */
+/** Papéis equivalentes ao da Proprietária Administradora (A01, 04/11/2026). */
+export const PAPEIS_PROPRIETARIA = ["admin", "proprietaria_administradora"] as const;
+
+/** Somente o papel admin (ou seu sinônimo canônico) da própria organização opera no modo proprietária. */
 export function ehProprietariaAdministradora(papel: PapelInterno | null | undefined): boolean {
-  return papel === "admin";
+  return typeof papel === "string" && (PAPEIS_PROPRIETARIA as readonly string[]).includes(papel);
 }
 
 export function capacidadesDe(papel: PapelInterno | null | undefined): Capacidade[] {

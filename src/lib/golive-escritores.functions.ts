@@ -673,6 +673,34 @@ export const registrarAssinaturaContratoGoLive = createServerFn({ method: "POST"
       .select("id, status, signed_at, signature_reference")
       .single();
     erro(r);
+
+    // B08 (05/11/2026): o GoLive gravava o contrato como assinado e parava aí — o caso continuava
+    // `contrato_assinado = false`, e o acesso ao App (que lê esse campo) nunca refletia a assinatura.
+    // Mesma propagação e mesmo aviso de estado parcial de `registrarAssinatura`.
+    const casoRes = await s
+      .from("crm_casos")
+      .update({ contrato_assinado: true })
+      .eq("id", casoId)
+      .eq("organization_id", organizationId)
+      .select("id");
+    if (casoRes.error || !casoRes.data?.length) {
+      throw new Error(
+        `Contrato marcado como assinado, mas o caso não foi atualizado` +
+          `${casoRes.error ? `: ${casoRes.error.message}` : " (nenhuma linha afetada)"}.` +
+          " Estado parcial — revisão humana necessária antes de repetir a ação; o acesso ao App pode não refletir a assinatura.",
+      );
+    }
+    await registrarTimelineCaso(s, {
+      organizationId,
+      caseId: casoId,
+      eventType: "caso",
+      title: "Assinatura externa registrada",
+      summaryInternal: `Origem: ${texto(data.forma) || "ato_formal_manual"}. Referência: ${texto(data.referencia)}. Data: ${texto(data.assinadoEm)}.`,
+      sourceEntityType: "contracts",
+      sourceEntityId: contratoId,
+      userId,
+    });
+
     return {
       id: String(r.data.id),
       status: String(r.data.status ?? ""),

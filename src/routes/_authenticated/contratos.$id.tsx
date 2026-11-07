@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -14,6 +14,7 @@ import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { DocumentoDoInstrumento } from "@/components/contrato/documento-do-instrumento";
+import { DecisaoHumanaAtual } from "@/components/contrato/decisao-humana-atual";
 import { HistoricoImportado } from "@/components/contrato/historico-importado";
 import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
@@ -26,6 +27,7 @@ import {
   ROTULO_ESCOPO_EXCECAO,
   ROTULO_GATE_PESQUISA,
   ROTULO_ORIGEM_ESCOPO,
+  ROTULO_CAPACIDADE_PARTE,
   ROTULO_PAPEL_PARTE,
   ROTULO_SEVERIDADE_VALIDACAO,
   ROTULO_SITUACAO_VALIDACAO,
@@ -41,11 +43,13 @@ import {
   aprovarParaEnvio,
   arquivarContrato,
   arquivarItemContrato,
+  cancelarContrato,
   atualizarContrato,
   baixarVersaoInterna,
   criarExcecao,
   executarValidacoes,
   gerarRascunhoInterno,
+  salvarRascunhoAtual,
   obterContrato,
   registrarDecisaoRevisao,
   salvarItemContrato,
@@ -55,8 +59,12 @@ import {
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
 import { diagnosticarVersaoContratual, versaoMaisRecente } from "@/lib/versao-contratual-vazia";
+import { liberarVersaoAprovadaNoApp } from "@/lib/contrato-liberacao.functions";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
+import { cpfValido, emailValido, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
+import { AvisoCampo, classeCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
+import { CpfMascarado } from "@/components/campos/cpf-mascarado";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
@@ -78,9 +86,20 @@ export const Route = createFileRoute("/_authenticated/contratos/$id")({
   component: ContratoDetalhe,
 });
 
-const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos"] as const;
-const ABAS_AVANCADAS = ["Fontes", "Validações", "Versões", "Revisão"] as const;
-const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
+/**
+ * B06 (05/11/2026): o instrumento é lido em sete cartões, nesta ordem. Fontes das cláusulas ficam dentro do
+ * Texto do contrato; a Validação jurídica da trilha fica dentro de Assinatura, antes da revisão. Mesmos
+ * leitores e gravadores de antes — só muda o agrupamento.
+ */
+const SECOES_CONTRATO = [
+  { id: "contrato-partes", rotulo: "Partes" },
+  { id: "contrato-escopo", rotulo: "Escopo e entregas" },
+  { id: "contrato-condicoes", rotulo: "Condições e vigência" },
+  { id: "contrato-anexos", rotulo: "Anexos e OS" },
+  { id: "contrato-texto", rotulo: "Texto do contrato" },
+  { id: "contrato-assinatura", rotulo: "Assinatura" },
+  { id: "contrato-historico", rotulo: "Histórico" },
+] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -114,16 +133,16 @@ function ContratoDetalhe() {
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const obter = useServerFn(obterContrato);
   const q = useQuery({ queryKey: ["contrato", id], queryFn: () => obter({ data: { id } }) });
-  const [aba, setAba] = useState<(typeof ABAS)[number]>("Resumo");
   const [aviso, setAviso] = useState<string | null>(null);
   const [resumoVersao, setResumoVersao] = useState("");
   const [tituloTarefa, setTituloTarefa] = useState("");
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const abrirHistorico = () => {
     setHistoricoAberto(true);
-    requestAnimationFrame(() => document.getElementById("contrato-versões")?.scrollIntoView({ behavior: "auto", block: "start" }));
+    requestAnimationFrame(() => document.getElementById("contrato-historico")?.scrollIntoView({ behavior: "auto", block: "start" }));
   };
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(resumoVersao.trim() !== "" || tituloTarefa.trim() !== "");
@@ -134,6 +153,7 @@ function ContratoDetalhe() {
   const validar = useServerFn(executarValidacoes);
   const solicitar = useServerFn(solicitarRevisaoHumana);
   const arquivar = useServerFn(arquivarContrato);
+  const cancelar = useServerFn(cancelarContrato);
   const externa = useServerFn(tentarEtapaExterna);
 
   const mGerar = useMutation({
@@ -150,6 +170,19 @@ function ContratoDetalhe() {
             : `Versão ${r.versao} gerada como rascunho interno.`,
       );
       setResumoVersao("");
+      recarregar();
+    },
+    onError: (e: Error) => setAviso(e.message),
+  });
+  const salvarAtual = useServerFn(salvarRascunhoAtual);
+  const mSalvar = useMutation({
+    mutationFn: () => salvarAtual({ data: { contract_id: id } }),
+    onSuccess: (r) => {
+      setAviso(
+        r.pendenciasConciliacao?.length
+          ? `Rascunho salvo na versão ${r.versao}. Pendente para envio (não impede o rascunho): ${r.pendenciasConciliacao.join(" · ")}`
+          : `Rascunho salvo na versão ${r.versao}. Nenhuma versão nova foi criada.`,
+      );
       recarregar();
     },
     onError: (e: Error) => setAviso(e.message),
@@ -257,6 +290,15 @@ function ContratoDetalhe() {
           <div><p className="text-xs text-muted-foreground">Versões registradas</p><p>{d.versoes.length}</p></div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">{c.signed_at ? "Assinatura registrada no instrumento." : "Assinatura não registrada no instrumento."}</p>
+        <DecisaoHumanaAtual
+          status={String(c.status ?? "")}
+          pendenciaChecklist={pendenciaChecklist}
+          motivoCancelamento={(c.cancellation_reason as string | null) ?? null}
+          responsavelUserId={(c.review_owner_user_id as string | null) ?? null}
+          versoes={((d.versoes as any[]) ?? [])
+            .filter((v) => !v?.archived_at)
+            .map((v) => ({ numero: Number(v.version_number), status: String(v.status ?? "") }))}
+        />
         <Button variant="outline" className="mt-3" onClick={abrirHistorico}><History />Rastrear versões do contrato</Button>
         {c.case_id ? <Button variant="outline" className="mt-3 sm:ml-2" asChild><Link to="/pessoas-linhagens/$caseId" params={{ caseId: String(c.case_id) }}>Registrar nascimento com fonte</Link></Button> : null}
         {/*
@@ -379,15 +421,30 @@ function ContratoDetalhe() {
           <input
             value={resumoVersao}
             onChange={(e) => setResumoVersao(e.target.value)}
-            placeholder="Resumo das alterações desta versão (opcional)"
+            placeholder="Resumo das alterações (para “Nova versão”)"
             className="rounded-lg border border-navy/20 px-3 py-2 text-sm md:w-64"
           />
         ) : null}
+        {/* B02 (05/11/2026): "Salvar rascunho" regrava a versão de trabalho aberta; "Nova versão" cria a seguinte. */}
+        {(d.versoes as any[]).length ? (
+          <button
+            onClick={() => mSalvar.mutate()}
+            disabled={mSalvar.isPending}
+            className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90 disabled:opacity-60"
+          >
+            {mSalvar.isPending ? "Salvando…" : "Salvar rascunho"}
+          </button>
+        ) : null}
         <button
           onClick={() => mGerar.mutate((d.versoes as any[]).length ? resumoVersao : undefined)}
-          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
+          disabled={mGerar.isPending}
+          className={
+            (d.versoes as any[]).length
+              ? "rounded-lg border border-navy/30 px-3 py-2 text-sm font-medium text-navy hover:bg-navy/5 disabled:opacity-60"
+              : "rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90 disabled:opacity-60"
+          }
         >
-          Salvar rascunho
+          {(d.versoes as any[]).length ? "Nova versão" : "Criar primeira versão"}
         </button>
         <input
           value={tituloTarefa}
@@ -428,8 +485,24 @@ function ContratoDetalhe() {
             const r = await externa({ data: { contract_id: id, etapa: "envio" } });
             setAviso(r.mensagem);
             recarregar();
+            // B04 (04/11/2026): o rascunho de envio abre direto na fila de atendimento, para aprovar ali.
+            const rascunhoId = (r as { rascunhoId?: string }).rascunhoId;
+            if (rascunhoId) void navigate({ to: "/atendimento", search: { rascunho: rascunhoId } });
           }}
         />
+        {!["signed", "cancelled", "archived"].includes(c.status) ? (
+          <AcaoOperacional
+            rotulo="Cancelar contrato"
+            acaoExterna="excluir_registro_ou_versao"
+            variant="outline"
+            efeito="Marca o instrumento como cancelado, com o motivo. Diferente de arquivar: o registro continua visível no caso e no histórico. Nada é excluído, enviado ou cobrado."
+            onConfirmar={async (motivo) => {
+              await cancelar({ data: { contract_id: id, motivo } });
+              setAviso("Contrato cancelado, com motivo registrado. Nenhum dado foi excluído.");
+              recarregar();
+            }}
+          />
+        ) : null}
         <AcaoOperacional
           rotulo="Arquivar"
           acaoExterna="excluir_registro_ou_versao"
@@ -444,9 +517,13 @@ function ContratoDetalhe() {
       </div>
 
       <nav className="sticky top-0 z-10 mt-6 flex gap-1 overflow-x-auto border-y border-navy/10 bg-background/95 py-2 backdrop-blur" aria-label="Seções do contrato">
-        {[...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS].map((secao) => (
-          <a key={secao} href={`#contrato-${secao.toLowerCase()}`} className="shrink-0 px-3 py-2 text-sm text-navy/65 hover:text-navy">
-            {secao}
+        {SECOES_CONTRATO.map((secao) => (
+          <a
+            key={secao.id}
+            href={`#${secao.id}`}
+            className="inline-flex min-h-11 shrink-0 items-center px-3 text-sm text-navy/65 hover:text-navy"
+          >
+            {secao.rotulo}
           </a>
         ))}
       </nav>
@@ -470,15 +547,32 @@ function ContratoDetalhe() {
       </div>
 
       <div className="mt-4 space-y-5">
-        <div id="contrato-resumo" className="scroll-mt-24"><CaCard titulo="Resumo"><Resumo dados={d} onSalvo={recarregar} /></CaCard></div>
         <div id="contrato-partes" className="scroll-mt-24"><CaCard titulo="Partes"><Partes dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-escopo" className="scroll-mt-24"><CaCard titulo="Escopo e condição comercial"><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-cláusulas" className="scroll-mt-24"><CaCard titulo="Texto do contrato"><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e ordem de serviço"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
-        <div id="contrato-fontes" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details></CaCard></div>
-        <div id="contrato-validações" className="scroll-mt-24"><CaCard titulo="Validação jurídica da trilha"><Validacoes dados={d} /></CaCard></div>
-        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details open={historicoAberto} onToggle={(e) => setHistoricoAberto(e.currentTarget.open)}><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /><HistoricoImportado contratoId={id} /></div></details></CaCard></div>
-        <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
+        <div id="contrato-escopo" className="scroll-mt-24"><CaCard titulo="Escopo e entregas"><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-condicoes" className="scroll-mt-24"><CaCard titulo="Condições e vigência"><Resumo dados={d} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e OS"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-texto" className="scroll-mt-24">
+          <CaCard titulo="Texto do contrato">
+            <Clausulas dados={d} contratoId={id} onSalvo={recarregar} />
+            <details className="mt-5 border-t border-navy/10 pt-4">
+              <summary className="cursor-pointer font-serif text-base text-navy">Fontes das cláusulas</summary>
+              <div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div>
+            </details>
+          </CaCard>
+        </div>
+        <div id="contrato-assinatura" className="scroll-mt-24">
+          <CaCard titulo="Assinatura">
+            <section aria-label="Validação jurídica da trilha">
+              <h3 className="mb-3 font-serif text-base text-navy">Validação jurídica da trilha</h3>
+              <Validacoes dados={d} />
+            </section>
+            <section aria-label="Revisão e assinatura" className="mt-5 border-t border-navy/10 pt-4">
+              <h3 className="mb-3 font-serif text-base text-navy">Revisão e assinatura</h3>
+              <Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} />
+            </section>
+          </CaCard>
+        </div>
+        <div id="contrato-historico" className="scroll-mt-24"><CaCard><details open={historicoAberto} onToggle={(e) => setHistoricoAberto(e.currentTarget.open)}><summary className="cursor-pointer font-serif text-lg text-navy">Histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /><HistoricoImportado contratoId={id} /></div></details></CaCard></div>
       </div>
     </SaasShell>
     </div>
@@ -742,8 +836,14 @@ function CardsPartes({
             </Link>
           ) : null}
           <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-navy/70">
+            {p.document_number && String(p.document_type ?? "cpf").toLowerCase() === "cpf" ? (
+              <>
+                <dt className="text-navy/55">CPF</dt>
+                <dd><CpfMascarado cpf={String(p.document_number)} /></dd>
+              </>
+            ) : null}
             <dt className="text-navy/55">Capacidade</dt>
-            <dd>{p.legal_capacity_status}</dd>
+            <dd>{ROTULO_CAPACIDADE_PARTE[p.legal_capacity_status] ?? "Não registrado"}</dd>
             <dt className="text-navy/55">Assinatura</dt>
             <dd>{p.signature_required ? "requerida" : "não requerida"}</dd>
           </dl>
@@ -773,8 +873,16 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const { erro, salvar, arquivar } = useSalvarItem(contratoId, "contract_parties", onSalvo);
   const [nome, setNome] = useState("");
   const [papel, setPapel] = useState("contracting_client");
+  const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  /* C01 (04/11/2026): validadores canônicos no onChange; o servidor revalida. */
+  const erroCampos =
+    (cpf && !cpfValido(cpf) ? "CPF inválido." : null) ??
+    (telefone && !telefoneValido(telefone) ? "Telefone inválido." : null) ??
+    (email && !emailValido(email) ? "E-mail inválido." : null);
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
-  useAvisoEdicaoNaoSalva(nome.trim() !== "");
+  useAvisoEdicaoNaoSalva(nome.trim() !== "" || cpf !== "" || telefone !== "" || email !== "");
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
@@ -803,7 +911,7 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
                   ) : null}
                 </td>
                 <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
-                <td className="px-3 py-2">{p.legal_capacity_status}</td>
+                <td className="px-3 py-2">{ROTULO_CAPACIDADE_PARTE[p.legal_capacity_status] ?? "Não registrado"}</td>
                 <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>
                 <td className="px-3 py-2 text-right">
                   {!p.archived_at ? (
@@ -844,14 +952,37 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <AcaoOperacional
           rotulo="Adicionar parte"
           capacidade="corrigir_pessoas_dependentes_representacao"
-          validacaoFormulario={nome.trim() ? null : "Informe o nome da parte antes de adicionar."}
+          validacaoFormulario={nome.trim() ? erroCampos : "Informe o nome da parte antes de adicionar."}
           efeito="Cadastra a parte neste instrumento contratual."
           onConfirmar={async () => {
-            if (!nome.trim()) return;
-            await salvar({ person_name: nome, role: papel });
+            if (!nome.trim() || erroCampos) return;
+            await salvar({
+              person_name: nome,
+              role: papel,
+              ...(cpf ? { document_type: "cpf", document_number: cpf } : {}),
+              ...(telefone ? { phone: telefone } : {}),
+              ...(email ? { email } : {}),
+            });
             setNome("");
+            setCpf("");
+            setTelefone("");
+            setEmail("");
           }}
         />
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <div>
+          <input value={cpf} onChange={(e) => setCpf(formatarCpf(e.target.value))} inputMode="numeric" placeholder="CPF (opcional)" aria-label="CPF da parte" className={classeCampo("w-full rounded-lg border border-navy/20 px-3 py-2 text-sm", motivoCampoInvalido("CPF", "cpf", cpf))} />
+          <AvisoCampo motivo={motivoCampoInvalido("CPF", "cpf", cpf)} />
+        </div>
+        <div>
+          <input value={telefone} onChange={(e) => setTelefone(formatarTelefone(e.target.value))} inputMode="tel" placeholder="Telefone (opcional)" aria-label="Telefone da parte" className={classeCampo("w-full rounded-lg border border-navy/20 px-3 py-2 text-sm", motivoCampoInvalido("Telefone", "telefone", telefone))} />
+          <AvisoCampo motivo={motivoCampoInvalido("Telefone", "telefone", telefone)} />
+        </div>
+        <div>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="E-mail (opcional)" aria-label="E-mail da parte" className={classeCampo("w-full rounded-lg border border-navy/20 px-3 py-2 text-sm", motivoCampoInvalido("E-mail", "email", email))} />
+          <AvisoCampo motivo={motivoCampoInvalido("E-mail", "email", email)} />
+        </div>
       </div>
       <p className="text-xs text-navy/60">
         Documento, endereço e telefone das partes são restritos: não vão ao portal do cliente, a exports padrão nem a logs.
@@ -919,7 +1050,7 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
           {["included", "excluded", "pending", "conditional", "not_applicable"].map((v) => (
             <option key={v} value={v}>
-              {v}
+              {ROTULO_STATUS_ESCOPO[v] ?? v}
             </option>
           ))}
         </select>
@@ -1431,6 +1562,7 @@ function Revisao({
 }) {
   const decidir = useServerFn(registrarDecisaoRevisao);
   const aprovar = useServerFn(aprovarParaEnvio);
+  const liberar = useServerFn(liberarVersaoAprovadaNoApp);
   const excecao = useServerFn(criarExcecao);
   const os = useServerFn(salvarOrdemServico);
   // 06/09/2026: "Aprovar para envio" recusava com "Escopo contratado definido" e
@@ -1483,6 +1615,18 @@ function Revisao({
               onSalvo();
             }}
           />
+          {versao.status === "approved_for_send" && versao.id === dados.contrato?.current_version_id ? (
+            <AcaoOperacional
+              rotulo={`Liberar v${versao.version_number} aprovada no App Cliente`}
+              capacidade="aprovar_proposta_os_anexo_previa"
+              efeito="Coloca esta versão aprovada como arquivo privado em Documentos no App da titular. Não envia e-mail, não assina e não cobra."
+              onConfirmar={async () => {
+                const r = await liberar({ data: { contract_id: contratoId } });
+                setAviso(r.jaLiberado ? `A v${r.versao} já estava liberada no App Cliente.` : `v${r.versao} liberada em Documentos no App Cliente.`);
+                onSalvo();
+              }}
+            />
+          ) : null}
         </div>
       </div>
 
