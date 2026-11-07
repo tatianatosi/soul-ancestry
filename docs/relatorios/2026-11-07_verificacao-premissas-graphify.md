@@ -25,10 +25,30 @@ Somente leitura: nenhum arquivo de código foi alterado. Este relatório não su
 
 ## Pontos que pedem decisão da Proprietária
 
-1. **`painel-dia.tsx`.** A regra diz "continua aguardando decisão; não tocar". O arquivo `src/components/painel/painel-dia.tsx` foi alterado por último em 25/10/2026, no commit `ab19c84c` ("Reimplementou checklist de Docs"). Não sei se houve autorização. Conferir.
+1. **Correção sobre `painel-dia.tsx`.** A versão anterior deste relatório dizia que a regra "aguardando decisão; não tocar" tinha sido descumprida. Isso estava errado: `src/lib/orfaos-modulos-classificados.ts` registra que a Proprietária decidiu em 01/11/2026 (N7) que o `painel-dia.tsx` é o desenho anterior, superado, `APOSENTADA_CLASSIFICADA`, não religado e não apagado. A alteração de 25/10 (`ab19c84c`) é anterior a essa decisão. O que sobra é a linha do `AGENTS.md`, que ainda diz "continua aguardando decisão" e está desatualizada em relação ao registro. Atualizar o `AGENTS.md` fica com a Proprietária.
 2. **Legado.** `legacy_record_links` aparece em `types.ts`, `migracao.functions.ts` e `styles.css`. A premissa "legado só em trilha rotulada" não foi verificada a fundo.
-3. **Tabelas e CHECK novos.** Não verificado: exige comparar todas as migrations com `types.ts`. Os 75 `.sql` sem símbolos incluem migrations, então o grafo não cobre essa checagem.
-4. **Premissas não conferidas:** pílula "Visão Concreta", genograma, anos nos cartões da árvore, privacidade do App (conteúdo sanitizado), RLS no servidor, apresentação comercial por identidade do caso.
+3. **Premissas não conferidas:** pílula "Visão Concreta", genograma, anos nos cartões da árvore, privacidade do App (conteúdo sanitizado), RLS no servidor, apresentação comercial por identidade do caso, e vocabulário CHECK novo nas migrations (exige comparar os `CHECK` de todas as migrations, o que esta varredura não fez).
+
+## Tabelas e migrations (segunda rodada, só leitura)
+
+Método: script que lê os 244 arquivos `.sql` de `supabase/migrations/` e `drizzle/migrations/` (sem comentários), compara com `src/integrations/supabase/types.ts` e com os `.from("x")` de `src`. É regex, não um parser de SQL, então vale como triagem.
+
+- `types.ts` lista 195 tabelas e 5 views. As migrations criam 183 tabelas e nenhuma é removida (`drop table`).
+- **13 tabelas existem em `types.ts` sem um `create table` literal:** `audiovisual_records`, `cadastral_records`, `correspondence_records`, `cultural_records`, `education_records`, `historical_context_events`, `military_records`, `notarial_records`, `occupations_assets`, `preserved_objects`, `religious_records`, `residences_migrations`, `social_political_records`. Cada uma aparece em exatamente uma migration, que cria tabelas em laço com `CREATE TABLE IF NOT EXISTS public.%I` (DDL dinâmico). Não há divergência, só o regex não vê.
+- **Sem tabela fantasma no código:** os únicos `.from("x")` com `x` fora das migrations e de `types.ts` são `documentos` e `pesquisa`, e ambos são buckets de storage (`storage.from(...)`), não tabelas.
+- **Tabela fora de `types.ts`?** Nenhuma tabela criada nas migrations falta em `types.ts`. A tabela `contract_history_imports` (criada pelo Lovable, proposta em `supabase/pendentes/`) está em `types.ts` e é usada em `contratos.functions.ts`.
+- **`supabase/pendentes/`:** 13 propostas, e o `README.md` marca todas as de schema como já aplicadas. A única que cria tabela é `contract_history_imports`. Nenhuma adiciona `CHECK` nem tipo novo.
+- **3 tabelas sem nenhuma referência em `src`** (só em `types.ts`, testes e migrations): `incremental_scope`, `legacy_catalog_import`, `source_access_logs`. As duas primeiras têm teste (`p15-legacy-catalog-import-incremental-scope-2026-09-26.test.ts`). Candidatas a classificação, não a remoção: o `AGENTS.md` proíbe exclusão física.
+- Outras 27 tabelas não têm `.from()` literal em `src`, mas são citadas por nome em outros arquivos (por exemplo `microentregas`, em 55). O acesso provavelmente passa por leitores genéricos (`listarRegistros`), então isso não indica órfã.
+
+## Órfãos
+
+Método: módulo de produção em `src` (fora de `routes/` e `integrations/`) que nenhum outro módulo de produção importa.
+
+- 63 candidatos. 21 são componentes de `components/ui/` (primitivos de interface), esperados.
+- Dos 42 restantes, 19 são componentes de negócio sem importador em produção, e **os 19 já têm veredicto em `src/lib/orfaos-modulos-classificados.ts`**: 8 `CASCA_DUPLICADA` ou `AGUARDA_DECISAO` e 11 `APOSENTADA_CLASSIFICADA`, entre eles `painel-dia`, `painel-hoje`, `kanban-tarefas` e `modulos-contextuais`. Cobertos pela regra "religada com prova ou aposentada com classificação".
+- Os outros 23 candidatos não foram listados um a um. Esta varredura acha importação estática; uso por `import()` dinâmico ou por rota gerada pode escapar. Qualquer classificação nova segue a skill `classificar-orfao`.
+- `AGUARDA_DECISAO`: `preview-fixtures.ts` e `painel-top30.tsx`. Dependem de decisão da Proprietária.
 
 ## Como repetir
 
